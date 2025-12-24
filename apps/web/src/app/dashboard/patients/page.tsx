@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useAuth, UserRole } from '@/lib/auth';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import CreatePatientModal from '@/components/dashboard/patients/CreatePatientModal';
@@ -8,16 +9,31 @@ import { FiPlus, FiEdit2 } from 'react-icons/fi';
 import EditPatientModal from '@/components/dashboard/patients/EditPatientModal';
 
 export default function PatientsPage() {
+    const { user } = useAuth();
     const [patients, setPatients] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingPatientId, setEditingPatientId] = useState<number | null>(null);
 
     const fetchPatients = async () => {
+        setLoading(true);
         try {
-            const res = await api.get('/patients');
-            if (res && res.ok) {
-                setPatients(await res.json());
+            if (user?.role === UserRole.ADMIN) {
+                const res = await api.get('/patients');
+                if (res && res.ok) {
+                    setPatients(await res.json());
+                }
+            } else if (user?.role === UserRole.DOCTOR) {
+                // Fetch appointments to find connected patients
+                const res = await api.get('/appointments');
+                if (res && res.ok) {
+                    const appts = await res.json();
+                    const myAppts = appts.filter((a: any) => a.doctor?.user?.email === user.email);
+                    const myPatients = myAppts.map((a: any) => a.patient).filter((p: any, i: number, self: any[]) =>
+                        p && self.findIndex((sp: any) => sp.id === p.id) === i
+                    );
+                    setPatients(myPatients);
+                }
             }
         } catch (err) {
             console.error(err);
@@ -27,20 +43,30 @@ export default function PatientsPage() {
     };
 
     useEffect(() => {
-        fetchPatients();
-    }, []);
+        if (user) {
+            fetchPatients();
+        }
+    }, [user]);
+
+    const isAdmin = user?.role === UserRole.ADMIN;
+
+    if (user?.role === UserRole.PATIENT) {
+        return <div className="p-8 text-center text-gray-500">Access Denied</div>;
+    }
 
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold dark:text-white">Patients Directory</h1>
-                <button
-                    onClick={() => setShowModal(true)}
-                    className="flex items-center gap-2 bg-primary text-black font-bold px-4 py-2 rounded-lg hover:opacity-90 transition"
-                >
-                    <FiPlus />
-                    New Patient
-                </button>
+                {isAdmin && (
+                    <button
+                        onClick={() => setShowModal(true)}
+                        className="flex items-center gap-2 bg-primary text-black font-bold px-4 py-2 rounded-lg hover:opacity-90 transition"
+                    >
+                        <FiPlus />
+                        New Patient
+                    </button>
+                )}
             </div>
 
             <div className="bg-white dark:bg-[#121212] rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden text-sm">
@@ -52,14 +78,14 @@ export default function PatientsPage() {
                             <th className="px-6 py-4">Gender</th>
                             <th className="px-6 py-4">Phone</th>
                             <th className="px-6 py-4">Location</th>
-                            <th className="px-6 py-4 text-center">Actions</th>
+                            {isAdmin && <th className="px-6 py-4 text-center">Actions</th>}
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                         {loading ? (
-                            <tr><td colSpan={6} className="px-6 py-4 text-center">Loading...</td></tr>
+                            <tr><td colSpan={isAdmin ? 6 : 5} className="px-6 py-4 text-center">Loading...</td></tr>
                         ) : patients.length === 0 ? (
-                            <tr><td colSpan={6} className="px-6 py-4 text-center text-gray-500">No patients found</td></tr>
+                            <tr><td colSpan={isAdmin ? 6 : 5} className="px-6 py-4 text-center text-gray-500">No patients found</td></tr>
                         ) : (
                             patients.map((p) => (
                                 <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 group">
@@ -83,15 +109,17 @@ export default function PatientsPage() {
                                     <td className="px-6 py-4 text-gray-500 truncate max-w-[200px]">
                                         {p.address}
                                     </td>
-                                    <td className="px-6 py-4 text-center">
-                                        <button
-                                            onClick={() => setEditingPatientId(p.id)}
-                                            className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition"
-                                            title="Edit Patient"
-                                        >
-                                            <FiEdit2 size={16} />
-                                        </button>
-                                    </td>
+                                    {isAdmin && (
+                                        <td className="px-6 py-4 text-center">
+                                            <button
+                                                onClick={() => setEditingPatientId(p.id)}
+                                                className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition"
+                                                title="Edit Patient"
+                                            >
+                                                <FiEdit2 size={16} />
+                                            </button>
+                                        </td>
+                                    )}
                                 </tr>
                             ))
                         )}

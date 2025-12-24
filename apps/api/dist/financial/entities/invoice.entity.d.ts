@@ -16,6 +16,8 @@ export declare class Invoice {
     items: InvoiceItem[];
     customerMobile: string;
     paymentMethod: string;
+    doctorId: number;
+    commissionAmount: number;
     createdAt: Date;
     updatedAt: Date;
 }

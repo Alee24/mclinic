@@ -22,6 +22,9 @@ let FinancialController = class FinancialController {
     constructor(financialService) {
         this.financialService = financialService;
     }
+    async withdraw(body, req) {
+        return this.financialService.withdrawFunds(req.user.email, body.amount);
+    }
     setConfig(body) {
         return this.financialService.setConfig(body.provider, body.credentials);
     }
@@ -66,6 +69,15 @@ let FinancialController = class FinancialController {
     }
 };
 exports.FinancialController = FinancialController;
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Post)('withdraw'),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], FinancialController.prototype, "withdraw", null);
 __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.Post)('config'),

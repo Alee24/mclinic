@@ -4,13 +4,15 @@ import { ServicePrice } from './entities/service-price.entity';
 import { Transaction } from './entities/transaction.entity';
 import { Invoice } from './entities/invoice.entity';
 import { InvoiceItem } from './entities/invoice-item.entity';
+import { Doctor } from '../doctors/entities/doctor.entity';
 export declare class FinancialService {
     private configRepo;
     private priceRepo;
     private txRepo;
     private invoiceRepo;
     private invoiceItemRepo;
-    constructor(configRepo: Repository<PaymentConfig>, priceRepo: Repository<ServicePrice>, txRepo: Repository<Transaction>, invoiceRepo: Repository<Invoice>, invoiceItemRepo: Repository<InvoiceItem>);
+    private doctorRepo;
+    constructor(configRepo: Repository<PaymentConfig>, priceRepo: Repository<ServicePrice>, txRepo: Repository<Transaction>, invoiceRepo: Repository<Invoice>, invoiceItemRepo: Repository<InvoiceItem>, doctorRepo: Repository<Doctor>);
     setConfig(provider: PaymentProvider, credentials: any): Promise<PaymentConfig>;
     getConfig(provider: PaymentProvider): Promise<PaymentConfig | null>;
     setPrice(serviceName: string, amount: number, doctorId?: number): Promise<ServicePrice>;
@@ -29,6 +31,7 @@ export declare class FinancialService {
     deleteInvoice(id: number): Promise<void>;
     getStats(): Promise<{
         totalRevenue: number;
+        netRevenue: number;
         totalTransactions: number;
         recentTransactions: Transaction[];
         invoices: {
@@ -57,5 +60,10 @@ export declare class FinancialService {
         success: boolean;
         message: string;
         invoice: Invoice;
+    }>;
+    withdrawFunds(userEmail: string, amount: number): Promise<{
+        success: boolean;
+        newBalance: number;
+        transaction: Transaction;
     }>;
 }

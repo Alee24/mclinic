@@ -4,10 +4,13 @@ import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { FiCalendar, FiPlusSquare, FiFileText, FiActivity, FiMapPin, FiClock, FiVideo } from 'react-icons/fi';
 import { useAuth } from '@/lib/auth';
+import Link from 'next/link';
+import BookAppointmentModal from './appointments/BookAppointmentModal';
 
 export default function PatientView() {
     const { user } = useAuth();
     const [nextAppointment, setNextAppointment] = useState<any>(null);
+    const [showBookingModal, setShowBookingModal] = useState(false);
     const [stats, setStats] = useState({
         pendingBills: 0,
         medicalRecords: 2,
@@ -40,7 +43,12 @@ export default function PatientView() {
                         <h1 className="text-4xl md:text-5xl font-black mb-4 leading-tight">Hello, {user?.fname}!</h1>
                         <p className="text-green-50 text-lg font-medium mb-8 max-w-md opacity-90">How are you feeling today? You have one upcoming visit scheduled soon.</p>
                         <div className="flex flex-wrap gap-4">
-                            <button className="bg-white text-donezo-dark px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-green-50 transition-colors shadow-xl">Book Appointment</button>
+                            <button
+                                onClick={() => setShowBookingModal(true)}
+                                className="bg-white text-donezo-dark px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-green-50 transition-colors shadow-xl"
+                            >
+                                Book Appointment
+                            </button>
                             <button className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-8 py-4 rounded-2xl font-bold text-sm uppercase tracking-widest hover:bg-white/20 transition-colors">Emergency</button>
                         </div>
                     </div>
@@ -48,7 +56,7 @@ export default function PatientView() {
                         <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-[28px] p-6 text-white group hover:bg-white/20 transition-all cursor-pointer">
                             <div className="flex items-center justify-between mb-6">
                                 <span className="bg-green-500/30 text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full border border-green-400/30">Next Appointment</span>
-                                <FiCalendar className="text-2xl opacity-50" />
+                                <span className="text-2xl opacity-50"><FiCalendar /></span>
                             </div>
                             <div className="flex items-center gap-4 mb-4">
                                 <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center text-3xl">🧑‍⚕️</div>
@@ -59,11 +67,11 @@ export default function PatientView() {
                             </div>
                             <div className="flex items-center justify-between mt-auto pt-4 border-t border-white/10">
                                 <div className="flex items-center gap-2 text-sm font-bold">
-                                    <FiClock className="text-green-300" />
+                                    <span className="text-green-300"><FiClock /></span>
                                     <span>{nextAppointment.appointment_time}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm font-bold">
-                                    <FiMapPin className="text-green-300" />
+                                    <span className="text-green-300"><FiMapPin /></span>
                                     <span>Nairobi Branch</span>
                                 </div>
                             </div>
@@ -83,7 +91,7 @@ export default function PatientView() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div className="bg-white dark:bg-[#161616] rounded-3xl p-8 border border-gray-100 dark:border-gray-800/60 shadow-sm">
                     <h3 className="text-xl font-black dark:text-white mb-6 flex items-center gap-3">
-                        <FiFileText className="text-donezo-dark" /> Recent History
+                        <span className="text-donezo-dark"><FiFileText /></span> Recent History
                     </h3>
                     <div className="space-y-6">
                         <HistoryItem title="General Consultation" date="Nov 12, 2024" doctor="Dr. Emily Rose" type="Physical" />
@@ -103,6 +111,16 @@ export default function PatientView() {
                     </div>
                 </div>
             </div>
+
+            {showBookingModal && (
+                <BookAppointmentModal
+                    onClose={() => setShowBookingModal(false)}
+                    onSuccess={() => {
+                        setShowBookingModal(false);
+                        // refresh
+                    }}
+                />
+            )}
         </div>
     );
 }
@@ -118,7 +136,7 @@ function QuickCard({ icon, label, value, subLabel, color }: any) {
             <div className="flex justify-between items-start mb-4">
                 <div className="text-2xl opacity-80 group-hover:scale-110 transition-transform">{icon}</div>
                 <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm">
-                    <FiPlusSquare className="text-xl" />
+                    <span className="text-xl"><FiPlusSquare /></span>
                 </div>
             </div>
             <h4 className="text-gray-900 dark:text-white font-black text-2xl mb-1">{value}</h4>

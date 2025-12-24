@@ -7,6 +7,7 @@ import { Transaction, TransactionStatus } from './entities/transaction.entity';
 
 import { Invoice, InvoiceStatus } from './entities/invoice.entity';
 import { InvoiceItem } from './entities/invoice-item.entity';
+import { Doctor } from '../doctors/entities/doctor.entity';
 
 @Injectable()
 export class FinancialService {
@@ -21,6 +22,8 @@ export class FinancialService {
         private invoiceRepo: Repository<Invoice>,
         @InjectRepository(InvoiceItem)
         private invoiceItemRepo: Repository<InvoiceItem>,
+        @InjectRepository(Doctor)
+        private doctorRepo: Repository<Doctor>,
     ) { }
 
     // --- Config Management ---
@@ -203,8 +206,17 @@ export class FinancialService {
             else paymentStats.others += total;
         });
 
+        // Calculate Net Revenue (Commission / 40%)
+        const commissionStats = await this.invoiceRepo
+            .createQueryBuilder('inv')
+            .select('SUM(inv.commissionAmount)', 'total')
+            .where('inv.status = :status', { status: InvoiceStatus.PAID })
+            .getRawOne();
+        const netRevenue = commissionStats ? parseFloat(commissionStats.total) || 0 : 0;
+
         return {
             totalRevenue,
+            netRevenue, // Added
             totalTransactions,
             recentTransactions,
             invoices: {
@@ -283,6 +295,17 @@ export class FinancialService {
                 if (invoice) {
                     // Update invoice status
                     invoice.status = InvoiceStatus.PAID;
+
+                    // Commission Logic: 40% to Platform, 60% to Doctor
+                    if (invoice.doctorId) {
+                        const invAmount = Number(invoice.totalAmount);
+                        const commission = invAmount * 0.40;
+                        const doctorShare = invAmount - commission;
+                        invoice.commissionAmount = commission;
+
+                        await this.doctorRepo.increment({ id: invoice.doctorId }, 'balance', doctorShare);
+                    }
+
                     await this.invoiceRepo.save(invoice);
 
                     // Create transaction record
@@ -319,7 +342,19 @@ export class FinancialService {
         }
 
         // Update invoice
+        // Update invoice
         invoice.status = InvoiceStatus.PAID;
+
+        // Commission Logic: 40% to Platform, 60% to Doctor
+        if (invoice.doctorId) {
+            const amount = Number(invoice.totalAmount);
+            const commission = amount * 0.40;
+            const doctorShare = amount - commission;
+            invoice.commissionAmount = commission;
+
+            await this.doctorRepo.increment({ id: invoice.doctorId }, 'balance', doctorShare);
+        }
+
         await this.invoiceRepo.save(invoice);
 
         // Create transaction record
@@ -337,6 +372,38 @@ export class FinancialService {
             success: true,
             message: 'Payment confirmed successfully',
             invoice
+        };
+    }
+
+    async withdrawFunds(userEmail: string, amount: number) {
+        const doctor = await this.doctorRepo.findOne({ where: { email: userEmail } });
+        if (!doctor) {
+            throw new NotFoundException('Doctor account not found');
+        }
+
+        const balance = Number(doctor.balance);
+        if (balance < amount) {
+            throw new BadRequestException('Insufficient funds');
+        }
+
+        // Deduct from wallet
+        doctor.balance = balance - amount;
+        await this.doctorRepo.save(doctor);
+
+        // Record Transaction
+        const transaction = this.txRepo.create({
+            amount: amount,
+            source: 'WITHDRAWAL',
+            reference: `WDR-${Date.now()}`,
+            status: TransactionStatus.COMPLETED,
+            user: { email: userEmail } as any // Simple link if relation exists, otherwise just reference
+        });
+        await this.txRepo.save(transaction);
+
+        return {
+            success: true,
+            newBalance: doctor.balance,
+            transaction
         };
     }
 }

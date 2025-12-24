@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Query, Patch, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, Query, Patch, Delete, Req } from '@nestjs/common';
 import { FinancialService } from './financial.service';
 import { AuthGuard } from '@nestjs/passport';
 import { PaymentProvider } from './entities/payment-config.entity';
@@ -6,6 +6,12 @@ import { PaymentProvider } from './entities/payment-config.entity';
 @Controller('financial')
 export class FinancialController {
     constructor(private financialService: FinancialService) { }
+
+    @UseGuards(AuthGuard('jwt'))
+    @Post('withdraw')
+    async withdraw(@Body() body: { amount: number }, @Req() req: any) {
+        return this.financialService.withdrawFunds(req.user.email, body.amount);
+    }
 
     @UseGuards(AuthGuard('jwt'))
     @Post('config')

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useAuth, UserRole } from '@/lib/auth';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { FiPlus, FiAlertCircle, FiCheckCircle, FiShield, FiEdit2 } from 'react-icons/fi';
@@ -8,6 +9,7 @@ import CreateDoctorModal from '@/components/dashboard/doctors/CreateDoctorModal'
 import EditDoctorModal from '@/components/dashboard/doctors/EditDoctorModal';
 
 export default function DoctorsPage() {
+    const { user } = useAuth();
     const [doctors, setDoctors] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -28,8 +30,17 @@ export default function DoctorsPage() {
     };
 
     useEffect(() => {
-        fetchDoctors();
-    }, []);
+        if (user && user.role === UserRole.ADMIN) {
+            fetchDoctors();
+        } else {
+            setLoading(false);
+        }
+    }, [user]);
+
+    if (user?.role !== UserRole.ADMIN) {
+        if (loading) return null; // Avoid flashing access denied while checking auth
+        return <div className="p-8 text-center text-gray-500">Access Denied. Admin Only.</div>;
+    }
 
     const handleVerify = async (id: number) => {
         if (!confirm('Verify and Activate this doctor?')) return;

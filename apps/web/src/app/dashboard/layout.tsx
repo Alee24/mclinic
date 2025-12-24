@@ -80,9 +80,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4 px-2">General</div>
                         <nav className="space-y-1">
                             {user.role === UserRole.ADMIN && (
-                                <NavItem href="/dashboard/migration" icon={<FiDatabase />} label="Data Migration" active={pathname === '/dashboard/migration'} />
+                                <>
+                                    <NavItem href="/dashboard/migration" icon={<FiDatabase />} label="Data Migration" active={pathname === '/dashboard/migration'} />
+                                    <NavItem href="/dashboard/finance/settings" icon={<FiSettings />} label="Settings" active={pathname === '/dashboard/finance/settings'} />
+                                </>
                             )}
-                            <NavItem href="/dashboard/finance/settings" icon={<FiSettings />} label="Settings" active={pathname === '/dashboard/finance/settings'} />
                             <NavItem href="#" icon={<FiHelpCircle />} label="Help" active={false} />
                             <button
                                 onClick={logout}

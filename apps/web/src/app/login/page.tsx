@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/auth';
 
 export default function LoginPage() {
     const router = useRouter();
+    const { login } = useAuth();
     const [loading, setLoading] = useState(false);
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -24,9 +26,7 @@ export default function LoginPage() {
 
             if (res.ok) {
                 const data = await res.json();
-                localStorage.setItem('token', data.access_token);
-                localStorage.setItem('user', JSON.stringify(data.user));
-                router.push('/dashboard');
+                login(data.user, data.access_token);
             } else {
                 alert('Login failed');
             }

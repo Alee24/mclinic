@@ -3,6 +3,13 @@ import { PaymentProvider } from './entities/payment-config.entity';
 export declare class FinancialController {
     private financialService;
     constructor(financialService: FinancialService);
+    withdraw(body: {
+        amount: number;
+    }, req: any): Promise<{
+        success: boolean;
+        newBalance: number;
+        transaction: import("./entities/transaction.entity").Transaction;
+    }>;
     setConfig(body: {
         provider: PaymentProvider;
         credentials: any;
@@ -22,6 +29,7 @@ export declare class FinancialController {
     deleteInvoice(id: string): Promise<void>;
     getStats(): Promise<{
         totalRevenue: number;
+        netRevenue: number;
         totalTransactions: number;
         recentTransactions: import("./entities/transaction.entity").Transaction[];
         invoices: {

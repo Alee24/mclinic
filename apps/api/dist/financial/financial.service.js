@@ -21,18 +21,21 @@ const service_price_entity_1 = require("./entities/service-price.entity");
 const transaction_entity_1 = require("./entities/transaction.entity");
 const invoice_entity_1 = require("./entities/invoice.entity");
 const invoice_item_entity_1 = require("./entities/invoice-item.entity");
+const doctor_entity_1 = require("../doctors/entities/doctor.entity");
 let FinancialService = class FinancialService {
     configRepo;
     priceRepo;
     txRepo;
     invoiceRepo;
     invoiceItemRepo;
-    constructor(configRepo, priceRepo, txRepo, invoiceRepo, invoiceItemRepo) {
+    doctorRepo;
+    constructor(configRepo, priceRepo, txRepo, invoiceRepo, invoiceItemRepo, doctorRepo) {
         this.configRepo = configRepo;
         this.priceRepo = priceRepo;
         this.txRepo = txRepo;
         this.invoiceRepo = invoiceRepo;
         this.invoiceItemRepo = invoiceItemRepo;
+        this.doctorRepo = doctorRepo;
     }
     async setConfig(provider, credentials) {
         let config = await this.configRepo.findOne({ where: { provider } });
@@ -186,8 +189,15 @@ let FinancialService = class FinancialService {
             else
                 paymentStats.others += total;
         });
+        const commissionStats = await this.invoiceRepo
+            .createQueryBuilder('inv')
+            .select('SUM(inv.commissionAmount)', 'total')
+            .where('inv.status = :status', { status: invoice_entity_1.InvoiceStatus.PAID })
+            .getRawOne();
+        const netRevenue = commissionStats ? parseFloat(commissionStats.total) || 0 : 0;
         return {
             totalRevenue,
+            netRevenue,
             totalTransactions,
             recentTransactions,
             invoices: {
@@ -249,6 +259,13 @@ let FinancialService = class FinancialService {
                 });
                 if (invoice) {
                     invoice.status = invoice_entity_1.InvoiceStatus.PAID;
+                    if (invoice.doctorId) {
+                        const invAmount = Number(invoice.totalAmount);
+                        const commission = invAmount * 0.40;
+                        const doctorShare = invAmount - commission;
+                        invoice.commissionAmount = commission;
+                        await this.doctorRepo.increment({ id: invoice.doctorId }, 'balance', doctorShare);
+                    }
                     await this.invoiceRepo.save(invoice);
                     const transaction = this.txRepo.create({
                         amount,
@@ -279,6 +296,13 @@ let FinancialService = class FinancialService {
             throw new common_1.BadRequestException('Invoice already paid');
         }
         invoice.status = invoice_entity_1.InvoiceStatus.PAID;
+        if (invoice.doctorId) {
+            const amount = Number(invoice.totalAmount);
+            const commission = amount * 0.40;
+            const doctorShare = amount - commission;
+            invoice.commissionAmount = commission;
+            await this.doctorRepo.increment({ id: invoice.doctorId }, 'balance', doctorShare);
+        }
         await this.invoiceRepo.save(invoice);
         const transaction = this.txRepo.create({
             amount: invoice.totalAmount,
@@ -294,6 +318,31 @@ let FinancialService = class FinancialService {
             invoice
         };
     }
+    async withdrawFunds(userEmail, amount) {
+        const doctor = await this.doctorRepo.findOne({ where: { email: userEmail } });
+        if (!doctor) {
+            throw new common_1.NotFoundException('Doctor account not found');
+        }
+        const balance = Number(doctor.balance);
+        if (balance < amount) {
+            throw new common_1.BadRequestException('Insufficient funds');
+        }
+        doctor.balance = balance - amount;
+        await this.doctorRepo.save(doctor);
+        const transaction = this.txRepo.create({
+            amount: amount,
+            source: 'WITHDRAWAL',
+            reference: `WDR-${Date.now()}`,
+            status: transaction_entity_1.TransactionStatus.COMPLETED,
+            user: { email: userEmail }
+        });
+        await this.txRepo.save(transaction);
+        return {
+            success: true,
+            newBalance: doctor.balance,
+            transaction
+        };
+    }
 };
 exports.FinancialService = FinancialService;
 exports.FinancialService = FinancialService = __decorate([
@@ -303,7 +352,9 @@ exports.FinancialService = FinancialService = __decorate([
     __param(2, (0, typeorm_1.InjectRepository)(transaction_entity_1.Transaction)),
     __param(3, (0, typeorm_1.InjectRepository)(invoice_entity_1.Invoice)),
     __param(4, (0, typeorm_1.InjectRepository)(invoice_item_entity_1.InvoiceItem)),
+    __param(5, (0, typeorm_1.InjectRepository)(doctor_entity_1.Doctor)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,

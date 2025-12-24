@@ -44,6 +44,12 @@ export class Invoice {
     @Column({ nullable: true })
     paymentMethod: string; // e.g., 'MPESA', 'CASH', 'VISA'
 
+    @Column({ nullable: true })
+    doctorId: number; // To link payment to a doctor
+
+    @Column('decimal', { precision: 10, scale: 2, default: 0 })
+    commissionAmount: number; // 40% of the fee
+
     @CreateDateColumn()
     createdAt: Date;
 

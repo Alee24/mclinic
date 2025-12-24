@@ -9,9 +9,10 @@ import { Invoice } from './entities/invoice.entity';
 import { InvoiceItem } from './entities/invoice-item.entity';
 
 import { Wallet } from '../wallets/entities/wallet.entity';
+import { Doctor } from '../doctors/entities/doctor.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([PaymentConfig, ServicePrice, Transaction, Invoice, InvoiceItem, Wallet])],
+    imports: [TypeOrmModule.forFeature([PaymentConfig, ServicePrice, Transaction, Invoice, InvoiceItem, Wallet, Doctor])],
     controllers: [FinancialController],
     providers: [FinancialService],
     exports: [FinancialService],

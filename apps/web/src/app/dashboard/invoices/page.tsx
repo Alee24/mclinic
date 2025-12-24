@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
+import { useAuth, UserRole } from '@/lib/auth';
 import { FiCheck, FiClock, FiX } from 'react-icons/fi';
 
 interface Invoice {
@@ -16,6 +17,7 @@ interface Invoice {
 }
 
 export default function InvoicesPage() {
+    const { user } = useAuth();
     const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [loading, setLoading] = useState(true);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -29,7 +31,11 @@ export default function InvoicesPage() {
         try {
             const res = await api.get('/financial/invoices');
             if (res?.ok) {
-                setInvoices(await res.json());
+                let data = await res.json();
+                if (user?.role !== UserRole.ADMIN) {
+                    data = data.filter((inv: any) => inv.customerEmail === user?.email);
+                }
+                setInvoices(data);
             }
         } catch (err) {
             console.error(err);
@@ -39,8 +45,10 @@ export default function InvoicesPage() {
     };
 
     useEffect(() => {
-        fetchInvoices();
-    }, []);
+        if (user) {
+            fetchInvoices();
+        }
+    }, [user]);
 
     const handlePayment = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -133,10 +141,10 @@ export default function InvoicesPage() {
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className={`px-3 py-1 rounded-full text-xs font-medium uppercase flex items-center gap-1 w-fit ${invoice.status === 'paid'
-                                                ? 'bg-green-100 text-green-700'
-                                                : invoice.status === 'pending'
-                                                    ? 'bg-orange-100 text-orange-700'
-                                                    : 'bg-gray-100 text-gray-700'
+                                            ? 'bg-green-100 text-green-700'
+                                            : invoice.status === 'pending'
+                                                ? 'bg-orange-100 text-orange-700'
+                                                : 'bg-gray-100 text-gray-700'
                                             }`}>
                                             {invoice.status === 'paid' ? <FiCheck /> : <FiClock />}
                                             {invoice.status}

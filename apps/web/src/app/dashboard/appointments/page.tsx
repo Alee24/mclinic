@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
+import { useAuth, UserRole } from '@/lib/auth';
 import { FiVideo } from 'react-icons/fi';
 import Link from 'next/link';
 import CreateAppointmentModal from '@/components/dashboard/appointments/CreateAppointmentModal';
 
 export default function AppointmentsPage() {
+    const { user } = useAuth();
     const [appointments, setAppointments] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -15,7 +17,18 @@ export default function AppointmentsPage() {
         setLoading(true);
         try {
             const aptRes = await api.get('/appointments');
-            if (aptRes?.ok) setAppointments(await aptRes.json());
+            if (aptRes?.ok) {
+                let data = await aptRes.json();
+
+                // Filter based on role
+                if (user?.role === UserRole.PATIENT) {
+                    data = data.filter((apt: any) => apt.patient?.user?.email === user.email);
+                } else if (user?.role === UserRole.DOCTOR) {
+                    data = data.filter((apt: any) => apt.doctor?.user?.email === user.email);
+                }
+
+                setAppointments(data);
+            }
         } catch (err) {
             console.error(err);
         } finally {
@@ -24,19 +37,26 @@ export default function AppointmentsPage() {
     };
 
     useEffect(() => {
-        fetchData();
-    }, []);
+        if (user) {
+            fetchData();
+        }
+    }, [user]);
+
+    const isAdmin = user?.role === UserRole.ADMIN;
+    const isPatient = user?.role === UserRole.PATIENT;
 
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold dark:text-white">Appointments</h1>
-                <button
-                    onClick={() => setShowModal(true)}
-                    className="bg-primary text-black font-bold px-4 py-2 rounded-lg hover:opacity-90 transition"
-                >
-                    + New Booking
-                </button>
+                {!isPatient && (
+                    <button
+                        onClick={() => setShowModal(true)}
+                        className="bg-primary text-black font-bold px-4 py-2 rounded-lg hover:opacity-90 transition"
+                    >
+                        + New Booking
+                    </button>
+                )}
             </div>
 
             <div className="bg-white dark:bg-[#121212] rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
@@ -44,18 +64,18 @@ export default function AppointmentsPage() {
                     <thead className="bg-gray-50 dark:bg-gray-800/50 text-xs uppercase text-gray-500 font-medium">
                         <tr>
                             <th className="px-6 py-4">Patient</th>
-                            <th className="px-6 py-4">Doctor</th>
+                            <th className="px-6 py-4">Medic/Nurse</th>
                             <th className="px-6 py-4">Service</th>
                             <th className="px-6 py-4">Date & Time</th>
                             <th className="px-6 py-4">Status</th>
-                            <th className="px-6 py-4">Actions</th>
+                            {!isPatient && <th className="px-6 py-4">Actions</th>}
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                         {loading ? (
-                            <tr><td colSpan={6} className="px-6 py-4 text-center">Loading...</td></tr>
+                            <tr><td colSpan={isPatient ? 5 : 6} className="px-6 py-4 text-center">Loading...</td></tr>
                         ) : appointments.length === 0 ? (
-                            <tr><td colSpan={6} className="px-6 py-4 text-center text-gray-500">No appointments found</td></tr>
+                            <tr><td colSpan={isPatient ? 5 : 6} className="px-6 py-4 text-center text-gray-500">No appointments found</td></tr>
                         ) : (
                             appointments.map((apt) => (
                                 <tr key={apt.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
@@ -63,7 +83,7 @@ export default function AppointmentsPage() {
                                         {apt.patient ? `${apt.patient.fname} ${apt.patient.lname}` : 'Unknown'}
                                     </td>
                                     <td className="px-6 py-4 text-gray-500">
-                                        {apt.doctor ? `Dr. ${apt.doctor.fname} ${apt.doctor.lname}` : 'Unassigned'}
+                                        {apt.doctor ? `${apt.doctor.fname} ${apt.doctor.lname}` : 'Unassigned'}
                                     </td>
                                     <td className="px-6 py-4 text-gray-500">
                                         <div className="text-sm font-medium">{apt.notes || 'General Consultation'}</div>
@@ -84,20 +104,22 @@ export default function AppointmentsPage() {
                                             {apt.status}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex gap-2 items-center">
-                                            {apt.meetingLink && apt.meetingId ? (
-                                                <Link
-                                                    href={`/dashboard/meetings/${apt.meetingId}`}
-                                                    className="flex items-center gap-1.5 bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-blue-700 transition"
-                                                >
-                                                    <FiVideo /> Join Call
-                                                </Link>
-                                            ) : (
-                                                <span className="text-xs text-gray-400">In-Person</span>
-                                            )}
-                                        </div>
-                                    </td>
+                                    {!isPatient && (
+                                        <td className="px-6 py-4">
+                                            <div className="flex gap-2 items-center">
+                                                {apt.meetingLink && apt.meetingId ? (
+                                                    <Link
+                                                        href={`/dashboard/meetings/${apt.meetingId}`}
+                                                        className="flex items-center gap-1.5 bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-blue-700 transition"
+                                                    >
+                                                        <FiVideo /> Join Call
+                                                    </Link>
+                                                ) : (
+                                                    <span className="text-xs text-gray-400">In-Person</span>
+                                                )}
+                                            </div>
+                                        </td>
+                                    )}
                                 </tr>
                             ))
                         )}

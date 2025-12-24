@@ -30,6 +30,8 @@ let Invoice = class Invoice {
     items;
     customerMobile;
     paymentMethod;
+    doctorId;
+    commissionAmount;
     createdAt;
     updatedAt;
 };
@@ -78,6 +80,14 @@ __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], Invoice.prototype, "paymentMethod", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Number)
+], Invoice.prototype, "doctorId", void 0);
+__decorate([
+    (0, typeorm_1.Column)('decimal', { precision: 10, scale: 2, default: 0 }),
+    __metadata("design:type", Number)
+], Invoice.prototype, "commissionAmount", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)

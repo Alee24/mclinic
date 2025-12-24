@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
+import { useAuth, UserRole } from '@/lib/auth';
 import { FiPlus, FiEdit2, FiTrash2, FiCheckCircle, FiClock, FiAlertTriangle, FiEye } from 'react-icons/fi';
 
 export default function InvoicesPage() {
+    const { user } = useAuth();
     const [invoices, setInvoices] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -23,18 +25,29 @@ export default function InvoicesPage() {
 
     const fetchInvoices = async () => {
         setLoading(true);
-        const res = await api.get('/financial/invoices');
-        if (res && res.ok) {
-            setInvoices(await res.json());
+        try {
+            const res = await api.get('/financial/invoices');
+            if (res && res.ok) {
+                let data = await res.json();
+                if (user?.role !== UserRole.ADMIN) {
+                    data = data.filter((inv: any) => inv.customerEmail === user?.email);
+                }
+                setInvoices(data);
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     useEffect(() => {
-        fetchInvoices();
-        const interval = setInterval(fetchInvoices, 30000); // Poll every 30s
-        return () => clearInterval(interval);
-    }, []);
+        if (user) {
+            fetchInvoices();
+            const interval = setInterval(fetchInvoices, 30000);
+            return () => clearInterval(interval);
+        }
+    }, [user]);
 
     const handleAddItem = () => {
         setFormData({
@@ -131,19 +144,25 @@ export default function InvoicesPage() {
         }
     };
 
+    const isAdmin = user?.role === UserRole.ADMIN;
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold dark:text-white">Financial Invoices</h1>
-                    <p className="text-sm text-gray-500">Manage billings, payments and overdue records.</p>
+                    <p className="text-sm text-gray-500">
+                        {isAdmin ? 'Manage billings, payments and overdue records.' : 'View your billing history and payment status.'}
+                    </p>
                 </div>
-                <button
-                    onClick={() => { resetForm(); setShowModal(true); }}
-                    className="bg-primary text-black font-bold px-4 py-2 rounded-lg hover:opacity-90 transition flex items-center gap-2"
-                >
-                    <FiPlus /> New Invoice
-                </button>
+                {isAdmin && (
+                    <button
+                        onClick={() => { resetForm(); setShowModal(true); }}
+                        className="bg-primary text-black font-bold px-4 py-2 rounded-lg hover:opacity-90 transition flex items-center gap-2"
+                    >
+                        <FiPlus /> New Invoice
+                    </button>
+                )}
             </div>
 
             <div className="bg-white dark:bg-[#121212] rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
@@ -155,14 +174,14 @@ export default function InvoicesPage() {
                             <th className="px-6 py-4">Amount</th>
                             <th className="px-6 py-4">Status</th>
                             <th className="px-6 py-4">Due Date</th>
-                            <th className="px-6 py-4 text-right">Actions</th>
+                            {isAdmin && <th className="px-6 py-4 text-right">Actions</th>}
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                         {loading ? (
-                            <tr><td colSpan={6} className="px-6 py-12 text-center text-gray-500 italic">Fetching invoices...</td></tr>
+                            <tr><td colSpan={isAdmin ? 6 : 5} className="px-6 py-12 text-center text-gray-500 italic">Fetching invoices...</td></tr>
                         ) : invoices.length === 0 ? (
-                            <tr><td colSpan={6} className="px-6 py-12 text-center text-gray-400">No invoices found. Create one to begin.</td></tr>
+                            <tr><td colSpan={isAdmin ? 6 : 5} className="px-6 py-12 text-center text-gray-400">No invoices found.</td></tr>
                         ) : (
                             invoices.map((inv) => (
                                 <tr key={inv.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition">
@@ -189,26 +208,28 @@ export default function InvoicesPage() {
                                     <td className="px-6 py-4 text-sm text-gray-500">
                                         {inv.dueDate ? new Date(inv.dueDate).toLocaleDateString() : 'N/A'}
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex justify-end gap-2">
-                                            <select
-                                                className="text-[10px] bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded px-1 min-w-[80px]"
-                                                value={inv.status}
-                                                onChange={(e) => handleUpdateStatus(inv.id, e.target.value)}
-                                            >
-                                                <option value="pending">Mark Pending</option>
-                                                <option value="paid">Mark Paid</option>
-                                                <option value="overdue">Mark Overdue</option>
-                                                <option value="cancelled">Cancel</option>
-                                            </select>
-                                            <button onClick={() => handleOpenEdit(inv)} className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition" title="Edit">
-                                                <FiEdit2 size={16} />
-                                            </button>
-                                            <button onClick={() => handleDelete(inv.id)} className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition" title="Delete">
-                                                <FiTrash2 size={16} />
-                                            </button>
-                                        </div>
-                                    </td>
+                                    {isAdmin && (
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex justify-end gap-2">
+                                                <select
+                                                    className="text-[10px] bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded px-1 min-w-[80px]"
+                                                    value={inv.status}
+                                                    onChange={(e) => handleUpdateStatus(inv.id, e.target.value)}
+                                                >
+                                                    <option value="pending">Mark Pending</option>
+                                                    <option value="paid">Mark Paid</option>
+                                                    <option value="overdue">Mark Overdue</option>
+                                                    <option value="cancelled">Cancel</option>
+                                                </select>
+                                                <button onClick={() => handleOpenEdit(inv)} className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition" title="Edit">
+                                                    <FiEdit2 size={16} />
+                                                </button>
+                                                <button onClick={() => handleDelete(inv.id)} className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition" title="Delete">
+                                                    <FiTrash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    )}
                                 </tr>
                             ))
                         )}

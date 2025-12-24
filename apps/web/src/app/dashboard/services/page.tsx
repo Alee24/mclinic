@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
+import { useAuth, UserRole } from '@/lib/auth';
 import { FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
 
 interface Service {
@@ -14,6 +15,7 @@ interface Service {
 }
 
 export default function ServicesPage() {
+    const { user } = useAuth();
     const [services, setServices] = useState<Service[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -41,8 +43,17 @@ export default function ServicesPage() {
     };
 
     useEffect(() => {
-        fetchServices();
-    }, []);
+        if (user && user.role === UserRole.ADMIN) {
+            fetchServices();
+        } else {
+            setLoading(false);
+        }
+    }, [user]);
+
+    if (user?.role !== UserRole.ADMIN) {
+        if (loading) return null;
+        return <div className="p-8 text-center text-gray-500">Access Denied. Admin Only.</div>;
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

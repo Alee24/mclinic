@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FiUpload, FiDatabase, FiCheckCircle, FiAlertCircle, FiFileText, FiUsers, FiUser, FiCalendar, FiDollarSign } from 'react-icons/fi';
+import { useAuth, UserRole } from '@/lib/auth';
 
 interface MigrationStats {
     totalRecords: number;
@@ -17,6 +18,7 @@ interface PreviewData {
 }
 
 export default function DataMigrationPage() {
+    const { user } = useAuth();
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [dataType, setDataType] = useState<'users' | 'doctors' | 'appointments' | 'invoices'>('users');
     const [uploading, setUploading] = useState(false);
@@ -25,6 +27,10 @@ export default function DataMigrationPage() {
     const [stats, setStats] = useState<MigrationStats | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
+
+    if (user?.role !== UserRole.ADMIN) {
+        return <div className="p-12 text-center text-gray-500">Access Denied: Admin priviledges required for data migration.</div>;
+    }
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
