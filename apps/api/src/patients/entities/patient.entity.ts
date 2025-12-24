@@ -6,7 +6,7 @@ export class Patient {
     @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })
     id: number;
 
-    @Column({ type: 'bigint', unsigned: true })
+    @Column({ type: 'bigint', unsigned: true, nullable: true })
     user_id: number;
 
     @OneToOne(() => User, { nullable: true, onDelete: 'CASCADE' })
@@ -30,6 +30,9 @@ export class Patient {
 
     @Column({ length: 255, nullable: true })
     address: string;
+
+    @Column({ length: 100, nullable: true })
+    city: string;
 
     @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })
     latitude: number;

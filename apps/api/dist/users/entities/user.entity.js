@@ -25,6 +25,15 @@ let User = class User {
     role;
     status;
     emailVerifiedAt;
+    fname;
+    lname;
+    mobile;
+    dob;
+    sex;
+    address;
+    city;
+    latitude;
+    longitude;
     wallets;
     createdAt;
     updatedAt;
@@ -58,6 +67,42 @@ __decorate([
     (0, typeorm_1.Column)({ type: 'timestamp', nullable: true }),
     __metadata("design:type", Date)
 ], User.prototype, "emailVerifiedAt", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 40, nullable: true }),
+    __metadata("design:type", String)
+], User.prototype, "fname", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 50, nullable: true }),
+    __metadata("design:type", String)
+], User.prototype, "lname", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 40, nullable: true }),
+    __metadata("design:type", String)
+], User.prototype, "mobile", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 20, nullable: true }),
+    __metadata("design:type", String)
+], User.prototype, "dob", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 20, nullable: true }),
+    __metadata("design:type", String)
+], User.prototype, "sex", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 255, nullable: true }),
+    __metadata("design:type", String)
+], User.prototype, "address", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 100, nullable: true }),
+    __metadata("design:type", String)
+], User.prototype, "city", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 8, nullable: true }),
+    __metadata("design:type", Number)
+], User.prototype, "latitude", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 8, nullable: true }),
+    __metadata("design:type", Number)
+], User.prototype, "longitude", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => wallet_entity_1.Wallet, (wallet) => wallet.user),
     __metadata("design:type", Array)

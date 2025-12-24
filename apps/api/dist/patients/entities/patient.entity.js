@@ -22,6 +22,7 @@ let Patient = class Patient {
     dob;
     sex;
     address;
+    city;
     latitude;
     longitude;
     createdAt;
@@ -33,7 +34,7 @@ __decorate([
     __metadata("design:type", Number)
 ], Patient.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'bigint', unsigned: true }),
+    (0, typeorm_1.Column)({ type: 'bigint', unsigned: true, nullable: true }),
     __metadata("design:type", Number)
 ], Patient.prototype, "user_id", void 0);
 __decorate([
@@ -65,6 +66,10 @@ __decorate([
     (0, typeorm_1.Column)({ length: 255, nullable: true }),
     __metadata("design:type", String)
 ], Patient.prototype, "address", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 100, nullable: true }),
+    __metadata("design:type", String)
+], Patient.prototype, "city", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 8, nullable: true }),
     __metadata("design:type", Number)

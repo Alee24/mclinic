@@ -2,7 +2,7 @@ import { DoctorsService } from './doctors.service';
 export declare class DoctorsController {
     private readonly doctorsService;
     constructor(doctorsService: DoctorsService);
-    create(req: any, createDoctorDto: any): Promise<import("./entities/doctor.entity").Doctor>;
+    create(createDoctorDto: any): Promise<import("./entities/doctor.entity").Doctor>;
     findAll(): Promise<any[]>;
     findAllAdmin(): Promise<import("./entities/doctor.entity").Doctor[]>;
     findOne(id: string): Promise<import("./entities/doctor.entity").Doctor | null>;

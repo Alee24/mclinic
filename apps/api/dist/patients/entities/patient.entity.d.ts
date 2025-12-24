@@ -9,6 +9,7 @@ export declare class Patient {
     dob: string;
     sex: string;
     address: string;
+    city: string;
     latitude: number;
     longitude: number;
     createdAt: Date;

@@ -31,6 +31,34 @@ export class User {
     @Column({ type: 'timestamp', nullable: true })
     emailVerifiedAt: Date;
 
+    // Patient-specific fields
+    @Column({ length: 40, nullable: true })
+    fname: string;
+
+    @Column({ length: 50, nullable: true })
+    lname: string;
+
+    @Column({ length: 40, nullable: true })
+    mobile: string;
+
+    @Column({ length: 20, nullable: true })
+    dob: string;
+
+    @Column({ length: 20, nullable: true })
+    sex: string;
+
+    @Column({ length: 255, nullable: true })
+    address: string;
+
+    @Column({ length: 100, nullable: true })
+    city: string;
+
+    @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })
+    latitude: number;
+
+    @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })
+    longitude: number;
+
     @OneToMany(() => Wallet, (wallet) => wallet.user)
     wallets: Wallet[];
 

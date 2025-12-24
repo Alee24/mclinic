@@ -11,6 +11,15 @@ export declare class User {
     role: UserRole;
     status: boolean;
     emailVerifiedAt: Date;
+    fname: string;
+    lname: string;
+    mobile: string;
+    dob: string;
+    sex: string;
+    address: string;
+    city: string;
+    latitude: number;
+    longitude: number;
     wallets: Wallet[];
     createdAt: Date;
     updatedAt: Date;

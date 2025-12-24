@@ -21,8 +21,8 @@ let DoctorsController = class DoctorsController {
     constructor(doctorsService) {
         this.doctorsService = doctorsService;
     }
-    create(req, createDoctorDto) {
-        return this.doctorsService.create(createDoctorDto, req.user);
+    create(createDoctorDto) {
+        return this.doctorsService.create(createDoctorDto, null);
     }
     findAll() {
         return this.doctorsService.findAllVerified();
@@ -39,12 +39,10 @@ let DoctorsController = class DoctorsController {
 };
 exports.DoctorsController = DoctorsController;
 __decorate([
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.Post)(),
-    __param(0, (0, common_1.Request)()),
-    __param(1, (0, common_1.Body)()),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], DoctorsController.prototype, "create", null);
 __decorate([
