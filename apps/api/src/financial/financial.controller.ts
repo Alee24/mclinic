@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, Query, Patch, Delete } from '@nestjs/common';
 import { FinancialService } from './financial.service';
 import { AuthGuard } from '@nestjs/passport';
 import { PaymentProvider } from './entities/payment-config.entity';
@@ -46,6 +46,24 @@ export class FinancialController {
     @Get('invoices')
     getInvoices() {
         return this.financialService.getInvoices();
+    }
+
+    @UseGuards(AuthGuard('jwt'))
+    @Get('invoices/:id')
+    getInvoiceById(@Param('id') id: string) {
+        return this.financialService.getInvoiceById(Number(id));
+    }
+
+    @UseGuards(AuthGuard('jwt'))
+    @Patch('invoices/:id')
+    updateInvoice(@Param('id') id: string, @Body() body: any) {
+        return this.financialService.updateInvoice(Number(id), body);
+    }
+
+    @UseGuards(AuthGuard('jwt'))
+    @Delete('invoices/:id')
+    deleteInvoice(@Param('id') id: string) {
+        return this.financialService.deleteInvoice(Number(id));
     }
 
     @Get('stats')

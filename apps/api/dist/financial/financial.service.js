@@ -20,16 +20,19 @@ const payment_config_entity_1 = require("./entities/payment-config.entity");
 const service_price_entity_1 = require("./entities/service-price.entity");
 const transaction_entity_1 = require("./entities/transaction.entity");
 const invoice_entity_1 = require("./entities/invoice.entity");
+const invoice_item_entity_1 = require("./entities/invoice-item.entity");
 let FinancialService = class FinancialService {
     configRepo;
     priceRepo;
     txRepo;
     invoiceRepo;
-    constructor(configRepo, priceRepo, txRepo, invoiceRepo) {
+    invoiceItemRepo;
+    constructor(configRepo, priceRepo, txRepo, invoiceRepo, invoiceItemRepo) {
         this.configRepo = configRepo;
         this.priceRepo = priceRepo;
         this.txRepo = txRepo;
         this.invoiceRepo = invoiceRepo;
+        this.invoiceItemRepo = invoiceItemRepo;
     }
     async setConfig(provider, credentials) {
         let config = await this.configRepo.findOne({ where: { provider } });
@@ -104,6 +107,41 @@ let FinancialService = class FinancialService {
     async getInvoices() {
         return this.invoiceRepo.find({ order: { createdAt: 'DESC' }, relations: ['items'] });
     }
+    async getInvoiceById(id) {
+        const invoice = await this.invoiceRepo.findOne({ where: { id }, relations: ['items'] });
+        if (!invoice)
+            throw new common_1.NotFoundException('Invoice not found');
+        return invoice;
+    }
+    async updateInvoice(id, data) {
+        const invoice = await this.getInvoiceById(id);
+        if (data.items) {
+            await this.invoiceItemRepo.delete({ invoice: { id: id } });
+            let totalAmount = 0;
+            invoice.items = data.items.map((item) => {
+                const amount = item.quantity * item.unitPrice;
+                totalAmount += amount;
+                return this.invoiceItemRepo.create({
+                    ...item,
+                    amount,
+                });
+            });
+            invoice.totalAmount = totalAmount;
+        }
+        if (data.customerName)
+            invoice.customerName = data.customerName;
+        if (data.customerEmail)
+            invoice.customerEmail = data.customerEmail;
+        if (data.dueDate)
+            invoice.dueDate = data.dueDate;
+        if (data.status)
+            invoice.status = data.status;
+        return this.invoiceRepo.save(invoice);
+    }
+    async deleteInvoice(id) {
+        const invoice = await this.getInvoiceById(id);
+        await this.invoiceRepo.remove(invoice);
+    }
     async getStats() {
         const result = await this.txRepo
             .createQueryBuilder('tx')
@@ -119,6 +157,7 @@ let FinancialService = class FinancialService {
         });
         const pendingInvoices = await this.invoiceRepo.count({ where: { status: invoice_entity_1.InvoiceStatus.PENDING } });
         const paidInvoices = await this.invoiceRepo.count({ where: { status: invoice_entity_1.InvoiceStatus.PAID } });
+        const overdueInvoices = await this.invoiceRepo.count({ where: { status: invoice_entity_1.InvoiceStatus.OVERDUE } });
         const sourceStats = await this.txRepo
             .createQueryBuilder('tx')
             .select('tx.source', 'source')
@@ -154,7 +193,8 @@ let FinancialService = class FinancialService {
             invoices: {
                 pending: pendingInvoices,
                 paid: paidInvoices,
-                total: pendingInvoices + paidInvoices
+                overdue: overdueInvoices,
+                total: pendingInvoices + paidInvoices + overdueInvoices
             },
             paymentStats
         };
@@ -262,7 +302,9 @@ exports.FinancialService = FinancialService = __decorate([
     __param(1, (0, typeorm_1.InjectRepository)(service_price_entity_1.ServicePrice)),
     __param(2, (0, typeorm_1.InjectRepository)(transaction_entity_1.Transaction)),
     __param(3, (0, typeorm_1.InjectRepository)(invoice_entity_1.Invoice)),
+    __param(4, (0, typeorm_1.InjectRepository)(invoice_item_entity_1.InvoiceItem)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository])

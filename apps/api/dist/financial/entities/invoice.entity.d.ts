@@ -2,6 +2,7 @@ import { InvoiceItem } from './invoice-item.entity';
 export declare enum InvoiceStatus {
     PENDING = "pending",
     PAID = "paid",
+    OVERDUE = "overdue",
     CANCELLED = "cancelled"
 }
 export declare class Invoice {

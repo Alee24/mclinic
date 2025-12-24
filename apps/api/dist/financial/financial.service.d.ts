@@ -3,12 +3,14 @@ import { PaymentConfig, PaymentProvider } from './entities/payment-config.entity
 import { ServicePrice } from './entities/service-price.entity';
 import { Transaction } from './entities/transaction.entity';
 import { Invoice } from './entities/invoice.entity';
+import { InvoiceItem } from './entities/invoice-item.entity';
 export declare class FinancialService {
     private configRepo;
     private priceRepo;
     private txRepo;
     private invoiceRepo;
-    constructor(configRepo: Repository<PaymentConfig>, priceRepo: Repository<ServicePrice>, txRepo: Repository<Transaction>, invoiceRepo: Repository<Invoice>);
+    private invoiceItemRepo;
+    constructor(configRepo: Repository<PaymentConfig>, priceRepo: Repository<ServicePrice>, txRepo: Repository<Transaction>, invoiceRepo: Repository<Invoice>, invoiceItemRepo: Repository<InvoiceItem>);
     setConfig(provider: PaymentProvider, credentials: any): Promise<PaymentConfig>;
     getConfig(provider: PaymentProvider): Promise<PaymentConfig | null>;
     setPrice(serviceName: string, amount: number, doctorId?: number): Promise<ServicePrice>;
@@ -22,6 +24,9 @@ export declare class FinancialService {
         items: any[];
     }): Promise<Invoice>;
     getInvoices(): Promise<Invoice[]>;
+    getInvoiceById(id: number): Promise<Invoice>;
+    updateInvoice(id: number, data: any): Promise<Invoice>;
+    deleteInvoice(id: number): Promise<void>;
     getStats(): Promise<{
         totalRevenue: number;
         totalTransactions: number;
@@ -29,6 +34,7 @@ export declare class FinancialService {
         invoices: {
             pending: number;
             paid: number;
+            overdue: number;
             total: number;
         };
         paymentStats: {

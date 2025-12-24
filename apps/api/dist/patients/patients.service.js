@@ -83,6 +83,13 @@ let PatientsService = class PatientsService {
             where: { id: userId, role: user_entity_1.UserRole.PATIENT }
         });
     }
+    async update(id, updateDto) {
+        if (updateDto.password) {
+            updateDto.password = await bcrypt.hash(updateDto.password, 10);
+        }
+        await this.usersRepository.update(id, updateDto);
+        return this.findOne(id);
+    }
 };
 exports.PatientsService = PatientsService;
 exports.PatientsService = PatientsService = __decorate([

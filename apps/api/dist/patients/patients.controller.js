@@ -33,6 +33,9 @@ let PatientsController = class PatientsController {
     getProfile(req) {
         return this.patientsService.findByUserId(req.user.userId);
     }
+    update(id, updatePatientDto) {
+        return this.patientsService.update(+id, updatePatientDto);
+    }
 };
 exports.PatientsController = PatientsController;
 __decorate([
@@ -63,6 +66,14 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], PatientsController.prototype, "getProfile", null);
+__decorate([
+    (0, common_1.Patch)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], PatientsController.prototype, "update", null);
 exports.PatientsController = PatientsController = __decorate([
     (0, common_1.Controller)('patients'),
     __metadata("design:paramtypes", [patients_service_1.PatientsService])

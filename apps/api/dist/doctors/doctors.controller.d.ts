@@ -7,4 +7,5 @@ export declare class DoctorsController {
     findAllAdmin(): Promise<import("./entities/doctor.entity").Doctor[]>;
     findOne(id: string): Promise<import("./entities/doctor.entity").Doctor | null>;
     verifyDoctor(id: string, status: boolean): Promise<import("./entities/doctor.entity").Doctor | null>;
+    update(id: string, updateDoctorDto: any): Promise<import("./entities/doctor.entity").Doctor | null>;
 }

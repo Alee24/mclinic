@@ -6,6 +6,7 @@ import { ServicePrice } from './entities/service-price.entity';
 import { Transaction, TransactionStatus } from './entities/transaction.entity';
 
 import { Invoice, InvoiceStatus } from './entities/invoice.entity';
+import { InvoiceItem } from './entities/invoice-item.entity';
 
 @Injectable()
 export class FinancialService {
@@ -18,6 +19,8 @@ export class FinancialService {
         private txRepo: Repository<Transaction>,
         @InjectRepository(Invoice)
         private invoiceRepo: Repository<Invoice>,
+        @InjectRepository(InvoiceItem)
+        private invoiceItemRepo: Repository<InvoiceItem>,
     ) { }
 
     // --- Config Management ---
@@ -113,6 +116,44 @@ export class FinancialService {
         return this.invoiceRepo.find({ order: { createdAt: 'DESC' }, relations: ['items'] });
     }
 
+    async getInvoiceById(id: number): Promise<Invoice> {
+        const invoice = await this.invoiceRepo.findOne({ where: { id }, relations: ['items'] });
+        if (!invoice) throw new NotFoundException('Invoice not found');
+        return invoice;
+    }
+
+    async updateInvoice(id: number, data: any): Promise<Invoice> {
+        const invoice = await this.getInvoiceById(id);
+
+        if (data.items) {
+            // Delete old items
+            await this.invoiceItemRepo.delete({ invoice: { id: id } });
+
+            let totalAmount = 0;
+            invoice.items = data.items.map((item: any) => {
+                const amount = item.quantity * item.unitPrice;
+                totalAmount += amount;
+                return this.invoiceItemRepo.create({
+                    ...item,
+                    amount,
+                });
+            });
+            invoice.totalAmount = totalAmount;
+        }
+
+        if (data.customerName) invoice.customerName = data.customerName;
+        if (data.customerEmail) invoice.customerEmail = data.customerEmail;
+        if (data.dueDate) invoice.dueDate = data.dueDate;
+        if (data.status) invoice.status = data.status;
+
+        return this.invoiceRepo.save(invoice);
+    }
+
+    async deleteInvoice(id: number): Promise<void> {
+        const invoice = await this.getInvoiceById(id);
+        await this.invoiceRepo.remove(invoice);
+    }
+
     async getStats() {
         // Calculate Total Revenue (Sum of COMPLETED transactions)
         const result = await this.txRepo
@@ -126,14 +167,15 @@ export class FinancialService {
         const recentTransactions = await this.txRepo.find({
             order: { createdAt: 'DESC' },
             take: 5,
-            relations: ['user'] // Assuming user relation exists or can be ignored if simple stats
+            relations: ['user']
         });
 
         // Invoice Stats
         const pendingInvoices = await this.invoiceRepo.count({ where: { status: InvoiceStatus.PENDING } });
         const paidInvoices = await this.invoiceRepo.count({ where: { status: InvoiceStatus.PAID } });
+        const overdueInvoices = await this.invoiceRepo.count({ where: { status: InvoiceStatus.OVERDUE } });
 
-        // Payment Method Stats (Grouping by Source)
+        // Payment Method Stats
         const sourceStats = await this.txRepo
             .createQueryBuilder('tx')
             .select('tx.source', 'source')
@@ -168,7 +210,8 @@ export class FinancialService {
             invoices: {
                 pending: pendingInvoices,
                 paid: paidInvoices,
-                total: pendingInvoices + paidInvoices
+                overdue: overdueInvoices,
+                total: pendingInvoices + paidInvoices + overdueInvoices
             },
             paymentStats
         };

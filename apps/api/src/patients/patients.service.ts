@@ -44,4 +44,12 @@ export class PatientsService {
             where: { id: userId, role: UserRole.PATIENT }
         });
     }
+
+    async update(id: number, updateDto: any): Promise<User | null> {
+        if (updateDto.password) {
+            updateDto.password = await bcrypt.hash(updateDto.password, 10);
+        }
+        await this.usersRepository.update(id, updateDto);
+        return this.findOne(id);
+    }
 }

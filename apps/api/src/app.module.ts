@@ -13,6 +13,7 @@ import { DepartmentsModule } from './departments/departments.module';
 import { SpecialitiesModule } from './specialities/specialities.module';
 import { LocationsModule } from './locations/locations.module';
 import { ServicesModule } from './services/services.module';
+import { MigrationModule } from './migration/migration.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ValidationPipe } from '@nestjs/common';
@@ -43,6 +44,7 @@ import { APP_PIPE } from '@nestjs/core';
     SpecialitiesModule,
     LocationsModule,
     ServicesModule,
+    MigrationModule,
   ],
   controllers: [AppController],
   providers: [

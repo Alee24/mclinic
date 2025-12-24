@@ -1,4 +1,4 @@
-import { Patient } from '../../patients/entities/patient.entity';
+import { User } from '../../users/entities/user.entity';
 import { Doctor } from '../../doctors/entities/doctor.entity';
 export declare enum AppointmentStatus {
     PENDING = "pending",
@@ -8,7 +8,7 @@ export declare enum AppointmentStatus {
 }
 export declare class Appointment {
     id: number;
-    patient: Patient;
+    patient: User;
     patientId: number;
     doctor: Doctor;
     doctorId: number;

@@ -7,4 +7,5 @@ export declare class PatientsService {
     findAll(): Promise<User[]>;
     findOne(id: number): Promise<User | null>;
     findByUserId(userId: number): Promise<User | null>;
+    update(id: number, updateDto: any): Promise<User | null>;
 }

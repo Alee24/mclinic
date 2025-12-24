@@ -16,6 +16,7 @@ var InvoiceStatus;
 (function (InvoiceStatus) {
     InvoiceStatus["PENDING"] = "pending";
     InvoiceStatus["PAID"] = "paid";
+    InvoiceStatus["OVERDUE"] = "overdue";
     InvoiceStatus["CANCELLED"] = "cancelled";
 })(InvoiceStatus || (exports.InvoiceStatus = InvoiceStatus = {}));
 let Invoice = class Invoice {

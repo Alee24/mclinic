@@ -4,12 +4,14 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import CreatePatientModal from '@/components/dashboard/patients/CreatePatientModal';
-import { FiPlus } from 'react-icons/fi';
+import { FiPlus, FiEdit2 } from 'react-icons/fi';
+import EditPatientModal from '@/components/dashboard/patients/EditPatientModal';
 
 export default function PatientsPage() {
     const [patients, setPatients] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [editingPatientId, setEditingPatientId] = useState<number | null>(null);
 
     const fetchPatients = async () => {
         try {
@@ -41,7 +43,7 @@ export default function PatientsPage() {
                 </button>
             </div>
 
-            <div className="bg-white dark:bg-[#121212] rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+            <div className="bg-white dark:bg-[#121212] rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden text-sm">
                 <table className="w-full text-left">
                     <thead className="bg-gray-50 dark:bg-gray-800/50 text-xs uppercase text-gray-500 font-medium">
                         <tr>
@@ -50,7 +52,7 @@ export default function PatientsPage() {
                             <th className="px-6 py-4">Gender</th>
                             <th className="px-6 py-4">Phone</th>
                             <th className="px-6 py-4">Location</th>
-                            <th className="px-6 py-4">Medical</th>
+                            <th className="px-6 py-4 text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -60,37 +62,35 @@ export default function PatientsPage() {
                             <tr><td colSpan={6} className="px-6 py-4 text-center text-gray-500">No patients found</td></tr>
                         ) : (
                             patients.map((p) => (
-                                <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 group cursor-pointer">
+                                <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 group">
                                     <td className="px-6 py-4 font-medium dark:text-white">
-                                        <Link href={`/dashboard/patients/${p.id}`} className="block w-full h-full">
-                                            <div>{p.fname} {p.lname}</div>
-                                            <div className="text-xs text-gray-500">ID: {p.id}</div>
-                                        </Link>
+                                        <div className="flex flex-col">
+                                            <Link href={`/dashboard/patients/${p.id}`} className="hover:underline">
+                                                {p.fname} {p.lname}
+                                            </Link>
+                                            <span className="text-xs text-gray-500">ID: {p.id}</span>
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4 text-gray-500">
-                                        <Link href={`/dashboard/patients/${p.id}`} className="block w-full h-full">
-                                            <div>{p.dob ? new Date(p.dob).toLocaleDateString() : 'N/A'}</div>
-                                        </Link>
+                                        {p.dob ? new Date(p.dob).toLocaleDateString() : 'N/A'}
                                     </td>
                                     <td className="px-6 py-4 text-gray-500 capitalize">
-                                        <Link href={`/dashboard/patients/${p.id}`} className="block w-full h-full">
-                                            {p.sex}
-                                        </Link>
+                                        {p.sex}
                                     </td>
                                     <td className="px-6 py-4 text-gray-500">
-                                        <Link href={`/dashboard/patients/${p.id}`} className="block w-full h-full">
-                                            {p.mobile}
-                                        </Link>
+                                        {p.mobile}
                                     </td>
-                                    <td className="px-6 py-4 text-gray-500 text-sm">
-                                        <Link href={`/dashboard/patients/${p.id}`} className="block w-full h-full">
-                                            {p.address}
-                                        </Link>
+                                    <td className="px-6 py-4 text-gray-500 truncate max-w-[200px]">
+                                        {p.address}
                                     </td>
-                                    <td className="px-6 py-4 text-gray-500 text-sm">
-                                        <Link href={`/dashboard/patients/${p.id}`} className="block w-full h-full">
-                                            <span className="text-xs text-gray-400">View History</span>
-                                        </Link>
+                                    <td className="px-6 py-4 text-center">
+                                        <button
+                                            onClick={() => setEditingPatientId(p.id)}
+                                            className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition"
+                                            title="Edit Patient"
+                                        >
+                                            <FiEdit2 size={16} />
+                                        </button>
                                     </td>
                                 </tr>
                             ))
@@ -104,6 +104,17 @@ export default function PatientsPage() {
                     onClose={() => setShowModal(false)}
                     onSuccess={() => {
                         setShowModal(false);
+                        fetchPatients();
+                    }}
+                />
+            )}
+
+            {editingPatientId && (
+                <EditPatientModal
+                    patientId={editingPatientId}
+                    onClose={() => setEditingPatientId(null)}
+                    onSuccess={() => {
+                        setEditingPatientId(null);
                         fetchPatients();
                     }}
                 />

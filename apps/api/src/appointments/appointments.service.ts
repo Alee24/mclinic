@@ -2,7 +2,6 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DeepPartial } from 'typeorm';
 import { Appointment, AppointmentStatus } from './entities/appointment.entity';
-import { Patient } from '../patients/entities/patient.entity';
 import { Doctor } from '../doctors/entities/doctor.entity';
 import { Service } from '../services/entities/service.entity';
 import { Invoice, InvoiceStatus } from '../financial/entities/invoice.entity';

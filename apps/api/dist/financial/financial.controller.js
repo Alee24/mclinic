@@ -43,6 +43,15 @@ let FinancialController = class FinancialController {
     getInvoices() {
         return this.financialService.getInvoices();
     }
+    getInvoiceById(id) {
+        return this.financialService.getInvoiceById(Number(id));
+    }
+    updateInvoice(id, body) {
+        return this.financialService.updateInvoice(Number(id), body);
+    }
+    deleteInvoice(id) {
+        return this.financialService.deleteInvoice(Number(id));
+    }
     getStats() {
         return this.financialService.getStats();
     }
@@ -110,6 +119,31 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], FinancialController.prototype, "getInvoices", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Get)('invoices/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], FinancialController.prototype, "getInvoiceById", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Patch)('invoices/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], FinancialController.prototype, "updateInvoice", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Delete)('invoices/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], FinancialController.prototype, "deleteInvoice", null);
 __decorate([
     (0, common_1.Get)('stats'),
     __metadata("design:type", Function),

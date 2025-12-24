@@ -22,6 +22,7 @@ const departments_module_1 = require("./departments/departments.module");
 const specialities_module_1 = require("./specialities/specialities.module");
 const locations_module_1 = require("./locations/locations.module");
 const services_module_1 = require("./services/services.module");
+const migration_module_1 = require("./migration/migration.module");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
 const common_2 = require("@nestjs/common");
@@ -55,6 +56,7 @@ exports.AppModule = AppModule = __decorate([
             specialities_module_1.SpecialitiesModule,
             locations_module_1.LocationsModule,
             services_module_1.ServicesModule,
+            migration_module_1.MigrationModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [

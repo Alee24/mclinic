@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { ReactNode } from 'react';
-import { FiGrid, FiList, FiCalendar, FiBarChart2, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiSearch, FiBell, FiMail, FiMap, FiPackage, FiFileText } from 'react-icons/fi';
+import { FiGrid, FiList, FiCalendar, FiBarChart2, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiSearch, FiBell, FiMail, FiMap, FiPackage, FiFileText, FiDatabase } from 'react-icons/fi';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
     return (
@@ -24,7 +24,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                             <NavItem href="/dashboard/patients" icon={<FiList />} label="Patients" />
                             <NavItem href="/dashboard/appointments" icon={<FiCalendar />} label="Appointments" />
                             <NavItem href="/dashboard/services" icon={<FiPackage />} label="Services" />
-                            <NavItem href="/dashboard/invoices" icon={<FiFileText />} label="Invoices" />
+                            <NavItem href="/dashboard/finance/invoices" icon={<FiFileText />} label="Invoices" />
                             <NavItem href="/dashboard/finance/transactions" icon={<FiBarChart2 />} label="Finance" />
                             <NavItem href="/dashboard/doctors" icon={<FiUsers />} label="Doctors" badge="3" />
                             <NavItem href="/dashboard/doctors/map" icon={<FiMap />} label="Live Map" />
@@ -34,6 +34,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     <div>
                         <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4 px-2">General</div>
                         <nav className="space-y-1">
+                            <NavItem href="/dashboard/migration" icon={<FiDatabase />} label="Data Migration" />
                             <NavItem href="/dashboard/finance/settings" icon={<FiSettings />} label="Settings" />
                             <NavItem href="#" icon={<FiHelpCircle />} label="Help" />
                             <button className="w-full flex items-center gap-3 px-3 py-2.5 text-gray-500 hover:text-red-500 transition-colors rounded-xl">

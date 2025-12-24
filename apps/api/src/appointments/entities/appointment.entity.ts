@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { Patient } from '../../patients/entities/patient.entity';
+import { User } from '../../users/entities/user.entity';
 import { Doctor } from '../../doctors/entities/doctor.entity';
 import { Service } from '../../services/entities/service.entity';
 
@@ -15,8 +15,8 @@ export class Appointment {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => Patient)
-    patient: Patient;
+    @ManyToOne(() => User)
+    patient: User;
 
     @Column({ type: 'bigint', unsigned: true })
     patientId: number;

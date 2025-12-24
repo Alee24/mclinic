@@ -1,22 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, ManyToMany, JoinTable, OneToMany } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToMany, JoinTable } from 'typeorm';
 import { Speciality } from '../../specialities/entities/speciality.entity';
 import { DoctorSchedule } from '../../doctor-schedules/entities/doctor-schedule.entity';
 import { DoctorLicence } from '../../doctor-licences/entities/doctor-licence.entity';
-
-
 
 @Entity('doctors')
 export class Doctor {
     @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })
     id: number;
-
-    @Column({ type: 'bigint', unsigned: true })
-    user_id: number;
-
-    @OneToOne(() => User, { nullable: true, onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'user_id' })
-    user: User;
 
     @Column({ length: 40, nullable: true })
     fname: string;
@@ -30,11 +20,23 @@ export class Doctor {
     @Column({ length: 20, nullable: true })
     national_id: string;
 
+    @Column({ length: 40, unique: true })
+    email: string;
+
     @Column({ length: 20, nullable: true })
     dob: string;
 
-    @Column({ length: 20, nullable: true })
-    sex: string;
+    @Column({ length: 50 })
+    reg_code: string;
+
+    @Column({ type: 'tinyint', default: 0 })
+    Verified_status: number;
+
+    @Column({ length: 50, default: 'Pending' })
+    approved_status: string;
+
+    @Column({ length: 255, nullable: true })
+    password: string;
 
     @Column({ length: 40, nullable: true })
     mobile: string;
@@ -42,37 +44,85 @@ export class Doctor {
     @Column({ length: 255, nullable: true })
     address: string;
 
-    @Column({ type: 'text', nullable: true })
-    about: string;
+    @Column({ type: 'decimal', precision: 28, scale: 2, default: 0.00 })
+    balance: number;
 
-    @Column({ length: 50, default: 'Nurse' })
-    dr_type: string;
+    @Column({ length: 20, nullable: true })
+    sex: string;
 
     @Column({ length: 255, nullable: true })
     qualification: string;
 
-    @Column({ default: 1500 })
+    @Column({ length: 255, nullable: true })
+    speciality: string;
+
+    @Column({ length: 50, default: 'Nurse' })
+    dr_type: string;
+
+    @Column({ type: 'text', nullable: true })
+    about: string;
+
+    @Column({ type: 'tinyint', nullable: true })
+    slot_type: number;
+
+    @Column({ type: 'decimal', precision: 10, scale: 6, nullable: true })
+    latitude: number;
+
+    @Column({ type: 'decimal', precision: 10, scale: 6, nullable: true })
+    longitude: number;
+
+    @Column({ type: 'int', default: 1500 })
     fee: number;
 
-    @Column({ type: 'decimal', precision: 28, scale: 2, default: 0.00 })
-    balance: number;
+    @Column({ type: 'text', nullable: true })
+    serial_or_slot: string;
 
-    @Column({ length: 50, default: 'Pending' })
-    approved_status: string;
+    @Column({ length: 40, nullable: true })
+    start_time: string;
 
-    @Column({ default: false })
-    verified_status: boolean;
+    @Column({ length: 40, nullable: true })
+    end_time: string;
 
-    @Column({ default: false })
-    featured: boolean;
+    @Column({ type: 'int', default: 0 })
+    serial_day: number;
 
-    @Column({ default: true })
-    status: boolean;
+    @Column({ type: 'int', default: 0 })
+    max_serial: number;
+
+    @Column({ type: 'int', default: 0 })
+    duration: number;
+
+    @Column({ type: 'int', nullable: true })
+    department_id: number;
+
+    @Column({ type: 'int', nullable: true })
+    location_id: number;
+
+    @Column({ length: 20, nullable: true })
+    licenceNo: string;
+
+    @Column({ type: 'timestamp', nullable: true })
+    licenceExpiry: Date;
+
+    @Column({ length: 100, nullable: true })
+    residance: string;
+
+    @Column({ type: 'tinyint', default: 0 })
+    featured: number;
+
+    @Column({ type: 'tinyint', default: 0 })
+    status: number;
+
+    @CreateDateColumn()
+    created_at: Date;
+
+    @UpdateDateColumn({ nullable: true })
+    updated_at: Date;
 
     @Column({ length: 255, nullable: true })
     profile_image: string;
 
-    // Relations
+    // Relations restored to satisfy compilation
     @ManyToMany(() => Speciality, (speciality) => speciality.doctors)
     @JoinTable({
         name: 'doctor_specialities',
@@ -86,20 +136,4 @@ export class Doctor {
 
     @OneToMany(() => DoctorLicence, (licence) => licence.doctor)
     licences: DoctorLicence[];
-
-    // Live Map / Current Status
-    @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
-    latitude: number;
-
-    @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
-    longitude: number;
-
-    @Column({ default: false })
-    isWorking: boolean;
-
-    @CreateDateColumn()
-    createdAt: Date;
-
-    @UpdateDateColumn()
-    updatedAt: Date;
 }

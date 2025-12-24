@@ -36,6 +36,9 @@ let DoctorsController = class DoctorsController {
     verifyDoctor(id, status) {
         return this.doctorsService.verifyDoctor(+id, status);
     }
+    update(id, updateDoctorDto) {
+        return this.doctorsService.update(+id, updateDoctorDto);
+    }
 };
 exports.DoctorsController = DoctorsController;
 __decorate([
@@ -73,6 +76,14 @@ __decorate([
     __metadata("design:paramtypes", [String, Boolean]),
     __metadata("design:returntype", void 0)
 ], DoctorsController.prototype, "verifyDoctor", null);
+__decorate([
+    (0, common_1.Patch)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], DoctorsController.prototype, "update", null);
 exports.DoctorsController = DoctorsController = __decorate([
     (0, common_1.Controller)('doctors'),
     __metadata("design:paramtypes", [doctors_service_1.DoctorsService])

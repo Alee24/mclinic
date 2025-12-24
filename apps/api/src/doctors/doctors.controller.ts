@@ -32,4 +32,10 @@ export class DoctorsController {
     verifyDoctor(@Param('id') id: string, @Body('status') status: boolean) {
         return this.doctorsService.verifyDoctor(+id, status);
     }
+
+    // @UseGuards(AuthGuard('jwt'))
+    @Patch(':id')
+    update(@Param('id') id: string, @Body() updateDoctorDto: any) {
+        return this.doctorsService.update(+id, updateDoctorDto);
+    }
 }

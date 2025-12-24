@@ -15,4 +15,5 @@ export declare class DoctorsService {
     findOne(id: number): Promise<Doctor | null>;
     findByUserId(userId: number): Promise<Doctor | null>;
     verifyDoctor(id: number, status: boolean): Promise<Doctor | null>;
+    update(id: number, updateDto: any): Promise<Doctor | null>;
 }

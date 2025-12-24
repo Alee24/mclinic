@@ -17,6 +17,9 @@ export declare class FinancialController {
     getTransactions(): Promise<import("./entities/transaction.entity").Transaction[]>;
     createInvoice(body: any): Promise<import("./entities/invoice.entity").Invoice>;
     getInvoices(): Promise<import("./entities/invoice.entity").Invoice[]>;
+    getInvoiceById(id: string): Promise<import("./entities/invoice.entity").Invoice>;
+    updateInvoice(id: string, body: any): Promise<import("./entities/invoice.entity").Invoice>;
+    deleteInvoice(id: string): Promise<void>;
     getStats(): Promise<{
         totalRevenue: number;
         totalTransactions: number;
@@ -24,6 +27,7 @@ export declare class FinancialController {
         invoices: {
             pending: number;
             paid: number;
+            overdue: number;
             total: number;
         };
         paymentStats: {

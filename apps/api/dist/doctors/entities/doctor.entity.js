@@ -11,55 +11,58 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Doctor = void 0;
 const typeorm_1 = require("typeorm");
-const user_entity_1 = require("../../users/entities/user.entity");
 const speciality_entity_1 = require("../../specialities/entities/speciality.entity");
 const doctor_schedule_entity_1 = require("../../doctor-schedules/entities/doctor-schedule.entity");
 const doctor_licence_entity_1 = require("../../doctor-licences/entities/doctor-licence.entity");
 let Doctor = class Doctor {
     id;
-    user_id;
-    user;
     fname;
     lname;
     username;
     national_id;
+    email;
     dob;
-    sex;
+    reg_code;
+    Verified_status;
+    approved_status;
+    password;
     mobile;
     address;
-    about;
-    dr_type;
-    qualification;
-    fee;
     balance;
-    approved_status;
-    verified_status;
+    sex;
+    qualification;
+    speciality;
+    dr_type;
+    about;
+    slot_type;
+    latitude;
+    longitude;
+    fee;
+    serial_or_slot;
+    start_time;
+    end_time;
+    serial_day;
+    max_serial;
+    duration;
+    department_id;
+    location_id;
+    licenceNo;
+    licenceExpiry;
+    residance;
     featured;
     status;
+    created_at;
+    updated_at;
     profile_image;
     specialities;
     schedules;
     licences;
-    latitude;
-    longitude;
-    isWorking;
-    createdAt;
-    updatedAt;
 };
 exports.Doctor = Doctor;
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)({ type: 'bigint', unsigned: true }),
     __metadata("design:type", Number)
 ], Doctor.prototype, "id", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'bigint', unsigned: true }),
-    __metadata("design:type", Number)
-], Doctor.prototype, "user_id", void 0);
-__decorate([
-    (0, typeorm_1.OneToOne)(() => user_entity_1.User, { nullable: true, onDelete: 'CASCADE' }),
-    (0, typeorm_1.JoinColumn)({ name: 'user_id' }),
-    __metadata("design:type", user_entity_1.User)
-], Doctor.prototype, "user", void 0);
 __decorate([
     (0, typeorm_1.Column)({ length: 40, nullable: true }),
     __metadata("design:type", String)
@@ -77,13 +80,29 @@ __decorate([
     __metadata("design:type", String)
 ], Doctor.prototype, "national_id", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ length: 40, unique: true }),
+    __metadata("design:type", String)
+], Doctor.prototype, "email", void 0);
+__decorate([
     (0, typeorm_1.Column)({ length: 20, nullable: true }),
     __metadata("design:type", String)
 ], Doctor.prototype, "dob", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ length: 20, nullable: true }),
+    (0, typeorm_1.Column)({ length: 50 }),
     __metadata("design:type", String)
-], Doctor.prototype, "sex", void 0);
+], Doctor.prototype, "reg_code", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'tinyint', default: 0 }),
+    __metadata("design:type", Number)
+], Doctor.prototype, "Verified_status", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 50, default: 'Pending' }),
+    __metadata("design:type", String)
+], Doctor.prototype, "approved_status", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 255, nullable: true }),
+    __metadata("design:type", String)
+], Doctor.prototype, "password", void 0);
 __decorate([
     (0, typeorm_1.Column)({ length: 40, nullable: true }),
     __metadata("design:type", String)
@@ -93,41 +112,105 @@ __decorate([
     __metadata("design:type", String)
 ], Doctor.prototype, "address", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
-    __metadata("design:type", String)
-], Doctor.prototype, "about", void 0);
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 28, scale: 2, default: 0.00 }),
+    __metadata("design:type", Number)
+], Doctor.prototype, "balance", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ length: 50, default: 'Nurse' }),
+    (0, typeorm_1.Column)({ length: 20, nullable: true }),
     __metadata("design:type", String)
-], Doctor.prototype, "dr_type", void 0);
+], Doctor.prototype, "sex", void 0);
 __decorate([
     (0, typeorm_1.Column)({ length: 255, nullable: true }),
     __metadata("design:type", String)
 ], Doctor.prototype, "qualification", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: 1500 }),
+    (0, typeorm_1.Column)({ length: 255, nullable: true }),
+    __metadata("design:type", String)
+], Doctor.prototype, "speciality", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 50, default: 'Nurse' }),
+    __metadata("design:type", String)
+], Doctor.prototype, "dr_type", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
+    __metadata("design:type", String)
+], Doctor.prototype, "about", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'tinyint', nullable: true }),
+    __metadata("design:type", Number)
+], Doctor.prototype, "slot_type", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 6, nullable: true }),
+    __metadata("design:type", Number)
+], Doctor.prototype, "latitude", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 6, nullable: true }),
+    __metadata("design:type", Number)
+], Doctor.prototype, "longitude", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'int', default: 1500 }),
     __metadata("design:type", Number)
 ], Doctor.prototype, "fee", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'decimal', precision: 28, scale: 2, default: 0.00 }),
-    __metadata("design:type", Number)
-], Doctor.prototype, "balance", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ length: 50, default: 'Pending' }),
+    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
     __metadata("design:type", String)
-], Doctor.prototype, "approved_status", void 0);
+], Doctor.prototype, "serial_or_slot", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: false }),
-    __metadata("design:type", Boolean)
-], Doctor.prototype, "verified_status", void 0);
+    (0, typeorm_1.Column)({ length: 40, nullable: true }),
+    __metadata("design:type", String)
+], Doctor.prototype, "start_time", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: false }),
-    __metadata("design:type", Boolean)
+    (0, typeorm_1.Column)({ length: 40, nullable: true }),
+    __metadata("design:type", String)
+], Doctor.prototype, "end_time", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'int', default: 0 }),
+    __metadata("design:type", Number)
+], Doctor.prototype, "serial_day", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'int', default: 0 }),
+    __metadata("design:type", Number)
+], Doctor.prototype, "max_serial", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'int', default: 0 }),
+    __metadata("design:type", Number)
+], Doctor.prototype, "duration", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'int', nullable: true }),
+    __metadata("design:type", Number)
+], Doctor.prototype, "department_id", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'int', nullable: true }),
+    __metadata("design:type", Number)
+], Doctor.prototype, "location_id", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 20, nullable: true }),
+    __metadata("design:type", String)
+], Doctor.prototype, "licenceNo", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'timestamp', nullable: true }),
+    __metadata("design:type", Date)
+], Doctor.prototype, "licenceExpiry", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 100, nullable: true }),
+    __metadata("design:type", String)
+], Doctor.prototype, "residance", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'tinyint', default: 0 }),
+    __metadata("design:type", Number)
 ], Doctor.prototype, "featured", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: true }),
-    __metadata("design:type", Boolean)
+    (0, typeorm_1.Column)({ type: 'tinyint', default: 0 }),
+    __metadata("design:type", Number)
 ], Doctor.prototype, "status", void 0);
+__decorate([
+    (0, typeorm_1.CreateDateColumn)(),
+    __metadata("design:type", Date)
+], Doctor.prototype, "created_at", void 0);
+__decorate([
+    (0, typeorm_1.UpdateDateColumn)({ nullable: true }),
+    __metadata("design:type", Date)
+], Doctor.prototype, "updated_at", void 0);
 __decorate([
     (0, typeorm_1.Column)({ length: 255, nullable: true }),
     __metadata("design:type", String)
@@ -149,26 +232,6 @@ __decorate([
     (0, typeorm_1.OneToMany)(() => doctor_licence_entity_1.DoctorLicence, (licence) => licence.doctor),
     __metadata("design:type", Array)
 ], Doctor.prototype, "licences", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 7, nullable: true }),
-    __metadata("design:type", Number)
-], Doctor.prototype, "latitude", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 7, nullable: true }),
-    __metadata("design:type", Number)
-], Doctor.prototype, "longitude", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ default: false }),
-    __metadata("design:type", Boolean)
-], Doctor.prototype, "isWorking", void 0);
-__decorate([
-    (0, typeorm_1.CreateDateColumn)(),
-    __metadata("design:type", Date)
-], Doctor.prototype, "createdAt", void 0);
-__decorate([
-    (0, typeorm_1.UpdateDateColumn)(),
-    __metadata("design:type", Date)
-], Doctor.prototype, "updatedAt", void 0);
 exports.Doctor = Doctor = __decorate([
     (0, typeorm_1.Entity)('doctors')
 ], Doctor);
