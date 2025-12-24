@@ -12,4 +12,7 @@ export declare class SeedingController {
             transactions: number;
         };
     }>;
+    clearData(): Promise<{
+        message: string;
+    }>;
 }

@@ -19,6 +19,9 @@ export declare class SeedingService {
     private invoiceRepo;
     private itemRepo;
     constructor(userRepo: Repository<User>, patientRepo: Repository<Patient>, doctorRepo: Repository<Doctor>, appointmentRepo: Repository<Appointment>, recordRepo: Repository<MedicalRecord>, txRepo: Repository<Transaction>, priceRepo: Repository<ServicePrice>, invoiceRepo: Repository<Invoice>, itemRepo: Repository<InvoiceItem>);
+    clearAll(): Promise<{
+        message: string;
+    }>;
     seedAll(): Promise<{
         message: string;
         counts: {

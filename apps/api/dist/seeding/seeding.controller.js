@@ -20,6 +20,9 @@ let SeedingController = class SeedingController {
     async runSeeding() {
         return this.seedingService.seedAll();
     }
+    async clearData() {
+        return this.seedingService.clearAll();
+    }
 };
 exports.SeedingController = SeedingController;
 __decorate([
@@ -28,6 +31,12 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], SeedingController.prototype, "runSeeding", null);
+__decorate([
+    (0, common_1.Post)('clear'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], SeedingController.prototype, "clearData", null);
 exports.SeedingController = SeedingController = __decorate([
     (0, common_1.Controller)('seeding'),
     __metadata("design:paramtypes", [seeding_service_1.SeedingService])

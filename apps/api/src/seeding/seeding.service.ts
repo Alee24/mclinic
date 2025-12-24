@@ -27,21 +27,23 @@ export class SeedingService {
         @InjectRepository(InvoiceItem) private itemRepo: Repository<InvoiceItem>,
     ) { }
 
+    async clearAll() {
+        await this.itemRepo.delete({ id: MoreThanOrEqual(0) });
+        await this.invoiceRepo.delete({ id: MoreThanOrEqual(0) });
+        await this.txRepo.delete({ id: MoreThanOrEqual(0) });
+        await this.recordRepo.delete({ id: MoreThanOrEqual(0) });
+        await this.appointmentRepo.delete({ id: MoreThanOrEqual(0) });
+        await this.doctorRepo.delete({ id: MoreThanOrEqual(0) });
+        await this.patientRepo.delete({ id: MoreThanOrEqual(0) });
+        await this.priceRepo.delete({ id: MoreThanOrEqual(0) });
+        await this.userRepo.delete({ id: MoreThanOrEqual(0) });
+        return { message: 'All data dropped successfully.' };
+    }
+
     async seedAll() {
         try {
             // 0. CLEAR DATA
-            await this.itemRepo.delete({ id: MoreThanOrEqual(0) });
-            await this.invoiceRepo.delete({ id: MoreThanOrEqual(0) });
-            await this.txRepo.delete({ id: MoreThanOrEqual(0) });
-            await this.recordRepo.delete({ id: MoreThanOrEqual(0) });
-            await this.appointmentRepo.delete({ id: MoreThanOrEqual(0) });
-            await this.doctorRepo.delete({ id: MoreThanOrEqual(0) });
-            await this.patientRepo.delete({ id: MoreThanOrEqual(0) });
-            await this.priceRepo.delete({ id: MoreThanOrEqual(0) });
-            await this.userRepo.delete({ id: MoreThanOrEqual(0) });
-            // await this.locationRepo.delete({}); // If injected
-            // await this.departmentRepo.delete({}); // If injected
-            // await this.specialityRepo.delete({}); // If injected
+            await this.clearAll();
 
             console.log('Cleared all data');
 

@@ -81,17 +81,21 @@ let SeedingService = class SeedingService {
         this.invoiceRepo = invoiceRepo;
         this.itemRepo = itemRepo;
     }
+    async clearAll() {
+        await this.itemRepo.delete({ id: (0, typeorm_2.MoreThanOrEqual)(0) });
+        await this.invoiceRepo.delete({ id: (0, typeorm_2.MoreThanOrEqual)(0) });
+        await this.txRepo.delete({ id: (0, typeorm_2.MoreThanOrEqual)(0) });
+        await this.recordRepo.delete({ id: (0, typeorm_2.MoreThanOrEqual)(0) });
+        await this.appointmentRepo.delete({ id: (0, typeorm_2.MoreThanOrEqual)(0) });
+        await this.doctorRepo.delete({ id: (0, typeorm_2.MoreThanOrEqual)(0) });
+        await this.patientRepo.delete({ id: (0, typeorm_2.MoreThanOrEqual)(0) });
+        await this.priceRepo.delete({ id: (0, typeorm_2.MoreThanOrEqual)(0) });
+        await this.userRepo.delete({ id: (0, typeorm_2.MoreThanOrEqual)(0) });
+        return { message: 'All data dropped successfully.' };
+    }
     async seedAll() {
         try {
-            await this.itemRepo.delete({ id: (0, typeorm_2.MoreThanOrEqual)(0) });
-            await this.invoiceRepo.delete({ id: (0, typeorm_2.MoreThanOrEqual)(0) });
-            await this.txRepo.delete({ id: (0, typeorm_2.MoreThanOrEqual)(0) });
-            await this.recordRepo.delete({ id: (0, typeorm_2.MoreThanOrEqual)(0) });
-            await this.appointmentRepo.delete({ id: (0, typeorm_2.MoreThanOrEqual)(0) });
-            await this.doctorRepo.delete({ id: (0, typeorm_2.MoreThanOrEqual)(0) });
-            await this.patientRepo.delete({ id: (0, typeorm_2.MoreThanOrEqual)(0) });
-            await this.priceRepo.delete({ id: (0, typeorm_2.MoreThanOrEqual)(0) });
-            await this.userRepo.delete({ id: (0, typeorm_2.MoreThanOrEqual)(0) });
+            await this.clearAll();
             console.log('Cleared all data');
             const patients = [];
             const adminPassword = await bcrypt.hash('Digital2025', 10);

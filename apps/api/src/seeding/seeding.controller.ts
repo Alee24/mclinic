@@ -9,4 +9,9 @@ export class SeedingController {
     async runSeeding() {
         return this.seedingService.seedAll();
     }
+
+    @Post('clear')
+    async clearData() {
+        return this.seedingService.clearAll();
+    }
 }
