@@ -1,8 +1,30 @@
+'use client';
+
 import Link from 'next/link';
-import { ReactNode } from 'react';
-import { FiGrid, FiList, FiCalendar, FiBarChart2, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiSearch, FiBell, FiMail, FiMap, FiPackage, FiFileText, FiDatabase } from 'react-icons/fi';
+import { ReactNode, useEffect } from 'react';
+import { FiGrid, FiList, FiCalendar, FiBarChart2, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiSearch, FiBell, FiMail, FiMap, FiPackage, FiFileText, FiDatabase, FiPlusCircle, FiUser } from 'react-icons/fi';
+import { useAuth, UserRole } from '@/lib/auth';
+import { usePathname, useRouter } from 'next/navigation';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
+    const { user, loading, logout } = useAuth();
+    const router = useRouter();
+    const pathname = usePathname();
+
+    useEffect(() => {
+        if (!loading && !user) {
+            router.push('/login');
+        }
+    }, [user, loading, router]);
+
+    if (loading || !user) {
+        return (
+            <div className="h-screen w-full flex items-center justify-center bg-gray-50 dark:bg-black">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-donezo-dark"></div>
+            </div>
+        );
+    }
+
     return (
         <div className="flex h-screen bg-[#F8FAFC] dark:bg-[#0a0a0a] text-gray-800 dark:text-gray-200 font-sans">
             {/* Sidebar */}
@@ -20,25 +42,55 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     <div>
                         <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4 px-2">Menu</div>
                         <nav className="space-y-1">
-                            <NavItem href="/dashboard" icon={<FiGrid />} label="Dashboard" active />
-                            <NavItem href="/dashboard/patients" icon={<FiList />} label="Patients" />
-                            <NavItem href="/dashboard/appointments" icon={<FiCalendar />} label="Appointments" />
-                            <NavItem href="/dashboard/services" icon={<FiPackage />} label="Services" />
-                            <NavItem href="/dashboard/finance/invoices" icon={<FiFileText />} label="Invoices" />
-                            <NavItem href="/dashboard/finance/transactions" icon={<FiBarChart2 />} label="Finance" />
-                            <NavItem href="/dashboard/doctors" icon={<FiUsers />} label="Doctors" badge="3" />
-                            <NavItem href="/dashboard/doctors/map" icon={<FiMap />} label="Live Map" />
+                            <NavItem href="/dashboard" icon={<FiGrid />} label="Dashboard" active={pathname === '/dashboard'} />
+
+                            {user.role === UserRole.ADMIN && (
+                                <>
+                                    <NavItem href="/dashboard/patients" icon={<FiList />} label="Patients" active={pathname === '/dashboard/patients'} />
+                                    <NavItem href="/dashboard/appointments" icon={<FiCalendar />} label="Appointments" active={pathname === '/dashboard/appointments'} />
+                                    <NavItem href="/dashboard/services" icon={<FiPackage />} label="Services" active={pathname === '/dashboard/services'} />
+                                    <NavItem href="/dashboard/finance/invoices" icon={<FiFileText />} label="Invoices" active={pathname === '/dashboard/finance/invoices'} />
+                                    <NavItem href="/dashboard/finance/transactions" icon={<FiBarChart2 />} label="Finance" active={pathname === '/dashboard/finance/transactions'} />
+                                    <NavItem href="/dashboard/doctors" icon={<FiUsers />} label="Doctors" active={pathname === '/dashboard/doctors'} />
+                                    <NavItem href="/dashboard/doctors/map" icon={<FiMap />} label="Live Map" />
+                                </>
+                            )}
+
+                            {user.role === UserRole.DOCTOR && (
+                                <>
+                                    <NavItem href="/dashboard/appointments" icon={<FiCalendar />} label="My Appointments" active={pathname === '/dashboard/appointments'} />
+                                    <NavItem href="/dashboard/patients" icon={<FiList />} label="My Patients" active={pathname === '/dashboard/patients'} />
+                                    <NavItem href="/dashboard/profile" icon={<FiUser />} label="My Profile" active={pathname === '/dashboard/profile'} />
+                                    <NavItem href="/dashboard/finance/transactions" icon={<FiBarChart2 />} label="Earnings" active={pathname === '/dashboard/finance/transactions'} />
+                                </>
+                            )}
+
+                            {user.role === UserRole.PATIENT && (
+                                <>
+                                    <NavItem href="/dashboard/appointments" icon={<FiCalendar />} label="Book/My Visits" active={pathname === '/dashboard/appointments'} />
+                                    <NavItem href="/dashboard/invoices" icon={<FiFileText />} label="My Invoices" active={pathname === '/dashboard/invoices'} />
+                                    <NavItem href="/dashboard/records" icon={<FiPlusCircle />} label="Medical Records" active={pathname === '/dashboard/records'} />
+                                    <NavItem href="/dashboard/profile" icon={<FiUser />} label="My Profile" active={pathname === '/dashboard/profile'} />
+                                </>
+                            )}
                         </nav>
                     </div>
 
                     <div>
                         <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4 px-2">General</div>
                         <nav className="space-y-1">
-                            <NavItem href="/dashboard/migration" icon={<FiDatabase />} label="Data Migration" />
-                            <NavItem href="/dashboard/finance/settings" icon={<FiSettings />} label="Settings" />
-                            <NavItem href="#" icon={<FiHelpCircle />} label="Help" />
-                            <button className="w-full flex items-center gap-3 px-3 py-2.5 text-gray-500 hover:text-red-500 transition-colors rounded-xl">
-                                <FiLogOut className="w-5 h-5" />
+                            {user.role === UserRole.ADMIN && (
+                                <NavItem href="/dashboard/migration" icon={<FiDatabase />} label="Data Migration" active={pathname === '/dashboard/migration'} />
+                            )}
+                            <NavItem href="/dashboard/finance/settings" icon={<FiSettings />} label="Settings" active={pathname === '/dashboard/finance/settings'} />
+                            <NavItem href="#" icon={<FiHelpCircle />} label="Help" active={false} />
+                            <button
+                                onClick={logout}
+                                className="w-full flex items-center gap-3 px-3 py-2.5 text-gray-500 hover:text-red-500 transition-colors rounded-xl"
+                            >
+                                <span className="text-xl text-gray-400 group-hover:text-red-500">
+                                    <FiLogOut />
+                                </span>
                                 <span className="font-medium text-sm">Logout</span>
                             </button>
                         </nav>
@@ -49,7 +101,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 <div className="mt-6 bg-[#161616] rounded-2xl p-5 text-white relative overflow-hidden">
                     <div className="relative z-10">
                         <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center mb-3">
-                            <FiGrid className="text-white" />
+                            <FiGrid />
                         </div>
                         <h4 className="font-semibold mb-1 text-sm">Download our Mobile App</h4>
                         <p className="text-xs text-gray-400 mb-3">Get easy in another way</p>
@@ -68,10 +120,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 <header className="h-20 flex items-center justify-between px-8 bg-transparent">
                     {/* Search */}
                     <div className="flex items-center bg-white dark:bg-[#161616] rounded-full px-4 py-2.5 w-96 shadow-sm border border-gray-100 dark:border-gray-800">
-                        <FiSearch className="text-gray-400 w-5 h-5" />
+                        <span className="text-gray-400 text-xl font-bold flex items-center">
+                            <FiSearch />
+                        </span>
                         <input
                             type="text"
-                            placeholder="Search task"
+                            placeholder="Search everything..."
                             className="bg-transparent border-none focus:ring-0 text-sm ml-3 flex-1 placeholder-gray-400 text-gray-700 dark:text-gray-200"
                         />
                         <kbd className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 text-xs text-gray-400 bg-gray-50 dark:bg-gray-800 rounded">
@@ -91,12 +145,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         </div>
                         <div className="flex items-center gap-3 pl-6 border-l border-gray-200 dark:border-gray-700">
                             <div className="text-right hidden md:block">
-                                <div className="text-sm font-bold text-gray-900 dark:text-white">Admin User</div>
-                                <div className="text-xs text-gray-500">admin@mclinic.com</div>
+                                <div className="text-sm font-bold text-gray-900 dark:text-white capitalize">{user.fname} {user.lname || user.role}</div>
+                                <div className="text-xs text-gray-500">{user.email}</div>
                             </div>
                             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-green-400 to-blue-500 p-0.5">
                                 <div className="w-full h-full rounded-full bg-white dark:bg-gray-900 border-2 border-transparent overflow-hidden">
-                                    <img src="https://ui-avatars.com/api/?name=Admin+User&background=random" alt="Admin" className="w-full h-full object-cover" />
+                                    <img src={`https://ui-avatars.com/api/?name=${user.fname}+${user.lname || user.role}&background=random`} alt="Profile" className="w-full h-full object-cover" />
                                 </div>
                             </div>
                         </div>
@@ -117,7 +171,7 @@ function NavItem({ href, icon, label, active, badge }: { href: string; icon: any
         <Link
             href={href}
             className={`flex items-center justify-between px-3 py-2.5 rounded-xl transition-all group ${active
-                ? 'text-donezo-dark font-bold relative'
+                ? 'bg-donezo-dark/10 text-donezo-dark font-bold relative'
                 : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
                 }`}
         >

@@ -97,17 +97,71 @@ let SeedingService = class SeedingService {
         try {
             await this.clearAll();
             console.log('Cleared all data');
+            const docPassword = await bcrypt.hash('Digital2025', 10);
+            const docUser = this.userRepo.create({
+                email: 'doctor@mclinic.com',
+                password: docPassword,
+                role: user_entity_1.UserRole.DOCTOR,
+                status: true,
+                fname: 'John',
+                lname: 'Smith',
+            });
+            await this.userRepo.save(docUser);
+            const testDoc = this.doctorRepo.create({
+                user: docUser,
+                fname: 'John',
+                lname: 'Smith',
+                dr_type: 'General Physician',
+                reg_code: 'MD-777',
+                mobile: '0711111111',
+                email: 'doctor@mclinic.com',
+                Verified_status: 1,
+                latitude: -1.286389,
+                longitude: 36.817223,
+                isWorking: true,
+                balance: 0,
+                fee: 2000,
+                qualification: 'MBBS',
+                about: 'Experienced general physician.',
+                status: 1,
+            });
+            await this.doctorRepo.save(testDoc);
+            console.log('Created Test Doctor Account: doctor@mclinic.com / Digital2025');
+            const patPassword = await bcrypt.hash('Digital2025', 10);
+            const patUser = this.userRepo.create({
+                email: 'patient@mclinic.com',
+                password: patPassword,
+                role: user_entity_1.UserRole.PATIENT,
+                status: true,
+                fname: 'Jane',
+                lname: 'Doe',
+            });
+            await this.userRepo.save(patUser);
+            const testPat = this.patientRepo.create({
+                user: patUser,
+                fname: 'Jane',
+                lname: 'Doe',
+                mobile: '0722222222',
+                dob: '1990-01-01',
+                sex: 'Female',
+                address: '123 Test Street',
+                emergencyContactPhone: '0733333333',
+            });
+            await this.patientRepo.save(testPat);
+            console.log('Created Test Patient Account: patient@mclinic.com / Digital2025');
             const patients = [];
             const adminPassword = await bcrypt.hash('Digital2025', 10);
             const adminUser = this.userRepo.create({
-                email: 'sadmin@mclinic.com',
+                email: 'mettoalex@gmail.com',
                 password: adminPassword,
                 role: user_entity_1.UserRole.ADMIN,
                 status: true,
+                fname: 'Alex',
+                lname: 'Metto',
                 emailVerifiedAt: new Date(),
             });
             await this.userRepo.save(adminUser);
-            console.log('Created Admin Account: sadmin@mclinic.com / Digital2025');
+            console.log('Created Admin Account: mettoalex@gmail.com / Digital2025');
             for (let i = 0; i < 15; i++) {
                 const email = faker_1.faker.internet.email();
                 const password = await bcrypt.hash('Digital2025', 10);
