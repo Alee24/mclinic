@@ -26,9 +26,14 @@ let Appointment = class Appointment {
     patientId;
     doctor;
     doctorId;
-    dateTime;
+    serviceId;
+    appointment_date;
+    appointment_time;
+    fee;
     status;
     notes;
+    meetingLink;
+    meetingId;
     createdAt;
     updatedAt;
 };
@@ -42,7 +47,7 @@ __decorate([
     __metadata("design:type", patient_entity_1.Patient)
 ], Appointment.prototype, "patient", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ type: 'bigint', unsigned: true }),
     __metadata("design:type", Number)
 ], Appointment.prototype, "patientId", void 0);
 __decorate([
@@ -50,13 +55,25 @@ __decorate([
     __metadata("design:type", doctor_entity_1.Doctor)
 ], Appointment.prototype, "doctor", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ type: 'bigint', unsigned: true }),
     __metadata("design:type", Number)
 ], Appointment.prototype, "doctorId", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'datetime' }),
+    (0, typeorm_1.Column)({ type: 'bigint', unsigned: true, nullable: true }),
+    __metadata("design:type", Number)
+], Appointment.prototype, "serviceId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'date', nullable: true }),
     __metadata("design:type", Date)
-], Appointment.prototype, "dateTime", void 0);
+], Appointment.prototype, "appointment_date", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 40, nullable: true }),
+    __metadata("design:type", String)
+], Appointment.prototype, "appointment_time", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: 0 }),
+    __metadata("design:type", Number)
+], Appointment.prototype, "fee", void 0);
 __decorate([
     (0, typeorm_1.Column)({
         type: 'enum',
@@ -69,6 +86,14 @@ __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], Appointment.prototype, "notes", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Appointment.prototype, "meetingLink", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Appointment.prototype, "meetingId", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)

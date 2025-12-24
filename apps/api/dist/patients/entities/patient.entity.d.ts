@@ -1,23 +1,16 @@
 import { User } from '../../users/entities/user.entity';
 export declare class Patient {
     id: number;
+    user_id: number;
     user: User;
-    userId: number;
-    firstName: string;
-    lastName: string;
-    dateOfBirth: Date;
-    gender: string;
-    phoneNumber: string;
-    bloodType: string;
+    fname: string;
+    lname: string;
+    mobile: string;
+    dob: string;
+    sex: string;
     address: string;
-    city: string;
-    maritalStatus: string;
-    occupation: string;
-    emergencyContactName: string;
-    emergencyContactPhone: string;
-    emergencyContactRelation: string;
-    allergies: string;
-    existingConditions: string;
+    latitude: number;
+    longitude: number;
     createdAt: Date;
     updatedAt: Date;
 }

@@ -1,62 +1,43 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
-@Entity()
+@Entity('patients')
 export class Patient {
-    @PrimaryGeneratedColumn()
+    @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })
     id: number;
 
-    @OneToOne(() => User, { nullable: true })
-    @JoinColumn()
+    @Column({ type: 'bigint', unsigned: true })
+    user_id: number;
+
+    @OneToOne(() => User, { nullable: true, onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'user_id' })
     user: User;
 
-    @Column({ nullable: true })
-    userId: number;
+    @Column({ length: 40, nullable: true })
+    fname: string;
 
-    @Column()
-    firstName: string;
+    @Column({ length: 50, nullable: true })
+    lname: string;
 
-    @Column()
-    lastName: string;
+    @Column({ length: 40, nullable: true })
+    mobile: string;
 
-    @Column({ type: 'date', nullable: true })
-    dateOfBirth: Date;
+    @Column({ length: 20, nullable: true })
+    dob: string;
 
-    @Column({ nullable: true })
-    gender: string;
+    @Column({ length: 20, nullable: true })
+    sex: string;
 
-    @Column({ nullable: true })
-    phoneNumber: string;
-
-    @Column({ nullable: true })
-    bloodType: string;
-
-    @Column({ nullable: true })
+    @Column({ length: 255, nullable: true })
     address: string;
 
-    @Column({ nullable: true })
-    city: string;
+    @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })
+    latitude: number;
 
-    @Column({ nullable: true })
-    maritalStatus: string;
+    @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })
+    longitude: number;
 
-    @Column({ nullable: true })
-    occupation: string;
 
-    @Column({ nullable: true })
-    emergencyContactName: string;
-
-    @Column({ nullable: true })
-    emergencyContactPhone: string;
-
-    @Column({ nullable: true })
-    emergencyContactRelation: string;
-
-    @Column({ nullable: true, type: 'text' })
-    allergies: string;
-
-    @Column({ nullable: true, type: 'text' })
-    existingConditions: string;
 
     @CreateDateColumn()
     createdAt: Date;

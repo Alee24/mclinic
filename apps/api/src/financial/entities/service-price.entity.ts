@@ -17,7 +17,7 @@ export class ServicePrice {
 
     // If null, this is the base/global price for the service.
     // If set, this is a specific override for a doctor.
-    @Column({ nullable: true })
+    @Column({ nullable: true, type: 'bigint', unsigned: true })
     doctorId: number;
 
     @ManyToOne(() => Doctor, { nullable: true, onDelete: 'CASCADE' })

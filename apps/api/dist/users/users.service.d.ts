@@ -7,4 +7,6 @@ export declare class UsersService {
     create(createUserDto: CreateUserDto): Promise<User>;
     findOne(email: string): Promise<User | null>;
     findById(id: number): Promise<User | null>;
+    findAll(): Promise<User[]>;
+    countActive(): Promise<number>;
 }

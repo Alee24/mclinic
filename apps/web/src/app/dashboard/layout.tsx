@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { ReactNode } from 'react';
-import { FiGrid, FiList, FiCalendar, FiBarChart2, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiSearch, FiBell, FiMail } from 'react-icons/fi';
+import { FiGrid, FiList, FiCalendar, FiBarChart2, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiSearch, FiBell, FiMail, FiMap, FiPackage, FiFileText } from 'react-icons/fi';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
     return (
@@ -23,8 +23,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                             <NavItem href="/dashboard" icon={<FiGrid />} label="Dashboard" active />
                             <NavItem href="/dashboard/patients" icon={<FiList />} label="Patients" />
                             <NavItem href="/dashboard/appointments" icon={<FiCalendar />} label="Appointments" />
+                            <NavItem href="/dashboard/services" icon={<FiPackage />} label="Services" />
+                            <NavItem href="/dashboard/invoices" icon={<FiFileText />} label="Invoices" />
                             <NavItem href="/dashboard/finance/transactions" icon={<FiBarChart2 />} label="Finance" />
                             <NavItem href="/dashboard/doctors" icon={<FiUsers />} label="Doctors" badge="3" />
+                            <NavItem href="/dashboard/doctors/map" icon={<FiMap />} label="Live Map" />
                         </nav>
                     </div>
 

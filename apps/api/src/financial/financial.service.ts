@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull, DeepPartial } from 'typeorm';
 import { PaymentConfig, PaymentProvider } from './entities/payment-config.entity';
@@ -111,5 +111,189 @@ export class FinancialService {
 
     async getInvoices(): Promise<Invoice[]> {
         return this.invoiceRepo.find({ order: { createdAt: 'DESC' }, relations: ['items'] });
+    }
+
+    async getStats() {
+        // Calculate Total Revenue (Sum of COMPLETED transactions)
+        const result = await this.txRepo
+            .createQueryBuilder('tx')
+            .select('SUM(tx.amount)', 'total')
+            .where('tx.status IN (:...statuses)', { statuses: [TransactionStatus.COMPLETED, TransactionStatus.SUCCESS] })
+            .getRawOne();
+
+        const totalRevenue = result ? parseFloat(result.total) || 0 : 0;
+        const totalTransactions = await this.txRepo.count();
+        const recentTransactions = await this.txRepo.find({
+            order: { createdAt: 'DESC' },
+            take: 5,
+            relations: ['user'] // Assuming user relation exists or can be ignored if simple stats
+        });
+
+        // Invoice Stats
+        const pendingInvoices = await this.invoiceRepo.count({ where: { status: InvoiceStatus.PENDING } });
+        const paidInvoices = await this.invoiceRepo.count({ where: { status: InvoiceStatus.PAID } });
+
+        // Payment Method Stats (Grouping by Source)
+        const sourceStats = await this.txRepo
+            .createQueryBuilder('tx')
+            .select('tx.source', 'source')
+            .addSelect('COUNT(tx.id)', 'count')
+            .addSelect('SUM(tx.amount)', 'total')
+            .groupBy('tx.source')
+            .getRawMany();
+
+        // Format source stats
+        const paymentStats = {
+            mpesa: 0,
+            visa: 0,
+            paypal: 0,
+            cash: 0,
+            others: 0
+        };
+
+        sourceStats.forEach(s => {
+            const source = (s.source || '').toUpperCase();
+            const total = parseFloat(s.total || '0');
+            if (source.includes('MPESA')) paymentStats.mpesa += total;
+            else if (source.includes('VISA') || source.includes('CARD')) paymentStats.visa += total;
+            else if (source.includes('PAYPAL')) paymentStats.paypal += total;
+            else if (source.includes('CASH')) paymentStats.cash += total;
+            else paymentStats.others += total;
+        });
+
+        return {
+            totalRevenue,
+            totalTransactions,
+            recentTransactions,
+            invoices: {
+                pending: pendingInvoices,
+                paid: paidInvoices,
+                total: pendingInvoices + paidInvoices
+            },
+            paymentStats
+        };
+    }
+
+    // M-Pesa STK Push (Simulated for demo - replace with actual Safaricom API)
+    async initiateMpesaPayment(phoneNumber: string, amount: number, invoiceId: number) {
+        const invoice = await this.invoiceRepo.findOne({ where: { id: invoiceId } });
+        if (!invoice) {
+            throw new NotFoundException('Invoice not found');
+        }
+
+        // In production, integrate with Safaricom Daraja API
+        // For now, simulate the STK push
+        const checkoutRequestId = `MCL${Date.now()}`;
+
+        console.log(`[MPESA] Initiating STK Push to ${phoneNumber} for KES ${amount}`);
+        console.log(`[MPESA] CheckoutRequestID: ${checkoutRequestId}`);
+
+        // Simulate successful payment after 5 seconds (in production, wait for callback)
+        setTimeout(async () => {
+            await this.handleMpesaCallback({
+                Body: {
+                    stkCallback: {
+                        ResultCode: 0,
+                        ResultDesc: 'The service request is processed successfully.',
+                        CheckoutRequestID: checkoutRequestId,
+                        CallbackMetadata: {
+                            Item: [
+                                { Name: 'Amount', Value: amount },
+                                { Name: 'MpesaReceiptNumber', Value: `MPE${Date.now()}` },
+                                { Name: 'PhoneNumber', Value: phoneNumber }
+                            ]
+                        }
+                    }
+                }
+            });
+        }, 5000);
+
+        return {
+            success: true,
+            message: 'STK Push sent. Please check your phone.',
+            checkoutRequestId
+        };
+    }
+
+    // M-Pesa Callback Handler
+    async handleMpesaCallback(callbackData: any) {
+        try {
+            const callback = callbackData?.Body?.stkCallback;
+            if (!callback) return { success: false };
+
+            const resultCode = callback.ResultCode;
+
+            if (resultCode === 0) {
+                // Payment successful
+                const metadata = callback.CallbackMetadata?.Item || [];
+                const receiptNumber = metadata.find((item: any) => item.Name === 'MpesaReceiptNumber')?.Value;
+                const amount = metadata.find((item: any) => item.Name === 'Amount')?.Value;
+
+                // Find pending invoice with matching amount
+                const invoice = await this.invoiceRepo.findOne({
+                    where: {
+                        totalAmount: amount,
+                        status: InvoiceStatus.PENDING
+                    }
+                });
+
+                if (invoice) {
+                    // Update invoice status
+                    invoice.status = InvoiceStatus.PAID;
+                    await this.invoiceRepo.save(invoice);
+
+                    // Create transaction record
+                    const transaction = this.txRepo.create({
+                        amount,
+                        source: 'MPESA',
+                        reference: receiptNumber,
+                        status: TransactionStatus.COMPLETED
+                    });
+                    await this.txRepo.save(transaction);
+
+                    console.log(`[MPESA] Payment confirmed for Invoice #${invoice.invoiceNumber}`);
+                }
+            } else {
+                console.log(`[MPESA] Payment failed: ${callback.ResultDesc}`);
+            }
+
+            return { success: true };
+        } catch (error) {
+            console.error('[MPESA] Callback error:', error);
+            return { success: false };
+        }
+    }
+
+    // Manual Payment Confirmation
+    async confirmInvoicePayment(invoiceId: number, paymentMethod: string, transactionId?: string) {
+        const invoice = await this.invoiceRepo.findOne({ where: { id: invoiceId } });
+        if (!invoice) {
+            throw new NotFoundException('Invoice not found');
+        }
+
+        if (invoice.status === InvoiceStatus.PAID) {
+            throw new BadRequestException('Invoice already paid');
+        }
+
+        // Update invoice
+        invoice.status = InvoiceStatus.PAID;
+        await this.invoiceRepo.save(invoice);
+
+        // Create transaction record
+        const transaction = this.txRepo.create({
+            amount: invoice.totalAmount,
+            source: paymentMethod.toUpperCase(),
+            reference: transactionId || `MAN${Date.now()}`,
+            status: TransactionStatus.COMPLETED
+        });
+        await this.txRepo.save(transaction);
+
+        console.log(`[PAYMENT] Invoice #${invoice.invoiceNumber} marked as PAID via ${paymentMethod}`);
+
+        return {
+            success: true,
+            message: 'Payment confirmed successfully',
+            invoice
+        };
     }
 }

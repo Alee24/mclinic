@@ -12,9 +12,14 @@ export declare class Appointment {
     patientId: number;
     doctor: Doctor;
     doctorId: number;
-    dateTime: Date;
+    serviceId: number;
+    appointment_date: Date;
+    appointment_time: string;
+    fee: number;
     status: AppointmentStatus;
     notes: string;
+    meetingLink: string;
+    meetingId: string;
     createdAt: Date;
     updatedAt: Date;
 }

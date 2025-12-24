@@ -22,4 +22,34 @@ export declare class FinancialService {
         items: any[];
     }): Promise<Invoice>;
     getInvoices(): Promise<Invoice[]>;
+    getStats(): Promise<{
+        totalRevenue: number;
+        totalTransactions: number;
+        recentTransactions: Transaction[];
+        invoices: {
+            pending: number;
+            paid: number;
+            total: number;
+        };
+        paymentStats: {
+            mpesa: number;
+            visa: number;
+            paypal: number;
+            cash: number;
+            others: number;
+        };
+    }>;
+    initiateMpesaPayment(phoneNumber: string, amount: number, invoiceId: number): Promise<{
+        success: boolean;
+        message: string;
+        checkoutRequestId: string;
+    }>;
+    handleMpesaCallback(callbackData: any): Promise<{
+        success: boolean;
+    }>;
+    confirmInvoicePayment(invoiceId: number, paymentMethod: string, transactionId?: string): Promise<{
+        success: boolean;
+        message: string;
+        invoice: Invoice;
+    }>;
 }

@@ -35,7 +35,7 @@ __decorate([
     __metadata("design:type", patient_entity_1.Patient)
 ], MedicalRecord.prototype, "patient", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ type: 'bigint', unsigned: true }),
     __metadata("design:type", Number)
 ], MedicalRecord.prototype, "patientId", void 0);
 __decorate([
@@ -43,7 +43,7 @@ __decorate([
     __metadata("design:type", doctor_entity_1.Doctor)
 ], MedicalRecord.prototype, "doctor", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ type: 'bigint', unsigned: true }),
     __metadata("design:type", Number)
 ], MedicalRecord.prototype, "doctorId", void 0);
 __decorate([

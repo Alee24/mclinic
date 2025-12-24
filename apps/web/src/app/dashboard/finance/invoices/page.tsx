@@ -103,15 +103,15 @@ export default function InvoicesPage() {
                                     <td className="px-6 py-4 font-bold dark:text-white">KES {inv.totalAmount}</td>
                                     <td className="px-6 py-4">
                                         <span className={`px-2 py-1 rounded-full text-xs font-medium uppercase ${inv.status === 'paid' ? 'bg-green-100 text-green-700' :
-                                                inv.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                                                    'bg-red-100 text-red-700'
+                                            inv.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                                                'bg-red-100 text-red-700'
                                             }`}>
                                             {inv.status}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-sm text-gray-500">{new Date(inv.createdAt).toLocaleDateString()}</td>
                                     <td className="px-6 py-4">
-                                        <button className="text-brand-blue hover:underline text-sm font-medium">View</button>
+                                        <button className="text-gray-400 text-sm font-medium cursor-not-allowed" title="Invoice details coming soon">View</button>
                                     </td>
                                 </tr>
                             ))

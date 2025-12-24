@@ -4,6 +4,7 @@ import { User } from '../../users/entities/user.entity';
 export enum TransactionStatus {
     PENDING = 'pending',
     COMPLETED = 'completed',
+    SUCCESS = 'success',
     FAILED = 'failed',
     CANCELLED = 'cancelled',
 }
@@ -13,14 +14,19 @@ export class Transaction {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
-    transactionReference: string; // e.g., M-Pesa Receipt Number
+    @Column({ nullable: true })
+    reference: string;
 
-    @Column('decimal', { precision: 10, scale: 2 })
+    @Column({ type: 'decimal', precision: 28, scale: 2 })
     amount: number;
 
-    @Column()
-    currency: string;
+    @Column({ type: 'enum', enum: ['credit', 'debit'], default: 'debit' })
+    type: string;
+
+    @Column({ length: 50, default: 'MPESA' })
+    source: string;
+
+
 
     @Column({
         type: 'enum',
@@ -29,13 +35,7 @@ export class Transaction {
     })
     status: TransactionStatus;
 
-    @Column()
-    provider: string; // mpesa, visa, paypal
-
-    @Column({ nullable: true })
-    metadata: string; // JSON string for extra details
-
-    @Column({ nullable: true })
+    @Column({ nullable: true, type: 'bigint', unsigned: true })
     userId: number;
 
     @ManyToOne(() => User, { nullable: true })

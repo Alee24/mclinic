@@ -1,14 +1,18 @@
 import { Repository } from 'typeorm';
-import { Doctor, VerificationStatus } from './entities/doctor.entity';
+import { Doctor } from './entities/doctor.entity';
 import { User } from '../users/entities/user.entity';
+import { UsersService } from '../users/users.service';
+import { Appointment } from '../appointments/entities/appointment.entity';
 export declare class DoctorsService {
     private doctorsRepository;
-    constructor(doctorsRepository: Repository<Doctor>);
-    create(createDoctorDto: any, user: User): Promise<Doctor>;
-    private checkAndExpireLicenses;
-    findAllVerified(): Promise<Doctor[]>;
+    private appointmentsRepository;
+    private usersService;
+    constructor(doctorsRepository: Repository<Doctor>, appointmentsRepository: Repository<Appointment>, usersService: UsersService);
+    create(createDoctorDto: any, user: User | null): Promise<Doctor>;
+    private createDoctorLogic;
+    findAllVerified(): Promise<any[]>;
     findAll(): Promise<Doctor[]>;
     findOne(id: number): Promise<Doctor | null>;
     findByUserId(userId: number): Promise<Doctor | null>;
-    verifyDoctor(id: number, status: VerificationStatus): Promise<Doctor | null>;
+    verifyDoctor(id: number, status: boolean): Promise<Doctor | null>;
 }

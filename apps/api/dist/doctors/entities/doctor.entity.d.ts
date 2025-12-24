@@ -1,23 +1,35 @@
 import { User } from '../../users/entities/user.entity';
-export declare enum VerificationStatus {
-    PENDING = "pending",
-    VERIFIED = "verified",
-    REJECTED = "rejected"
-}
+import { Speciality } from '../../specialities/entities/speciality.entity';
+import { DoctorSchedule } from '../../doctor-schedules/entities/doctor-schedule.entity';
+import { DoctorLicence } from '../../doctor-licences/entities/doctor-licence.entity';
 export declare class Doctor {
     id: number;
+    user_id: number;
     user: User;
-    userId: number;
-    name: string;
-    specialty: string;
-    licenseNumber: string;
-    verificationStatus: VerificationStatus;
-    boardNumber: string;
-    qualifications: string;
-    licenseExpiryDate: Date;
-    isActive: boolean;
-    bio: string;
-    hospitalAffiliation: string;
+    fname: string;
+    lname: string;
+    username: string;
+    national_id: string;
+    dob: string;
+    sex: string;
+    mobile: string;
+    address: string;
+    about: string;
+    dr_type: string;
+    qualification: string;
+    fee: number;
+    balance: number;
+    approved_status: string;
+    verified_status: boolean;
+    featured: boolean;
+    status: boolean;
+    profile_image: string;
+    specialities: Speciality[];
+    schedules: DoctorSchedule[];
+    licences: DoctorLicence[];
+    latitude: number;
+    longitude: number;
+    isWorking: boolean;
     createdAt: Date;
     updatedAt: Date;
 }

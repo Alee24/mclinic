@@ -1,57 +1,101 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, ManyToMany, JoinTable, OneToMany } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
+import { Speciality } from '../../specialities/entities/speciality.entity';
+import { DoctorSchedule } from '../../doctor-schedules/entities/doctor-schedule.entity';
+import { DoctorLicence } from '../../doctor-licences/entities/doctor-licence.entity';
 
-export enum VerificationStatus {
-    PENDING = 'pending',
-    VERIFIED = 'verified',
-    REJECTED = 'rejected',
-}
 
-@Entity()
+
+@Entity('doctors')
 export class Doctor {
-    @PrimaryGeneratedColumn()
+    @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })
     id: number;
 
-    @OneToOne(() => User, { nullable: true })
-    @JoinColumn()
+    @Column({ type: 'bigint', unsigned: true })
+    user_id: number;
+
+    @OneToOne(() => User, { nullable: true, onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'user_id' })
     user: User;
 
-    @Column({ nullable: true })
-    userId: number;
+    @Column({ length: 40, nullable: true })
+    fname: string;
 
-    @Column()
-    name: string;
+    @Column({ length: 50, nullable: true })
+    lname: string;
 
-    @Column()
-    specialty: string;
+    @Column({ length: 40, nullable: true })
+    username: string;
 
-    @Column()
-    licenseNumber: string;
+    @Column({ length: 20, nullable: true })
+    national_id: string;
 
-    @Column({
-        type: 'enum',
-        enum: VerificationStatus,
-        default: VerificationStatus.PENDING,
-    })
-    verificationStatus: VerificationStatus;
+    @Column({ length: 20, nullable: true })
+    dob: string;
 
-    @Column({ nullable: true })
-    boardNumber: string;
+    @Column({ length: 20, nullable: true })
+    sex: string;
+
+    @Column({ length: 40, nullable: true })
+    mobile: string;
+
+    @Column({ length: 255, nullable: true })
+    address: string;
 
     @Column({ type: 'text', nullable: true })
-    qualifications: string;
+    about: string;
 
-    @Column({ nullable: true })
-    licenseExpiryDate: Date;
+    @Column({ length: 50, default: 'Nurse' })
+    dr_type: string;
+
+    @Column({ length: 255, nullable: true })
+    qualification: string;
+
+    @Column({ default: 1500 })
+    fee: number;
+
+    @Column({ type: 'decimal', precision: 28, scale: 2, default: 0.00 })
+    balance: number;
+
+    @Column({ length: 50, default: 'Pending' })
+    approved_status: string;
+
+    @Column({ default: false })
+    verified_status: boolean;
+
+    @Column({ default: false })
+    featured: boolean;
 
     @Column({ default: true })
-    isActive: boolean;
+    status: boolean;
 
-    @Column({ type: 'text', nullable: true })
-    bio: string;
+    @Column({ length: 255, nullable: true })
+    profile_image: string;
 
-    @Column({ nullable: true })
-    hospitalAffiliation: string;
+    // Relations
+    @ManyToMany(() => Speciality, (speciality) => speciality.doctors)
+    @JoinTable({
+        name: 'doctor_specialities',
+        joinColumn: { name: 'doctor_id', referencedColumnName: 'id' },
+        inverseJoinColumn: { name: 'speciality_id', referencedColumnName: 'id' },
+    })
+    specialities: Speciality[];
+
+    @OneToMany(() => DoctorSchedule, (schedule) => schedule.doctor)
+    schedules: DoctorSchedule[];
+
+    @OneToMany(() => DoctorLicence, (licence) => licence.doctor)
+    licences: DoctorLicence[];
+
+    // Live Map / Current Status
+    @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+    latitude: number;
+
+    @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+    longitude: number;
+
+    @Column({ default: false })
+    isWorking: boolean;
 
     @CreateDateColumn()
     createdAt: Date;

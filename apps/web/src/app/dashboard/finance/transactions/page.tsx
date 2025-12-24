@@ -46,17 +46,17 @@ export default function TransactionsPage() {
                         ) : (
                             transactions.map((tx) => (
                                 <tr key={tx.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                    <td className="px-6 py-4 font-mono text-sm dark:text-gray-300">{tx.transactionReference}</td>
-                                    <td className="px-6 py-4 font-medium dark:text-white">{tx.currency} {tx.amount}</td>
+                                    <td className="px-6 py-4 font-mono text-sm dark:text-gray-300">{tx.reference}</td>
+                                    <td className="px-6 py-4 font-medium dark:text-white">{tx.currency || 'KES'} {tx.amount}</td>
                                     <td className="px-6 py-4">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-medium uppercase ${tx.status === 'completed' ? 'bg-green-100 text-green-700' :
+                                        <span className={`px-2 py-1 rounded-full text-xs font-medium uppercase ${(tx.status === 'completed' || tx.status === 'SUCCESS') ? 'bg-green-100 text-green-700' :
                                                 tx.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
                                                     'bg-red-100 text-red-700'
                                             }`}>
                                             {tx.status}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 uppercase text-xs font-bold text-gray-500">{tx.provider}</td>
+                                    <td className="px-6 py-4 uppercase text-xs font-bold text-gray-500">{tx.source || tx.type}</td>
                                     <td className="px-6 py-4 text-sm text-gray-500">{new Date(tx.createdAt).toLocaleDateString()}</td>
                                 </tr>
                             ))

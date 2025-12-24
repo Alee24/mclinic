@@ -35,7 +35,7 @@ let PatientsService = class PatientsService {
         return this.patientsRepository.findOne({ where: { id }, relations: ['user'] });
     }
     async findByUserId(userId) {
-        return this.patientsRepository.findOne({ where: { userId }, relations: ['user'] });
+        return this.patientsRepository.findOne({ where: { user_id: userId }, relations: ['user'] });
     }
 };
 exports.PatientsService = PatientsService;

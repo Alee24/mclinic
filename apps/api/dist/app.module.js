@@ -18,6 +18,10 @@ const appointments_module_1 = require("./appointments/appointments.module");
 const medical_records_module_1 = require("./medical-records/medical-records.module");
 const financial_module_1 = require("./financial/financial.module");
 const seeding_module_1 = require("./seeding/seeding.module");
+const departments_module_1 = require("./departments/departments.module");
+const specialities_module_1 = require("./specialities/specialities.module");
+const locations_module_1 = require("./locations/locations.module");
+const services_module_1 = require("./services/services.module");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
 const common_2 = require("@nestjs/common");
@@ -31,11 +35,11 @@ exports.AppModule = AppModule = __decorate([
             config_1.ConfigModule.forRoot({ isGlobal: true }),
             typeorm_1.TypeOrmModule.forRoot({
                 type: 'mysql',
-                host: process.env.DB_HOST || 'localhost',
+                host: '127.0.0.1',
                 port: 3306,
-                username: process.env.DB_USER || 'root',
-                password: process.env.DB_PASSWORD || '',
-                database: process.env.DB_NAME || 'mclinic',
+                username: 'root',
+                password: '',
+                database: 'mclinic',
                 autoLoadEntities: true,
                 synchronize: true,
             }),
@@ -47,6 +51,10 @@ exports.AppModule = AppModule = __decorate([
             medical_records_module_1.MedicalRecordsModule,
             financial_module_1.FinancialModule,
             seeding_module_1.SeedingModule,
+            departments_module_1.DepartmentsModule,
+            specialities_module_1.SpecialitiesModule,
+            locations_module_1.LocationsModule,
+            services_module_1.ServicesModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [

@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.User = exports.UserRole = void 0;
 const typeorm_1 = require("typeorm");
+const wallet_entity_1 = require("../../wallets/entities/wallet.entity");
 var UserRole;
 (function (UserRole) {
     UserRole["PATIENT"] = "patient";
@@ -22,13 +23,15 @@ let User = class User {
     email;
     password;
     role;
-    isVerified;
+    status;
+    emailVerifiedAt;
+    wallets;
     createdAt;
     updatedAt;
 };
 exports.User = User;
 __decorate([
-    (0, typeorm_1.PrimaryGeneratedColumn)(),
+    (0, typeorm_1.PrimaryGeneratedColumn)({ type: 'bigint', unsigned: true }),
     __metadata("design:type", Number)
 ], User.prototype, "id", void 0);
 __decorate([
@@ -48,9 +51,17 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "role", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: false }),
+    (0, typeorm_1.Column)({ default: true }),
     __metadata("design:type", Boolean)
-], User.prototype, "isVerified", void 0);
+], User.prototype, "status", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'timestamp', nullable: true }),
+    __metadata("design:type", Date)
+], User.prototype, "emailVerifiedAt", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => wallet_entity_1.Wallet, (wallet) => wallet.user),
+    __metadata("design:type", Array)
+], User.prototype, "wallets", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)

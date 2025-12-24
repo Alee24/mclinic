@@ -63,36 +63,33 @@ export default function PatientsPage() {
                                 <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 group cursor-pointer">
                                     <td className="px-6 py-4 font-medium dark:text-white">
                                         <Link href={`/dashboard/patients/${p.id}`} className="block w-full h-full">
-                                            <div>{p.firstName} {p.lastName}</div>
-                                            <div className="text-xs text-gray-500">{p.occupation}</div>
+                                            <div>{p.fname} {p.lname}</div>
+                                            <div className="text-xs text-gray-500">ID: {p.id}</div>
                                         </Link>
                                     </td>
                                     <td className="px-6 py-4 text-gray-500">
                                         <Link href={`/dashboard/patients/${p.id}`} className="block w-full h-full">
-                                            <div>{new Date(p.dateOfBirth).toLocaleDateString()}</div>
+                                            <div>{p.dob ? new Date(p.dob).toLocaleDateString() : 'N/A'}</div>
                                         </Link>
                                     </td>
                                     <td className="px-6 py-4 text-gray-500 capitalize">
                                         <Link href={`/dashboard/patients/${p.id}`} className="block w-full h-full">
-                                            {p.gender}
+                                            {p.sex}
                                         </Link>
                                     </td>
                                     <td className="px-6 py-4 text-gray-500">
                                         <Link href={`/dashboard/patients/${p.id}`} className="block w-full h-full">
-                                            {p.phoneNumber}
+                                            {p.mobile}
                                         </Link>
                                     </td>
                                     <td className="px-6 py-4 text-gray-500 text-sm">
                                         <Link href={`/dashboard/patients/${p.id}`} className="block w-full h-full">
-                                            {p.city && <span>{p.city}, </span>}{p.address}
+                                            {p.address}
                                         </Link>
                                     </td>
                                     <td className="px-6 py-4 text-gray-500 text-sm">
                                         <Link href={`/dashboard/patients/${p.id}`} className="block w-full h-full">
-                                            {p.bloodType && <span className="inline-block bg-red-100/50 text-red-700 px-2 py-0.5 rounded text-xs mr-2">{p.bloodType}</span>}
-                                            {p.existingConditions && (
-                                                <span className="text-xs text-yellow-600 dark:text-yellow-400 font-medium" title={p.existingConditions}>Chronic</span>
-                                            )}
+                                            <span className="text-xs text-gray-400">View History</span>
                                         </Link>
                                     </td>
                                 </tr>

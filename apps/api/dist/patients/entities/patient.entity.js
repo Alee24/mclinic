@@ -14,100 +14,65 @@ const typeorm_1 = require("typeorm");
 const user_entity_1 = require("../../users/entities/user.entity");
 let Patient = class Patient {
     id;
+    user_id;
     user;
-    userId;
-    firstName;
-    lastName;
-    dateOfBirth;
-    gender;
-    phoneNumber;
-    bloodType;
+    fname;
+    lname;
+    mobile;
+    dob;
+    sex;
     address;
-    city;
-    maritalStatus;
-    occupation;
-    emergencyContactName;
-    emergencyContactPhone;
-    emergencyContactRelation;
-    allergies;
-    existingConditions;
+    latitude;
+    longitude;
     createdAt;
     updatedAt;
 };
 exports.Patient = Patient;
 __decorate([
-    (0, typeorm_1.PrimaryGeneratedColumn)(),
+    (0, typeorm_1.PrimaryGeneratedColumn)({ type: 'bigint', unsigned: true }),
     __metadata("design:type", Number)
 ], Patient.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.OneToOne)(() => user_entity_1.User, { nullable: true }),
-    (0, typeorm_1.JoinColumn)(),
+    (0, typeorm_1.Column)({ type: 'bigint', unsigned: true }),
+    __metadata("design:type", Number)
+], Patient.prototype, "user_id", void 0);
+__decorate([
+    (0, typeorm_1.OneToOne)(() => user_entity_1.User, { nullable: true, onDelete: 'CASCADE' }),
+    (0, typeorm_1.JoinColumn)({ name: 'user_id' }),
     __metadata("design:type", user_entity_1.User)
 ], Patient.prototype, "user", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
-    __metadata("design:type", Number)
-], Patient.prototype, "userId", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ length: 40, nullable: true }),
     __metadata("design:type", String)
-], Patient.prototype, "firstName", void 0);
+], Patient.prototype, "fname", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ length: 50, nullable: true }),
     __metadata("design:type", String)
-], Patient.prototype, "lastName", void 0);
+], Patient.prototype, "lname", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'date', nullable: true }),
-    __metadata("design:type", Date)
-], Patient.prototype, "dateOfBirth", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)({ length: 40, nullable: true }),
     __metadata("design:type", String)
-], Patient.prototype, "gender", void 0);
+], Patient.prototype, "mobile", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)({ length: 20, nullable: true }),
     __metadata("design:type", String)
-], Patient.prototype, "phoneNumber", void 0);
+], Patient.prototype, "dob", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)({ length: 20, nullable: true }),
     __metadata("design:type", String)
-], Patient.prototype, "bloodType", void 0);
+], Patient.prototype, "sex", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)({ length: 255, nullable: true }),
     __metadata("design:type", String)
 ], Patient.prototype, "address", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
-    __metadata("design:type", String)
-], Patient.prototype, "city", void 0);
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 8, nullable: true }),
+    __metadata("design:type", Number)
+], Patient.prototype, "latitude", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
-    __metadata("design:type", String)
-], Patient.prototype, "maritalStatus", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
-    __metadata("design:type", String)
-], Patient.prototype, "occupation", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
-    __metadata("design:type", String)
-], Patient.prototype, "emergencyContactName", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
-    __metadata("design:type", String)
-], Patient.prototype, "emergencyContactPhone", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
-    __metadata("design:type", String)
-], Patient.prototype, "emergencyContactRelation", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ nullable: true, type: 'text' }),
-    __metadata("design:type", String)
-], Patient.prototype, "allergies", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ nullable: true, type: 'text' }),
-    __metadata("design:type", String)
-], Patient.prototype, "existingConditions", void 0);
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 8, nullable: true }),
+    __metadata("design:type", Number)
+], Patient.prototype, "longitude", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
@@ -117,6 +82,6 @@ __decorate([
     __metadata("design:type", Date)
 ], Patient.prototype, "updatedAt", void 0);
 exports.Patient = Patient = __decorate([
-    (0, typeorm_1.Entity)()
+    (0, typeorm_1.Entity)('patients')
 ], Patient);
 //# sourceMappingURL=patient.entity.js.map

@@ -47,4 +47,27 @@ export class FinancialController {
     getInvoices() {
         return this.financialService.getInvoices();
     }
+
+    @Get('stats')
+    getStats() {
+        return this.financialService.getStats();
+    }
+
+    // M-Pesa STK Push
+    @Post('mpesa/stk-push')
+    async initiateMpesaPayment(@Body() body: { phoneNumber: string; amount: number; invoiceId: number }) {
+        return this.financialService.initiateMpesaPayment(body.phoneNumber, body.amount, body.invoiceId);
+    }
+
+    // M-Pesa Callback (webhook)
+    @Post('mpesa/callback')
+    async mpesaCallback(@Body() body: any) {
+        return this.financialService.handleMpesaCallback(body);
+    }
+
+    // Manual payment confirmation
+    @Post('invoices/:id/confirm-payment')
+    async confirmPayment(@Param('id') id: string, @Body() body: { paymentMethod: string; transactionId?: string }) {
+        return this.financialService.confirmInvoicePayment(Number(id), body.paymentMethod, body.transactionId);
+    }
 }

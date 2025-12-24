@@ -29,6 +29,6 @@ export class PatientsService {
     }
 
     async findByUserId(userId: number): Promise<Patient | null> {
-        return this.patientsRepository.findOne({ where: { userId }, relations: ['user'] });
+        return this.patientsRepository.findOne({ where: { user_id: userId }, relations: ['user'] });
     }
 }

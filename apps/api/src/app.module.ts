@@ -9,6 +9,10 @@ import { AppointmentsModule } from './appointments/appointments.module';
 import { MedicalRecordsModule } from './medical-records/medical-records.module';
 import { FinancialModule } from './financial/financial.module';
 import { SeedingModule } from './seeding/seeding.module';
+import { DepartmentsModule } from './departments/departments.module';
+import { SpecialitiesModule } from './specialities/specialities.module';
+import { LocationsModule } from './locations/locations.module';
+import { ServicesModule } from './services/services.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ValidationPipe } from '@nestjs/common';
@@ -19,11 +23,11 @@ import { APP_PIPE } from '@nestjs/core';
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: process.env.DB_HOST || 'localhost',
+      host: '127.0.0.1',
       port: 3306,
-      username: process.env.DB_USER || 'root',
-      password: process.env.DB_PASSWORD || '',
-      database: process.env.DB_NAME || 'mclinic',
+      username: 'root',
+      password: '',
+      database: 'mclinic',
       autoLoadEntities: true,
       synchronize: true, // DEV only
     }),
@@ -35,6 +39,10 @@ import { APP_PIPE } from '@nestjs/core';
     MedicalRecordsModule,
     FinancialModule,
     SeedingModule,
+    DepartmentsModule,
+    SpecialitiesModule,
+    LocationsModule,
+    ServicesModule,
   ],
   controllers: [AppController],
   providers: [

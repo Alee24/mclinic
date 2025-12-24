@@ -10,13 +10,13 @@ export class MedicalRecord {
     @ManyToOne(() => Patient)
     patient: Patient;
 
-    @Column()
+    @Column({ type: 'bigint', unsigned: true })
     patientId: number;
 
     @ManyToOne(() => Doctor)
     doctor: Doctor;
 
-    @Column()
+    @Column({ type: 'bigint', unsigned: true })
     doctorId: number;
 
     @Column()

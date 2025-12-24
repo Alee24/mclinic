@@ -16,17 +16,17 @@ var TransactionStatus;
 (function (TransactionStatus) {
     TransactionStatus["PENDING"] = "pending";
     TransactionStatus["COMPLETED"] = "completed";
+    TransactionStatus["SUCCESS"] = "success";
     TransactionStatus["FAILED"] = "failed";
     TransactionStatus["CANCELLED"] = "cancelled";
 })(TransactionStatus || (exports.TransactionStatus = TransactionStatus = {}));
 let Transaction = class Transaction {
     id;
-    transactionReference;
+    reference;
     amount;
-    currency;
+    type;
+    source;
     status;
-    provider;
-    metadata;
     userId;
     user;
     createdAt;
@@ -37,17 +37,21 @@ __decorate([
     __metadata("design:type", Number)
 ], Transaction.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
-], Transaction.prototype, "transactionReference", void 0);
+], Transaction.prototype, "reference", void 0);
 __decorate([
-    (0, typeorm_1.Column)('decimal', { precision: 10, scale: 2 }),
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 28, scale: 2 }),
     __metadata("design:type", Number)
 ], Transaction.prototype, "amount", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ type: 'enum', enum: ['credit', 'debit'], default: 'debit' }),
     __metadata("design:type", String)
-], Transaction.prototype, "currency", void 0);
+], Transaction.prototype, "type", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 50, default: 'MPESA' }),
+    __metadata("design:type", String)
+], Transaction.prototype, "source", void 0);
 __decorate([
     (0, typeorm_1.Column)({
         type: 'enum',
@@ -57,15 +61,7 @@ __decorate([
     __metadata("design:type", String)
 ], Transaction.prototype, "status", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
-    __metadata("design:type", String)
-], Transaction.prototype, "provider", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
-    __metadata("design:type", String)
-], Transaction.prototype, "metadata", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)({ nullable: true, type: 'bigint', unsigned: true }),
     __metadata("design:type", Number)
 ], Transaction.prototype, "userId", void 0);
 __decorate([

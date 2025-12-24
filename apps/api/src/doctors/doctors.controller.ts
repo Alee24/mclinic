@@ -1,6 +1,5 @@
 import { Controller, Get, Post, Body, Patch, Param, UseGuards, Request } from '@nestjs/common';
 import { DoctorsService } from './doctors.service';
-import { VerificationStatus } from './entities/doctor.entity';
 import { AuthGuard } from '@nestjs/passport';
 
 @Controller('doctors')
@@ -30,7 +29,7 @@ export class DoctorsController {
 
     @UseGuards(AuthGuard('jwt'))
     @Patch(':id/verify')
-    verifyDoctor(@Param('id') id: string, @Body('status') status: VerificationStatus) {
+    verifyDoctor(@Param('id') id: string, @Body('status') status: boolean) {
         return this.doctorsService.verifyDoctor(+id, status);
     }
 }

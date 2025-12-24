@@ -17,23 +17,68 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const appointment_entity_1 = require("./entities/appointment.entity");
+const service_entity_1 = require("../services/entities/service.entity");
+const invoice_entity_1 = require("../financial/entities/invoice.entity");
 let AppointmentsService = class AppointmentsService {
     appointmentsRepository;
-    constructor(appointmentsRepository) {
+    servicesRepository;
+    invoiceRepository;
+    constructor(appointmentsRepository, servicesRepository, invoiceRepository) {
         this.appointmentsRepository = appointmentsRepository;
+        this.servicesRepository = servicesRepository;
+        this.invoiceRepository = invoiceRepository;
     }
     async create(createAppointmentDto) {
-        const { appointmentDate, ...rest } = createAppointmentDto;
+        const { appointmentDate, appointmentTime, isVirtual, serviceId, ...rest } = createAppointmentDto;
+        let fee = 0;
+        if (serviceId) {
+            const service = await this.servicesRepository.findOne({ where: { id: serviceId } });
+            if (service) {
+                fee = Number(service.price);
+            }
+        }
+        let meetingId = null;
+        let meetingLink = null;
+        if (isVirtual) {
+            meetingId = `mclinic-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+            meetingLink = `https://meet.jit.si/${meetingId}`;
+            console.log(`[NOTIFICATION] Meeting Created. Link sent to Patient: ${meetingLink}`);
+        }
         const appointment = this.appointmentsRepository.create({
-            dateTime: appointmentDate,
+            appointment_date: appointmentDate,
+            appointment_time: appointmentTime,
+            serviceId,
+            fee,
+            meetingId,
+            meetingLink,
             ...rest
         });
-        return this.appointmentsRepository.save(appointment);
+        const savedAppointment = await this.appointmentsRepository.save(appointment);
+        if (fee > 0) {
+            const appointmentWithPatient = await this.appointmentsRepository.findOne({
+                where: { id: savedAppointment.id },
+                relations: ['patient']
+            });
+            if (appointmentWithPatient?.patient) {
+                const invoiceNumber = `INV-${Date.now()}-${savedAppointment.id}`;
+                const invoice = this.invoiceRepository.create({
+                    invoiceNumber,
+                    customerName: `${appointmentWithPatient.patient.fname} ${appointmentWithPatient.patient.lname}`,
+                    customerEmail: appointmentWithPatient.patient.mobile || 'noemail@mclinic.com',
+                    totalAmount: fee,
+                    status: invoice_entity_1.InvoiceStatus.PENDING,
+                    dueDate: new Date(appointmentDate),
+                });
+                await this.invoiceRepository.save(invoice);
+                console.log(`[INVOICE] Created invoice ${invoiceNumber} for appointment #${savedAppointment.id}, Amount: KES ${fee}`);
+            }
+        }
+        return savedAppointment;
     }
     async findAll() {
         return this.appointmentsRepository.find({
             relations: ['patient', 'doctor'],
-            order: { dateTime: 'DESC' }
+            order: { appointment_date: 'DESC' }
         });
     }
     async findByPatient(patientId) {
@@ -57,6 +102,10 @@ exports.AppointmentsService = AppointmentsService;
 exports.AppointmentsService = AppointmentsService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(appointment_entity_1.Appointment)),
-    __metadata("design:paramtypes", [typeorm_2.Repository])
+    __param(1, (0, typeorm_1.InjectRepository)(service_entity_1.Service)),
+    __param(2, (0, typeorm_1.InjectRepository)(invoice_entity_1.Invoice)),
+    __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
+        typeorm_2.Repository])
 ], AppointmentsService);
 //# sourceMappingURL=appointments.service.js.map

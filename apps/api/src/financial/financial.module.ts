@@ -8,8 +8,10 @@ import { Transaction } from './entities/transaction.entity';
 import { Invoice } from './entities/invoice.entity';
 import { InvoiceItem } from './entities/invoice-item.entity';
 
+import { Wallet } from '../wallets/entities/wallet.entity';
+
 @Module({
-    imports: [TypeOrmModule.forFeature([PaymentConfig, ServicePrice, Transaction, Invoice, InvoiceItem])],
+    imports: [TypeOrmModule.forFeature([PaymentConfig, ServicePrice, Transaction, Invoice, InvoiceItem, Wallet])],
     controllers: [FinancialController],
     providers: [FinancialService],
     exports: [FinancialService],

@@ -74,6 +74,12 @@ let UsersService = class UsersService {
     async findById(id) {
         return this.usersRepository.findOne({ where: { id } });
     }
+    async findAll() {
+        return this.usersRepository.find();
+    }
+    async countActive() {
+        return this.usersRepository.count({ where: { status: true } });
+    }
 };
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = __decorate([

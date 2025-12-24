@@ -16,12 +16,13 @@ const service_price_entity_1 = require("./entities/service-price.entity");
 const transaction_entity_1 = require("./entities/transaction.entity");
 const invoice_entity_1 = require("./entities/invoice.entity");
 const invoice_item_entity_1 = require("./entities/invoice-item.entity");
+const wallet_entity_1 = require("../wallets/entities/wallet.entity");
 let FinancialModule = class FinancialModule {
 };
 exports.FinancialModule = FinancialModule;
 exports.FinancialModule = FinancialModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([payment_config_entity_1.PaymentConfig, service_price_entity_1.ServicePrice, transaction_entity_1.Transaction, invoice_entity_1.Invoice, invoice_item_entity_1.InvoiceItem])],
+        imports: [typeorm_1.TypeOrmModule.forFeature([payment_config_entity_1.PaymentConfig, service_price_entity_1.ServicePrice, transaction_entity_1.Transaction, invoice_entity_1.Invoice, invoice_item_entity_1.InvoiceItem, wallet_entity_1.Wallet])],
         controllers: [financial_controller_1.FinancialController],
         providers: [financial_service_1.FinancialService],
         exports: [financial_service_1.FinancialService],

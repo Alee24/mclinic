@@ -1,3 +1,4 @@
+import { Wallet } from '../../wallets/entities/wallet.entity';
 export declare enum UserRole {
     PATIENT = "patient",
     DOCTOR = "doctor",
@@ -8,7 +9,9 @@ export declare class User {
     email: string;
     password: string;
     role: UserRole;
-    isVerified: boolean;
+    status: boolean;
+    emailVerifiedAt: Date;
+    wallets: Wallet[];
     createdAt: Date;
     updatedAt: Date;
 }

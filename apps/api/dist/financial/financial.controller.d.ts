@@ -17,4 +17,41 @@ export declare class FinancialController {
     getTransactions(): Promise<import("./entities/transaction.entity").Transaction[]>;
     createInvoice(body: any): Promise<import("./entities/invoice.entity").Invoice>;
     getInvoices(): Promise<import("./entities/invoice.entity").Invoice[]>;
+    getStats(): Promise<{
+        totalRevenue: number;
+        totalTransactions: number;
+        recentTransactions: import("./entities/transaction.entity").Transaction[];
+        invoices: {
+            pending: number;
+            paid: number;
+            total: number;
+        };
+        paymentStats: {
+            mpesa: number;
+            visa: number;
+            paypal: number;
+            cash: number;
+            others: number;
+        };
+    }>;
+    initiateMpesaPayment(body: {
+        phoneNumber: string;
+        amount: number;
+        invoiceId: number;
+    }): Promise<{
+        success: boolean;
+        message: string;
+        checkoutRequestId: string;
+    }>;
+    mpesaCallback(body: any): Promise<{
+        success: boolean;
+    }>;
+    confirmPayment(id: string, body: {
+        paymentMethod: string;
+        transactionId?: string;
+    }): Promise<{
+        success: boolean;
+        message: string;
+        invoice: import("./entities/invoice.entity").Invoice;
+    }>;
 }

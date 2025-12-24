@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.DoctorsController = void 0;
 const common_1 = require("@nestjs/common");
 const doctors_service_1 = require("./doctors.service");
-const doctor_entity_1 = require("./entities/doctor.entity");
 const passport_1 = require("@nestjs/passport");
 let DoctorsController = class DoctorsController {
     doctorsService;
@@ -73,7 +72,7 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)('status')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [String, Boolean]),
     __metadata("design:returntype", void 0)
 ], DoctorsController.prototype, "verifyDoctor", null);
 exports.DoctorsController = DoctorsController = __decorate([

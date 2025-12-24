@@ -40,7 +40,7 @@ __decorate([
     __metadata("design:type", String)
 ], ServicePrice.prototype, "currency", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)({ nullable: true, type: 'bigint', unsigned: true }),
     __metadata("design:type", Number)
 ], ServicePrice.prototype, "doctorId", void 0);
 __decorate([

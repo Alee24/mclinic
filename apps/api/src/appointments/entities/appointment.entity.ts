@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Patient } from '../../patients/entities/patient.entity';
 import { Doctor } from '../../doctors/entities/doctor.entity';
+import { Service } from '../../services/entities/service.entity';
 
 export enum AppointmentStatus {
     PENDING = 'pending',
@@ -17,17 +18,29 @@ export class Appointment {
     @ManyToOne(() => Patient)
     patient: Patient;
 
-    @Column()
+    @Column({ type: 'bigint', unsigned: true })
     patientId: number;
 
     @ManyToOne(() => Doctor)
     doctor: Doctor;
 
-    @Column()
+    @Column({ type: 'bigint', unsigned: true })
     doctorId: number;
 
-    @Column({ type: 'datetime' })
-    dateTime: Date;
+    // @ManyToOne(() => Service, { nullable: true, onDelete: 'SET NULL' })
+    // service: Service;
+
+    @Column({ type: 'bigint', unsigned: true, nullable: true })
+    serviceId: number;
+
+    @Column({ type: 'date', nullable: true })
+    appointment_date: Date;
+
+    @Column({ length: 40, nullable: true })
+    appointment_time: string;
+
+    @Column({ default: 0 })
+    fee: number;
 
     @Column({
         type: 'enum',
@@ -38,6 +51,12 @@ export class Appointment {
 
     @Column({ nullable: true })
     notes: string;
+
+    @Column({ nullable: true })
+    meetingLink: string;
+
+    @Column({ nullable: true })
+    meetingId: string;
 
     @CreateDateColumn()
     createdAt: Date;

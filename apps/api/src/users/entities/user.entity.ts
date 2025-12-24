@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { Wallet } from '../../wallets/entities/wallet.entity';
 
 export enum UserRole {
     PATIENT = 'patient',
@@ -8,7 +9,7 @@ export enum UserRole {
 
 @Entity()
 export class User {
-    @PrimaryGeneratedColumn()
+    @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })
     id: number;
 
     @Column({ unique: true })
@@ -24,8 +25,14 @@ export class User {
     })
     role: UserRole;
 
-    @Column({ default: false })
-    isVerified: boolean;
+    @Column({ default: true })
+    status: boolean; // mapped from status TINYINT(1)
+
+    @Column({ type: 'timestamp', nullable: true })
+    emailVerifiedAt: Date;
+
+    @OneToMany(() => Wallet, (wallet) => wallet.user)
+    wallets: Wallet[];
 
     @CreateDateColumn()
     createdAt: Date;

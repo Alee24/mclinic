@@ -43,6 +43,18 @@ let FinancialController = class FinancialController {
     getInvoices() {
         return this.financialService.getInvoices();
     }
+    getStats() {
+        return this.financialService.getStats();
+    }
+    async initiateMpesaPayment(body) {
+        return this.financialService.initiateMpesaPayment(body.phoneNumber, body.amount, body.invoiceId);
+    }
+    async mpesaCallback(body) {
+        return this.financialService.handleMpesaCallback(body);
+    }
+    async confirmPayment(id, body) {
+        return this.financialService.confirmInvoicePayment(Number(id), body.paymentMethod, body.transactionId);
+    }
 };
 exports.FinancialController = FinancialController;
 __decorate([
@@ -98,6 +110,34 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], FinancialController.prototype, "getInvoices", null);
+__decorate([
+    (0, common_1.Get)('stats'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], FinancialController.prototype, "getStats", null);
+__decorate([
+    (0, common_1.Post)('mpesa/stk-push'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], FinancialController.prototype, "initiateMpesaPayment", null);
+__decorate([
+    (0, common_1.Post)('mpesa/callback'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], FinancialController.prototype, "mpesaCallback", null);
+__decorate([
+    (0, common_1.Post)('invoices/:id/confirm-payment'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], FinancialController.prototype, "confirmPayment", null);
 exports.FinancialController = FinancialController = __decorate([
     (0, common_1.Controller)('financial'),
     __metadata("design:paramtypes", [financial_service_1.FinancialService])

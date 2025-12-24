@@ -61,14 +61,14 @@ export default function PatientDetailsPage() {
             <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
                 <div className="flex items-center gap-4">
                     <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center text-3xl font-bold text-primary">
-                        {patient.firstName[0]}{patient.lastName[0]}
+                        {patient.fname[0]}{patient.lname[0]}
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold dark:text-white">{patient.firstName} {patient.lastName}</h1>
+                        <h1 className="text-2xl font-bold dark:text-white">{patient.fname} {patient.lname}</h1>
                         <div className="flex items-center gap-4 text-gray-500 mt-1">
-                            <span className="flex items-center gap-1.5 text-sm"><FiUser /> {patient.gender}</span>
-                            <span className="flex items-center gap-1.5 text-sm"><FiCalendar /> {new Date(patient.dateOfBirth).toLocaleDateString()}</span>
-                            <span className="flex items-center gap-1.5 text-sm"><FiMapPin /> {patient.city || 'Unknown City'}</span>
+                            <span className="flex items-center gap-1.5 text-sm"><FiUser /> {patient.sex}</span>
+                            <span className="flex items-center gap-1.5 text-sm"><FiCalendar /> {patient.dob ? new Date(patient.dob).toLocaleDateString() : 'N/A'}</span>
+                            <span className="flex items-center gap-1.5 text-sm"><FiMapPin /> {patient.address}</span>
                         </div>
                     </div>
                 </div>
@@ -104,82 +104,36 @@ export default function PatientDetailsPage() {
             {/* Content */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {activeTab === 'profile' && (
-                    <>
-                        <div className="lg:col-span-2 space-y-6">
-                            {/* Personal Info */}
-                            <section className="bg-white dark:bg-[#1A1A1A] rounded-xl p-6 border border-gray-100 dark:border-gray-800">
-                                <h3 className="text-lg font-bold dark:text-white mb-4 flex items-center gap-2">
-                                    <FiUser className="text-primary" /> Personal Information
-                                </h3>
-                                <div className="grid grid-cols-2 gap-y-4 gap-x-8 text-sm">
-                                    <div>
-                                        <div className="text-gray-500 mb-1">Full Name</div>
-                                        <div className="font-medium dark:text-gray-200">{patient.firstName} {patient.lastName}</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-gray-500 mb-1">Occupation</div>
-                                        <div className="font-medium dark:text-gray-200">{patient.occupation || '-'}</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-gray-500 mb-1">Marital Status</div>
-                                        <div className="font-medium capitalize dark:text-gray-200">{patient.maritalStatus || '-'}</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-gray-500 mb-1">Phone</div>
-                                        <div className="font-medium dark:text-gray-200">{patient.phoneNumber}</div>
-                                    </div>
-                                    <div className="col-span-2">
-                                        <div className="text-gray-500 mb-1">Address</div>
-                                        <div className="font-medium dark:text-gray-200">{patient.address}, {patient.city}</div>
-                                    </div>
+                    <div className="lg:col-span-2 space-y-6">
+                        {/* Personal Info */}
+                        <section className="bg-white dark:bg-[#1A1A1A] rounded-xl p-6 border border-gray-100 dark:border-gray-800">
+                            <h3 className="text-lg font-bold dark:text-white mb-4 flex items-center gap-2">
+                                <FiUser className="text-primary" /> Personal Information
+                            </h3>
+                            <div className="grid grid-cols-2 gap-y-4 gap-x-8 text-sm">
+                                <div>
+                                    <div className="text-gray-500 mb-1">Full Name</div>
+                                    <div className="font-medium dark:text-gray-200">{patient.fname} {patient.lname}</div>
                                 </div>
-                            </section>
-
-                            {/* Medical Profile */}
-                            <section className="bg-white dark:bg-[#1A1A1A] rounded-xl p-6 border border-gray-100 dark:border-gray-800">
-                                <h3 className="text-lg font-bold dark:text-white mb-4 flex items-center gap-2">
-                                    <FiActivity className="text-primary" /> Medical Profile
-                                </h3>
-                                <div className="grid grid-cols-2 gap-y-4 gap-x-8 text-sm">
-                                    <div className="bg-red-50 dark:bg-red-900/10 p-4 rounded-lg">
-                                        <div className="text-red-600 dark:text-red-400 font-semibold mb-1">Blood Type</div>
-                                        <div className="text-2xl font-bold text-red-700 dark:text-red-500">{patient.bloodType || '?'}</div>
-                                    </div>
-                                    <div className="bg-orange-50 dark:bg-orange-900/10 p-4 rounded-lg">
-                                        <div className="text-orange-600 dark:text-orange-400 font-semibold mb-1">Allergies</div>
-                                        <div className="font-medium text-orange-800 dark:text-orange-300">{patient.allergies || 'None recorded'}</div>
-                                    </div>
-                                    <div className="col-span-2 bg-blue-50 dark:bg-blue-900/10 p-4 rounded-lg">
-                                        <div className="text-blue-600 dark:text-blue-400 font-semibold mb-1">Chronic Conditions</div>
-                                        <div className="font-medium text-blue-800 dark:text-blue-300">{patient.existingConditions || 'None recorded'}</div>
-                                    </div>
+                                <div>
+                                    <div className="text-gray-500 mb-1">Gender</div>
+                                    <div className="font-medium capitalize dark:text-gray-200">{patient.sex}</div>
                                 </div>
-                            </section>
-                        </div>
-
-                        <div className="space-y-6">
-                            {/* Emergency Contact */}
-                            <section className="bg-white dark:bg-[#1A1A1A] rounded-xl p-6 border border-gray-100 dark:border-gray-800">
-                                <h3 className="text-lg font-bold dark:text-white mb-4 flex items-center gap-2">
-                                    <FiPhone className="text-primary" /> Emergency Contact
-                                </h3>
-                                <div className="space-y-4 text-sm">
-                                    <div>
-                                        <div className="text-gray-500 mb-1">Name</div>
-                                        <div className="font-medium dark:text-gray-200">{patient.emergencyContactName || '-'}</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-gray-500 mb-1">Relation</div>
-                                        <div className="font-medium dark:text-gray-200">{patient.emergencyContactRelation || '-'}</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-gray-500 mb-1">Phone</div>
-                                        <div className="font-medium dark:text-gray-200">{patient.emergencyContactPhone || '-'}</div>
-                                    </div>
+                                <div>
+                                    <div className="text-gray-500 mb-1">Phone</div>
+                                    <div className="font-medium dark:text-gray-200">{patient.mobile}</div>
                                 </div>
-                            </section>
-                        </div>
-                    </>
+                                <div>
+                                    <div className="text-gray-500 mb-1">Date of Birth</div>
+                                    <div className="font-medium dark:text-gray-200">{patient.dob ? new Date(patient.dob).toLocaleDateString() : 'N/A'}</div>
+                                </div>
+                                <div className="col-span-2">
+                                    <div className="text-gray-500 mb-1">Current Address</div>
+                                    <div className="font-medium dark:text-gray-200">{patient.address}</div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
                 )}
 
                 {activeTab === 'medical' && (
@@ -202,7 +156,7 @@ export default function PatientDetailsPage() {
                                                     <div className="text-sm text-gray-500 flex items-center gap-2 mt-1">
                                                         <FiClock /> {new Date(rec.createdAt).toLocaleDateString()} at {new Date(rec.createdAt).toLocaleTimeString()}
                                                         <span className="w-1 h-1 bg-gray-300 rounded-full mx-1"></span>
-                                                        <span>Dr. {rec.doctor?.fullName || 'Unknown'}</span>
+                                                        <span>Dr. {rec.doctor?.fname} {rec.doctor?.lname}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -237,3 +191,4 @@ export default function PatientDetailsPage() {
         </div>
     );
 }
+
