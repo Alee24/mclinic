@@ -28,6 +28,8 @@ let Invoice = class Invoice {
     status;
     dueDate;
     items;
+    customerMobile;
+    paymentMethod;
     createdAt;
     updatedAt;
 };
@@ -68,6 +70,14 @@ __decorate([
     (0, typeorm_1.OneToMany)(() => invoice_item_entity_1.InvoiceItem, (item) => item.invoice, { cascade: true }),
     __metadata("design:type", Array)
 ], Invoice.prototype, "items", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Invoice.prototype, "customerMobile", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Invoice.prototype, "paymentMethod", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)

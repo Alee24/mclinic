@@ -14,8 +14,10 @@ export default function InvoicesPage() {
     const [formData, setFormData] = useState({
         customerName: '',
         customerEmail: '',
+        customerMobile: '',
         dueDate: new Date().toISOString().split('T')[0],
         status: 'pending',
+        paymentMethod: '',
         items: [{ description: 'Consultation Fee', quantity: 1, unitPrice: 1500 }]
     });
 
@@ -30,6 +32,8 @@ export default function InvoicesPage() {
 
     useEffect(() => {
         fetchInvoices();
+        const interval = setInterval(fetchInvoices, 30000); // Poll every 30s
+        return () => clearInterval(interval);
     }, []);
 
     const handleAddItem = () => {
@@ -54,8 +58,10 @@ export default function InvoicesPage() {
         setFormData({
             customerName: '',
             customerEmail: '',
+            customerMobile: '',
             dueDate: new Date().toISOString().split('T')[0],
             status: 'pending',
+            paymentMethod: '',
             items: [{ description: 'Consultation Fee', quantity: 1, unitPrice: 1500 }]
         });
         setEditingInvoice(null);
@@ -66,8 +72,10 @@ export default function InvoicesPage() {
         setFormData({
             customerName: inv.customerName,
             customerEmail: inv.customerEmail,
+            customerMobile: inv.customerMobile || '',
             dueDate: inv.dueDate ? new Date(inv.dueDate).toISOString().split('T')[0] : '',
             status: inv.status,
+            paymentMethod: inv.paymentMethod || '',
             items: inv.items.map((it: any) => ({
                 description: it.description,
                 quantity: it.quantity,
@@ -245,6 +253,16 @@ export default function InvoicesPage() {
                                     />
                                 </div>
                                 <div>
+                                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1.5 ml-1">Mobile Number</label>
+                                    <input
+                                        type="text"
+                                        placeholder="+254 7XX XXX XXX"
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 outline-none transition"
+                                        value={formData.customerMobile}
+                                        onChange={(e) => setFormData({ ...formData, customerMobile: e.target.value })}
+                                    />
+                                </div>
+                                <div>
                                     <label className="block text-xs font-bold uppercase text-gray-500 mb-1.5 ml-1">Due Date</label>
                                     <input
                                         type="date"
@@ -255,7 +273,7 @@ export default function InvoicesPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1.5 ml-1">Initial Status</label>
+                                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1.5 ml-1">Payment Status</label>
                                     <select
                                         className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 outline-none transition appearance-none"
                                         value={formData.status}
@@ -264,6 +282,20 @@ export default function InvoicesPage() {
                                         <option value="pending">Pending</option>
                                         <option value="paid">Paid</option>
                                         <option value="overdue">Overdue</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1.5 ml-1">Payment Method</label>
+                                    <select
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 outline-none transition appearance-none"
+                                        value={formData.paymentMethod}
+                                        onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
+                                    >
+                                        <option value="">Select Method</option>
+                                        <option value="MPESA">M-PESA</option>
+                                        <option value="CASH">Cash</option>
+                                        <option value="VISA">Visa / Card</option>
+                                        <option value="PAYPAL">PayPal</option>
                                     </select>
                                 </div>
                             </div>

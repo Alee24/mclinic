@@ -6,6 +6,8 @@ import { Appointment } from '../appointments/entities/appointment.entity';
 import { MedicalRecord } from '../medical-records/entities/medical-record.entity';
 import { Transaction } from '../financial/entities/transaction.entity';
 import { ServicePrice } from '../financial/entities/service-price.entity';
+import { Invoice } from '../financial/entities/invoice.entity';
+import { InvoiceItem } from '../financial/entities/invoice-item.entity';
 export declare class SeedingService {
     private userRepo;
     private patientRepo;
@@ -14,7 +16,9 @@ export declare class SeedingService {
     private recordRepo;
     private txRepo;
     private priceRepo;
-    constructor(userRepo: Repository<User>, patientRepo: Repository<Patient>, doctorRepo: Repository<Doctor>, appointmentRepo: Repository<Appointment>, recordRepo: Repository<MedicalRecord>, txRepo: Repository<Transaction>, priceRepo: Repository<ServicePrice>);
+    private invoiceRepo;
+    private itemRepo;
+    constructor(userRepo: Repository<User>, patientRepo: Repository<Patient>, doctorRepo: Repository<Doctor>, appointmentRepo: Repository<Appointment>, recordRepo: Repository<MedicalRecord>, txRepo: Repository<Transaction>, priceRepo: Repository<ServicePrice>, invoiceRepo: Repository<Invoice>, itemRepo: Repository<InvoiceItem>);
     seedAll(): Promise<{
         message: string;
         counts: {

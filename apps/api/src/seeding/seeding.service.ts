@@ -10,6 +10,8 @@ import { Appointment, AppointmentStatus } from '../appointments/entities/appoint
 import { MedicalRecord } from '../medical-records/entities/medical-record.entity';
 import { Transaction, TransactionStatus } from '../financial/entities/transaction.entity';
 import { ServicePrice } from '../financial/entities/service-price.entity';
+import { Invoice } from '../financial/entities/invoice.entity';
+import { InvoiceItem } from '../financial/entities/invoice-item.entity';
 
 @Injectable()
 export class SeedingService {
@@ -21,11 +23,15 @@ export class SeedingService {
         @InjectRepository(MedicalRecord) private recordRepo: Repository<MedicalRecord>,
         @InjectRepository(Transaction) private txRepo: Repository<Transaction>,
         @InjectRepository(ServicePrice) private priceRepo: Repository<ServicePrice>,
+        @InjectRepository(Invoice) private invoiceRepo: Repository<Invoice>,
+        @InjectRepository(InvoiceItem) private itemRepo: Repository<InvoiceItem>,
     ) { }
 
     async seedAll() {
         try {
             // 0. CLEAR DATA
+            await this.itemRepo.delete({ id: MoreThanOrEqual(0) });
+            await this.invoiceRepo.delete({ id: MoreThanOrEqual(0) });
             await this.txRepo.delete({ id: MoreThanOrEqual(0) });
             await this.recordRepo.delete({ id: MoreThanOrEqual(0) });
             await this.appointmentRepo.delete({ id: MoreThanOrEqual(0) });
@@ -42,29 +48,6 @@ export class SeedingService {
             // 1. Seed Patients
             const patients = [];
 
-            // Create Specific Test Account
-            const testPassword = await bcrypt.hash('Digital2025', 10);
-            const testUser = this.userRepo.create({
-                email: 'mettoalex@gmail.com',
-                password: testPassword,
-                role: UserRole.PATIENT,
-                status: true,
-                emailVerifiedAt: new Date(),
-            });
-            await this.userRepo.save(testUser);
-
-            const testPatient = this.patientRepo.create({
-                user: testUser,
-                fname: 'Alex',
-                lname: 'Metto',
-                dob: '1990-01-01',
-                sex: 'Male',
-                mobile: '0700000000',
-                address: 'Test Address, Nairobi',
-            } as any);
-            patients.push(await this.patientRepo.save(testPatient));
-            console.log('Created Test Account: mettoalex@gmail.com / Digital2025');
-
             // Create Admin Account (sadmin)
             const adminPassword = await bcrypt.hash('Digital2025', 10);
             const adminUser = this.userRepo.create({
@@ -77,9 +60,9 @@ export class SeedingService {
             await this.userRepo.save(adminUser);
             console.log('Created Admin Account: sadmin@mclinic.com / Digital2025');
 
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < 15; i++) {
                 const email = faker.internet.email();
-                const password = await bcrypt.hash('password123', 10);
+                const password = await bcrypt.hash('Digital2025', 10);
 
                 const user = this.userRepo.create({
                     email,
@@ -100,14 +83,21 @@ export class SeedingService {
                     address: faker.location.streetAddress(),
                     emergencyContactPhone: faker.phone.number(),
                 } as any);
-                patients.push(await this.patientRepo.save(patient));
+                const savedPatient = await this.patientRepo.save(patient);
+                patients.push({ ...savedPatient, user });
             }
 
             // 2. Seed Doctors
+            const specialties = [
+                'General Surgeon', 'Cardiologist', 'Dermatologist', 'Pediatrician',
+                'Neurologist', 'Psychiatrist', 'Orthopedic Surgeon', 'Emergency Physician',
+                'Optometrist', 'Dentist'
+            ];
+
             const doctors: any[] = [];
-            for (let i = 0; i < 10; i++) {
-                const email = faker.internet.email();
-                const password = await bcrypt.hash('password123', 10);
+            for (let i = 0; i < specialties.length; i++) {
+                const email = faker.internet.email().toLowerCase();
+                const password = await bcrypt.hash('Digital2025', 10);
 
                 const user = this.userRepo.create({
                     email,
@@ -120,30 +110,34 @@ export class SeedingService {
 
                 const doctor = this.doctorRepo.create({
                     user,
-                    fname: faker.person.firstName(),
+                    fname: faker.person.firstName('male'),
                     lname: faker.person.lastName(),
-                    dr_type: faker.person.jobTitle(), // 'Nurse', 'Cardiologist' etc
+                    email, // Fill unique email field in Doctor table
+                    username: faker.internet.username(),
+                    reg_code: `REG-${Math.floor(100000 + Math.random() * 900000)}`,
+                    dr_type: specialties[i],
                     mobile: faker.phone.number(),
-                    verified_status: faker.datatype.boolean(),
+                    Verified_status: 1, // It was Verified_status (capital V) in entity
                     latitude: -1.286389 + (Math.random() - 0.5) * 0.1, // Nairobi
                     longitude: 36.817223 + (Math.random() - 0.5) * 0.1,
-                    isWorking: Math.random() > 0.3,
-                    balance: parseFloat(faker.finance.amount({ min: 0, max: 10000, dec: 2 })),
-                    fee: parseFloat(faker.finance.amount({ min: 500, max: 5000, dec: 0 })),
-                    qualification: 'MBBS, PhD',
+                    isWorking: Math.random() > 0.2,
+                    balance: parseFloat(faker.finance.amount({ min: 1000, max: 50000, dec: 2 })),
+                    fee: parseInt(faker.helpers.arrayElement(['1500', '2000', '2500', '3000'])),
+                    qualification: 'MBBS, MMed',
                     about: faker.lorem.paragraph(),
+                    status: 1,
                 } as any);
                 doctors.push(await this.doctorRepo.save(doctor));
             }
 
             // 3. Seed Appointments
             for (let i = 0; i < 20; i++) {
-                const patient = faker.helpers.arrayElement(patients);
+                const patientData = faker.helpers.arrayElement(patients);
                 const doctor = faker.helpers.arrayElement(doctors);
                 const futureDate = faker.date.future();
 
                 const apt: any = this.appointmentRepo.create({
-                    patient,
+                    patient: patientData.user, // Use the User entity linked to the patient
                     doctor,
                     appointment_date: futureDate,
                     appointment_time: futureDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),

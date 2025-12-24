@@ -38,6 +38,12 @@ export class Invoice {
     @OneToMany(() => InvoiceItem, (item) => item.invoice, { cascade: true })
     items: InvoiceItem[];
 
+    @Column({ nullable: true })
+    customerMobile: string;
+
+    @Column({ nullable: true })
+    paymentMethod: string; // e.g., 'MPESA', 'CASH', 'VISA'
+
     @CreateDateColumn()
     createdAt: Date;
 

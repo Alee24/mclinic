@@ -58,6 +58,8 @@ const appointment_entity_1 = require("../appointments/entities/appointment.entit
 const medical_record_entity_1 = require("../medical-records/entities/medical-record.entity");
 const transaction_entity_1 = require("../financial/entities/transaction.entity");
 const service_price_entity_1 = require("../financial/entities/service-price.entity");
+const invoice_entity_1 = require("../financial/entities/invoice.entity");
+const invoice_item_entity_1 = require("../financial/entities/invoice-item.entity");
 let SeedingService = class SeedingService {
     userRepo;
     patientRepo;
@@ -66,7 +68,9 @@ let SeedingService = class SeedingService {
     recordRepo;
     txRepo;
     priceRepo;
-    constructor(userRepo, patientRepo, doctorRepo, appointmentRepo, recordRepo, txRepo, priceRepo) {
+    invoiceRepo;
+    itemRepo;
+    constructor(userRepo, patientRepo, doctorRepo, appointmentRepo, recordRepo, txRepo, priceRepo, invoiceRepo, itemRepo) {
         this.userRepo = userRepo;
         this.patientRepo = patientRepo;
         this.doctorRepo = doctorRepo;
@@ -74,9 +78,13 @@ let SeedingService = class SeedingService {
         this.recordRepo = recordRepo;
         this.txRepo = txRepo;
         this.priceRepo = priceRepo;
+        this.invoiceRepo = invoiceRepo;
+        this.itemRepo = itemRepo;
     }
     async seedAll() {
         try {
+            await this.itemRepo.delete({ id: (0, typeorm_2.MoreThanOrEqual)(0) });
+            await this.invoiceRepo.delete({ id: (0, typeorm_2.MoreThanOrEqual)(0) });
             await this.txRepo.delete({ id: (0, typeorm_2.MoreThanOrEqual)(0) });
             await this.recordRepo.delete({ id: (0, typeorm_2.MoreThanOrEqual)(0) });
             await this.appointmentRepo.delete({ id: (0, typeorm_2.MoreThanOrEqual)(0) });
@@ -86,26 +94,6 @@ let SeedingService = class SeedingService {
             await this.userRepo.delete({ id: (0, typeorm_2.MoreThanOrEqual)(0) });
             console.log('Cleared all data');
             const patients = [];
-            const testPassword = await bcrypt.hash('Digital2025', 10);
-            const testUser = this.userRepo.create({
-                email: 'mettoalex@gmail.com',
-                password: testPassword,
-                role: user_entity_1.UserRole.PATIENT,
-                status: true,
-                emailVerifiedAt: new Date(),
-            });
-            await this.userRepo.save(testUser);
-            const testPatient = this.patientRepo.create({
-                user: testUser,
-                fname: 'Alex',
-                lname: 'Metto',
-                dob: '1990-01-01',
-                sex: 'Male',
-                mobile: '0700000000',
-                address: 'Test Address, Nairobi',
-            });
-            patients.push(await this.patientRepo.save(testPatient));
-            console.log('Created Test Account: mettoalex@gmail.com / Digital2025');
             const adminPassword = await bcrypt.hash('Digital2025', 10);
             const adminUser = this.userRepo.create({
                 email: 'sadmin@mclinic.com',
@@ -116,9 +104,9 @@ let SeedingService = class SeedingService {
             });
             await this.userRepo.save(adminUser);
             console.log('Created Admin Account: sadmin@mclinic.com / Digital2025');
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < 15; i++) {
                 const email = faker_1.faker.internet.email();
-                const password = await bcrypt.hash('password123', 10);
+                const password = await bcrypt.hash('Digital2025', 10);
                 const user = this.userRepo.create({
                     email,
                     password,
@@ -137,12 +125,18 @@ let SeedingService = class SeedingService {
                     address: faker_1.faker.location.streetAddress(),
                     emergencyContactPhone: faker_1.faker.phone.number(),
                 });
-                patients.push(await this.patientRepo.save(patient));
+                const savedPatient = await this.patientRepo.save(patient);
+                patients.push({ ...savedPatient, user });
             }
+            const specialties = [
+                'General Surgeon', 'Cardiologist', 'Dermatologist', 'Pediatrician',
+                'Neurologist', 'Psychiatrist', 'Orthopedic Surgeon', 'Emergency Physician',
+                'Optometrist', 'Dentist'
+            ];
             const doctors = [];
-            for (let i = 0; i < 10; i++) {
-                const email = faker_1.faker.internet.email();
-                const password = await bcrypt.hash('password123', 10);
+            for (let i = 0; i < specialties.length; i++) {
+                const email = faker_1.faker.internet.email().toLowerCase();
+                const password = await bcrypt.hash('Digital2025', 10);
                 const user = this.userRepo.create({
                     email,
                     password,
@@ -153,27 +147,31 @@ let SeedingService = class SeedingService {
                 await this.userRepo.save(user);
                 const doctor = this.doctorRepo.create({
                     user,
-                    fname: faker_1.faker.person.firstName(),
+                    fname: faker_1.faker.person.firstName('male'),
                     lname: faker_1.faker.person.lastName(),
-                    dr_type: faker_1.faker.person.jobTitle(),
+                    email,
+                    username: faker_1.faker.internet.username(),
+                    reg_code: `REG-${Math.floor(100000 + Math.random() * 900000)}`,
+                    dr_type: specialties[i],
                     mobile: faker_1.faker.phone.number(),
-                    verified_status: faker_1.faker.datatype.boolean(),
+                    Verified_status: 1,
                     latitude: -1.286389 + (Math.random() - 0.5) * 0.1,
                     longitude: 36.817223 + (Math.random() - 0.5) * 0.1,
-                    isWorking: Math.random() > 0.3,
-                    balance: parseFloat(faker_1.faker.finance.amount({ min: 0, max: 10000, dec: 2 })),
-                    fee: parseFloat(faker_1.faker.finance.amount({ min: 500, max: 5000, dec: 0 })),
-                    qualification: 'MBBS, PhD',
+                    isWorking: Math.random() > 0.2,
+                    balance: parseFloat(faker_1.faker.finance.amount({ min: 1000, max: 50000, dec: 2 })),
+                    fee: parseInt(faker_1.faker.helpers.arrayElement(['1500', '2000', '2500', '3000'])),
+                    qualification: 'MBBS, MMed',
                     about: faker_1.faker.lorem.paragraph(),
+                    status: 1,
                 });
                 doctors.push(await this.doctorRepo.save(doctor));
             }
             for (let i = 0; i < 20; i++) {
-                const patient = faker_1.faker.helpers.arrayElement(patients);
+                const patientData = faker_1.faker.helpers.arrayElement(patients);
                 const doctor = faker_1.faker.helpers.arrayElement(doctors);
                 const futureDate = faker_1.faker.date.future();
                 const apt = this.appointmentRepo.create({
-                    patient,
+                    patient: patientData.user,
                     doctor,
                     appointment_date: futureDate,
                     appointment_time: futureDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -249,7 +247,11 @@ exports.SeedingService = SeedingService = __decorate([
     __param(4, (0, typeorm_1.InjectRepository)(medical_record_entity_1.MedicalRecord)),
     __param(5, (0, typeorm_1.InjectRepository)(transaction_entity_1.Transaction)),
     __param(6, (0, typeorm_1.InjectRepository)(service_price_entity_1.ServicePrice)),
+    __param(7, (0, typeorm_1.InjectRepository)(invoice_entity_1.Invoice)),
+    __param(8, (0, typeorm_1.InjectRepository)(invoice_item_entity_1.InvoiceItem)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
+        typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,

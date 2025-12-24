@@ -14,6 +14,8 @@ export declare class Invoice {
     status: InvoiceStatus;
     dueDate: Date;
     items: InvoiceItem[];
+    customerMobile: string;
+    paymentMethod: string;
     createdAt: Date;
     updatedAt: Date;
 }

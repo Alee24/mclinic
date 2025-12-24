@@ -18,6 +18,8 @@ const appointment_entity_1 = require("../appointments/entities/appointment.entit
 const medical_record_entity_1 = require("../medical-records/entities/medical-record.entity");
 const transaction_entity_1 = require("../financial/entities/transaction.entity");
 const service_price_entity_1 = require("../financial/entities/service-price.entity");
+const invoice_entity_1 = require("../financial/entities/invoice.entity");
+const invoice_item_entity_1 = require("../financial/entities/invoice-item.entity");
 let SeedingModule = class SeedingModule {
 };
 exports.SeedingModule = SeedingModule;
@@ -31,7 +33,9 @@ exports.SeedingModule = SeedingModule = __decorate([
                 appointment_entity_1.Appointment,
                 medical_record_entity_1.MedicalRecord,
                 transaction_entity_1.Transaction,
-                service_price_entity_1.ServicePrice
+                service_price_entity_1.ServicePrice,
+                invoice_entity_1.Invoice,
+                invoice_item_entity_1.InvoiceItem
             ])
         ],
         controllers: [seeding_controller_1.SeedingController],

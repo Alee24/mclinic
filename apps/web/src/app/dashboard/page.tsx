@@ -60,6 +60,8 @@ export default function DashboardPage() {
         };
 
         fetchData();
+        const interval = setInterval(fetchData, 30000); // Polling every 30 seconds
+        return () => clearInterval(interval);
     }, []);
 
     return (

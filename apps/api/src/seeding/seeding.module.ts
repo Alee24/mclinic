@@ -9,6 +9,8 @@ import { Appointment } from '../appointments/entities/appointment.entity';
 import { MedicalRecord } from '../medical-records/entities/medical-record.entity';
 import { Transaction } from '../financial/entities/transaction.entity';
 import { ServicePrice } from '../financial/entities/service-price.entity';
+import { Invoice } from '../financial/entities/invoice.entity';
+import { InvoiceItem } from '../financial/entities/invoice-item.entity';
 
 @Module({
     imports: [
@@ -19,7 +21,9 @@ import { ServicePrice } from '../financial/entities/service-price.entity';
             Appointment,
             MedicalRecord,
             Transaction,
-            ServicePrice
+            ServicePrice,
+            Invoice,
+            InvoiceItem
         ])
     ],
     controllers: [SeedingController],
