@@ -16,6 +16,7 @@ export declare class Appointment {
     appointment_date: Date;
     appointment_time: string;
     fee: number;
+    transportFee: number;
     status: AppointmentStatus;
     notes: string;
     meetingLink: string;

@@ -50,8 +50,8 @@ export class FinancialController {
 
     @UseGuards(AuthGuard('jwt'))
     @Get('invoices')
-    getInvoices() {
-        return this.financialService.getInvoices();
+    getInvoices(@Req() req: any) {
+        return this.financialService.getInvoices(req.user);
     }
 
     @UseGuards(AuthGuard('jwt'))
@@ -73,8 +73,9 @@ export class FinancialController {
     }
 
     @Get('stats')
-    getStats() {
-        return this.financialService.getStats();
+    @UseGuards(AuthGuard('jwt'))
+    getStats(@Req() req: any) {
+        return this.financialService.getStats(req.user);
     }
 
     // M-Pesa STK Push
@@ -93,5 +94,10 @@ export class FinancialController {
     @Post('invoices/:id/confirm-payment')
     async confirmPayment(@Param('id') id: string, @Body() body: { paymentMethod: string; transactionId?: string }) {
         return this.financialService.confirmInvoicePayment(Number(id), body.paymentMethod, body.transactionId);
+    }
+
+    @Post('process-payment')
+    async processPayment(@Body() body: { appointmentId: number; amount: number; phoneNumber: string }) {
+        return this.financialService.processPayment(body.appointmentId, body.amount, body.phoneNumber);
     }
 }

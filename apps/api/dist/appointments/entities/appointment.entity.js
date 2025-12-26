@@ -30,6 +30,7 @@ let Appointment = class Appointment {
     appointment_date;
     appointment_time;
     fee;
+    transportFee;
     status;
     notes;
     meetingLink;
@@ -74,6 +75,10 @@ __decorate([
     (0, typeorm_1.Column)({ default: 0 }),
     __metadata("design:type", Number)
 ], Appointment.prototype, "fee", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 2, default: 0 }),
+    __metadata("design:type", Number)
+], Appointment.prototype, "transportFee", void 0);
 __decorate([
     (0, typeorm_1.Column)({
         type: 'enum',

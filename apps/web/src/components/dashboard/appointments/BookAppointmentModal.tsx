@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
-import { FiX, FiSearch, FiMapPin, FiUser, FiDollarSign, FiFilter, FiCalendar } from 'react-icons/fi';
+import { FiX, FiSearch, FiMapPin, FiUser, FiDollarSign, FiFilter, FiCalendar, FiClock } from 'react-icons/fi';
 import { useAuth } from '@/lib/auth';
 
 interface Doctor {
@@ -25,6 +26,7 @@ interface BookAppointmentModalProps {
 }
 
 export default function BookAppointmentModal({ onClose, onSuccess }: BookAppointmentModalProps) {
+    const router = useRouter();
     const { user } = useAuth();
     const [doctors, setDoctors] = useState<Doctor[]>([]);
     const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([]);
@@ -44,6 +46,9 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
     const [bookingNote, setBookingNote] = useState('');
     const [submitting, setSubmitting] = useState(false);
 
+    const [services, setServices] = useState<any[]>([]);
+    const [selectedService, setSelectedService] = useState<any | null>(null);
+
     useEffect(() => {
         // Get User Location
         if (navigator.geolocation) {
@@ -59,11 +64,12 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
         }
 
         fetchDoctors();
+        fetchServices();
     }, []);
 
     const fetchDoctors = async () => {
         try {
-            const res = await api.get('/doctors/map'); // Using this endpoint as it returns verified docs with location
+            const res = await api.get('/doctors');
             if (res && res.ok) {
                 const data = await res.json();
                 setDoctors(data);
@@ -73,6 +79,18 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
             console.error(err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchServices = async () => {
+        try {
+            const res = await api.get('/services');
+            if (res && res.ok) {
+                const data = await res.json();
+                setServices(data);
+            }
+        } catch (err) {
+            console.error(err);
         }
     };
 
@@ -105,9 +123,11 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
         if (searchTerm) {
             const lower = searchTerm.toLowerCase();
             result = result.filter(d =>
-                d.fname.toLowerCase().includes(lower) ||
-                d.lname.toLowerCase().includes(lower) ||
-                d.address?.toLowerCase().includes(lower)
+                (d.fname || '').toLowerCase().includes(lower) ||
+                (d.lname || '').toLowerCase().includes(lower) ||
+                d.address?.toLowerCase().includes(lower) ||
+                d.dr_type?.toLowerCase().includes(lower) ||
+                d.speciality?.toLowerCase().includes(lower)
             );
         }
         if (maxPrice) {
@@ -130,16 +150,25 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
         try {
             // Check availability (mock)
             const payload = {
-                doctor_id: selectedDoctor.id,
-                appointment_date: bookingDate,
-                appointment_time: bookingTime,
-                reason: bookingNote
+                doctorId: selectedDoctor.id,
+                serviceId: selectedService ? selectedService.id : null,
+                appointmentDate: bookingDate,
+                appointmentTime: bookingTime,
+                notes: bookingNote,
+                patientLocation: userLocation // Pass location for transport calculation
             };
 
             const res = await api.post('/appointments', payload);
             if (res && res.ok) {
-                alert('Appointment booked successfully!');
-                onSuccess();
+                const data = await res.json();
+                console.log('Booking Success:', data);
+
+                if (data && data.id) {
+                    router.push(`/dashboard/appointments/${data.id}/pay`);
+                } else {
+                    alert('Appointment booked successfully! Please verify in "My Appointments".');
+                    onSuccess();
+                }
             } else {
                 alert('Failed to book appointment.');
             }
@@ -310,7 +339,9 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                                 <div>
                                     <h3 className="font-black text-xl text-gray-900 dark:text-white">Dr. {selectedDoctor.fname} {selectedDoctor.lname}</h3>
                                     <p className="text-gray-600 dark:text-gray-400 font-medium">{selectedDoctor.speciality} • {selectedDoctor.address}</p>
-                                    <div className="mt-2 text-sm font-bold text-primary">Consulation Fee: KES {selectedDoctor.fee}</div>
+                                    <div className="mt-2 text-sm font-bold text-primary">
+                                        Consulation Fee: KES {selectedService ? selectedService.price : selectedDoctor.fee}
+                                    </div>
                                 </div>
                             </div>
 
@@ -333,7 +364,7 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Time</label>
                                         <div className="relative">
-                                            <FiCalendar className="absolute left-3 top-3 text-gray-400" />
+                                            <FiClock className="absolute left-3 top-3 text-gray-400" />
                                             <input
                                                 type="time"
                                                 required
@@ -343,6 +374,26 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                                             />
                                         </div>
                                     </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Service (Optional)</label>
+                                    <select
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white outline-none focus:ring-2 focus:ring-primary"
+                                        value={selectedService?.id || ''}
+                                        onChange={(e) => {
+                                            const sId = Number(e.target.value);
+                                            const svc = services.find(s => s.id === sId) || null;
+                                            setSelectedService(svc);
+                                        }}
+                                    >
+                                        <option value="">General Consultation (KES {selectedDoctor.fee})</option>
+                                        {services.map(s => (
+                                            <option key={s.id} value={s.id}>
+                                                {s.name} - KES {s.price}
+                                            </option>
+                                        ))}
+                                    </select>
                                 </div>
 
                                 <div>

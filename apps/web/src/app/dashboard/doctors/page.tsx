@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth, UserRole } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { FiPlus, FiAlertCircle, FiCheckCircle, FiShield, FiEdit2 } from 'react-icons/fi';
@@ -10,6 +11,7 @@ import EditDoctorModal from '@/components/dashboard/doctors/EditDoctorModal';
 
 export default function DoctorsPage() {
     const { user } = useAuth();
+    const router = useRouter();
     const [doctors, setDoctors] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -76,8 +78,9 @@ export default function DoctorsPage() {
                     <thead className="bg-gray-50 dark:bg-gray-800/50 text-xs uppercase text-gray-500 font-medium">
                         <tr>
                             <th className="px-6 py-4">Doctor</th>
-                            <th className="px-6 py-4">Specialty</th>
-                            <th className="px-6 py-4">Fee / Balance</th>
+                            <th className="px-6 py-4">Contact Info</th>
+                            <th className="px-6 py-4">Professional</th>
+                            <th className="px-6 py-4">Financial</th>
                             <th className="px-6 py-4">Status</th>
                             <th className="px-6 py-4">Actions</th>
                         </tr>
@@ -86,17 +89,32 @@ export default function DoctorsPage() {
                         {doctors.map((doc) => {
                             const isVerified = doc.Verified_status === 1 || doc.verified_status === true;
                             return (
-                                <tr key={doc.id} className={`hover:bg-gray-50 dark:hover:bg-gray-800/50 transition ${!doc.status ? 'opacity-70 grayscale-[0.5]' : ''}`}>
+                                <tr
+                                    key={doc.id}
+                                    onClick={() => router.push(`/dashboard/doctors/${doc.id}`)}
+                                    className={`hover:bg-gray-50 dark:hover:bg-gray-800/50 transition cursor-pointer ${!doc.status ? 'opacity-70 grayscale-[0.5]' : ''}`}
+                                >
                                     <td className="px-6 py-4 dark:text-gray-300">
                                         <div className="font-bold text-gray-900 dark:text-white">{doc.fname} {doc.lname}</div>
                                         <div className="text-xs text-gray-500">ID: {doc.id}</div>
+                                        <div className="text-xs text-gray-400 mt-1">{doc.sex} • {doc.dob ? new Date(doc.dob).toLocaleDateString() : 'N/A'}</div>
+                                    </td>
+                                    <td className="px-6 py-4 text-xs">
+                                        <div className="text-gray-900 dark:text-white font-medium">{doc.email}</div>
+                                        <div className="text-gray-500">{doc.mobile}</div>
+                                        <div className="text-gray-400 truncate max-w-[150px]" title={doc.address}>{doc.address}</div>
                                     </td>
                                     <td className="px-6 py-4 dark:text-gray-400">
-                                        <div className="text-xs text-brand-500 font-medium bg-brand-50 dark:bg-brand-900/10 inline-block px-1.5 py-0.5 rounded">{doc.dr_type}</div>
-                                        <div className="text-xs text-gray-500 mt-1 truncate max-w-[150px]">{doc.speciality || doc.qualification}</div>
+                                        <div className="text-xs text-brand-500 font-medium bg-brand-50 dark:bg-brand-900/10 inline-block px-1.5 py-0.5 rounded mb-1">{doc.dr_type}</div>
+                                        <div className="text-xs text-gray-500 font-bold">{doc.speciality || doc.qualification}</div>
+                                        <div className="text-[10px] text-gray-400 mt-1">
+                                            <div>Lic: {doc.licenceNo || 'N/A'}</div>
+                                            <div>Reg: {doc.reg_code || 'N/A'}</div>
+                                            <div>NID: {doc.national_id || 'N/A'}</div>
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4 text-gray-600 dark:text-gray-400">
-                                        <div>Fee: KES {doc.fee}</div>
+                                        <div className="font-medium">Fee: KES {doc.fee}</div>
                                         <div className="text-xs text-gray-400">Bal: KES {doc.balance}</div>
                                     </td>
                                     <td className="px-6 py-4">
@@ -110,9 +128,9 @@ export default function DoctorsPage() {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <div className="flex gap-2">
+                                        <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                                             <button
-                                                onClick={() => setEditingDoctorId(doc.id)}
+                                                onClick={(e) => { e.stopPropagation(); setEditingDoctorId(doc.id); }}
                                                 className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition"
                                                 title="Edit Profile"
                                             >
@@ -120,8 +138,9 @@ export default function DoctorsPage() {
                                             </button>
                                             {!isVerified && (
                                                 <button
-                                                    onClick={() => handleVerify(doc.id)}
+                                                    onClick={(e) => { e.stopPropagation(); handleVerify(doc.id); }}
                                                     className="text-[10px] bg-primary text-black font-bold px-2 py-1 rounded hover:opacity-90 transition shadow-sm"
+                                                    title="Approve & Verify"
                                                 >
                                                     Approve
                                                 </button>
@@ -141,27 +160,31 @@ export default function DoctorsPage() {
                 </table>
             </div>
 
-            {showModal && (
-                <CreateDoctorModal
-                    onClose={() => setShowModal(false)}
-                    onSuccess={() => {
-                        setShowModal(false);
-                        fetchDoctors();
-                    }}
-                />
-            )}
+            {
+                showModal && (
+                    <CreateDoctorModal
+                        onClose={() => setShowModal(false)}
+                        onSuccess={() => {
+                            setShowModal(false);
+                            fetchDoctors();
+                        }}
+                    />
+                )
+            }
 
-            {editingDoctorId && (
-                <EditDoctorModal
-                    doctorId={editingDoctorId}
-                    onClose={() => setEditingDoctorId(null)}
-                    onSuccess={() => {
-                        setEditingDoctorId(null);
-                        fetchDoctors();
-                    }}
-                />
-            )}
-        </div>
+            {
+                editingDoctorId && (
+                    <EditDoctorModal
+                        doctorId={editingDoctorId}
+                        onClose={() => setEditingDoctorId(null)}
+                        onSuccess={() => {
+                            setEditingDoctorId(null);
+                            fetchDoctors();
+                        }}
+                    />
+                )
+            }
+        </div >
     );
 }
 

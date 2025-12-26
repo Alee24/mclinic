@@ -10,7 +10,7 @@ export declare class DoctorsService {
     constructor(doctorsRepository: Repository<Doctor>, appointmentsRepository: Repository<Appointment>, usersService: UsersService);
     create(createDoctorDto: any, user: User | null): Promise<Doctor>;
     private createDoctorLogic;
-    findAllVerified(): Promise<any[]>;
+    findAllVerified(search?: string): Promise<any[]>;
     findAll(): Promise<Doctor[]>;
     findOne(id: number): Promise<Doctor | null>;
     findByUserId(userId: number): Promise<Doctor | null>;

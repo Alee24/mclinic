@@ -11,5 +11,8 @@ export declare class AppointmentsService {
     findAll(): Promise<Appointment[]>;
     findByPatient(patientId: number): Promise<Appointment[]>;
     findByDoctor(doctorId: number): Promise<Appointment[]>;
+    findAllForUser(user: any): Promise<Appointment[]>;
+    findOne(id: number): Promise<Appointment | null>;
     updateStatus(id: number, status: AppointmentStatus): Promise<Appointment | null>;
+    private calculateDistance;
 }

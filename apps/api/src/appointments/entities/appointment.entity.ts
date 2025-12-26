@@ -42,6 +42,9 @@ export class Appointment {
     @Column({ default: 0 })
     fee: number;
 
+    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+    transportFee: number;
+
     @Column({
         type: 'enum',
         enum: AppointmentStatus,

@@ -25,11 +25,22 @@ export declare class FinancialService {
         dueDate?: Date;
         items: any[];
     }): Promise<Invoice>;
-    getInvoices(): Promise<Invoice[]>;
+    getInvoices(user: {
+        email: string;
+        role: string;
+        id: number;
+    }): Promise<Invoice[]>;
     getInvoiceById(id: number): Promise<Invoice>;
     updateInvoice(id: number, data: any): Promise<Invoice>;
     deleteInvoice(id: number): Promise<void>;
-    getStats(): Promise<{
+    getStats(user?: {
+        role: string;
+        email: string;
+    }): Promise<{
+        balance: number;
+        pendingClearance: number;
+        transactions: Transaction[];
+    } | {
         totalRevenue: number;
         netRevenue: number;
         totalTransactions: number;
@@ -39,6 +50,11 @@ export declare class FinancialService {
             paid: number;
             overdue: number;
             total: number;
+            mk_pendingAmount: number;
+            mk_paidAmount: number;
+            mk_overdueAmount: number;
+            pendingAmount: number;
+            paidAmount: number;
         };
         paymentStats: {
             mpesa: number;
@@ -48,6 +64,11 @@ export declare class FinancialService {
             others: number;
         };
     }>;
+    getDoctorStats(email: string): Promise<{
+        balance: number;
+        pendingClearance: number;
+        transactions: Transaction[];
+    }>;
     initiateMpesaPayment(phoneNumber: string, amount: number, invoiceId: number): Promise<{
         success: boolean;
         message: string;
@@ -55,6 +76,10 @@ export declare class FinancialService {
     }>;
     handleMpesaCallback(callbackData: any): Promise<{
         success: boolean;
+    }>;
+    processPayment(appointmentId: number, amount: number, phoneNumber: string): Promise<{
+        success: boolean;
+        message: string;
     }>;
     confirmInvoicePayment(invoiceId: number, paymentMethod: string, transactionId?: string): Promise<{
         success: boolean;

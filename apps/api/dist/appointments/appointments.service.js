@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const appointment_entity_1 = require("./entities/appointment.entity");
+const doctor_entity_1 = require("../doctors/entities/doctor.entity");
 const service_entity_1 = require("../services/entities/service.entity");
 const invoice_entity_1 = require("../financial/entities/invoice.entity");
 let AppointmentsService = class AppointmentsService {
@@ -37,6 +38,14 @@ let AppointmentsService = class AppointmentsService {
                 fee = Number(service.price);
             }
         }
+        let transportFee = 0;
+        if (createAppointmentDto.patientLocation) {
+            const doctor = await this.appointmentsRepository.manager.getRepository(doctor_entity_1.Doctor).findOne({ where: { id: createAppointmentDto.doctorId } });
+            if (doctor && doctor.latitude && doctor.longitude) {
+                const dist = this.calculateDistance(createAppointmentDto.patientLocation.lat, createAppointmentDto.patientLocation.lng, Number(doctor.latitude), Number(doctor.longitude));
+                transportFee = Math.ceil(dist * 120);
+            }
+        }
         let meetingId = null;
         let meetingLink = null;
         if (isVirtual) {
@@ -49,12 +58,14 @@ let AppointmentsService = class AppointmentsService {
             appointment_time: appointmentTime,
             serviceId,
             fee,
+            transportFee,
             meetingId,
             meetingLink,
             ...rest
         });
         const savedAppointment = await this.appointmentsRepository.save(appointment);
-        if (fee > 0) {
+        const totalAmount = fee + transportFee;
+        if (totalAmount > 0) {
             const appointmentWithPatient = await this.appointmentsRepository.findOne({
                 where: { id: savedAppointment.id },
                 relations: ['patient']
@@ -65,12 +76,12 @@ let AppointmentsService = class AppointmentsService {
                     invoiceNumber,
                     customerName: `${appointmentWithPatient.patient.fname} ${appointmentWithPatient.patient.lname}`,
                     customerEmail: appointmentWithPatient.patient.mobile || 'noemail@mclinic.com',
-                    totalAmount: fee,
+                    totalAmount: totalAmount,
                     status: invoice_entity_1.InvoiceStatus.PENDING,
                     dueDate: new Date(appointmentDate),
                 });
                 await this.invoiceRepository.save(invoice);
-                console.log(`[INVOICE] Created invoice ${invoiceNumber} for appointment #${savedAppointment.id}, Amount: KES ${fee}`);
+                console.log(`[INVOICE] Created invoice ${invoiceNumber} for appointment #${savedAppointment.id}, Amount: KES ${totalAmount} (Fee: ${fee}, Transport: ${transportFee})`);
             }
         }
         return savedAppointment;
@@ -84,18 +95,57 @@ let AppointmentsService = class AppointmentsService {
     async findByPatient(patientId) {
         return this.appointmentsRepository.find({
             where: { patientId },
-            relations: ['doctor', 'doctor.user']
+            relations: ['doctor']
         });
     }
     async findByDoctor(doctorId) {
         return this.appointmentsRepository.find({
             where: { doctorId },
-            relations: ['patient', 'patient.user']
+            relations: ['patient']
+        });
+    }
+    async findAllForUser(user) {
+        if (user.role === 'admin') {
+            return this.findAll();
+        }
+        if (user.role === 'doctor') {
+            const doctor = await this.appointmentsRepository.manager.getRepository(doctor_entity_1.Doctor).findOne({ where: { email: user.email } });
+            if (!doctor) {
+                console.warn(`[Appointments] Doctor not found for email: ${user.email}`);
+                return [];
+            }
+            const appointments = await this.appointmentsRepository.find({
+                where: { doctorId: doctor.id },
+                relations: ['patient', 'doctor'],
+                order: { appointment_date: 'DESC' }
+            });
+            return appointments;
+        }
+        return this.appointmentsRepository.find({
+            where: { patientId: user.sub || user.id },
+            relations: ['doctor'],
+            order: { appointment_date: 'DESC' }
+        });
+    }
+    async findOne(id) {
+        return this.appointmentsRepository.findOne({
+            where: { id },
+            relations: ['patient', 'doctor']
         });
     }
     async updateStatus(id, status) {
         await this.appointmentsRepository.update(id, { status });
         return this.appointmentsRepository.findOne({ where: { id } });
+    }
+    calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
     }
 };
 exports.AppointmentsService = AppointmentsService;

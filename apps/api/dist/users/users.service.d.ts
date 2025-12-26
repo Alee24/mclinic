@@ -9,4 +9,8 @@ export declare class UsersService {
     findById(id: number): Promise<User | null>;
     findAll(): Promise<User[]>;
     countActive(): Promise<number>;
+    updateUserStatus(email: string, status: boolean): Promise<void>;
+    resetPassword(id: number, pass: string): Promise<User | null>;
+    update(id: number, updateUserDto: any): Promise<User>;
+    remove(id: number): Promise<void>;
 }

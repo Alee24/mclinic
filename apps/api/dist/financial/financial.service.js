@@ -107,8 +107,28 @@ let FinancialService = class FinancialService {
         });
         return this.invoiceRepo.save(invoice);
     }
-    async getInvoices() {
-        return this.invoiceRepo.find({ order: { createdAt: 'DESC' }, relations: ['items'] });
+    async getInvoices(user) {
+        let whereCondition = {};
+        if (user.role === 'admin') {
+            whereCondition = {};
+        }
+        else if (user.role === 'patient') {
+            whereCondition = { customerEmail: user.email };
+        }
+        else if (user.role === 'doctor') {
+            const doctor = await this.doctorRepo.findOne({ where: { email: user.email } });
+            if (doctor) {
+                whereCondition = { doctorId: doctor.id };
+            }
+            else {
+                return [];
+            }
+        }
+        return this.invoiceRepo.find({
+            where: whereCondition,
+            order: { createdAt: 'DESC' },
+            relations: ['items']
+        });
     }
     async getInvoiceById(id) {
         const invoice = await this.invoiceRepo.findOne({ where: { id }, relations: ['items'] });
@@ -145,22 +165,38 @@ let FinancialService = class FinancialService {
         const invoice = await this.getInvoiceById(id);
         await this.invoiceRepo.remove(invoice);
     }
-    async getStats() {
-        const result = await this.txRepo
-            .createQueryBuilder('tx')
-            .select('SUM(tx.amount)', 'total')
-            .where('tx.status IN (:...statuses)', { statuses: [transaction_entity_1.TransactionStatus.COMPLETED, transaction_entity_1.TransactionStatus.SUCCESS] })
+    async getStats(user) {
+        if (user && user.role === 'doctor') {
+            return this.getDoctorStats(user.email);
+        }
+        const paidStats = await this.invoiceRepo
+            .createQueryBuilder('inv')
+            .select('SUM(inv.totalAmount)', 'total')
+            .where('inv.status = :status', { status: invoice_entity_1.InvoiceStatus.PAID })
             .getRawOne();
-        const totalRevenue = result ? parseFloat(result.total) || 0 : 0;
+        const paidAmount = parseFloat(paidStats?.total || '0');
+        const pendingStats = await this.invoiceRepo
+            .createQueryBuilder('inv')
+            .select('SUM(inv.totalAmount)', 'total')
+            .where('inv.status = :status', { status: invoice_entity_1.InvoiceStatus.PENDING })
+            .getRawOne();
+        const pendingAmount = parseFloat(pendingStats?.total || '0');
+        const overdueStats = await this.invoiceRepo
+            .createQueryBuilder('inv')
+            .select('SUM(inv.totalAmount)', 'total')
+            .where('inv.status = :status', { status: invoice_entity_1.InvoiceStatus.OVERDUE })
+            .getRawOne();
+        const overdueAmount = parseFloat(overdueStats?.total || '0');
+        const totalRevenue = paidAmount;
         const totalTransactions = await this.txRepo.count();
         const recentTransactions = await this.txRepo.find({
             order: { createdAt: 'DESC' },
             take: 5,
             relations: ['user']
         });
-        const pendingInvoices = await this.invoiceRepo.count({ where: { status: invoice_entity_1.InvoiceStatus.PENDING } });
-        const paidInvoices = await this.invoiceRepo.count({ where: { status: invoice_entity_1.InvoiceStatus.PAID } });
-        const overdueInvoices = await this.invoiceRepo.count({ where: { status: invoice_entity_1.InvoiceStatus.OVERDUE } });
+        const pendingInvoicesCount = await this.invoiceRepo.count({ where: { status: invoice_entity_1.InvoiceStatus.PENDING } });
+        const paidInvoicesCount = await this.invoiceRepo.count({ where: { status: invoice_entity_1.InvoiceStatus.PAID } });
+        const overdueInvoicesCount = await this.invoiceRepo.count({ where: { status: invoice_entity_1.InvoiceStatus.OVERDUE } });
         const sourceStats = await this.txRepo
             .createQueryBuilder('tx')
             .select('tx.source', 'source')
@@ -189,24 +225,48 @@ let FinancialService = class FinancialService {
             else
                 paymentStats.others += total;
         });
-        const commissionStats = await this.invoiceRepo
-            .createQueryBuilder('inv')
-            .select('SUM(inv.commissionAmount)', 'total')
-            .where('inv.status = :status', { status: invoice_entity_1.InvoiceStatus.PAID })
-            .getRawOne();
-        const netRevenue = commissionStats ? parseFloat(commissionStats.total) || 0 : 0;
+        const netRevenue = totalRevenue * 0.40;
         return {
             totalRevenue,
             netRevenue,
             totalTransactions,
             recentTransactions,
             invoices: {
-                pending: pendingInvoices,
-                paid: paidInvoices,
-                overdue: overdueInvoices,
-                total: pendingInvoices + paidInvoices + overdueInvoices
+                pending: pendingInvoicesCount,
+                paid: paidInvoicesCount,
+                overdue: overdueInvoicesCount,
+                total: pendingInvoicesCount + paidInvoicesCount + overdueInvoicesCount,
+                mk_pendingAmount: pendingAmount,
+                mk_paidAmount: paidAmount,
+                mk_overdueAmount: overdueAmount,
+                pendingAmount,
+                paidAmount
             },
             paymentStats
+        };
+    }
+    async getDoctorStats(email) {
+        const doctor = await this.doctorRepo.findOne({ where: { email } });
+        if (!doctor)
+            throw new common_1.NotFoundException('Doctor profile not found');
+        const balance = Number(doctor.balance);
+        const pendingInvoices = await this.invoiceRepo.find({
+            where: { doctorId: doctor.id, status: invoice_entity_1.InvoiceStatus.PENDING }
+        });
+        let pendingClearance = 0;
+        pendingInvoices.forEach(inv => {
+            const amount = Number(inv.totalAmount);
+            pendingClearance += (amount * 0.60);
+        });
+        const transactions = await this.txRepo.find({
+            where: { user: { email: email } },
+            order: { createdAt: 'DESC' },
+            take: 10
+        });
+        return {
+            balance,
+            pendingClearance,
+            transactions
         };
     }
     async initiateMpesaPayment(phoneNumber, amount, invoiceId) {
@@ -260,9 +320,31 @@ let FinancialService = class FinancialService {
                 if (invoice) {
                     invoice.status = invoice_entity_1.InvoiceStatus.PAID;
                     if (invoice.doctorId) {
-                        const invAmount = Number(invoice.totalAmount);
-                        const commission = invAmount * 0.40;
-                        const doctorShare = invAmount - commission;
+                        let doctorShare = 0;
+                        let commission = 0;
+                        const parts = invoice.invoiceNumber.split('-');
+                        const appId = parts.length > 2 ? parseInt(parts[2]) : null;
+                        if (appId) {
+                            const app = await this.doctorRepo.manager.createQueryBuilder('appointment', 'a')
+                                .where('a.id = :id', { id: appId })
+                                .getOne();
+                            if (app) {
+                                const fee = Number(app.fee || 0);
+                                const transport = Number(app.transportFee || 0);
+                                commission = fee * 0.40;
+                                doctorShare = (fee * 0.60) + transport;
+                            }
+                            else {
+                                const total = Number(invoice.totalAmount);
+                                commission = total * 0.40;
+                                doctorShare = total * 0.60;
+                            }
+                        }
+                        else {
+                            const total = Number(invoice.totalAmount);
+                            commission = total * 0.40;
+                            doctorShare = total * 0.60;
+                        }
                         invoice.commissionAmount = commission;
                         await this.doctorRepo.increment({ id: invoice.doctorId }, 'balance', doctorShare);
                     }
@@ -286,6 +368,37 @@ let FinancialService = class FinancialService {
             console.error('[MPESA] Callback error:', error);
             return { success: false };
         }
+    }
+    async processPayment(appointmentId, amount, phoneNumber) {
+        let invoice = await this.invoiceRepo.createQueryBuilder('inv')
+            .where('inv.invoiceNumber LIKE :suffix', { suffix: `%-${appointmentId}` })
+            .getOne();
+        if (!invoice)
+            throw new common_1.NotFoundException('Invoice not found for this appointment');
+        invoice.status = invoice_entity_1.InvoiceStatus.PAID;
+        const app = await this.doctorRepo.manager.createQueryBuilder('appointment', 'a')
+            .where('a.id = :id', { id: appointmentId })
+            .getOne();
+        if (app && invoice.doctorId) {
+            const fee = Number(app.fee || 0);
+            const transport = Number(app.transportFee || 0);
+            const commission = fee * 0.40;
+            const doctorShare = (fee * 0.60) + transport;
+            invoice.commissionAmount = commission;
+            await this.doctorRepo.increment({ id: invoice.doctorId }, 'balance', doctorShare);
+        }
+        await this.invoiceRepo.save(invoice);
+        const transaction = this.txRepo.create({
+            amount: amount,
+            source: 'MPESA',
+            reference: `MPE${Date.now()}`,
+            status: transaction_entity_1.TransactionStatus.COMPLETED
+        });
+        await this.txRepo.save(transaction);
+        if (app) {
+            await this.doctorRepo.manager.update('appointment', { id: appointmentId }, { status: 'confirmed' });
+        }
+        return { success: true, message: 'Payment processed successfully' };
     }
     async confirmInvoicePayment(invoiceId, paymentMethod, transactionId) {
         const invoice = await this.invoiceRepo.findOne({ where: { id: invoiceId } });

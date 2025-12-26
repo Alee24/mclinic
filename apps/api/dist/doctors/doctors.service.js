@@ -73,9 +73,15 @@ let DoctorsService = class DoctorsService {
         });
         return this.doctorsRepository.save(doctor);
     }
-    async findAllVerified() {
-        let activeDocs = await this.doctorsRepository.find({ where: { Verified_status: 1, status: 1 } });
-        if (activeDocs.length === 0) {
+    async findAllVerified(search) {
+        const query = this.doctorsRepository.createQueryBuilder('doctor')
+            .where('doctor.Verified_status = :vStatus', { vStatus: 1 })
+            .andWhere('doctor.status = :status', { status: 1 });
+        if (search) {
+            query.andWhere('(doctor.fname LIKE :search OR doctor.lname LIKE :search OR doctor.dr_type LIKE :search OR doctor.speciality LIKE :search OR doctor.qualification LIKE :search OR CONCAT(doctor.fname, " ", doctor.lname) LIKE :search)', { search: `%${search}%` });
+        }
+        let activeDocs = await query.getMany();
+        if (activeDocs.length === 0 && !search) {
             const anyDocs = await this.doctorsRepository.find({ take: 5 });
             if (anyDocs.length > 0) {
                 for (const d of anyDocs) {
@@ -140,7 +146,11 @@ let DoctorsService = class DoctorsService {
     }
     async verifyDoctor(id, status) {
         await this.doctorsRepository.update(id, { Verified_status: status ? 1 : 0 });
-        return this.doctorsRepository.findOne({ where: { id } });
+        const doctor = await this.doctorsRepository.findOne({ where: { id } });
+        if (doctor && doctor.email) {
+            await this.usersService.updateUserStatus(doctor.email, status);
+        }
+        return doctor;
     }
     async update(id, updateDto) {
         if (updateDto.password) {

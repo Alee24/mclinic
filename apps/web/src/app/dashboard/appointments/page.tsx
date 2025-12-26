@@ -13,32 +13,26 @@ export default function AppointmentsPage() {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
 
-    const fetchData = async () => {
-        setLoading(true);
+    const fetchData = async (isPolling = false) => {
+        if (!isPolling) setLoading(true);
         try {
             const aptRes = await api.get('/appointments');
             if (aptRes?.ok) {
                 let data = await aptRes.json();
-
-                // Filter based on role
-                if (user?.role === UserRole.PATIENT) {
-                    data = data.filter((apt: any) => apt.patient?.user?.email === user.email);
-                } else if (user?.role === UserRole.DOCTOR) {
-                    data = data.filter((apt: any) => apt.doctor?.user?.email === user.email);
-                }
-
                 setAppointments(data);
             }
         } catch (err) {
             console.error(err);
         } finally {
-            setLoading(false);
+            if (!isPolling) setLoading(false);
         }
     };
 
     useEffect(() => {
         if (user) {
             fetchData();
+            const interval = setInterval(() => fetchData(true), 5000);
+            return () => clearInterval(interval);
         }
     }, [user]);
 
@@ -49,7 +43,7 @@ export default function AppointmentsPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold dark:text-white">Appointments</h1>
-                {!isPatient && (
+                {isAdmin && (
                     <button
                         onClick={() => setShowModal(true)}
                         className="bg-primary text-black font-bold px-4 py-2 rounded-lg hover:opacity-90 transition"
@@ -63,7 +57,7 @@ export default function AppointmentsPage() {
                 <table className="w-full text-left">
                     <thead className="bg-gray-50 dark:bg-gray-800/50 text-xs uppercase text-gray-500 font-medium">
                         <tr>
-                            <th className="px-6 py-4">Patient</th>
+                            {!isPatient && <th className="px-6 py-4">Patient</th>}
                             <th className="px-6 py-4">Medic/Nurse</th>
                             <th className="px-6 py-4">Service</th>
                             <th className="px-6 py-4">Date & Time</th>
@@ -73,15 +67,21 @@ export default function AppointmentsPage() {
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                         {loading ? (
-                            <tr><td colSpan={isPatient ? 5 : 6} className="px-6 py-4 text-center">Loading...</td></tr>
+                            <tr><td colSpan={isPatient ? 4 : 6} className="px-6 py-4 text-center">Loading...</td></tr>
                         ) : appointments.length === 0 ? (
-                            <tr><td colSpan={isPatient ? 5 : 6} className="px-6 py-4 text-center text-gray-500">No appointments found</td></tr>
+                            <tr><td colSpan={isPatient ? 4 : 6} className="px-6 py-4 text-center text-gray-500">No appointments found</td></tr>
                         ) : (
                             appointments.map((apt) => (
                                 <tr key={apt.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                    <td className="px-6 py-4 font-medium dark:text-white">
-                                        {apt.patient ? `${apt.patient.fname} ${apt.patient.lname}` : 'Unknown'}
-                                    </td>
+                                    {!isPatient && (
+                                        <td className="px-6 py-4 font-medium dark:text-white">
+                                            {apt.patient ? (
+                                                apt.patient.fname ? `${apt.patient.fname} ${apt.patient.lname}` :
+                                                    apt.patient.user ? (apt.patient.user.fname ? `${apt.patient.user.fname} ${apt.patient.user.lname}` : apt.patient.user.email) :
+                                                        'Unknown'
+                                            ) : 'Unknown'}
+                                        </td>
+                                    )}
                                     <td className="px-6 py-4 text-gray-500">
                                         {apt.doctor ? `${apt.doctor.fname} ${apt.doctor.lname}` : 'Unassigned'}
                                     </td>

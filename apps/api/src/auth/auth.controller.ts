@@ -14,4 +14,9 @@ export class AuthController {
     register(@Body() body: any) {
         return this.authService.register(body);
     }
+
+    @Post('register/doctor')
+    registerDoctor(@Body() body: any) {
+        return this.authService.registerDoctor(body);
+    }
 }

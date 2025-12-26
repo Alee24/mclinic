@@ -24,8 +24,8 @@ let DoctorsController = class DoctorsController {
     create(createDoctorDto) {
         return this.doctorsService.create(createDoctorDto, null);
     }
-    findAll() {
-        return this.doctorsService.findAllVerified();
+    findAll(search) {
+        return this.doctorsService.findAllVerified(search);
     }
     findAllAdmin() {
         return this.doctorsService.findAll();
@@ -50,8 +50,9 @@ __decorate([
 ], DoctorsController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
+    __param(0, (0, common_1.Query)('search')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], DoctorsController.prototype, "findAll", null);
 __decorate([

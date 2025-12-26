@@ -21,9 +21,90 @@ const doctor_entity_1 = require("../doctors/entities/doctor.entity");
 let MigrationService = class MigrationService {
     userRepository;
     doctorRepository;
-    constructor(userRepository, doctorRepository) {
+    dataSource;
+    constructor(userRepository, doctorRepository, dataSource) {
         this.userRepository = userRepository;
         this.doctorRepository = doctorRepository;
+        this.dataSource = dataSource;
+    }
+    async clearDatabase() {
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        try {
+            console.log('[MIGRATION] Starting Database Clear...');
+            await queryRunner.query('SET FOREIGN_KEY_CHECKS = 0');
+            const tables = [
+                'doctor_specialities',
+                'invoice_items',
+                'invoices',
+                'transactions',
+                'wallets',
+                'service_prices',
+                'payment_configs',
+                'appointments',
+                'doctor_schedules',
+                'doctor_licences',
+                'reviews',
+                'medical_records',
+                'doctors',
+                'departments',
+                'specialities',
+                'locations',
+                'services',
+                'users'
+            ];
+            for (const table of tables) {
+                try {
+                    console.log(`[MIGRATION] Clearing table: ${table}`);
+                    await queryRunner.query(`TRUNCATE TABLE ${table}`);
+                }
+                catch (e) {
+                    if (e.errno === 1146 || e.code === 'ER_NO_SUCH_TABLE') {
+                        console.log(`[MIGRATION] Table ${table} does not exist. Skipping...`);
+                        continue;
+                    }
+                    console.warn(`[MIGRATION] TRUNCATE failed for ${table}, trying DELETE. Error: ${e.message}`);
+                    try {
+                        await queryRunner.query(`DELETE FROM ${table}`);
+                    }
+                    catch (delErr) {
+                        if (delErr.errno === 1146 || delErr.code === 'ER_NO_SUCH_TABLE') {
+                            console.log(`[MIGRATION] Table ${table} does not exist. Skipping...`);
+                            continue;
+                        }
+                        console.error(`[MIGRATION] DELETE also failed for ${table}: ${delErr.message}`);
+                        throw delErr;
+                    }
+                }
+            }
+            console.log('[MIGRATION] Database cleared successfully.');
+            try {
+                const adminExists = await this.userRepository.findOne({ where: { email: 'mettoalex@gmail.com' } });
+                if (!adminExists) {
+                    await this.userRepository.save({
+                        fname: 'Metto',
+                        lname: 'Alex',
+                        email: 'mettoalex@gmail.com',
+                        password: 'Digital2025',
+                        role: user_entity_1.UserRole.ADMIN,
+                        status: true
+                    });
+                    console.log('[MIGRATION] Default admin account restored.');
+                }
+            }
+            catch (seedErr) {
+                console.error('[MIGRATION] Failed to restore admin:', seedErr);
+            }
+            return { message: 'Database cleared successfully' };
+        }
+        catch (err) {
+            console.error('[MIGRATION] Error clearing database:', err);
+            throw err;
+        }
+        finally {
+            await queryRunner.query('SET FOREIGN_KEY_CHECKS = 1');
+            await queryRunner.release();
+        }
     }
     parseInsertStatement(sqlContent) {
         const valuesMatch = sqlContent.match(/VALUES\s*\n?([\s\S]*);/i);
@@ -287,6 +368,7 @@ exports.MigrationService = MigrationService = __decorate([
     __param(0, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
     __param(1, (0, typeorm_1.InjectRepository)(doctor_entity_1.Doctor)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
-        typeorm_2.Repository])
+        typeorm_2.Repository,
+        typeorm_2.DataSource])
 ], MigrationService);
 //# sourceMappingURL=migration.service.js.map

@@ -25,4 +25,9 @@ export class MigrationController {
         const sqlContent = file.buffer.toString('utf-8');
         return this.migrationService.executeMigration(sqlContent, dataType);
     }
+
+    @Post('clear')
+    async clearDatabase() {
+        return this.migrationService.clearDatabase();
+    }
 }

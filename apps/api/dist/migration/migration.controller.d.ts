@@ -15,4 +15,7 @@ export declare class MigrationController {
             errors: string[];
         };
     }>;
+    clearDatabase(): Promise<{
+        message: string;
+    }>;
 }

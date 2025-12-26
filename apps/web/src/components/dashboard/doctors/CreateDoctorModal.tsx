@@ -13,28 +13,23 @@ export default function CreateDoctorModal({ onClose, onSuccess }: CreateDoctorMo
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
-        email: '', // Needed for creating a user account alongside? Backend assumes existing user or creates one?
-        // Current backend `create` assumes `userId` is passed OR `user` object. 
-        // DoctorsService.create takes (dto, user). This suggests invalid logic for ADMIN creating a doctor.
-        // Admin creating doctor usually means creating a User AND a Doctor profile.
-        // Let's assume for now we just create the profile and link to a dummy user or handle it like Patient (nullable user).
-        // Wait, Doctor entity has `user` as OneToOne. 
-        // Let's stick to the current pattern: maybe backend creates a user or we just send details.
-        // Actually, looking at `DoctorsService.create`, it takes `user: User` as second arg. This implies the LOGGED IN user (Admin) is creating it? 
-        // NO, the service creates `doctor` with `user` (the 2nd arg) as the LINKED user.
-        // If Admin creates a doctor, we don't want the doctor linked to the Admin's user account!
-        // Constraint: Doctor.user is OneToOne.
-        // Fix (like Patient): Make user nullable in Doctor entity.
+        sex: 'Male',
+        dob: '',
+        email: '',
+        mobile: '',
+        address: '',
         specialty: '',
+        dr_type: 'Specialist',
         licenseNumber: '',
-        boardNumber: '',
+        reg_code: '',
         licenseExpiryDate: '',
         qualifications: '',
         hospitalAffiliation: '',
+        fee: 0,
         bio: '',
     });
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
@@ -44,7 +39,7 @@ export default function CreateDoctorModal({ onClose, onSuccess }: CreateDoctorMo
         setLoading(true);
 
         try {
-            if (!formData.name || !formData.licenseNumber || !formData.startDate) {
+            if (!formData.name || !formData.licenseNumber || !formData.email) {
                 // Basic validation
             }
 
@@ -78,24 +73,75 @@ export default function CreateDoctorModal({ onClose, onSuccess }: CreateDoctorMo
 
                 <form onSubmit={handleSubmit} className="p-6 overflow-y-auto">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        {/* Section: Personal Details */}
+                        <div className="md:col-span-2 border-b pb-2 mb-2">
+                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Personal Information</h3>
+                        </div>
+
                         <div className="md:col-span-2">
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Full Name *</label>
-                            <input name="name" required className="w-full form-input" value={formData.name} onChange={handleChange} />
+                            <input name="name" required className="w-full form-input" value={formData.name} onChange={handleChange} placeholder="e.g. John Doe" />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Gender *</label>
+                            <select name="sex" className="w-full form-input" value={formData.sex} onChange={handleChange}>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Date of Birth</label>
+                            <input type="date" name="dob" className="w-full form-input" value={formData.dob} onChange={handleChange} />
+                        </div>
+
+                        {/* Section: Contact Info */}
+                        <div className="md:col-span-2 border-b border-t py-2 my-2 bg-gray-50/50 -mx-6 px-6">
+                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Contact Details</h3>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Email Address *</label>
+                            <input type="email" name="email" required className="w-full form-input" value={formData.email} onChange={handleChange} placeholder="doctor@example.com" />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Mobile Number *</label>
+                            <input name="mobile" required className="w-full form-input" value={formData.mobile} onChange={handleChange} placeholder="+254..." />
+                        </div>
+
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Physical Address</label>
+                            <input name="address" className="w-full form-input" value={formData.address} onChange={handleChange} placeholder="Building, Street, City" />
+                        </div>
+
+                        {/* Section: Professional Info */}
+                        <div className="md:col-span-2 border-b border-t py-2 my-2 bg-gray-50/50 -mx-6 px-6">
+                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Professional Profile</h3>
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Specialty *</label>
-                            <input name="specialty" required className="w-full form-input" value={formData.specialty} onChange={handleChange} placeholder="e.g. Cardiologist" />
+                            <select name="specialty" required className="w-full form-input" value={formData.specialty} onChange={handleChange}>
+                                <option value="">Select Specialty</option>
+                                {[
+                                    'Cardiology', 'Dermatology', 'Neurology', 'Pediatrics',
+                                    'Psychiatry', 'Oncology', 'Radiology', 'Surgery',
+                                    'Orthopedics', 'Gynecology', 'Urology', 'Internal Medicine',
+                                    'Dentistry', 'Ophthalmology', 'ENT', 'General Practice'
+                                ].map(s => <option key={s} value={s}>{s}</option>)}
+                            </select>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Hospital Affiliation</label>
-                            <input name="hospitalAffiliation" className="w-full form-input" value={formData.hospitalAffiliation} onChange={handleChange} />
-                        </div>
-
-                        {/* Professional Info */}
-                        <div className="md:col-span-2 border-t pt-4 mt-2">
-                            <h3 className="text-sm font-bold text-primary mb-3 uppercase tracking-wider">Professional Verification</h3>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Doctor Type</label>
+                            <select name="dr_type" className="w-full form-input" value={formData.dr_type} onChange={handleChange}>
+                                <option value="Specialist">Specialist</option>
+                                <option value="General Practitioner">General Practitioner</option>
+                                <option value="Consultant">Consultant</option>
+                            </select>
                         </div>
 
                         <div>
@@ -104,23 +150,38 @@ export default function CreateDoctorModal({ onClose, onSuccess }: CreateDoctorMo
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Board Number</label>
-                            <input name="boardNumber" className="w-full form-input font-mono" value={formData.boardNumber} onChange={handleChange} placeholder="e.g. KVPB/..." />
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Reg. Code (KMPDC)</label>
+                            <input name="reg_code" className="w-full form-input font-mono" value={formData.reg_code} onChange={handleChange} />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">License Expiry Date *</label>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">License Expiry *</label>
                             <input type="date" name="licenseExpiryDate" required className="w-full form-input" value={formData.licenseExpiryDate} onChange={handleChange} />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Hospital Affiliation</label>
+                            <input name="hospitalAffiliation" className="w-full form-input" value={formData.hospitalAffiliation} onChange={handleChange} />
                         </div>
 
                         <div className="md:col-span-2">
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Qualifications</label>
-                            <textarea name="qualifications" className="w-full form-input" rows={2} value={formData.qualifications} onChange={handleChange} placeholder="MBBS, MD, etc." />
+                            <input name="qualifications" className="w-full form-input" value={formData.qualifications} onChange={handleChange} placeholder="MBBS, MD, PhD..." />
+                        </div>
+
+                        {/* Section: Financial & Bio */}
+                        <div className="md:col-span-2 border-b border-t py-2 my-2 bg-gray-50/50 -mx-6 px-6">
+                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Other Details</h3>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Consultation Fee (KES)</label>
+                            <input type="number" name="fee" required className="w-full form-input" value={formData.fee} onChange={handleChange} min="0" />
                         </div>
 
                         <div className="md:col-span-2">
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Bio</label>
-                            <textarea name="bio" className="w-full form-input" rows={3} value={formData.bio} onChange={handleChange} />
+                            <textarea name="bio" className="w-full form-input" rows={2} value={formData.bio} onChange={handleChange} />
                         </div>
                     </div>
 

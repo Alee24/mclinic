@@ -43,8 +43,8 @@ let FinancialController = class FinancialController {
     createInvoice(body) {
         return this.financialService.createInvoice(body);
     }
-    getInvoices() {
-        return this.financialService.getInvoices();
+    getInvoices(req) {
+        return this.financialService.getInvoices(req.user);
     }
     getInvoiceById(id) {
         return this.financialService.getInvoiceById(Number(id));
@@ -55,8 +55,8 @@ let FinancialController = class FinancialController {
     deleteInvoice(id) {
         return this.financialService.deleteInvoice(Number(id));
     }
-    getStats() {
-        return this.financialService.getStats();
+    getStats(req) {
+        return this.financialService.getStats(req.user);
     }
     async initiateMpesaPayment(body) {
         return this.financialService.initiateMpesaPayment(body.phoneNumber, body.amount, body.invoiceId);
@@ -66,6 +66,9 @@ let FinancialController = class FinancialController {
     }
     async confirmPayment(id, body) {
         return this.financialService.confirmInvoicePayment(Number(id), body.paymentMethod, body.transactionId);
+    }
+    async processPayment(body) {
+        return this.financialService.processPayment(body.appointmentId, body.amount, body.phoneNumber);
     }
 };
 exports.FinancialController = FinancialController;
@@ -127,8 +130,9 @@ __decorate([
 __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.Get)('invoices'),
+    __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], FinancialController.prototype, "getInvoices", null);
 __decorate([
@@ -158,8 +162,10 @@ __decorate([
 ], FinancialController.prototype, "deleteInvoice", null);
 __decorate([
     (0, common_1.Get)('stats'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], FinancialController.prototype, "getStats", null);
 __decorate([
@@ -184,6 +190,13 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], FinancialController.prototype, "confirmPayment", null);
+__decorate([
+    (0, common_1.Post)('process-payment'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], FinancialController.prototype, "processPayment", null);
 exports.FinancialController = FinancialController = __decorate([
     (0, common_1.Controller)('financial'),
     __metadata("design:paramtypes", [financial_service_1.FinancialService])

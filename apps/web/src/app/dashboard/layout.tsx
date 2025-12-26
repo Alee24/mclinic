@@ -49,8 +49,28 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                     <NavItem href="/dashboard/patients" icon={<FiList />} label="Patients" active={pathname === '/dashboard/patients'} />
                                     <NavItem href="/dashboard/appointments" icon={<FiCalendar />} label="Appointments" active={pathname === '/dashboard/appointments'} />
                                     <NavItem href="/dashboard/services" icon={<FiPackage />} label="Services" active={pathname === '/dashboard/services'} />
-                                    <NavItem href="/dashboard/finance/invoices" icon={<FiFileText />} label="Invoices" active={pathname === '/dashboard/finance/invoices'} />
-                                    <NavItem href="/dashboard/finance/transactions" icon={<FiBarChart2 />} label="Finance" active={pathname === '/dashboard/finance/transactions'} />
+
+                                    {/* Finance Module Dropdown */}
+                                    <details className="group/finance" open={pathname?.startsWith('/dashboard/finance')}>
+                                        <summary className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all list-none ${pathname?.startsWith('/dashboard/finance') ? 'bg-donezo-dark/5 text-donezo-dark font-bold' : 'text-gray-500 hover:text-gray-900 group-hover/finance:text-gray-900'}`}>
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-xl"><FiBarChart2 /></span>
+                                                <span className="text-sm">Finance</span>
+                                            </div>
+                                            <div className="transition-transform group-open/finance:rotate-180">
+                                                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                                </svg>
+                                            </div>
+                                        </summary>
+                                        <div className="pl-4 mt-1 space-y-1 border-l-2 border-gray-100 dark:border-gray-800 ml-5">
+                                            <NavItem href="/dashboard/finance/transactions" icon={<div className="w-1.5 h-1.5 rounded-full bg-current" />} label="Overview" active={pathname === '/dashboard/finance/transactions'} />
+                                            <NavItem href="/dashboard/finance/invoices" icon={<div className="w-1.5 h-1.5 rounded-full bg-current" />} label="Invoices" active={pathname === '/dashboard/finance/invoices'} />
+                                        </div>
+                                    </details>
+
+                                    <NavItem href="/dashboard/users" icon={<FiUsers />} label="Users" active={pathname === '/dashboard/users'} />
+
                                     <NavItem href="/dashboard/doctors" icon={<FiUsers />} label="Doctors" active={pathname === '/dashboard/doctors'} />
                                     <NavItem href="/dashboard/doctors/map" icon={<FiMap />} label="Live Map" />
                                 </>
@@ -114,14 +134,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     {/* Abstract circles */}
                     <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-green-500/20 rounded-full blur-xl"></div>
                 </div>
-            </aside>
+            </aside >
 
             {/* Main Content */}
-            <main className="flex-1 flex flex-col overflow-hidden">
+            < main className="flex-1 flex flex-col overflow-hidden" >
                 {/* Header */}
-                <header className="h-20 flex items-center justify-between px-8 bg-transparent">
+                < header className="h-20 flex items-center justify-between px-8 bg-transparent" >
                     {/* Search */}
-                    <div className="flex items-center bg-white dark:bg-[#161616] rounded-full px-4 py-2.5 w-96 shadow-sm border border-gray-100 dark:border-gray-800">
+                    < div className="flex items-center bg-white dark:bg-[#161616] rounded-full px-4 py-2.5 w-96 shadow-sm border border-gray-100 dark:border-gray-800" >
                         <span className="text-gray-400 text-xl font-bold flex items-center">
                             <FiSearch />
                         </span>
@@ -133,10 +153,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         <kbd className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 text-xs text-gray-400 bg-gray-50 dark:bg-gray-800 rounded">
                             ⌘ F
                         </kbd>
-                    </div>
+                    </div >
 
                     {/* Right Actions */}
-                    <div className="flex items-center gap-6">
+                    < div className="flex items-center gap-6" >
                         <div className="flex items-center gap-4">
                             <button className="w-10 h-10 bg-white dark:bg-[#161616] rounded-full flex items-center justify-center text-gray-500 hover:text-gray-900 transition-colors shadow-sm text-lg">
                                 <FiMail />
@@ -156,15 +176,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </header>
+                    </div >
+                </header >
 
                 {/* Dashboard Content */}
-                <div className="flex-1 overflow-auto p-8 pt-2">
+                < div className="flex-1 overflow-auto p-8 pt-2" >
                     {children}
-                </div>
-            </main>
-        </div>
+                </div >
+            </main >
+        </div >
     );
 }
 

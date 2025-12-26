@@ -1,0 +1,32 @@
+'use client';
+
+import Link from 'next/link';
+
+export default function RegisterSelectionPage() {
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#1A1A1A] p-4">
+            <div className="max-w-2xl w-full text-center">
+                <h1 className="text-4xl font-black mb-8 dark:text-white">Join <span className="text-primary">M-Clinic</span></h1>
+                <p className="text-lg text-gray-500 mb-12">Choose how you want to use the platform.</p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <Link href="/register/patient" className="group rounded-3xl p-8 bg-white dark:bg-[#121212] border border-gray-100 dark:border-gray-800 shadow-xl hover:-translate-y-2 transition-all">
+                        <div className="text-6xl mb-6 group-hover:scale-110 transition-transform">😷</div>
+                        <h2 className="text-2xl font-bold dark:text-white mb-2">I am a Patient</h2>
+                        <p className="text-gray-500 text-sm">Find top doctors, book appointments, and manage your health records.</p>
+                    </Link>
+
+                    <Link href="/register/doctor" className="group rounded-3xl p-8 bg-white dark:bg-[#121212] border border-gray-100 dark:border-gray-800 shadow-xl hover:-translate-y-2 transition-all">
+                        <div className="text-6xl mb-6 group-hover:scale-110 transition-transform">🩺</div>
+                        <h2 className="text-2xl font-bold dark:text-white mb-2">I am a Doctor</h2>
+                        <p className="text-gray-500 text-sm">Join our network of specialists, manage patients, and grow your practice.</p>
+                    </Link>
+                </div>
+
+                <div className="mt-12 text-gray-500">
+                    Already have an account? <Link href="/login" className="text-primary font-bold hover:underline">Sign In</Link>
+                </div>
+            </div>
+        </div>
+    );
+}

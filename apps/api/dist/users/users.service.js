@@ -80,6 +80,21 @@ let UsersService = class UsersService {
     async countActive() {
         return this.usersRepository.count({ where: { status: true } });
     }
+    async updateUserStatus(email, status) {
+        await this.usersRepository.update({ email }, { status });
+    }
+    async resetPassword(id, pass) {
+        const hashedPassword = await bcrypt.hash(pass, 10);
+        await this.usersRepository.update(id, { password: hashedPassword });
+        return this.usersRepository.findOne({ where: { id } });
+    }
+    async update(id, updateUserDto) {
+        await this.usersRepository.update(id, updateUserDto);
+        return this.usersRepository.findOne({ where: { id } });
+    }
+    async remove(id) {
+        await this.usersRepository.delete(id);
+    }
 };
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = __decorate([

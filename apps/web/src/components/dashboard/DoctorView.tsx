@@ -10,24 +10,36 @@ export default function DoctorView() {
     const [stats, setStats] = useState({
         totalPatients: 0,
         appointmentsToday: 0,
-        pendingReports: 3,
-        earningsAmount: 12500,
+        pendingReports: 0,
+        earningsAmount: 0,
         upcomingAppointments: [] as any[]
     });
 
     useEffect(() => {
         const fetchDoctorData = async () => {
-            // Mocking data for now, real app would filter by doctorId
             try {
-                const res = await api.get('/appointments');
-                if (res?.ok) {
-                    const data = await res.json();
-                    setStats(prev => ({
-                        ...prev,
-                        appointmentsToday: data.filter((a: any) => a.status === 'confirmed').length,
-                        upcomingAppointments: data.slice(0, 5)
-                    }));
+                // Fetch Appointments
+                const aptRes = await api.get('/appointments');
+                let appointments = [];
+                if (aptRes?.ok) {
+                    appointments = await aptRes.json();
                 }
+
+                // Fetch Financials
+                const finRes = await api.get('/financial/stats');
+                let financials = { balance: 0, earningsAmount: 0 };
+                if (finRes?.ok) {
+                    financials = await finRes.json();
+                }
+
+                setStats(prev => ({
+                    ...prev,
+                    appointmentsToday: appointments.filter((a: any) => {
+                        return new Date(a.appointment_date).toDateString() === new Date().toDateString();
+                    }).length,
+                    upcomingAppointments: appointments.slice(0, 5),
+                    earningsAmount: financials.balance || 0
+                }));
             } catch (err) {
                 console.error(err);
             }
@@ -48,7 +60,7 @@ export default function DoctorView() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <DrStatCard label="Earnings this week" value={`KES ${stats.earningsAmount.toLocaleString()}`} icon={<FiDollarSign />} color="green" />
+                <DrStatCard label="Wallet Balance" value={`KES ${stats.earningsAmount.toLocaleString()}`} icon={<FiDollarSign />} color="green" />
                 <DrStatCard label="Today's Appointments" value={stats.appointmentsToday} icon={<FiCalendar />} color="blue" />
                 <DrStatCard label="Patient Reviews" value="4.9/5" icon={<FiActivity />} color="purple" />
                 <DrStatCard label="Pending Reports" value={stats.pendingReports} icon={<FiClock />} color="orange" />

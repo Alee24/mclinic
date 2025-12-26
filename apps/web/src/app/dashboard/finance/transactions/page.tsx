@@ -17,19 +17,14 @@ export default function TransactionsPage() {
     useEffect(() => {
         const loadData = async () => {
             try {
-                if (isDoctor) {
-                    // Find my doctor profile to get balance
-                    const res = await api.get('/doctors/map');
-                    if (res && res.ok) {
-                        const docs = await res.json();
-                        const me = docs.find((d: any) => d.email === user?.email);
-                        if (me) setDoctorBalance(Number(me.balance));
-                    }
-                } else {
-                    // Admin Stats
-                    const res = await api.get('/financial/stats');
-                    if (res && res.ok) {
-                        setStats(await res.json());
+                const res = await api.get('/financial/stats');
+                if (res && res.ok) {
+                    const data = await res.json();
+                    if (isDoctor) {
+                        setDoctorBalance(Number(data.balance));
+                        setStats(data);
+                    } else {
+                        setStats(data);
                     }
                 }
             } catch (error) {
@@ -105,7 +100,7 @@ export default function TransactionsPage() {
                                 <span className="text-gray-500 text-sm font-medium">Pending Clearance</span>
                                 <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg"><FiTrendingUp /></div>
                             </div>
-                            <div className="text-2xl font-bold dark:text-white">KES 0.00</div>
+                            <div className="text-2xl font-bold dark:text-white">KES {stats?.pendingClearance?.toLocaleString() || '0.00'}</div>
                             <div className="text-xs text-gray-400 mt-2">Funds available after 24hrs</div>
                         </div>
                     </>
@@ -174,11 +169,32 @@ export default function TransactionsPage() {
                 </div>
             )}
 
+            {!isDoctor && stats?.paymentStats && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-green-50 dark:bg-green-900/10 p-4 rounded-xl border border-green-100 dark:border-green-900/30">
+                        <div className="text-xs font-bold uppercase text-green-600 mb-1">M-Pesa</div>
+                        <div className="text-xl font-black dark:text-white">KES {stats.paymentStats.mpesa.toLocaleString()}</div>
+                    </div>
+                    <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30">
+                        <div className="text-xs font-bold uppercase text-blue-600 mb-1">Visa / Card</div>
+                        <div className="text-xl font-black dark:text-white">KES {stats.paymentStats.visa.toLocaleString()}</div>
+                    </div>
+                    <div className="bg-indigo-50 dark:bg-indigo-900/10 p-4 rounded-xl border border-indigo-100 dark:border-indigo-900/30">
+                        <div className="text-xs font-bold uppercase text-indigo-600 mb-1">PayPal</div>
+                        <div className="text-xl font-black dark:text-white">KES {stats.paymentStats.paypal.toLocaleString()}</div>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-gray-800/40 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
+                        <div className="text-xs font-bold uppercase text-gray-500 mb-1">Cash</div>
+                        <div className="text-xl font-black dark:text-white">KES {stats.paymentStats.cash.toLocaleString()}</div>
+                    </div>
+                </div>
+            )}
+
             <div className="bg-white dark:bg-[#121212] rounded-xl border border-gray-200 dark:border-gray-800 p-8">
                 <h3 className="font-bold text-lg mb-4 dark:text-white">Transaction History</h3>
-                {stats?.recentTransactions?.length > 0 ? (
+                {(stats?.recentTransactions?.length > 0 || stats?.transactions?.length > 0) ? (
                     <div className="space-y-4">
-                        {stats.recentTransactions.map((tx: any) => (
+                        {(stats.recentTransactions || stats.transactions).map((tx: any) => (
                             <div key={tx.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-xl">
                                 <div className="flex items-center gap-4">
                                     <div className={`p-3 rounded-lg ${tx.source === 'WITHDRAWAL' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>

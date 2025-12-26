@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, UseGuards, Request, Query } from '@nestjs/common';
 import { DoctorsService } from './doctors.service';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -13,8 +13,8 @@ export class DoctorsController {
     }
 
     @Get()
-    findAll() {
-        return this.doctorsService.findAllVerified();
+    findAll(@Query('search') search?: string) {
+        return this.doctorsService.findAllVerified(search);
     }
 
     @Get('admin/all')

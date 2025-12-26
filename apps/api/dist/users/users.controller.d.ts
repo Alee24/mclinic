@@ -6,4 +6,7 @@ export declare class UsersController {
     countActive(): Promise<{
         count: number;
     }>;
+    resetPassword(id: string, password: string): Promise<import("./entities/user.entity").User | null>;
+    update(id: string, updateUserDto: any): Promise<import("./entities/user.entity").User>;
+    remove(id: string): Promise<void>;
 }

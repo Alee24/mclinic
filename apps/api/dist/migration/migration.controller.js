@@ -29,6 +29,9 @@ let MigrationController = class MigrationController {
         const sqlContent = file.buffer.toString('utf-8');
         return this.migrationService.executeMigration(sqlContent, dataType);
     }
+    async clearDatabase() {
+        return this.migrationService.clearDatabase();
+    }
 };
 exports.MigrationController = MigrationController;
 __decorate([
@@ -49,6 +52,12 @@ __decorate([
     __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", Promise)
 ], MigrationController.prototype, "executeMigration", null);
+__decorate([
+    (0, common_1.Post)('clear'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], MigrationController.prototype, "clearDatabase", null);
 exports.MigrationController = MigrationController = __decorate([
     (0, common_1.Controller)('migration'),
     __metadata("design:paramtypes", [migration_service_1.MigrationService])

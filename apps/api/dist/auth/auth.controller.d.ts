@@ -7,4 +7,8 @@ export declare class AuthController {
         user: any;
     }>;
     register(body: any): Promise<import("../users/entities/user.entity").User>;
+    registerDoctor(body: any): Promise<{
+        user: import("../users/entities/user.entity").User;
+        doctor: import("../doctors/entities/doctor.entity").Doctor;
+    }>;
 }

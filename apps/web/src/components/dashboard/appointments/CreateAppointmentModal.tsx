@@ -81,7 +81,7 @@ export default function CreateAppointmentModal({ onClose, onSuccess }: CreateApp
         }
     };
 
-    const selectedService = services.find(s => s.id === parseInt(formData.serviceId));
+
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -118,27 +118,7 @@ export default function CreateAppointmentModal({ onClose, onSuccess }: CreateApp
                         </select>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Select Service</label>
-                        <select
-                            className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white"
-                            required
-                            value={formData.serviceId}
-                            onChange={(e) => setFormData({ ...formData, serviceId: e.target.value })}
-                        >
-                            <option value="">-- Choose Service --</option>
-                            {services.map(s => (
-                                <option key={s.id} value={s.id}>
-                                    {s.name} - KES {s.price.toLocaleString()} ({s.duration} mins)
-                                </option>
-                            ))}
-                        </select>
-                        {selectedService && (
-                            <p className="text-xs text-green-600 mt-1">
-                                Price: KES {selectedService.price.toLocaleString()} | Duration: {selectedService.duration} minutes
-                            </p>
-                        )}
-                    </div>
+
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>

@@ -1,10 +1,14 @@
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { Doctor } from '../doctors/entities/doctor.entity';
 export declare class MigrationService {
     private userRepository;
     private doctorRepository;
-    constructor(userRepository: Repository<User>, doctorRepository: Repository<Doctor>);
+    private dataSource;
+    constructor(userRepository: Repository<User>, doctorRepository: Repository<Doctor>, dataSource: DataSource);
+    clearDatabase(): Promise<{
+        message: string;
+    }>;
     private parseInsertStatement;
     private parseRow;
     private cleanValue;

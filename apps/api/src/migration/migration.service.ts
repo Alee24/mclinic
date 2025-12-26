@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from '../users/entities/user.entity';
+import { Repository, DataSource } from 'typeorm';
+import { User, UserRole } from '../users/entities/user.entity';
 import { Doctor } from '../doctors/entities/doctor.entity';
 
 @Injectable()
@@ -11,7 +11,103 @@ export class MigrationService {
         private userRepository: Repository<User>,
         @InjectRepository(Doctor)
         private doctorRepository: Repository<Doctor>,
+        private dataSource: DataSource,
     ) { }
+
+    async clearDatabase() {
+        // Use a query runner to ensure we use the SAME connection for all queries
+        // This is critical for SET FOREIGN_KEY_CHECKS to apply to the subsequent commands
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+
+        try {
+            console.log('[MIGRATION] Starting Database Clear...');
+
+            // Disable foreign key checks
+            await queryRunner.query('SET FOREIGN_KEY_CHECKS = 0');
+
+            // List of tables to clear
+            // Order doesn't strictly matter with FK checks off, but good practice to follow dependency
+            const tables = [
+                'doctor_specialities', // Pivot table
+                'invoice_items',
+                'invoices',
+                'transactions',
+                'wallets',
+                'service_prices',
+                'payment_configs',
+                'appointments',
+                'doctor_schedules',
+                'doctor_licences',
+                'reviews',
+                'medical_records',
+                'doctors',
+                'departments',
+                'specialities',
+                'locations',
+                'services',
+                'users'
+            ];
+
+            for (const table of tables) {
+                try {
+                    console.log(`[MIGRATION] Clearing table: ${table}`);
+                    // Use TRUNCATE as it resets auto-increment and is faster
+                    await queryRunner.query(`TRUNCATE TABLE ${table}`);
+                } catch (e: any) {
+                    // Ignore if table doesn't exist
+                    if (e.errno === 1146 || e.code === 'ER_NO_SUCH_TABLE') {
+                        console.log(`[MIGRATION] Table ${table} does not exist. Skipping...`);
+                        continue;
+                    }
+
+                    console.warn(`[MIGRATION] TRUNCATE failed for ${table}, trying DELETE. Error: ${e.message}`);
+                    try {
+                        await queryRunner.query(`DELETE FROM ${table}`);
+                    } catch (delErr: any) {
+                        if (delErr.errno === 1146 || delErr.code === 'ER_NO_SUCH_TABLE') {
+                            console.log(`[MIGRATION] Table ${table} does not exist. Skipping...`);
+                            continue;
+                        }
+                        console.error(`[MIGRATION] DELETE also failed for ${table}: ${delErr.message}`);
+                        // We might want to throw here, but continuing might clear what CAN be cleared.
+                        // For "Clear DB" expecting total wipe, throwing is safer to indicate failure.
+                        throw delErr;
+                    }
+                }
+            }
+
+            console.log('[MIGRATION] Database cleared successfully.');
+
+            // Re-seed Default Admin
+            try {
+                const adminExists = await this.userRepository.findOne({ where: { email: 'mettoalex@gmail.com' } });
+                if (!adminExists) {
+                    await this.userRepository.save({
+                        fname: 'Metto',
+                        lname: 'Alex',
+                        email: 'mettoalex@gmail.com',
+                        password: 'Digital2025', // In real app, hash this!
+                        role: UserRole.ADMIN,
+                        status: true
+                    });
+                    console.log('[MIGRATION] Default admin account restored.');
+                }
+            } catch (seedErr) {
+                console.error('[MIGRATION] Failed to restore admin:', seedErr);
+            }
+
+            return { message: 'Database cleared successfully' };
+
+        } catch (err) {
+            console.error('[MIGRATION] Error clearing database:', err);
+            throw err;
+        } finally {
+            // Re-enable foreign key checks on the same connection before releasing
+            await queryRunner.query('SET FOREIGN_KEY_CHECKS = 1');
+            await queryRunner.release();
+        }
+    }
 
     /**
      * Parse SQL INSERT statement and extract rows

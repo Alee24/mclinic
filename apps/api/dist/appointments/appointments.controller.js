@@ -22,11 +22,12 @@ let AppointmentsController = class AppointmentsController {
     constructor(appointmentsService) {
         this.appointmentsService = appointmentsService;
     }
-    create(createAppointmentDto) {
-        return this.appointmentsService.create(createAppointmentDto);
+    create(createAppointmentDto, req) {
+        const patientId = req.user.sub || req.user.id;
+        return this.appointmentsService.create({ ...createAppointmentDto, patientId });
     }
-    findAll() {
-        return this.appointmentsService.findAll();
+    findAll(req) {
+        return this.appointmentsService.findAllForUser(req.user);
     }
     async findMyAppointments(req) {
         return [];
@@ -37,6 +38,13 @@ let AppointmentsController = class AppointmentsController {
     findByDoctor(id) {
         return this.appointmentsService.findByDoctor(+id);
     }
+    async findOne(id) {
+        const appointment = await this.appointmentsService.findOne(+id);
+        if (!appointment) {
+            throw new common_1.NotFoundException(`Appointment with ID ${id} not found`);
+        }
+        return appointment;
+    }
     updateStatus(id, status) {
         return this.appointmentsService.updateStatus(+id, status);
     }
@@ -46,15 +54,17 @@ __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", void 0)
 ], AppointmentsController.prototype, "create", null);
 __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.Get)(),
+    __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], AppointmentsController.prototype, "findAll", null);
 __decorate([
@@ -79,6 +89,13 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], AppointmentsController.prototype, "findByDoctor", null);
+__decorate([
+    (0, common_1.Get)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], AppointmentsController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Patch)(':id/status'),
     __param(0, (0, common_1.Param)('id')),

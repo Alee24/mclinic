@@ -42,4 +42,23 @@ export class UsersService {
     async countActive(): Promise<number> {
         return this.usersRepository.count({ where: { status: true } });
     }
+
+    async updateUserStatus(email: string, status: boolean): Promise<void> {
+        await this.usersRepository.update({ email }, { status });
+    }
+
+    async resetPassword(id: number, pass: string): Promise<User | null> {
+        const hashedPassword = await bcrypt.hash(pass, 10);
+        await this.usersRepository.update(id, { password: hashedPassword });
+        return this.usersRepository.findOne({ where: { id } });
+    }
+    async update(id: number, updateUserDto: any): Promise<User> {
+        await this.usersRepository.update(id, updateUserDto);
+        // @ts-ignore
+        return this.usersRepository.findOne({ where: { id } });
+    }
+
+    async remove(id: number): Promise<void> {
+        await this.usersRepository.delete(id);
+    }
 }

@@ -3,21 +3,35 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { api } from '@/lib/api';
-import { FiUser, FiMapPin, FiAward, FiCheckCircle, FiAlertCircle, FiDollarSign, FiBriefcase, FiClock, FiPhone } from 'react-icons/fi';
+import { FiUser, FiMapPin, FiAward, FiCheckCircle, FiAlertCircle, FiDollarSign, FiBriefcase, FiClock, FiPhone, FiMail } from 'react-icons/fi';
 
 export default function DoctorDetailsPage() {
     const params = useParams();
     const [doctor, setDoctor] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'profile' | 'schedule' | 'reviews'>('profile');
+    const [appointments, setAppointments] = useState<any[]>([]);
+    const [transactions, setTransactions] = useState<any[]>([]);
+    const [activeTab, setActiveTab] = useState<'profile' | 'appointments' | 'financials'>('profile');
 
     useEffect(() => {
-        const fetchDoctor = async () => {
+        const fetchData = async () => {
             try {
-                const res = await api.get(`/doctors/${params.id}`);
-                if (res && res.ok) {
-                    setDoctor(await res.json());
+                // Fetch Doctor Profile
+                const docRes = await api.get(`/doctors/${params.id}`);
+                if (docRes && docRes.ok) {
+                    setDoctor(await docRes.json());
                 }
+
+                // Fetch Doctor Appointments
+                const apptRes = await api.get(`/appointments/doctor/${params.id}`);
+                if (apptRes && apptRes.ok) {
+                    setAppointments(await apptRes.json());
+                }
+
+                // Simulate/Fetch Transactions (We can add a real endpoint later)
+                // For now, derive from appointments or use empty
+                setTransactions([]);
+
             } catch (error) {
                 console.error(error);
             } finally {
@@ -25,7 +39,7 @@ export default function DoctorDetailsPage() {
             }
         };
 
-        if (params.id) fetchDoctor();
+        if (params.id) fetchData();
     }, [params.id]);
 
     if (loading) return <div className="p-8 text-center text-gray-500">Loading doctor profile...</div>;
@@ -34,10 +48,9 @@ export default function DoctorDetailsPage() {
     return (
         <div className="space-y-6">
             {/* Header Card */}
-            <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col md:flex-row gap-6 items-start">
-                <div className="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center text-4xl font-bold text-primary overflow-hidden">
-                    {/* Placeholder for now, later use doc.profile_image */}
-                    {doctor.fname[0]}{doctor.lname[0]}
+            <div className="bg-white dark:bg-[#161616] rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col md:flex-row gap-6 items-start">
+                <div className="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center text-4xl font-bold text-primary overflow-hidden border-2 border-gray-100 dark:border-gray-700">
+                    <img src={`https://ui-avatars.com/api/?name=${doctor.fname}+${doctor.lname}&background=random`} alt="Profile" className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1">
                     <div className="flex items-center gap-3">
@@ -49,7 +62,7 @@ export default function DoctorDetailsPage() {
                     </div>
                     <div className="text-lg text-gray-500 dark:text-gray-400 font-medium mt-1">{doctor.dr_type}</div>
 
-                    <div className="flex flex-wrap items-center gap-6 mt-4 text-sm text-gray-500">
+                    <div className="flex flex-wrap items-center gap-6 mt-4 text-sm text-gray-500 dark:text-gray-400">
                         <div className="flex items-center gap-2">
                             <span className="text-primary"><FiAward /></span>
                             <span>{doctor.qualification}</span>
@@ -70,88 +83,172 @@ export default function DoctorDetailsPage() {
                         )}
                     </div>
                 </div>
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2 bg-gray-50 dark:bg-gray-900 p-4 rounded-xl">
                     <div className="text-right">
-                        <div className="text-xs text-gray-400 uppercase tracking-widest">Balance</div>
+                        <div className="text-xs text-gray-400 uppercase tracking-widest mb-1">Wallet Balance</div>
                         <div className="text-2xl font-bold text-gray-900 dark:text-white">KES {doctor.balance}</div>
                     </div>
                 </div>
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-6 border-b border-gray-200 dark:border-gray-800">
-                <button
-                    onClick={() => setActiveTab('profile')}
-                    className={`pb-3 text-sm font-medium transition ${activeTab === 'profile' ? 'text-primary border-b-2 border-primary' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
-                >
-                    Profile Details
-                </button>
-                <button
-                    onClick={() => setActiveTab('schedule')}
-                    className={`pb-3 text-sm font-medium transition ${activeTab === 'schedule' ? 'text-primary border-b-2 border-primary' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
-                >
-                    Schedule & Availability
-                </button>
+            <div className="flex gap-6 border-b border-gray-200 dark:border-gray-800 overflow-x-auto">
+                {['profile', 'appointments', 'financials'].map((tab) => (
+                    <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab as any)}
+                        className={`pb-3 text-sm font-bold capitalize transition whitespace-nowrap ${activeTab === tab ? 'text-primary border-b-2 border-primary' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`}
+                    >
+                        {tab} Details
+                    </button>
+                ))}
             </div>
 
             {/* Content */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="min-h-[400px]">
                 {activeTab === 'profile' && (
-                    <>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
                         <div className="lg:col-span-2 space-y-6">
-                            <section className="bg-white dark:bg-[#1A1A1A] rounded-xl p-6 border border-gray-100 dark:border-gray-800">
-                                <h3 className="text-lg font-bold dark:text-white mb-4">About</h3>
+                            <section className="bg-white dark:bg-[#161616] rounded-xl p-6 border border-gray-100 dark:border-gray-800">
+                                <h3 className="text-lg font-bold dark:text-white mb-4">About Doctor</h3>
                                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                                    {doctor.about || 'No bio available.'}
+                                    {doctor.bio || doctor.about || 'No detailed biography available for this doctor.'}
                                 </p>
                             </section>
 
-                            <section className="bg-white dark:bg-[#1A1A1A] rounded-xl p-6 border border-gray-100 dark:border-gray-800">
+                            <section className="bg-white dark:bg-[#161616] rounded-xl p-6 border border-gray-100 dark:border-gray-800">
                                 <h3 className="text-lg font-bold dark:text-white mb-4">Professional Details</h3>
-                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-4 text-sm">
                                     <div>
-                                        <div className="text-gray-500 mb-1">Qualification</div>
-                                        <div className="font-medium dark:text-gray-200">{doctor.qualification}</div>
+                                        <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Qualification</div>
+                                        <div className="font-medium dark:text-gray-200 text-base">{doctor.qualification}</div>
                                     </div>
                                     <div>
-                                        <div className="text-gray-500 mb-1">Specialty</div>
-                                        <div className="font-medium dark:text-gray-200">{doctor.dr_type}</div>
+                                        <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Specialty</div>
+                                        <div className="font-medium dark:text-gray-200 text-base">{doctor.dr_type}</div>
                                     </div>
                                     <div>
-                                        <div className="text-gray-500 mb-1">National ID</div>
-                                        <div className="font-medium dark:text-gray-200">{doctor.national_id}</div>
+                                        <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">National ID</div>
+                                        <div className="font-medium dark:text-gray-200 text-base">{doctor.national_id}</div>
                                     </div>
                                     <div>
-                                        <div className="text-gray-500 mb-1">Status</div>
-                                        <div className="font-medium dark:text-gray-200 uppercase">{doctor.status ? 'Active' : 'Inactive'}</div>
+                                        <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">License No.</div>
+                                        <div className="font-medium dark:text-gray-200 text-base">{doctor.licenceNo || 'N/A'}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Registration Code</div>
+                                        <div className="font-medium dark:text-gray-200 text-base">{doctor.reg_code || 'N/A'}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Account Status</div>
+                                        <div className={`font-bold uppercase inline-block px-2 py-0.5 rounded text-xs ${doctor.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                            {doctor.status ? 'Active' : 'Inactive'}
+                                        </div>
                                     </div>
                                 </div>
                             </section>
                         </div>
                         <div className="space-y-6">
-                            <section className="bg-white dark:bg-[#1A1A1A] rounded-xl p-6 border border-gray-100 dark:border-gray-800">
-                                <h3 className="text-lg font-bold dark:text-white mb-4">Contact</h3>
+                            <section className="bg-white dark:bg-[#161616] rounded-xl p-6 border border-gray-100 dark:border-gray-800">
+                                <h3 className="text-lg font-bold dark:text-white mb-4">Contact Information</h3>
                                 <div className="space-y-4 text-sm">
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-gray-400"><FiPhone /></span>
-                                        <span className="dark:text-gray-200">{doctor.mobile}</span>
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 shrink-0"><FiPhone /></div>
+                                        <div>
+                                            <div className="text-xs text-gray-400">Mobile Number</div>
+                                            <div className="font-medium dark:text-gray-200">{doctor.mobile}</div>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-gray-400"><FiMapPin /></span>
-                                        <span className="dark:text-gray-200">{doctor.address}</span>
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 shrink-0"><FiMail /></div>
+                                        <div>
+                                            <div className="text-xs text-gray-400">Email Address</div>
+                                            <div className="font-medium dark:text-gray-200">{doctor.email}</div>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 shrink-0"><FiMapPin /></div>
+                                        <div>
+                                            <div className="text-xs text-gray-400">Address / Location</div>
+                                            <div className="font-medium dark:text-gray-200">{doctor.address}</div>
+                                        </div>
                                     </div>
                                 </div>
                             </section>
                         </div>
-                    </>
+                    </div>
                 )}
 
-                {activeTab === 'schedule' && (
-                    <div className="lg:col-span-3">
-                        <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-12 text-center border border-gray-100 dark:border-gray-800">
-                            <div className="mx-auto text-4xl text-gray-300 mb-4 inline-block"><FiClock /></div>
-                            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Schedule Management</h3>
-                            <p className="text-gray-500">Schedule view is currently under construction.</p>
+                {activeTab === 'appointments' && (
+                    <div className="bg-white dark:bg-[#161616] rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                        <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
+                            <h3 className="font-bold dark:text-white">Appointment History</h3>
+                            <span className="text-xs font-bold bg-primary/10 text-primary px-2 py-1 rounded-md">{appointments.length} Records</span>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm">
+                                <thead className="bg-gray-50 dark:bg-gray-800/50 text-xs uppercase text-gray-500 font-medium">
+                                    <tr>
+                                        <th className="px-6 py-4">Patient</th>
+                                        <th className="px-6 py-4">Date & Time</th>
+                                        <th className="px-6 py-4">Status</th>
+                                        <th className="px-6 py-4">Fees</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                                    {appointments.length === 0 ? (
+                                        <tr><td colSpan={4} className="px-6 py-8 text-center text-gray-500">No appointments found for this doctor.</td></tr>
+                                    ) : (
+                                        appointments.map(appt => (
+                                            <tr key={appt.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/50">
+                                                <td className="px-6 py-4">
+                                                    <div className="font-bold text-gray-900 dark:text-white">{appt.patient?.fname || 'Guest'} {appt.patient?.lname || ''}</div>
+                                                    <div className="text-xs text-gray-500">{appt.patient?.email}</div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="text-gray-900 dark:text-white">{new Date(appt.appointment_date).toLocaleDateString()}</div>
+                                                    <div className="text-xs text-gray-500">{appt.appointment_time}</div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${appt.status === 'completed' ? 'bg-green-100 text-green-700' :
+                                                        appt.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                                                            'bg-blue-100 text-blue-700'
+                                                        }`}>
+                                                        {appt.status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 font-medium text-gray-600 dark:text-gray-400">
+                                                    KES {doctor.fee}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+
+                {activeTab === 'financials' && (
+                    <div className="bg-white dark:bg-[#161616] rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800 p-8 text-center animate-in fade-in slide-in-from-bottom-2 duration-500">
+                        <div className="max-w-md mx-auto">
+                            <div className="w-16 h-16 bg-green-50 dark:bg-green-900/20 text-green-600 rounded-full flex items-center justify-center text-3xl mb-4 mx-auto">
+                                <FiDollarSign />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Detailed Financials</h3>
+                            <p className="text-gray-500 mb-6">
+                                View detailed transaction history, payouts, and earnings reports.
+                            </p>
+                            <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 text-left mb-6">
+                                <div className="flex justify-between mb-2">
+                                    <span className="text-gray-500 text-sm">Total Earnings</span>
+                                    <span className="font-bold dark:text-white">KES {doctor.balance}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-500 text-sm">Last Payout</span>
+                                    <span className="font-bold dark:text-white">Never</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}

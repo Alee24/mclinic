@@ -16,32 +16,29 @@ interface Invoice {
     createdAt: string;
 }
 
+import CreateInvoiceModal from '@/components/dashboard/invoices/CreateInvoiceModal';
+
 export default function InvoicesPage() {
     const { user } = useAuth();
     const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [loading, setLoading] = useState(true);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [showCreateModal, setShowCreateModal] = useState(false);
     const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
     const [paymentMethod, setPaymentMethod] = useState('MPESA');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [processing, setProcessing] = useState(false);
 
     const fetchInvoices = async () => {
+        // ... (existing code, keep fetchInvoices logic same)
         setLoading(true);
         try {
             const res = await api.get('/financial/invoices');
             if (res?.ok) {
                 let data = await res.json();
-                if (user?.role !== UserRole.ADMIN) {
-                    data = data.filter((inv: any) => inv.customerEmail === user?.email);
-                }
                 setInvoices(data);
             }
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
+        } catch (err) { console.error(err); } finally { setLoading(false); }
     };
 
     useEffect(() => {
@@ -50,6 +47,7 @@ export default function InvoicesPage() {
         }
     }, [user]);
 
+    // ... (keep handlePayment)
     const handlePayment = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedInvoice) return;
@@ -57,27 +55,22 @@ export default function InvoicesPage() {
         setProcessing(true);
         try {
             if (paymentMethod === 'MPESA') {
-                // Initiate M-Pesa STK Push
                 const res = await api.post('/financial/mpesa/stk-push', {
                     phoneNumber,
                     amount: selectedInvoice.totalAmount,
                     invoiceId: selectedInvoice.id
                 });
-
                 if (res?.ok) {
                     const data = await res.json();
                     alert(data.message + ' Payment will be confirmed automatically.');
                     setShowPaymentModal(false);
-                    // Poll for status update
                     setTimeout(() => fetchInvoices(), 6000);
                 }
             } else {
-                // Manual payment confirmation
                 const res = await api.post(`/financial/invoices/${selectedInvoice.id}/confirm-payment`, {
                     paymentMethod,
                     transactionId: `MAN-${Date.now()}`
                 });
-
                 if (res?.ok) {
                     alert('Payment confirmed successfully!');
                     setShowPaymentModal(false);
@@ -95,14 +88,29 @@ export default function InvoicesPage() {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold dark:text-white">Invoices & Payments</h1>
-                <div className="flex gap-2">
-                    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-                        Paid: {invoices.filter(i => i.status === 'paid').length}
-                    </span>
-                    <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">
-                        Pending: {invoices.filter(i => i.status === 'pending').length}
-                    </span>
+                <div>
+                    <h1 className="text-2xl font-bold dark:text-white">Invoices & Payments</h1>
+                    <p className="text-sm text-gray-500">Manage billing and payments</p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                    <div className="flex gap-2 mr-4">
+                        <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                            Paid: {invoices.filter(i => i.status === 'paid').length}
+                        </span>
+                        <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">
+                            Pending: {invoices.filter(i => i.status === 'pending').length}
+                        </span>
+                    </div>
+
+                    {user?.role === UserRole.ADMIN && (
+                        <button
+                            onClick={() => setShowCreateModal(true)}
+                            className="bg-black dark:bg-white dark:text-black text-white px-4 py-2 rounded-lg font-bold hover:opacity-80 transition"
+                        >
+                            + Create Invoice
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -169,6 +177,16 @@ export default function InvoicesPage() {
                     </tbody>
                 </table>
             </div>
+
+            {showCreateModal && (
+                <CreateInvoiceModal
+                    onClose={() => setShowCreateModal(false)}
+                    onSuccess={() => {
+                        setShowCreateModal(false);
+                        fetchInvoices();
+                    }}
+                />
+            )}
 
             {showPaymentModal && selectedInvoice && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">

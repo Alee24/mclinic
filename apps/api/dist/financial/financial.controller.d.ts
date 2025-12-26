@@ -23,11 +23,15 @@ export declare class FinancialController {
     getPrices(doctorId?: number): Promise<import("./entities/service-price.entity").ServicePrice[]>;
     getTransactions(): Promise<import("./entities/transaction.entity").Transaction[]>;
     createInvoice(body: any): Promise<import("./entities/invoice.entity").Invoice>;
-    getInvoices(): Promise<import("./entities/invoice.entity").Invoice[]>;
+    getInvoices(req: any): Promise<import("./entities/invoice.entity").Invoice[]>;
     getInvoiceById(id: string): Promise<import("./entities/invoice.entity").Invoice>;
     updateInvoice(id: string, body: any): Promise<import("./entities/invoice.entity").Invoice>;
     deleteInvoice(id: string): Promise<void>;
-    getStats(): Promise<{
+    getStats(req: any): Promise<{
+        balance: number;
+        pendingClearance: number;
+        transactions: import("./entities/transaction.entity").Transaction[];
+    } | {
         totalRevenue: number;
         netRevenue: number;
         totalTransactions: number;
@@ -37,6 +41,11 @@ export declare class FinancialController {
             paid: number;
             overdue: number;
             total: number;
+            mk_pendingAmount: number;
+            mk_paidAmount: number;
+            mk_overdueAmount: number;
+            pendingAmount: number;
+            paidAmount: number;
         };
         paymentStats: {
             mpesa: number;
@@ -65,5 +74,13 @@ export declare class FinancialController {
         success: boolean;
         message: string;
         invoice: import("./entities/invoice.entity").Invoice;
+    }>;
+    processPayment(body: {
+        appointmentId: number;
+        amount: number;
+        phoneNumber: string;
+    }): Promise<{
+        success: boolean;
+        message: string;
     }>;
 }

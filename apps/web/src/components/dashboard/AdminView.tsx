@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
+import Link from 'next/link';
 import { FiUsers, FiActivity, FiBriefcase, FiCalendar, FiArrowUpRight, FiMail, FiBell } from 'react-icons/fi';
 
 export default function AdminView() {
@@ -12,7 +13,7 @@ export default function AdminView() {
         inactiveDoctors: 0,
         activeUsers: 0,
         appointments: 0,
-        totalRevenue: 345000,
+        totalRevenue: 0,
         pendingDoctors: [] as any[],
         invoices: { pending: 12, paid: 45, total: 57 },
         paymentStats: { mpesa: 120000, visa: 85000, paypal: 140000, cash: 0, others: 0 }
@@ -21,11 +22,12 @@ export default function AdminView() {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const [patientsRes, doctorsRes, appointmentsRes, usersRes] = await Promise.all([
+                const [patientsRes, doctorsRes, appointmentsRes, usersRes, financeRes] = await Promise.all([
                     api.get('/patients'),
                     api.get('/doctors/admin/all'),
                     api.get('/appointments'),
-                    api.get('/users/count-active')
+                    api.get('/users/count-active'),
+                    api.get('/financial/stats') // Fetch real finance stats
                 ]);
 
                 if (patientsRes?.ok && doctorsRes?.ok && appointmentsRes?.ok) {
@@ -33,6 +35,13 @@ export default function AdminView() {
                     const doctors = await doctorsRes.json();
                     const appointments = await appointmentsRes.json();
                     const users = usersRes?.ok ? await usersRes.json() : { count: 0 };
+
+                    // Assuming financeRes returns detailed stats or we fetch invoices to calc sum.
+                    // If financeRes structure is { revenue: 0, activeInvoices: [], paidInvoices: [] }
+                    // We need to support "Every invoice to add up".
+                    // The current /financial/stats endpoint returns aggregated counts and totalRevenue (balance).
+                    // We need to ensure totalRevenue is the SUM of all invoices or at least Paid ones.
+                    const financials = financeRes?.ok ? await financeRes.json() : { revenue: 0, pending: 0, paid: 0, pendingCount: 0, paidCount: 0, pendingAmount: 0, paidAmount: 0 };
 
                     const activeDocs = doctors.filter((d: any) => d.status || d.isWorking).length;
 
@@ -44,6 +53,12 @@ export default function AdminView() {
                         inactiveDoctors: doctors.length - activeDocs,
                         activeUsers: users.count,
                         appointments: appointments.length,
+                        totalRevenue: financials.totalRevenue || 0, // Matches service return key
+                        invoices: {
+                            pending: financials.invoices?.pendingAmount || 0, // Correctly accessing nested amount
+                            paid: financials.invoices?.paidAmount || 0,       // Correctly accessing nested amount
+                            total: (financials.invoices?.pending || 0) + (financials.invoices?.paid || 0) // Total count (optional usage)
+                        },
                         pendingDoctors: doctors.filter((d: any) => !d.Verified_status).slice(0, 5),
                     }));
                 }
@@ -71,16 +86,16 @@ export default function AdminView() {
                     <p className="text-sm text-gray-500 mb-6 font-medium">Monthly Gross Revenue</p>
                     <div className="space-y-4">
                         <div className="flex justify-between items-center text-sm">
-                            <span className="text-gray-500">Invoices Paid</span>
-                            <span className="font-bold text-green-500">{stats.invoices.paid}</span>
+                            <span className="text-gray-500">Collected</span>
+                            <span className="font-bold text-green-500">KES {stats.invoices.paid.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between items-center text-sm">
                             <span className="text-gray-500">Pending</span>
-                            <span className="font-bold text-orange-500">{stats.invoices.pending}</span>
+                            <span className="font-bold text-orange-500">KES {stats.invoices.pending.toLocaleString()}</span>
                         </div>
                         <div className="w-full h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden flex">
-                            <div className="h-full bg-green-500" style={{ width: '70%' }}></div>
-                            <div className="h-full bg-orange-400" style={{ width: '30%' }}></div>
+                            <div className="h-full bg-green-500" style={{ width: `${(stats.invoices.paid / (stats.invoices.paid + stats.invoices.pending || 1)) * 100}%` }}></div>
+                            <div className="h-full bg-orange-400" style={{ width: `${(stats.invoices.pending / (stats.invoices.paid + stats.invoices.pending || 1)) * 100}%` }}></div>
                         </div>
                     </div>
                 </div>
@@ -110,12 +125,45 @@ export default function AdminView() {
 
             <div className="bg-white dark:bg-[#161616] rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
                 <div className="flex justify-between items-center mb-6">
-                    <h3 className="font-bold text-gray-900 dark:text-white">Pending verifications</h3>
-                    <button className="text-sm font-bold text-donezo-dark">View all</button>
+                    <h3 className="font-bold text-gray-900 dark:text-white">Action Items & Verifications</h3>
+                    <Link href="/dashboard/doctors" className="text-sm font-bold text-donezo-dark hover:underline">View All Doctors</Link>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {/* Shortcuts Group */}
+                    <div className="md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+                        {/* Migration Shortcut */}
+                        <div className="flex items-center gap-4 p-4 rounded-2xl border border-blue-50 dark:border-blue-900/30 bg-blue-50/50 dark:bg-blue-900/10 hover:bg-blue-100/50 transition-colors group">
+                            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-blue-100 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                <FiActivity />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <h4 className="font-bold text-sm text-blue-900 dark:text-blue-100">Data Migration</h4>
+                                <p className="text-xs text-blue-600/70 truncate">Import/Clear Data</p>
+                            </div>
+                            <Link href="/dashboard/migration" className="px-3 py-1 bg-white dark:bg-black text-blue-600 text-[10px] font-bold rounded-lg border border-blue-100 shadow-sm flex items-center">Go</Link>
+                        </div>
+
+                        {/* Financials Shortcut */}
+                        <div className="flex items-center gap-4 p-4 rounded-2xl border border-green-50 dark:border-green-900/30 bg-green-50/50 dark:bg-green-900/10 hover:bg-green-100/50 transition-colors group">
+                            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-green-100 text-green-600 group-hover:bg-green-600 group-hover:text-white transition-all">
+                                <FiBriefcase />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <h4 className="font-bold text-sm text-green-900 dark:text-green-100">Invoices & Finance</h4>
+                                <p className="text-xs text-green-600/70 truncate">Create Invoices / View Payouts</p>
+                            </div>
+                            <Link href="/dashboard/invoices" className="px-3 py-1 bg-white dark:bg-black text-green-600 text-[10px] font-bold rounded-lg border border-green-100 shadow-sm flex items-center">View</Link>
+                        </div>
+                    </div>
+
                     {stats.pendingDoctors.length === 0 ? (
-                        <p className="text-gray-400 italic text-sm py-4">All medics are currently verified.</p>
+                        <div className="md:col-span-2 lg:col-span-3 p-8 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-3xl flex flex-col items-center justify-center text-center">
+                            <div className="w-16 h-16 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center text-3xl mb-4">
+                                😴
+                            </div>
+                            <p className="text-gray-500 font-medium">All caught up!</p>
+                            <p className="text-gray-400 text-sm">No pending doctor verifications at the moment.</p>
+                        </div>
                     ) : stats.pendingDoctors.map(doc => (
                         <div key={doc.id} className="flex items-center gap-4 p-4 rounded-2xl border border-gray-50 dark:border-gray-800 bg-gray-50/50 dark:bg-black/20">
                             <img src={`https://ui-avatars.com/api/?name=${doc.fname}+${doc.lname}&background=random`} className="w-12 h-12 rounded-full border-2 border-white dark:border-gray-700 shadow-sm" alt="Medic" />
@@ -123,7 +171,7 @@ export default function AdminView() {
                                 <h4 className="font-bold text-sm truncate">{doc.fname} {doc.lname}</h4>
                                 <p className="text-xs text-gray-500 truncate">{doc.dr_type}</p>
                             </div>
-                            <button className="px-3 py-1 bg-donezo-dark text-white text-[10px] font-bold rounded-lg shadow-sm shadow-donezo-dark/20">Review</button>
+                            <Link href="/dashboard/doctors" className="px-3 py-1 bg-donezo-dark text-white text-[10px] font-bold rounded-lg shadow-sm shadow-donezo-dark/20">Review</Link>
                         </div>
                     ))}
                 </div>

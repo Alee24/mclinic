@@ -32,12 +32,23 @@ export class DoctorsService {
         return this.doctorsRepository.save(doctor);
     }
 
-    async findAllVerified(): Promise<any[]> {
-        // Step 1: Get verified active doctors (using production schema field names)
-        let activeDocs = await this.doctorsRepository.find({ where: { Verified_status: 1, status: 1 } });
+    async findAllVerified(search?: string): Promise<any[]> {
+        // Step 1: Query Builder to handle search filters
+        const query = this.doctorsRepository.createQueryBuilder('doctor')
+            .where('doctor.Verified_status = :vStatus', { vStatus: 1 })
+            .andWhere('doctor.status = :status', { status: 1 });
+
+        if (search) {
+            query.andWhere(
+                '(doctor.fname LIKE :search OR doctor.lname LIKE :search OR doctor.dr_type LIKE :search OR doctor.speciality LIKE :search OR doctor.qualification LIKE :search OR CONCAT(doctor.fname, " ", doctor.lname) LIKE :search)',
+                { search: `%${search}%` }
+            );
+        }
+
+        let activeDocs = await query.getMany();
 
         // DEMO AUTO-FIX: If no verified doctors, find ANY doctors and verify them
-        if (activeDocs.length === 0) {
+        if (activeDocs.length === 0 && !search) {
             const anyDocs = await this.doctorsRepository.find({ take: 5 });
             if (anyDocs.length > 0) {
                 for (const d of anyDocs) {
@@ -57,8 +68,11 @@ export class DoctorsService {
         const updates = [];
         for (const doc of activeDocs) {
             let changed = false;
+            // @ts-ignore
             if (!doc.latitude || !doc.longitude) {
+                // @ts-ignore
                 doc.latitude = -1.2921 + (Math.random() - 0.5) * 0.1;
+                // @ts-ignore
                 doc.longitude = 36.8219 + (Math.random() - 0.5) * 0.1;
                 changed = true;
             }
@@ -75,7 +89,9 @@ export class DoctorsService {
             // SIMULATION for map demo:
             // Assign active booking to 50% of doctors
             if (Math.random() > 0.5) {
+                // @ts-ignore
                 const pLat = Number(doc.latitude) + (Math.random() - 0.5) * 0.02;
+                // @ts-ignore
                 const pLng = Number(doc.longitude) + (Math.random() - 0.5) * 0.02;
 
                 enriched.activeBooking = {
@@ -118,7 +134,14 @@ export class DoctorsService {
 
     async verifyDoctor(id: number, status: boolean): Promise<Doctor | null> {
         await this.doctorsRepository.update(id, { Verified_status: status ? 1 : 0 });
-        return this.doctorsRepository.findOne({ where: { id } });
+        const doctor = await this.doctorsRepository.findOne({ where: { id } });
+
+        // Sync with User account if exists
+        if (doctor && doctor.email) {
+            await this.usersService.updateUserStatus(doctor.email, status);
+        }
+
+        return doctor;
     }
 
     async update(id: number, updateDto: any): Promise<Doctor | null> {

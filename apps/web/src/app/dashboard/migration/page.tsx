@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FiUpload, FiDatabase, FiCheckCircle, FiAlertCircle, FiFileText, FiUsers, FiUser, FiCalendar, FiDollarSign } from 'react-icons/fi';
+import { api } from '@/lib/api';
+import { FiUpload, FiDatabase, FiCheckCircle, FiAlertCircle, FiFileText, FiUsers, FiUser, FiCalendar, FiDollarSign, FiTrash2 } from 'react-icons/fi';
 import { useAuth, UserRole } from '@/lib/auth';
 
 interface MigrationStats {
@@ -106,6 +107,35 @@ export default function DataMigrationPage() {
         }
     };
 
+    const handleClearDatabase = async () => {
+        if (!confirm('CRITICAL WARNING: This will delete ALL data (Users, Doctors, Appointments, etc.) from the database.\n\nAre you sure you want to proceed?')) return;
+        if (!confirm('This action cannot be undone. Confirm clear database?')) return;
+
+        setUploading(true);
+        try {
+            const res = await api.post('/migration/clear', {});
+
+            if (!res) {
+                alert('No response from server');
+                return;
+            }
+
+            if (res.ok) {
+                alert('Database cleared successfully!');
+                window.location.reload();
+            } else {
+                const errData = await res.json().catch(() => ({}));
+                console.error('Clear DB Error:', { status: res.status, statusText: res.statusText, data: errData });
+                alert(`Failed to clear database: ${errData.message || res.statusText || 'Unknown Error'} (Status: ${res.status})`);
+            }
+        } catch (error: any) {
+            console.error(error);
+            alert(`Error connecting to server: ${error.message || 'Unknown error'}`);
+        } finally {
+            setUploading(false);
+        }
+    };
+
     const dataTypeOptions = [
         { value: 'users', label: 'Patients/Users', icon: FiUsers, color: 'blue' },
         { value: 'doctors', label: 'Doctors', icon: FiUser, color: 'green' },
@@ -129,7 +159,7 @@ export default function DataMigrationPage() {
                 <div className="lg:col-span-1">
                     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                         <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                            <FiDatabase className="w-5 h-5 text-blue-600" />
+                            <span className="text-blue-600"><FiDatabase size={20} /></span>
                             Upload Data
                         </h2>
 
@@ -150,8 +180,9 @@ export default function DataMigrationPage() {
                                                 : 'border-gray-200 hover:border-gray-300'
                                                 }`}
                                         >
-                                            <Icon className={`w-5 h-5 ${dataType === option.value ? `text-${option.color}-600` : 'text-gray-400'
-                                                }`} />
+                                            <span className={dataType === option.value ? `text-${option.color}-600` : 'text-gray-400'}>
+                                                <Icon size={20} />
+                                            </span>
                                             <span className={`font-medium ${dataType === option.value ? `text-${option.color}-900` : 'text-gray-700'
                                                 }`}>
                                                 {option.label}
@@ -179,7 +210,7 @@ export default function DataMigrationPage() {
                                     htmlFor="sql-file-input"
                                     className="flex items-center justify-center gap-2 w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
                                 >
-                                    <FiUpload className="w-5 h-5 text-gray-400" />
+                                    <span className="text-gray-400"><FiUpload size={20} /></span>
                                     <span className="text-sm text-gray-600">
                                         {selectedFile ? selectedFile.name : 'Choose SQL file'}
                                     </span>
@@ -194,7 +225,7 @@ export default function DataMigrationPage() {
                                 disabled={!selectedFile || uploading}
                                 className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                             >
-                                <FiFileText className="w-4 h-4" />
+                                <span className="flex-shrink-0"><FiFileText size={16} /></span>
                                 {uploading ? 'Processing...' : 'Preview Data'}
                             </button>
 
@@ -204,7 +235,7 @@ export default function DataMigrationPage() {
                                     disabled={migrating}
                                     className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                                 >
-                                    <FiDatabase className="w-4 h-4" />
+                                    <span className="flex-shrink-0"><FiDatabase size={16} /></span>
                                     {migrating ? 'Migrating...' : 'Execute Migration'}
                                 </button>
                             )}
@@ -213,7 +244,7 @@ export default function DataMigrationPage() {
                         {/* Error Display */}
                         {error && (
                             <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-                                <FiAlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                                <span className="flex-shrink-0 mt-0.5 text-red-600"><FiAlertCircle size={20} /></span>
                                 <p className="text-sm text-red-800">{error}</p>
                             </div>
                         )}
@@ -221,7 +252,7 @@ export default function DataMigrationPage() {
                         {/* Success Display */}
                         {success && (
                             <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-start gap-2">
-                                <FiCheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                                <span className="flex-shrink-0 mt-0.5 text-green-600"><FiCheckCircle size={20} /></span>
                                 <p className="text-sm text-green-800">Migration completed successfully!</p>
                             </div>
                         )}
@@ -238,6 +269,22 @@ export default function DataMigrationPage() {
                             <li>Verify the imported data in the dashboard</li>
                         </ol>
                     </div>
+
+                    {/* Danger Zone */}
+                    <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                        <h3 className="font-semibold text-red-900 mb-2 flex items-center gap-2">
+                            <FiAlertCircle /> Danger Zone
+                        </h3>
+                        <p className="text-sm text-red-800 mb-4">
+                            Clear all data from the database. This action cannot be undone.
+                        </p>
+                        <button
+                            onClick={handleClearDatabase}
+                            className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-2 shadow-sm"
+                        >
+                            <FiTrash2 /> Clear Database
+                        </button>
+                    </div>
                 </div>
 
                 {/* Preview/Results Section */}
@@ -249,7 +296,9 @@ export default function DataMigrationPage() {
 
                         {!preview && !stats && (
                             <div className="text-center py-12">
-                                <FiDatabase className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                                <div className="mx-auto mb-4 w-16 h-16 flex items-center justify-center">
+                                    <FiDatabase className="text-gray-300" size={64} />
+                                </div>
                                 <p className="text-gray-500">Upload a file to see preview</p>
                             </div>
                         )}

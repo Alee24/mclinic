@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, UseGuards, Request, NotFoundException } from '@nestjs/common';
 import { AppointmentsService } from './appointments.service';
 import { AppointmentStatus } from './entities/appointment.entity';
 import { AuthGuard } from '@nestjs/passport';
@@ -9,14 +9,16 @@ export class AppointmentsController {
 
     @UseGuards(AuthGuard('jwt'))
     @Post()
-    create(@Body() createAppointmentDto: any) {
-        return this.appointmentsService.create(createAppointmentDto);
+    create(@Body() createAppointmentDto: any, @Request() req: any) {
+        // Inject patientId from the authenticated user
+        const patientId = req.user.sub || req.user.id;
+        return this.appointmentsService.create({ ...createAppointmentDto, patientId });
     }
 
     @UseGuards(AuthGuard('jwt'))
     @Get()
-    findAll() {
-        return this.appointmentsService.findAll();
+    findAll(@Request() req: any) {
+        return this.appointmentsService.findAllForUser(req.user);
     }
 
     @UseGuards(AuthGuard('jwt'))
@@ -35,6 +37,15 @@ export class AppointmentsController {
     @Get('doctor/:id')
     findByDoctor(@Param('id') id: string) {
         return this.appointmentsService.findByDoctor(+id);
+    }
+
+    @Get(':id')
+    async findOne(@Param('id') id: string) {
+        const appointment = await this.appointmentsService.findOne(+id);
+        if (!appointment) {
+            throw new NotFoundException(`Appointment with ID ${id} not found`);
+        }
+        return appointment;
     }
 
     @Patch(':id/status')

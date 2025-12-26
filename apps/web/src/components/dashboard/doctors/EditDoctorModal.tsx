@@ -14,12 +14,20 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
     const [formData, setFormData] = useState({
         fname: '',
         lname: '',
+        sex: '',
+        dob: '',
         email: '',
         mobile: '',
+        address: '',
         speciality: '',
         dr_type: '',
+        licenceNo: '',
+        reg_code: '',
+        licenceExpiryDate: '',
+        hospitalAffiliation: '',
+        qualification: '',
         fee: 0,
-        address: '',
+        bio: '',
     });
 
     useEffect(() => {
@@ -31,12 +39,20 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
                     setFormData({
                         fname: data.fname || '',
                         lname: data.lname || '',
+                        sex: data.sex || 'Male',
+                        dob: data.dob ? new Date(data.dob).toISOString().split('T')[0] : '',
                         email: data.email || '',
                         mobile: data.mobile || '',
+                        address: data.address || '',
                         speciality: data.speciality || '',
                         dr_type: data.dr_type || '',
+                        licenceNo: data.licenceNo || '',
+                        reg_code: data.reg_code || '',
+                        licenceExpiryDate: data.licenceExpiryDate ? new Date(data.licenceExpiryDate).toISOString().split('T')[0] : '',
+                        hospitalAffiliation: data.hospitalAffiliation || '',
+                        qualification: data.qualification || '',
                         fee: data.fee || 0,
-                        address: data.address || '',
+                        bio: data.bio || '',
                     });
                 }
             } catch (err) {
@@ -81,7 +97,7 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <div className="bg-white dark:bg-[#1A1A1A] w-full max-w-2xl rounded-xl shadow-2xl my-8 flex flex-col">
+            <div className="bg-white dark:bg-[#1A1A1A] w-full max-w-2xl rounded-xl shadow-2xl flex flex-col max-h-[90vh]">
                 <div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-gray-800">
                     <h2 className="text-xl font-bold dark:text-white">Edit Doctor Profile</h2>
                     <button onClick={onClose} className="text-gray-500 hover:text-black dark:hover:text-white transition">
@@ -89,47 +105,126 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6">
+                <form onSubmit={handleSubmit} className="p-6 overflow-y-auto">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        {/* Section: Personal Details */}
+                        <div className="md:col-span-2 border-b pb-2 mb-2">
+                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Personal Information</h3>
+                        </div>
+
                         <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">First Name</label>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">First Name *</label>
                             <input name="fname" required className="w-full form-input" value={formData.fname} onChange={handleChange} />
                         </div>
+
                         <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Last Name</label>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Last Name *</label>
                             <input name="lname" required className="w-full form-input" value={formData.lname} onChange={handleChange} />
                         </div>
+
                         <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Email (Username)</label>
-                            <input name="email" type="email" required className="w-full form-input" value={formData.email} onChange={handleChange} />
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Gender *</label>
+                            <select name="sex" className="w-full form-input" value={formData.sex} onChange={handleChange}>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
                         </div>
+
                         <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Mobile</label>
-                            <input name="mobile" className="w-full form-input" value={formData.mobile} onChange={handleChange} />
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Date of Birth</label>
+                            <input type="date" name="dob" className="w-full form-input" value={formData.dob} onChange={handleChange} />
                         </div>
+
+                        {/* Section: Contact Info */}
+                        <div className="md:col-span-2 border-b border-t py-2 my-2 bg-gray-50/50 -mx-6 px-6">
+                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Contact Details</h3>
+                        </div>
+
                         <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Speciality</label>
-                            <input name="speciality" className="w-full form-input" value={formData.speciality} onChange={handleChange} />
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Email Address *</label>
+                            <input type="email" name="email" required className="w-full form-input" value={formData.email} onChange={handleChange} />
                         </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Mobile Number *</label>
+                            <input name="mobile" required className="w-full form-input" value={formData.mobile} onChange={handleChange} />
+                        </div>
+
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Physical Address</label>
+                            <input name="address" className="w-full form-input" value={formData.address} onChange={handleChange} />
+                        </div>
+
+                        {/* Section: Professional Info */}
+                        <div className="md:col-span-2 border-b border-t py-2 my-2 bg-gray-50/50 -mx-6 px-6">
+                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Professional Profile</h3>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Specialty *</label>
+                            <select name="speciality" required className="w-full form-input" value={formData.speciality} onChange={handleChange}>
+                                <option value="">Select Specialty</option>
+                                {[
+                                    'Cardiology', 'Dermatology', 'Neurology', 'Pediatrics',
+                                    'Psychiatry', 'Oncology', 'Radiology', 'Surgery',
+                                    'Orthopedics', 'Gynecology', 'Urology', 'Internal Medicine',
+                                    'Dentistry', 'Ophthalmology', 'ENT', 'General Practice'
+                                ].map(s => <option key={s} value={s}>{s}</option>)}
+                            </select>
+                        </div>
+
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Doctor Type</label>
                             <select name="dr_type" className="w-full form-input" value={formData.dr_type} onChange={handleChange}>
                                 <option value="Specialist">Specialist</option>
-                                <option value="General Doctor">General Doctor</option>
-                                <option value="Nurse">Nurse</option>
+                                <option value="General Doctor">General Practitioner</option>
+                                <option value="Consultant">Consultant</option>
                             </select>
                         </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">License Number</label>
+                            <input name="licenceNo" className="w-full form-input font-mono" value={formData.licenceNo} onChange={handleChange} />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Reg. Code (KMPDC)</label>
+                            <input name="reg_code" className="w-full form-input font-mono" value={formData.reg_code} onChange={handleChange} />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">License Expiry</label>
+                            <input type="date" name="licenceExpiryDate" className="w-full form-input" value={formData.licenceExpiryDate} onChange={handleChange} />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Hospital Affiliation</label>
+                            <input name="hospitalAffiliation" className="w-full form-input" value={formData.hospitalAffiliation} onChange={handleChange} />
+                        </div>
+
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Qualifications</label>
+                            <input name="qualification" className="w-full form-input" value={formData.qualification} onChange={handleChange} placeholder="MBBS, MD, PhD..." />
+                        </div>
+
+                        {/* Section: Financial & Other */}
+                        <div className="md:col-span-2 border-b border-t py-2 my-2 bg-gray-50/50 -mx-6 px-6">
+                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Financial & Other Details</h3>
+                        </div>
+
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Consultation Fee (KES)</label>
-                            <input name="fee" type="number" className="w-full form-input" value={formData.fee} onChange={handleChange} />
+                            <input name="fee" type="number" className="w-full form-input" value={formData.fee} onChange={handleChange} min="0" />
                         </div>
+
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Clinic Address</label>
-                            <input name="address" className="w-full form-input" value={formData.address} onChange={handleChange} />
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Bio</label>
+                            <textarea name="bio" className="w-full form-input" rows={2} value={formData.bio} onChange={handleChange} />
                         </div>
                     </div>
 
-                    <div className="pt-8 flex justify-end gap-3 border-t border-gray-100 dark:border-gray-800 mt-8">
+                    <div className="pt-6 flex justify-end gap-3 border-t border-gray-100 dark:border-gray-800 mt-6">
                         <button type="button" onClick={onClose} className="px-6 py-2.5 text-gray-600 dark:text-gray-300 font-medium hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition">
                             Cancel
                         </button>
