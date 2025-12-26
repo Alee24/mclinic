@@ -14,6 +14,8 @@ import { SpecialitiesModule } from './specialities/specialities.module';
 import { LocationsModule } from './locations/locations.module';
 import { ServicesModule } from './services/services.module';
 import { MigrationModule } from './migration/migration.module';
+import { ReviewsModule } from './reviews/reviews.module';
+import { MedicalProfilesModule } from './medical-profiles/medical-profiles.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ValidationPipe } from '@nestjs/common';
@@ -45,6 +47,8 @@ import { APP_PIPE } from '@nestjs/core';
     LocationsModule,
     ServicesModule,
     MigrationModule,
+    ReviewsModule,
+    MedicalProfilesModule,
   ],
   controllers: [AppController],
   providers: [

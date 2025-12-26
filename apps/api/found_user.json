@@ -1,0 +1,20 @@
+{
+  "id": "1885",
+  "email": "doc@gmail.com",
+  "password": "$2b$10$ADAQFsOWCllWboaTnoDAEeVA3dOrZD9E1chdO4TyPJ9wg705IfyTa",
+  "role": "doctor",
+  "status": true,
+  "emailVerifiedAt": null,
+  "fname": "Doctor",
+  "lname": "One",
+  "mobile": "0724454757",
+  "dob": "1978-04-05",
+  "sex": null,
+  "address": "0001",
+  "city": "Nairobi",
+  "latitude": null,
+  "longitude": null,
+  "profilePicture": "profile-1766745410682-855376685.png",
+  "createdAt": "2025-12-26T08:24:45.833Z",
+  "updatedAt": "2025-12-26T11:19:25.000Z"
+}

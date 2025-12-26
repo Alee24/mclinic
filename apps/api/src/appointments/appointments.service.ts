@@ -3,171 +3,314 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DeepPartial } from 'typeorm';
 import { Appointment, AppointmentStatus } from './entities/appointment.entity';
 import { Doctor } from '../doctors/entities/doctor.entity';
+import { Patient } from '../patients/entities/patient.entity';
 import { Service } from '../services/entities/service.entity';
 import { Invoice, InvoiceStatus } from '../financial/entities/invoice.entity';
+import { FinancialService } from '../financial/financial.service';
 
 @Injectable()
 export class AppointmentsService {
-    constructor(
-        @InjectRepository(Appointment)
-        private appointmentsRepository: Repository<Appointment>,
-        @InjectRepository(Service)
-        private servicesRepository: Repository<Service>,
-        @InjectRepository(Invoice)
-        private invoiceRepository: Repository<Invoice>,
-    ) { }
+  constructor(
+    @InjectRepository(Appointment)
+    private appointmentsRepository: Repository<Appointment>,
+    @InjectRepository(Service)
+    private servicesRepository: Repository<Service>,
+    @InjectRepository(Invoice)
+    private invoiceRepository: Repository<Invoice>,
+    private financialService: FinancialService,
+  ) { }
 
-    async create(createAppointmentDto: any): Promise<Appointment> {
-        const { appointmentDate, appointmentTime, isVirtual, serviceId, ...rest } = createAppointmentDto;
+  async create(createAppointmentDto: any): Promise<Appointment> {
+    const {
+      appointmentDate,
+      appointmentTime,
+      isVirtual,
+      serviceId,
+      // New Fields
+      isForSelf,
+      beneficiaryName,
+      beneficiaryGender,
+      beneficiaryAge,
+      beneficiaryRelation,
+      activeMedications,
+      currentPrescriptions,
+      homeAddress, // Make sure to use this if provided
+      ...rest
+    } = createAppointmentDto;
 
-        // Fetch service to get price
-        let fee = 0;
-        if (serviceId) {
-            const service = await this.servicesRepository.findOne({ where: { id: serviceId } });
-            if (service) {
-                fee = Number(service.price);
+    // Fetch doctor once for fee and location calculations
+    const doctor = await this.appointmentsRepository.manager
+      .getRepository(Doctor)
+      .findOne({ where: { id: createAppointmentDto.doctorId } });
+    if (!doctor) {
+      throw new BadRequestException('Doctor not found.');
+    }
+
+    // Calculate Fees
+    let fee = 0;
+
+    // Check if a specific service was selected
+    if (serviceId) {
+      const service = await this.servicesRepository.findOne({
+        where: { id: serviceId },
+      });
+      if (service) {
+        fee = Number(service.price);
+      }
+
+    } else {
+      // Standard Consultation Fee Logic
+      // If Nurse/Clinician -> Fixed 1500
+      // If Doctor -> Custom Fee
+      const drType = (doctor.dr_type || '').toLowerCase();
+
+      console.log(`[DEBUG_FEE] Doctor ID: ${doctor.id}, Type: ${drType}, DB Fee: ${doctor.fee}`);
+
+      if (drType.includes('nurse') || drType.includes('clinician')) {
+        fee = 1500;
+      } else {
+        fee = Number(doctor.fee || 1500);
+      }
+      console.log(`[DEBUG_FEE] Calculated Fee: ${fee}`);
+    }
+
+    // Calculate Transport Fee normally first
+    let transportFee = 0;
+    if (createAppointmentDto.patientLocation) {
+      if (doctor && doctor.latitude && doctor.longitude) {
+        const dist = this.calculateDistance(
+          createAppointmentDto.patientLocation.lat,
+          createAppointmentDto.patientLocation.lng,
+          Number(doctor.latitude),
+          Number(doctor.longitude),
+        );
+        // 120 KES per KM
+        transportFee = Math.ceil(dist * 120);
+        if (transportFee < 150) transportFee = 150;
+      }
+    }
+
+    // Override Transport Fee for Virtual Sessions
+    if (isVirtual) {
+      console.log(
+        `[CREATE-APPT] Virtual Session detected. Setting Transport Fee to 0.`,
+      );
+      transportFee = 0;
+    }
+
+    // Conditional Video Link Generation
+    let meetingId = null;
+    let meetingLink = null;
+
+    if (isVirtual) {
+      meetingId = `mclinic-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+      meetingLink = `https://virtual.mclinic.co.ke/${meetingId}`;
+      console.log(
+        `[NOTIFICATION] Meeting Created. Link sent to Patient: ${meetingLink}`,
+      );
+    }
+
+    const appointment = this.appointmentsRepository.create({
+      appointment_date: appointmentDate,
+      appointment_time: appointmentTime,
+      serviceId,
+      fee,
+      transportFee,
+      meetingId,
+      meetingLink,
+      isForSelf: isForSelf ?? true, // Default to true if undefined
+      beneficiaryName,
+      beneficiaryGender,
+      beneficiaryAge,
+      beneficiaryRelation,
+      activeMedications,
+      currentPrescriptions,
+      homeAddress,
+      ...rest,
+    } as DeepPartial<Appointment>);
+
+    const savedAppointment =
+      await this.appointmentsRepository.save(appointment);
+
+    // Create Invoice
+    const totalAmount = fee + transportFee;
+    if (totalAmount > 0) {
+      // Fetch patient to get details
+      const appointmentWithPatient = await this.appointmentsRepository.findOne({
+        where: { id: savedAppointment.id },
+        relations: ['patient'],
+      });
+
+      if (appointmentWithPatient?.patient) {
+        const invoiceNumber = `INV-${Date.now()}-${savedAppointment.id}`;
+
+        // Calculate Shares
+        const commission = fee * 0.4;
+        const doctorShare = fee * 0.6 + transportFee;
+
+        const invoice = this.invoiceRepository.create({
+          invoiceNumber,
+          customerName: `${appointmentWithPatient.patient.fname} ${appointmentWithPatient.patient.lname}`,
+          customerEmail:
+            appointmentWithPatient.patient.mobile || 'noemail@mclinic.com',
+          totalAmount: totalAmount,
+          status: InvoiceStatus.PAID, // Auto-mark as PAID per user request
+          dueDate: new Date(appointmentDate),
+          commissionAmount: commission,
+          doctorId: createAppointmentDto.doctorId, // Link to doctor
+          appointment: savedAppointment,
+          appointmentId: savedAppointment.id,
+        });
+        await this.invoiceRepository.save(invoice);
+
+        // Create Transaction Record (Funds Held / PENDING)
+        await this.appointmentsRepository.manager
+          .getRepository('Transaction') // Using string name or entity if imported
+          .save({
+            amount: totalAmount,
+            source: 'SYSTEM', // or 'CASH' since it's auto-paid on booking?
+            reference: `SYS-${Date.now()}`,
+            status: 'pending', // TransactionStatus.PENDING
+            invoice: invoice,
+            invoiceId: invoice.id,
+            type: 'credit', // Credit to system/doctor eventually
+            createdAt: new Date()
+          });
+
+        console.log(
+          `[INVOICE] Created PAID invoice ${invoiceNumber}. Funds HELD for Doctor (Pending Completion).`,
+        );
+      }
+    }
+
+    return savedAppointment;
+  }
+
+  async findAll(): Promise<Appointment[]> {
+    return this.appointmentsRepository.find({
+      relations: ['patient', 'doctor'],
+      order: { appointment_date: 'DESC' },
+    });
+  }
+
+  async findByPatient(patientId: number): Promise<Appointment[]> {
+    return this.appointmentsRepository.find({
+      where: { patientId },
+      relations: ['doctor'],
+    });
+  }
+
+  async findByDoctor(doctorId: number): Promise<Appointment[]> {
+    return this.appointmentsRepository.find({
+      where: { doctorId },
+      relations: ['patient'],
+    });
+  }
+
+  async findAllForUser(user: any): Promise<Appointment[]> {
+    if (user.role === 'admin') {
+      return this.findAll();
+    }
+
+    if (user.role === 'doctor') {
+      // Find doctor ID by email
+      const doctor = await this.appointmentsRepository.manager
+        .getRepository(Doctor)
+        .findOne({ where: { email: user.email } });
+
+      if (!doctor) {
+        console.warn(
+          `[Appointments] Doctor not found for email: ${user.email}`,
+        );
+        return [];
+      }
+
+      const appointments = await this.appointmentsRepository.find({
+        where: { doctorId: doctor.id },
+        relations: ['patient', 'doctor'],
+        order: { appointment_date: 'DESC' },
+      });
+
+      // Enrich with Patient Medical Data
+      const userIds = appointments.map((a) => a.patient?.id).filter(Boolean);
+      if (userIds.length > 0) {
+        // Use TypeORM 'In' operator (dynamically imported or assume available if valid)
+        // Since we can't easily add top-level imports without context, using manager query for simplicity or assuming In is available?
+        // Let's use manager.createQueryBuilder to be safe or just standard find if we can.
+        // Actually, let's just use query builder to avoid import issues with 'In'.
+        const profiles = await this.appointmentsRepository.manager
+          .getRepository(Patient)
+          .createQueryBuilder('patient')
+          .where('patient.user_id IN (:...ids)', { ids: userIds })
+          .getMany();
+
+        appointments.forEach((a) => {
+          if (a.patient) {
+            const profile = profiles.find((p) => p.user_id === a.patient.id);
+            if (profile) {
+              // Attach profile data
+              (a.patient as any).blood_group = profile.blood_group;
+              (a.patient as any).sex = profile.sex || a.patient.sex;
+              (a.patient as any).genotype = profile.genotype;
+              (a.patient as any).allergies = profile.allergies;
+              (a.patient as any).conditions = profile.medical_history; // Mapping 'medical_history' to 'conditions' for UI
+              (a.patient as any).emergency_contact = profile.emergency_contact_name;
             }
-        }
-
-        // Calculate Transport Fee
-        let transportFee = 0;
-        if (createAppointmentDto.patientLocation) {
-            // Fetch doctor to get location
-            const doctor = await this.appointmentsRepository.manager.getRepository(Doctor).findOne({ where: { id: createAppointmentDto.doctorId } });
-
-            if (doctor && doctor.latitude && doctor.longitude) {
-                const dist = this.calculateDistance(
-                    createAppointmentDto.patientLocation.lat,
-                    createAppointmentDto.patientLocation.lng,
-                    Number(doctor.latitude),
-                    Number(doctor.longitude)
-                );
-                // 120 KES per KM
-                transportFee = Math.ceil(dist * 120);
-            }
-        }
-
-        // Conditional Video Link Generation
-        let meetingId = null;
-        let meetingLink = null;
-
-        if (isVirtual) {
-            meetingId = `mclinic-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-            meetingLink = `https://meet.jit.si/${meetingId}`;
-            console.log(`[NOTIFICATION] Meeting Created. Link sent to Patient: ${meetingLink}`);
-        }
-
-        const appointment = this.appointmentsRepository.create({
-            appointment_date: appointmentDate,
-            appointment_time: appointmentTime,
-            serviceId,
-            fee,
-            transportFee,
-            meetingId,
-            meetingLink,
-            ...rest
-        } as DeepPartial<Appointment>);
-
-        const savedAppointment = await this.appointmentsRepository.save(appointment);
-
-        // Create Invoice
-        const totalAmount = fee + transportFee;
-        if (totalAmount > 0) {
-            // Fetch patient to get details
-            const appointmentWithPatient = await this.appointmentsRepository.findOne({
-                where: { id: savedAppointment.id },
-                relations: ['patient']
-            });
-
-            if (appointmentWithPatient?.patient) {
-                const invoiceNumber = `INV-${Date.now()}-${savedAppointment.id}`;
-                const invoice = this.invoiceRepository.create({
-                    invoiceNumber,
-                    customerName: `${appointmentWithPatient.patient.fname} ${appointmentWithPatient.patient.lname}`,
-                    customerEmail: appointmentWithPatient.patient.mobile || 'noemail@mclinic.com',
-                    totalAmount: totalAmount,
-                    status: InvoiceStatus.PENDING,
-                    dueDate: new Date(appointmentDate),
-                });
-                await this.invoiceRepository.save(invoice);
-                console.log(`[INVOICE] Created invoice ${invoiceNumber} for appointment #${savedAppointment.id}, Amount: KES ${totalAmount} (Fee: ${fee}, Transport: ${transportFee})`);
-            }
-        }
-
-        return savedAppointment;
-    }
-
-    async findAll(): Promise<Appointment[]> {
-        return this.appointmentsRepository.find({
-            relations: ['patient', 'doctor'],
-            order: { appointment_date: 'DESC' }
+          }
         });
+      }
+
+      return appointments;
     }
 
-    async findByPatient(patientId: number): Promise<Appointment[]> {
-        return this.appointmentsRepository.find({
-            where: { patientId },
-            relations: ['doctor']
-        });
+    // Default: Patient
+    return this.appointmentsRepository.find({
+      where: { patientId: user.sub || user.id }, // sub is often used for ID in JWT
+      relations: ['doctor'],
+      order: { appointment_date: 'DESC' },
+    });
+  }
+
+  async findOne(id: number): Promise<Appointment | null> {
+    return this.appointmentsRepository.findOne({
+      where: { id },
+      relations: ['patient', 'doctor'],
+    });
+  }
+
+  async updateStatus(
+    id: number,
+    status: AppointmentStatus,
+  ): Promise<Appointment | null> {
+    const appointment = await this.appointmentsRepository.findOne({ where: { id } });
+    if (!appointment) return null;
+
+    await this.appointmentsRepository.update(id, { status });
+
+    if (status === AppointmentStatus.COMPLETED) {
+      // Release funds to doctor wallet
+      await this.financialService.releaseFunds(id);
     }
 
-    async findByDoctor(doctorId: number): Promise<Appointment[]> {
-        return this.appointmentsRepository.find({
-            where: { doctorId },
-            relations: ['patient']
-        });
-    }
+    return this.appointmentsRepository.findOne({ where: { id } });
+  }
 
-    async findAllForUser(user: any): Promise<Appointment[]> {
-        if (user.role === 'admin') {
-            return this.findAll();
-        }
-
-        if (user.role === 'doctor') {
-            // Find doctor ID by email
-            const doctor = await this.appointmentsRepository.manager.getRepository(Doctor).findOne({ where: { email: user.email } });
-
-            if (!doctor) {
-                console.warn(`[Appointments] Doctor not found for email: ${user.email}`);
-                return [];
-            }
-
-            const appointments = await this.appointmentsRepository.find({
-                where: { doctorId: doctor.id },
-                relations: ['patient', 'doctor'],
-                order: { appointment_date: 'DESC' }
-            });
-            return appointments;
-        }
-
-        // Default: Patient
-        return this.appointmentsRepository.find({
-            where: { patientId: user.sub || user.id }, // sub is often used for ID in JWT
-            relations: ['doctor'],
-            order: { appointment_date: 'DESC' }
-        });
-    }
-
-    async findOne(id: number): Promise<Appointment | null> {
-        return this.appointmentsRepository.findOne({
-            where: { id },
-            relations: ['patient', 'doctor']
-        });
-    }
-
-    async updateStatus(id: number, status: AppointmentStatus): Promise<Appointment | null> {
-        await this.appointmentsRepository.update(id, { status });
-        return this.appointmentsRepository.findOne({ where: { id } });
-    }
-
-    private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
-        const R = 6371; // km
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLon = (lon2 - lon1) * Math.PI / 180;
-        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
-    }
+  private calculateDistance(
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number,
+  ) {
+    const R = 6371; // km
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
 }

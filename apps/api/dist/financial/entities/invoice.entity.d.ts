@@ -20,4 +20,6 @@ export declare class Invoice {
     commissionAmount: number;
     createdAt: Date;
     updatedAt: Date;
+    appointmentId: number;
+    appointment: any;
 }

@@ -24,7 +24,10 @@ let AppointmentsController = class AppointmentsController {
     }
     create(createAppointmentDto, req) {
         const patientId = req.user.sub || req.user.id;
-        return this.appointmentsService.create({ ...createAppointmentDto, patientId });
+        return this.appointmentsService.create({
+            ...createAppointmentDto,
+            patientId,
+        });
     }
     findAll(req) {
         return this.appointmentsService.findAllForUser(req.user);

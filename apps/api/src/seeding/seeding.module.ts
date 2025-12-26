@@ -13,20 +13,20 @@ import { Invoice } from '../financial/entities/invoice.entity';
 import { InvoiceItem } from '../financial/entities/invoice-item.entity';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([
-            User,
-            Patient,
-            Doctor,
-            Appointment,
-            MedicalRecord,
-            Transaction,
-            ServicePrice,
-            Invoice,
-            InvoiceItem
-        ])
-    ],
-    controllers: [SeedingController],
-    providers: [SeedingService],
+  imports: [
+    TypeOrmModule.forFeature([
+      User,
+      Patient,
+      Doctor,
+      Appointment,
+      MedicalRecord,
+      Transaction,
+      ServicePrice,
+      Invoice,
+      InvoiceItem,
+    ]),
+  ],
+  controllers: [SeedingController],
+  providers: [SeedingService],
 })
-export class SeedingModule { }
+export class SeedingModule {}

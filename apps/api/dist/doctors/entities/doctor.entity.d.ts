@@ -36,8 +36,14 @@ export declare class Doctor {
     licenceNo: string;
     licenceExpiry: Date;
     residance: string;
+    regulatory_body: string;
+    years_of_experience: number;
+    hospital_attachment: string;
+    telemedicine: number;
+    on_call: number;
     featured: number;
     status: number;
+    is_online: number;
     created_at: Date;
     updated_at: Date;
     profile_image: string;

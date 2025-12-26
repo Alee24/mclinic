@@ -9,4 +9,5 @@ export declare class UsersController {
     resetPassword(id: string, password: string): Promise<import("./entities/user.entity").User | null>;
     update(id: string, updateUserDto: any): Promise<import("./entities/user.entity").User>;
     remove(id: string): Promise<void>;
+    uploadProfile(id: string, file: Express.Multer.File): Promise<import("./entities/user.entity").User>;
 }

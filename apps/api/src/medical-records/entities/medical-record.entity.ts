@@ -1,36 +1,50 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { Patient } from '../../patients/entities/patient.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 import { Doctor } from '../../doctors/entities/doctor.entity';
+import { Appointment } from '../../appointments/entities/appointment.entity';
 
 @Entity()
 export class MedicalRecord {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @ManyToOne(() => Patient)
-    patient: Patient;
+  @ManyToOne(() => User)
+  patient: User;
 
-    @Column({ type: 'bigint', unsigned: true })
-    patientId: number;
+  @Column({ type: 'bigint', unsigned: true })
+  patientId: number;
 
-    @ManyToOne(() => Doctor)
-    doctor: Doctor;
+  @ManyToOne(() => Doctor)
+  doctor: Doctor;
 
-    @Column({ type: 'bigint', unsigned: true })
-    doctorId: number;
+  @Column({ type: 'bigint', unsigned: true })
+  doctorId: number;
 
-    @Column()
-    diagnosis: string;
+  @ManyToOne(() => Appointment, { nullable: true })
+  appointment: Appointment;
 
-    @Column({ type: 'text', nullable: true })
-    prescription: string;
+  @Column({ nullable: true })
+  appointmentId: number;
 
-    @Column({ type: 'text', nullable: true })
-    notes: string;
+  @Column()
+  diagnosis: string;
 
-    @CreateDateColumn()
-    createdAt: Date;
+  @Column({ type: 'text', nullable: true })
+  prescription: string;
 
-    @UpdateDateColumn()
-    updatedAt: Date;
+  @Column({ type: 'text', nullable: true })
+  notes: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

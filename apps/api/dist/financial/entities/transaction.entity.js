@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Transaction = exports.TransactionStatus = void 0;
 const typeorm_1 = require("typeorm");
 const user_entity_1 = require("../../users/entities/user.entity");
+const invoice_entity_1 = require("./invoice.entity");
 var TransactionStatus;
 (function (TransactionStatus) {
     TransactionStatus["PENDING"] = "pending";
@@ -29,6 +30,8 @@ let Transaction = class Transaction {
     status;
     userId;
     user;
+    invoiceId;
+    invoice;
     createdAt;
 };
 exports.Transaction = Transaction;
@@ -69,6 +72,15 @@ __decorate([
     (0, typeorm_1.JoinColumn)({ name: 'userId' }),
     __metadata("design:type", user_entity_1.User)
 ], Transaction.prototype, "user", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Number)
+], Transaction.prototype, "invoiceId", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => invoice_entity_1.Invoice, { nullable: true }),
+    (0, typeorm_1.JoinColumn)({ name: 'invoiceId' }),
+    __metadata("design:type", invoice_entity_1.Invoice)
+], Transaction.prototype, "invoice", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)

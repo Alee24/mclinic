@@ -35,8 +35,8 @@ exports.SeedingModule = SeedingModule = __decorate([
                 transaction_entity_1.Transaction,
                 service_price_entity_1.ServicePrice,
                 invoice_entity_1.Invoice,
-                invoice_item_entity_1.InvoiceItem
-            ])
+                invoice_item_entity_1.InvoiceItem,
+            ]),
         ],
         controllers: [seeding_controller_1.SeedingController],
         providers: [seeding_service_1.SeedingService],

@@ -3,6 +3,8 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 
+import { api } from './api';
+
 export enum UserRole {
     PATIENT = 'patient',
     DOCTOR = 'doctor',
@@ -15,6 +17,12 @@ interface User {
     role: UserRole;
     fname?: string;
     lname?: string;
+    profilePicture?: string;
+    dob?: string;
+    mobile?: string;
+    address?: string;
+    city?: string;
+    national_id?: string;
 }
 
 interface AuthContextType {
@@ -22,6 +30,7 @@ interface AuthContextType {
     loading: boolean;
     login: (user: User, token: string) => void;
     logout: () => void;
+    refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -29,12 +38,29 @@ const AuthContext = createContext<AuthContextType>({
     loading: true,
     login: () => { },
     logout: () => { },
+    refreshUser: async () => { },
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
+
+    const refreshUser = async () => {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        try {
+            const res = await api.get('/auth/profile');
+            if (res && res.ok) {
+                const updatedUser = await res.json();
+                setUser(updatedUser);
+                localStorage.setItem('user', JSON.stringify(updatedUser)); // Keep sync
+            }
+        } catch (e) {
+            console.error('Failed to refresh user:', e);
+        }
+    };
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -43,6 +69,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (storedUser && token) {
             try {
                 setUser(JSON.parse(storedUser));
+                // Fetch fresh data in background
+                refreshUser();
             } catch (e) {
                 localStorage.removeItem('user');
                 localStorage.removeItem('token');
@@ -56,6 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('user', JSON.stringify(userData));
         setUser(userData);
         router.push('/dashboard');
+        refreshUser(); // Ensure we have latest data on login too (though login response is usually fresh)
     };
 
     const logout = () => {
@@ -66,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, logout }}>
+        <AuthContext.Provider value={{ user, loading, login, logout, refreshUser }}>
             {children}
         </AuthContext.Provider>
     );

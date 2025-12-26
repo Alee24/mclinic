@@ -33,7 +33,9 @@ __decorate([
     __metadata("design:type", Number)
 ], DoctorSchedule.prototype, "doctor_id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => doctor_entity_1.Doctor, (doctor) => doctor.schedules, { onDelete: 'CASCADE' }),
+    (0, typeorm_1.ManyToOne)(() => doctor_entity_1.Doctor, (doctor) => doctor.schedules, {
+        onDelete: 'CASCADE',
+    }),
     (0, typeorm_1.JoinColumn)({ name: 'doctor_id' }),
     __metadata("design:type", doctor_entity_1.Doctor)
 ], DoctorSchedule.prototype, "doctor", void 0);

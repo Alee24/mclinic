@@ -16,4 +16,7 @@ export declare class DoctorsService {
     findByUserId(userId: number): Promise<Doctor | null>;
     verifyDoctor(id: number, status: boolean): Promise<Doctor | null>;
     update(id: number, updateDto: any): Promise<Doctor | null>;
+    updateOnlineStatus(id: number, status: number, lat?: number, lng?: number): Promise<Doctor | null>;
+    updateProfileImage(id: number, filename: string): Promise<Doctor | null>;
+    findByEmail(email: string): Promise<Doctor | null>;
 }

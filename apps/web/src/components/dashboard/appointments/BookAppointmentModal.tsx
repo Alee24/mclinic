@@ -3,8 +3,42 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
-import { FiX, FiSearch, FiMapPin, FiUser, FiDollarSign, FiFilter, FiCalendar, FiClock } from 'react-icons/fi';
+import { FiX, FiSearch, FiMapPin, FiUser, FiDollarSign, FiCalendar, FiClock } from 'react-icons/fi';
 import { useAuth } from '@/lib/auth';
+
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+// Fix Leaflet Icons
+const fixLeafletIcons = () => {
+    // @ts-ignore
+    delete L.Icon.Default.prototype._getIconUrl;
+    L.Icon.Default.mergeOptions({
+        iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+        iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+    });
+};
+
+function LocationPicker({ location, onLocationSelect }: any) {
+    const map = useMap();
+
+    useMapEvents({
+        click(e) {
+            onLocationSelect(e.latlng);
+            map.flyTo(e.latlng, map.getZoom());
+        },
+    });
+
+    useEffect(() => {
+        if (location) {
+            map.flyTo([location.lat, location.lng], map.getZoom());
+        }
+    }, [location, map]);
+
+    return location ? <Marker position={[location.lat, location.lng]} /> : null;
+}
 
 interface Doctor {
     id: number;
@@ -18,6 +52,7 @@ interface Doctor {
     longitude: number;
     distance?: number;
     dr_type: string;
+    profile_image?: string;
 }
 
 interface BookAppointmentModalProps {
@@ -32,10 +67,13 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
     const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([]);
     const [loading, setLoading] = useState(true);
     const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+    const [profileComplete, setProfileComplete] = useState(true);
+    const [checkingProfile, setCheckingProfile] = useState(true);
 
     // Filters
     const [speciality, setSpeciality] = useState('');
     const [gender, setGender] = useState('');
+    const [drTypeFilter, setDrTypeFilter] = useState('');
     const [maxPrice, setMaxPrice] = useState<number>(10000);
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -49,7 +87,48 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
     const [services, setServices] = useState<any[]>([]);
     const [selectedService, setSelectedService] = useState<any | null>(null);
 
+    // Enhanced Booking State
+    const [isForSelf, setIsForSelf] = useState(true);
+    const [beneficiaryDetails, setBeneficiaryDetails] = useState({
+        name: '',
+        gender: 'Male',
+        age: '',
+        relation: 'Family Member'
+    });
+    const [medicalInfo, setMedicalInfo] = useState({
+        medications: '',
+        prescriptions: ''
+    });
+    const [customHomeAddress, setCustomHomeAddress] = useState(''); // Allow editing home address for transport fee logic
+
     useEffect(() => {
+        // Fix Icons
+        fixLeafletIcons();
+
+        // Check Profile Completeness
+        const checkProfile = async () => {
+            try {
+                const res = await api.get('/patients/profile');
+                if (res && res.ok) {
+                    const data = await res.json();
+                    const p = data.patient;
+                    // Check essential fields
+                    if (!p || !p.blood_group || !p.emergency_contact_name) {
+                        setProfileComplete(false);
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setCheckingProfile(false);
+            }
+        };
+        if (user?.role === 'patient') {
+            checkProfile();
+        } else {
+            setCheckingProfile(false);
+        }
+
         // Get User Location
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
@@ -65,7 +144,21 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
 
         fetchDoctors();
         fetchServices();
-    }, []);
+    }, [user]);
+
+    const fetchAddressFromCoords = async (lat: number, lng: number) => {
+        try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`, {
+                headers: { 'User-Agent': 'Mclinic-App/1.0' }
+            });
+            const data = await res.json();
+            if (data && data.display_name) {
+                setCustomHomeAddress(data.display_name);
+            }
+        } catch (e) {
+            console.error("Reverse geocoding failed", e);
+        }
+    };
 
     const fetchDoctors = async () => {
         try {
@@ -105,6 +198,14 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
         return R * c;
     };
 
+    const getDisplayFee = (doc: Doctor) => {
+        const type = (doc.dr_type || '').toLowerCase();
+        if (type.includes('nurse') || type.includes('clinician')) {
+            return 1500;
+        }
+        return doc.fee;
+    };
+
     useEffect(() => {
         let result = doctors.map(doc => {
             let dist = 0;
@@ -120,18 +221,21 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
         if (gender) {
             result = result.filter(d => d.sex?.toLowerCase() === gender.toLowerCase());
         }
+        if (drTypeFilter) {
+            result = result.filter(d => (d.dr_type || '').toLowerCase().includes(drTypeFilter.toLowerCase()));
+        }
         if (searchTerm) {
             const lower = searchTerm.toLowerCase();
             result = result.filter(d =>
                 (d.fname || '').toLowerCase().includes(lower) ||
                 (d.lname || '').toLowerCase().includes(lower) ||
-                d.address?.toLowerCase().includes(lower) ||
-                d.dr_type?.toLowerCase().includes(lower) ||
-                d.speciality?.toLowerCase().includes(lower)
+                (d.address || '').toLowerCase().includes(lower) ||
+                (d.dr_type || '').toLowerCase().includes(lower) ||
+                (d.speciality || '').toLowerCase().includes(lower)
             );
         }
         if (maxPrice) {
-            result = result.filter(d => d.fee <= maxPrice);
+            result = result.filter(d => getDisplayFee(d) <= maxPrice);
         }
 
         // Sort by distance if location available
@@ -140,7 +244,7 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
         }
 
         setFilteredDoctors(result);
-    }, [doctors, speciality, gender, maxPrice, searchTerm, userLocation]);
+    }, [doctors, speciality, gender, maxPrice, searchTerm, userLocation, drTypeFilter]);
 
     const handleBook = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -148,14 +252,26 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
         setSubmitting(true);
 
         try {
-            // Check availability (mock)
+            // Determine if virtual
+            const isVirtual = selectedService?.id === 'VIRTUAL_DOC' || selectedService?.id === 2 || selectedService?.name?.toLowerCase().includes('virtual');
+
             const payload = {
                 doctorId: selectedDoctor.id,
-                serviceId: selectedService ? selectedService.id : null,
                 appointmentDate: bookingDate,
                 appointmentTime: bookingTime,
-                notes: bookingNote,
-                patientLocation: userLocation // Pass location for transport calculation
+                reason: bookingNote,
+                serviceId: (selectedService && selectedService.id !== 'VIRTUAL_DOC') ? selectedService.id : null,
+                isVirtual, // Pass flag to backend
+                patientLocation: userLocation, // Pass location for transport fee calc
+                // Enhanced Fields
+                isForSelf,
+                beneficiaryName: !isForSelf ? beneficiaryDetails.name : null,
+                beneficiaryGender: !isForSelf ? beneficiaryDetails.gender : null,
+                beneficiaryAge: !isForSelf ? beneficiaryDetails.age : null,
+                beneficiaryRelation: !isForSelf ? beneficiaryDetails.relation : null,
+                activeMedications: medicalInfo.medications,
+                currentPrescriptions: medicalInfo.prescriptions,
+                homeAddress: (!isVirtual && customHomeAddress) ? customHomeAddress : null,
             };
 
             const res = await api.post('/appointments', payload);
@@ -201,7 +317,27 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                     </button>
                 </div>
 
-                {!selectedDoctor ? (
+                {checkingProfile ? (
+                    <div className="flex-1 flex items-center justify-center p-12">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    </div>
+                ) : !profileComplete && user?.role === 'patient' ? (
+                    <div className="flex-1 flex flex-col items-center justify-center p-12 text-center space-y-4">
+                        <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center text-3xl">
+                            📋
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">Profile Update Required</h3>
+                        <p className="text-gray-500 max-w-sm">
+                            To ensure the best care, please complete your medical profile (Blood Group, Emergency Contact, etc.) before booking.
+                        </p>
+                        <button
+                            onClick={() => router.push('/dashboard/profile')}
+                            className="bg-primary text-black font-bold px-8 py-3 rounded-xl hover:opacity-90 transition shadow-lg shadow-primary/20"
+                        >
+                            Go to Profile
+                        </button>
+                    </div>
+                ) : !selectedDoctor ? (
                     <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
                         {/* Filters Sidebar */}
                         <div className="w-full md:w-80 bg-gray-50 dark:bg-[#121212] p-6 border-r border-gray-100 dark:border-gray-800 overflow-y-auto">
@@ -231,6 +367,20 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                                         {uniqueSpecialities.map(s => (
                                             <option key={s} value={s}>{s}</option>
                                         ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="text-xs font-black uppercase text-gray-400 mb-2 block">Doctor Type</label>
+                                    <select
+                                        className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white text-sm outline-none"
+                                        value={drTypeFilter}
+                                        onChange={(e) => setDrTypeFilter(e.target.value)}
+                                    >
+                                        <option value="">All Types</option>
+                                        <option value="Doctor">Doctor</option>
+                                        <option value="Nurse">Nurse</option>
+                                        <option value="Clinician">Clinician</option>
                                     </select>
                                 </div>
 
@@ -292,12 +442,20 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                                     <div key={doc.id} className="border border-gray-100 dark:border-gray-800 rounded-2xl p-4 hover:shadow-lg transition-shadow bg-white dark:bg-[#1A1A1A] group">
                                         <div className="flex items-start justify-between mb-3">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xl">
-                                                    👨‍⚕️
+                                                <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xl overflow-hidden shrink-0">
+                                                    {doc.profile_image ? (
+                                                        <img
+                                                            src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/profiles/${doc.profile_image}`}
+                                                            alt={doc.fname}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        '👨‍⚕️'
+                                                    )}
                                                 </div>
                                                 <div>
                                                     <h4 className="font-bold text-gray-900 dark:text-white line-clamp-1">{doc.fname} {doc.lname}</h4>
-                                                    <p className="text-xs text-primary font-bold uppercase tracking-wide">{doc.speciality || 'General'}</p>
+                                                    <p className="text-xs text-primary font-bold uppercase tracking-wide">{doc.dr_type || doc.speciality || 'General'}</p>
                                                 </div>
                                             </div>
                                             {doc.distance !== undefined && (
@@ -312,7 +470,7 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                                                 <FiMapPin /> <span className="truncate">{doc.address || 'Nairobi, Kenya'}</span>
                                             </div>
                                             <div className="flex items-center gap-2 text-xs text-gray-500">
-                                                <FiDollarSign /> <span className="font-bold text-gray-900 dark:text-white">KES {doc.fee}</span> / Visit
+                                                <FiDollarSign /> <span className="font-bold text-gray-900 dark:text-white">KES {getDisplayFee(doc)}</span> / Visit
                                             </div>
                                         </div>
 
@@ -333,19 +491,104 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                         <form onSubmit={handleBook} className="max-w-xl mx-auto space-y-8">
 
                             <div className="bg-primary/10 rounded-2xl p-6 flex items-center gap-4 border border-primary/20">
-                                <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-2xl shadow-sm">
-                                    👨‍⚕️
+                                <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-2xl shadow-sm overflow-hidden shrink-0">
+                                    {selectedDoctor.profile_image ? (
+                                        <img
+                                            src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/profiles/${selectedDoctor.profile_image}`}
+                                            alt={selectedDoctor.fname}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        '👨‍⚕️'
+                                    )}
                                 </div>
                                 <div>
                                     <h3 className="font-black text-xl text-gray-900 dark:text-white">Dr. {selectedDoctor.fname} {selectedDoctor.lname}</h3>
                                     <p className="text-gray-600 dark:text-gray-400 font-medium">{selectedDoctor.speciality} • {selectedDoctor.address}</p>
                                     <div className="mt-2 text-sm font-bold text-primary">
-                                        Consulation Fee: KES {selectedService ? selectedService.price : selectedDoctor.fee}
+                                        Consulation Fee: KES {selectedService ? selectedService.price : getDisplayFee(selectedDoctor)}
                                     </div>
                                 </div>
                             </div>
 
                             <div className="space-y-6">
+                                {/* 1. Who is this for? */}
+                                <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
+                                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">Who is this appointment for?</label>
+                                    <div className="flex gap-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsForSelf(true)}
+                                            className={`flex-1 py-2 px-4 rounded-lg text-sm font-bold border transition-colors ${isForSelf
+                                                ? 'bg-primary text-black border-primary'
+                                                : 'bg-white dark:bg-black border-gray-200 dark:border-gray-700 dark:text-gray-300 hover:border-primary/50'}`}
+                                        >
+                                            For Me
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsForSelf(false)}
+                                            className={`flex-1 py-2 px-4 rounded-lg text-sm font-bold border transition-colors ${!isForSelf
+                                                ? 'bg-primary text-black border-primary'
+                                                : 'bg-white dark:bg-black border-gray-200 dark:border-gray-700 dark:text-gray-300 hover:border-primary/50'}`}
+                                        >
+                                            Someone Else
+                                        </button>
+                                    </div>
+
+                                    {!isForSelf && (
+                                        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                                            <div>
+                                                <label className="text-xs uppercase font-bold text-gray-500 mb-1 block">Full Name</label>
+                                                <input
+                                                    type="text"
+                                                    required={!isForSelf}
+                                                    placeholder="Patient Name"
+                                                    className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white outline-none focus:ring-2 focus:ring-primary"
+                                                    value={beneficiaryDetails.name}
+                                                    onChange={(e) => setBeneficiaryDetails({ ...beneficiaryDetails, name: e.target.value })}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs uppercase font-bold text-gray-500 mb-1 block">Relation</label>
+                                                <select
+                                                    className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white outline-none focus:ring-2 focus:ring-primary"
+                                                    value={beneficiaryDetails.relation}
+                                                    onChange={(e) => setBeneficiaryDetails({ ...beneficiaryDetails, relation: e.target.value })}
+                                                >
+                                                    <option>Family Member</option>
+                                                    <option>Friend</option>
+                                                    <option>Child</option>
+                                                    <option>Parent</option>
+                                                    <option>Spouse</option>
+                                                    <option>Other</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="text-xs uppercase font-bold text-gray-500 mb-1 block">Age</label>
+                                                <input
+                                                    type="number"
+                                                    placeholder="Age"
+                                                    className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white outline-none focus:ring-2 focus:ring-primary"
+                                                    value={beneficiaryDetails.age}
+                                                    onChange={(e) => setBeneficiaryDetails({ ...beneficiaryDetails, age: e.target.value })}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs uppercase font-bold text-gray-500 mb-1 block">Gender</label>
+                                                <select
+                                                    className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white outline-none focus:ring-2 focus:ring-primary"
+                                                    value={beneficiaryDetails.gender}
+                                                    onChange={(e) => setBeneficiaryDetails({ ...beneficiaryDetails, gender: e.target.value })}
+                                                >
+                                                    <option value="Male">Male</option>
+                                                    <option value="Female">Female</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
                                 <div className="grid grid-cols-2 gap-6">
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Date</label>
@@ -376,24 +619,127 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                                     </div>
                                 </div>
 
+                                {/* Address for Home Visit */}
+                                {(!selectedService?.id?.toString().includes('VIRTUAL') && !selectedService?.name?.toLowerCase().includes('virtual')) && (
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center justify-between">
+                                            <span>Home Visit Location</span>
+                                            <span className="text-xs text-primary font-normal">Step 1: Pin Location</span>
+                                        </label>
+
+                                        {/* Map Section */}
+                                        <div className="h-64 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 mb-3 relative z-0">
+                                            <MapContainer
+                                                center={[userLocation?.lat || -1.2921, userLocation?.lng || 36.8219]}
+                                                zoom={13}
+                                                style={{ height: '100%', width: '100%' }}
+                                            >
+                                                <TileLayer
+                                                    attribution='&copy; OpenStreetMap contributors'
+                                                    url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                                                />
+                                                <LocationPicker
+                                                    location={userLocation}
+                                                    onLocationSelect={(latlng: any) => {
+                                                        setUserLocation({ lat: latlng.lat, lng: latlng.lng });
+                                                        fetchAddressFromCoords(latlng.lat, latlng.lng);
+                                                    }}
+                                                />
+                                            </MapContainer>
+
+                                            {/* Overlay Buttons */}
+                                            <div className="absolute top-2 right-2 flex flex-col gap-2 z-[9999]">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        if (navigator.geolocation) {
+                                                            navigator.geolocation.getCurrentPosition(p => {
+                                                                const coords = { lat: p.coords.latitude, lng: p.coords.longitude };
+                                                                setUserLocation(coords);
+                                                                fetchAddressFromCoords(coords.lat, coords.lng);
+                                                            });
+                                                        }
+                                                    }}
+                                                    className="bg-white text-black p-2 rounded-lg shadow-md hover:bg-gray-50 text-xs font-bold"
+                                                >
+                                                    📍 Use My Location
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <label className="block text-xs font-bold text-gray-500 mb-1">Confirm Specific Address</label>
+                                        <div className="relative">
+                                            <FiMapPin className="absolute left-3 top-3 text-gray-400" />
+                                            <input
+                                                type="text"
+                                                placeholder="Enter house no, street, or landmark..."
+                                                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white outline-none focus:ring-2 focus:ring-primary"
+                                                value={customHomeAddress}
+                                                onChange={(e) => setCustomHomeAddress(e.target.value)}
+                                            />
+                                        </div>
+                                        <p className="text-xs text-gray-500 mt-1 ml-1">Click on the map to set location, then edit the address above if needed.</p>
+                                    </div>
+                                )}
+
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Service (Optional)</label>
                                     <select
                                         className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white outline-none focus:ring-2 focus:ring-primary"
                                         value={selectedService?.id || ''}
                                         onChange={(e) => {
-                                            const sId = Number(e.target.value);
-                                            const svc = services.find(s => s.id === sId) || null;
-                                            setSelectedService(svc);
+                                            const val = e.target.value;
+                                            if (val === 'VIRTUAL_DOC') {
+                                                // Special Virtual Session for Doctors
+                                                setSelectedService({ id: 'VIRTUAL_DOC', name: 'Virtual Session', price: getDisplayFee(selectedDoctor) } as any);
+                                            } else {
+                                                const sId = Number(val);
+                                                const svc = services.find(s => s.id === sId) || null;
+                                                setSelectedService(svc);
+                                            }
                                         }}
                                     >
-                                        <option value="">General Consultation (KES {selectedDoctor.fee})</option>
-                                        {services.map(s => (
-                                            <option key={s.id} value={s.id}>
-                                                {s.name} - KES {s.price}
-                                            </option>
-                                        ))}
+                                        {/* Logic for Doctors vs Nurses */}
+                                        {(!selectedDoctor.dr_type || !['nurse', 'clinician'].some(t => selectedDoctor.dr_type.toLowerCase().includes(t))) ? (
+                                            <>
+                                                <option value="">General Consultation (Home Visit) - KES {getDisplayFee(selectedDoctor)} + Transport</option>
+                                                <option value="VIRTUAL_DOC">Virtual Session - KES {getDisplayFee(selectedDoctor)} (No Transport)</option>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <option value="">Select Service...</option>
+                                                {services.map(s => (
+                                                    <option key={s.id} value={s.id}>
+                                                        {s.name} - KES {s.price}
+                                                    </option>
+                                                ))}
+                                            </>
+                                        )}
                                     </select>
+                                </div>
+
+                                {/* Medical Info */}
+                                <div className="space-y-4">
+                                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">Medical Information</label>
+
+                                    <div>
+                                        <textarea
+                                            rows={2}
+                                            placeholder="Active Medications (e.g. Aspirin 75mg daily)..."
+                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white outline-none focus:ring-2 focus:ring-primary resize-none text-sm"
+                                            value={medicalInfo.medications}
+                                            onChange={(e) => setMedicalInfo({ ...medicalInfo, medications: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <textarea
+                                            rows={2}
+                                            placeholder="Current Prescriptions..."
+                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white outline-none focus:ring-2 focus:ring-primary resize-none text-sm"
+                                            value={medicalInfo.prescriptions}
+                                            onChange={(e) => setMedicalInfo({ ...medicalInfo, prescriptions: e.target.value })}
+                                        />
+                                    </div>
                                 </div>
 
                                 <div>

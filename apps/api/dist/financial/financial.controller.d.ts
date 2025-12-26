@@ -5,6 +5,8 @@ export declare class FinancialController {
     constructor(financialService: FinancialService);
     withdraw(body: {
         amount: number;
+        method: string;
+        details: string;
     }, req: any): Promise<{
         success: boolean;
         newBalance: number;
@@ -82,5 +84,22 @@ export declare class FinancialController {
     }): Promise<{
         success: boolean;
         message: string;
+    }>;
+    getStatsDebug(email: string): Promise<{
+        status: string;
+        stats: {
+            balance: number;
+            pendingClearance: number;
+            transactions: import("./entities/transaction.entity").Transaction[];
+        };
+        message?: undefined;
+        email?: undefined;
+        availableDoctors?: undefined;
+    } | {
+        status: string;
+        message: any;
+        email: string;
+        availableDoctors: import("../doctors/entities/doctor.entity").Doctor[];
+        stats?: undefined;
     }>;
 }

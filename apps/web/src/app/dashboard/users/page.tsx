@@ -52,7 +52,7 @@ export default function UsersPage() {
     };
 
     const [editingUser, setEditingUser] = useState<any>(null);
-    const [editForm, setEditForm] = useState({ fname: '', lname: '', email: '', role: '', status: true });
+    const [editForm, setEditForm] = useState<{ fname: string; lname: string; email: string; role: string; status: boolean; profilePicture?: File | null }>({ fname: '', lname: '', email: '', role: '', status: true, profilePicture: null });
 
     const handleDelete = async (id: number) => {
         if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
@@ -72,14 +72,30 @@ export default function UsersPage() {
             lname: user.lname || '',
             email: user.email || '',
             role: user.role || 'patient',
-            status: user.status
+            status: user.status,
+            profilePicture: null
         });
     };
 
     const handleUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const res = await api.patch(`/users/${editingUser.id}`, editForm);
+            // Upload Profile Picture if exists
+            if (editForm.profilePicture) {
+                const formData = new FormData();
+                formData.append('file', editForm.profilePicture);
+                await api.post(`/users/${editingUser.id}/upload-profile`, formData);
+            }
+
+            // Update User Details
+            const res = await api.patch(`/users/${editingUser.id}`, {
+                fname: editForm.fname,
+                lname: editForm.lname,
+                email: editForm.email,
+                role: editForm.role,
+                status: editForm.status
+            });
+
             if (res && res.ok) {
                 const updated = await res.json();
                 setUsers(users.map(u => u.id === editingUser.id ? updated : u));
@@ -92,27 +108,67 @@ export default function UsersPage() {
         }
     };
 
-    const filteredUsers = users.filter(user =>
-        (user.fname || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (user.lname || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (user.email || '').toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const [roleFilter, setRoleFilter] = useState('all');
+    const [statusFilter, setStatusFilter] = useState('all');
+
+    const filteredUsers = users.filter(user => {
+        const matchesSearch = (user.fname || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (user.lname || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (user.email || '').toLowerCase().includes(searchTerm.toLowerCase());
+
+        const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+
+        const matchesStatus = statusFilter === 'all'
+            ? true
+            : statusFilter === 'active'
+                ? user.status === true
+                : user.status === false;
+
+        return matchesSearch && matchesRole && matchesStatus;
+    });
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                 <h1 className="text-2xl font-black dark:text-white flex items-center gap-2">
                     <span className="text-primary"><FiUsers /></span> User Management
                 </h1>
-                <div className="relative w-64">
-                    <span className="absolute left-3 top-3 text-gray-400"><FiSearch /></span>
-                    <input
-                        type="text"
-                        placeholder="Search users..."
-                        className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1A1A1A] outline-none focus:ring-2 focus:ring-primary"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+
+                <div className="flex flex-wrap items-center gap-3">
+                    {/* Role Filter */}
+                    <select
+                        className="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1A1A1A] outline-none focus:ring-2 focus:ring-primary text-sm font-medium"
+                        value={roleFilter}
+                        onChange={(e) => setRoleFilter(e.target.value)}
+                    >
+                        <option value="all">All Roles</option>
+                        <option value="patient">Patients</option>
+                        <option value="doctor">Doctors</option>
+                        <option value="admin">Admins</option>
+                    </select>
+
+                    {/* Status Filter */}
+                    <select
+                        className="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1A1A1A] outline-none focus:ring-2 focus:ring-primary text-sm font-medium"
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                    >
+                        <option value="all">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+
+                    {/* Search */}
+                    <div className="relative w-64">
+                        <span className="absolute left-3 top-3 text-gray-400"><FiSearch /></span>
+                        <input
+                            type="text"
+                            placeholder="Search users..."
+                            className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1A1A1A] outline-none focus:ring-2 focus:ring-primary"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
                 </div>
             </div>
 
@@ -137,8 +193,18 @@ export default function UsersPage() {
                                     <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                                         <td className="p-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-sm font-bold text-gray-500 uppercase">
-                                                    {(user.fname?.[0] || user.email?.[0] || '?')}
+                                                <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-700">
+                                                    {user.profilePicture ? (
+                                                        <img
+                                                            src={`http://localhost:3001/uploads/profiles/${user.profilePicture}`}
+                                                            alt="Profile"
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <span className="text-sm font-bold text-gray-500 uppercase">
+                                                            {(user.fname?.[0] || user.email?.[0] || '?')}
+                                                        </span>
+                                                    )}
                                                 </div>
                                                 <div>
                                                     <div className="font-bold text-gray-900 dark:text-white">{user.fname} {user.lname}</div>
@@ -204,6 +270,36 @@ export default function UsersPage() {
                             </button>
                         </div>
                         <form onSubmit={handleUpdate} className="space-y-4">
+                            <div className="flex justify-center mb-6">
+                                <div className="relative group">
+                                    <div className="w-24 h-24 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden border-4 border-white dark:border-[#1A1A1A] shadow-lg">
+                                        {(editForm.profilePicture || editingUser.profilePicture) ? (
+                                            <img
+                                                src={editForm.profilePicture ? URL.createObjectURL(editForm.profilePicture) : `http://localhost:3001/uploads/profiles/${editingUser.profilePicture}`}
+                                                alt="Profile"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <span className="text-3xl font-bold text-gray-300">
+                                                {editForm.fname?.[0]}{editForm.lname?.[0]}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <label className="absolute bottom-0 right-0 bg-primary text-black p-2 rounded-full cursor-pointer shadow-lg hover:scale-110 transition-transform">
+                                        <FiEdit2 size={14} />
+                                        <input
+                                            type="file"
+                                            className="hidden"
+                                            accept="image/*"
+                                            onChange={(e) => {
+                                                if (e.target.files?.[0]) {
+                                                    setEditForm({ ...editForm, profilePicture: e.target.files[0] });
+                                                }
+                                            }}
+                                        />
+                                    </label>
+                                </div>
+                            </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-xs font-bold uppercase text-gray-400 mb-2 block">First Name</label>

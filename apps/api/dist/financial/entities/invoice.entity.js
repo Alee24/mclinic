@@ -34,6 +34,8 @@ let Invoice = class Invoice {
     commissionAmount;
     createdAt;
     updatedAt;
+    appointmentId;
+    appointment;
 };
 exports.Invoice = Invoice;
 __decorate([
@@ -81,7 +83,7 @@ __decorate([
     __metadata("design:type", String)
 ], Invoice.prototype, "paymentMethod", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)({ type: 'bigint', unsigned: true, nullable: true }),
     __metadata("design:type", Number)
 ], Invoice.prototype, "doctorId", void 0);
 __decorate([
@@ -96,6 +98,15 @@ __decorate([
     (0, typeorm_1.UpdateDateColumn)(),
     __metadata("design:type", Date)
 ], Invoice.prototype, "updatedAt", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Number)
+], Invoice.prototype, "appointmentId", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)('Appointment', { nullable: true }),
+    (0, typeorm_1.JoinColumn)({ name: 'appointmentId' }),
+    __metadata("design:type", Object)
+], Invoice.prototype, "appointment", void 0);
 exports.Invoice = Invoice = __decorate([
     (0, typeorm_1.Entity)()
 ], Invoice);

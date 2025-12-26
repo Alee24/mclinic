@@ -51,8 +51,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                     <NavItem href="/dashboard/services" icon={<FiPackage />} label="Services" active={pathname === '/dashboard/services'} />
 
                                     {/* Finance Module Dropdown */}
-                                    <details className="group/finance" open={pathname?.startsWith('/dashboard/finance')}>
-                                        <summary className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all list-none ${pathname?.startsWith('/dashboard/finance') ? 'bg-donezo-dark/5 text-donezo-dark font-bold' : 'text-gray-500 hover:text-gray-900 group-hover/finance:text-gray-900'}`}>
+                                    <details className="group/finance" open={pathname?.startsWith('/dashboard/finance') || pathname?.startsWith('/dashboard/invoices')}>
+                                        <summary className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all list-none ${(pathname?.startsWith('/dashboard/finance') || pathname?.startsWith('/dashboard/invoices')) ? 'bg-donezo-dark/5 text-donezo-dark font-bold' : 'text-gray-500 hover:text-gray-900 group-hover/finance:text-gray-900'}`}>
                                             <div className="flex items-center gap-3">
                                                 <span className="text-xl"><FiBarChart2 /></span>
                                                 <span className="text-sm">Finance</span>
@@ -65,7 +65,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                         </summary>
                                         <div className="pl-4 mt-1 space-y-1 border-l-2 border-gray-100 dark:border-gray-800 ml-5">
                                             <NavItem href="/dashboard/finance/transactions" icon={<div className="w-1.5 h-1.5 rounded-full bg-current" />} label="Overview" active={pathname === '/dashboard/finance/transactions'} />
-                                            <NavItem href="/dashboard/finance/invoices" icon={<div className="w-1.5 h-1.5 rounded-full bg-current" />} label="Invoices" active={pathname === '/dashboard/finance/invoices'} />
+                                            <NavItem href="/dashboard/invoices" icon={<div className="w-1.5 h-1.5 rounded-full bg-current" />} label="Invoices" active={pathname === '/dashboard/invoices'} />
                                         </div>
                                     </details>
 
@@ -87,8 +87,25 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
                             {user.role === UserRole.PATIENT && (
                                 <>
-                                    <NavItem href="/dashboard/appointments" icon={<FiCalendar />} label="Book/My Visits" active={pathname === '/dashboard/appointments'} />
-                                    <NavItem href="/dashboard/invoices" icon={<FiFileText />} label="My Invoices" active={pathname === '/dashboard/invoices'} />
+                                    <NavItem href="/dashboard/appointments" icon={<FiCalendar />} label="My Appointments" active={pathname === '/dashboard/appointments'} />
+
+                                    <details className="group/finance" open={pathname?.startsWith('/dashboard/invoices')}>
+                                        <summary className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all list-none ${pathname?.startsWith('/dashboard/invoices') ? 'bg-donezo-dark/5 text-donezo-dark font-bold' : 'text-gray-500 hover:text-gray-900 group-hover/finance:text-gray-900'}`}>
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-xl"><FiBarChart2 /></span>
+                                                <span className="text-sm">Finances</span>
+                                            </div>
+                                            <div className="transition-transform group-open/finance:rotate-180">
+                                                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                                </svg>
+                                            </div>
+                                        </summary>
+                                        <div className="pl-4 mt-1 space-y-1 border-l-2 border-gray-100 dark:border-gray-800 ml-5">
+                                            <NavItem href="/dashboard/invoices" icon={<div className="w-1.5 h-1.5 rounded-full bg-current" />} label="Invoices" active={pathname === '/dashboard/invoices'} />
+                                        </div>
+                                    </details>
+
                                     <NavItem href="/dashboard/records" icon={<FiPlusCircle />} label="Medical Records" active={pathname === '/dashboard/records'} />
                                     <NavItem href="/dashboard/profile" icon={<FiUser />} label="My Profile" active={pathname === '/dashboard/profile'} />
                                 </>

@@ -76,7 +76,8 @@ let DoctorsService = class DoctorsService {
     async findAllVerified(search) {
         const query = this.doctorsRepository.createQueryBuilder('doctor')
             .where('doctor.Verified_status = :vStatus', { vStatus: 1 })
-            .andWhere('doctor.status = :status', { status: 1 });
+            .andWhere('doctor.status = :status', { status: 1 })
+            .andWhere('doctor.is_online = :isOnline', { isOnline: 1 });
         if (search) {
             query.andWhere('(doctor.fname LIKE :search OR doctor.lname LIKE :search OR doctor.dr_type LIKE :search OR doctor.speciality LIKE :search OR doctor.qualification LIKE :search OR CONCAT(doctor.fname, " ", doctor.lname) LIKE :search)', { search: `%${search}%` });
         }
@@ -157,7 +158,47 @@ let DoctorsService = class DoctorsService {
             updateDto.password = await bcrypt.hash(updateDto.password, 10);
         }
         await this.doctorsRepository.update(id, updateDto);
+        const updatedDoctor = await this.findOne(id);
+        if (updatedDoctor && updatedDoctor.email) {
+            try {
+                const userUpdate = {};
+                if (updateDto.fname)
+                    userUpdate.fname = updateDto.fname;
+                if (updateDto.lname)
+                    userUpdate.lname = updateDto.lname;
+                if (updateDto.mobile)
+                    userUpdate.mobile = updateDto.mobile;
+                if (updateDto.address)
+                    userUpdate.address = updateDto.address;
+                if (updateDto.sex)
+                    userUpdate.sex = updateDto.sex;
+                if (updateDto.dob)
+                    userUpdate.dob = updateDto.dob;
+                if (updateDto.profile_image)
+                    userUpdate.profilePicture = updateDto.profile_image;
+                await this.usersService.updateByEmail(updatedDoctor.email, userUpdate);
+            }
+            catch (err) {
+                console.error(`[DocsService] Failed to sync user profile for ${updatedDoctor.email}`, err);
+            }
+        }
+        return updatedDoctor;
+    }
+    async updateOnlineStatus(id, status, lat, lng) {
+        const updates = { is_online: status };
+        if (lat && lng) {
+            updates.latitude = lat;
+            updates.longitude = lng;
+        }
+        await this.doctorsRepository.update(id, updates);
         return this.findOne(id);
+    }
+    async updateProfileImage(id, filename) {
+        await this.doctorsRepository.update(id, { profile_image: filename });
+        return this.findOne(id);
+    }
+    async findByEmail(email) {
+        return this.doctorsRepository.findOne({ where: { email } });
     }
 };
 exports.DoctorsService = DoctorsService;

@@ -1,10 +1,13 @@
 import { User } from '../../users/entities/user.entity';
 import { Doctor } from '../../doctors/entities/doctor.entity';
+import { Review } from '../../reviews/entities/review.entity';
 export declare enum AppointmentStatus {
     PENDING = "pending",
     CONFIRMED = "confirmed",
     COMPLETED = "completed",
-    CANCELLED = "cancelled"
+    CANCELLED = "cancelled",
+    MISSED = "missed",
+    RESCHEDULED = "rescheduled"
 }
 export declare class Appointment {
     id: number;
@@ -21,6 +24,16 @@ export declare class Appointment {
     notes: string;
     meetingLink: string;
     meetingId: string;
+    reason: string;
+    isForSelf: boolean;
+    beneficiaryName: string;
+    beneficiaryGender: string;
+    beneficiaryAge: string;
+    beneficiaryRelation: string;
+    activeMedications: string;
+    currentPrescriptions: string;
+    homeAddress: string;
+    review: Review;
     createdAt: Date;
     updatedAt: Date;
 }

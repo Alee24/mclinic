@@ -130,8 +130,10 @@ export default function PatientView() {
                                     key={apt.id}
                                     title={apt.reason || "General Consultation"}
                                     date={new Date(apt.appointment_date).toLocaleDateString()}
+                                    time={apt.appointment_time}
                                     doctor={`Dr. ${apt.doctor?.lname || 'Unknown'}`}
                                     type={apt.isVirtual ? "Video Call" : "Physical"}
+                                    status={apt.status}
                                 />
                             ))
                         ) : (
@@ -186,7 +188,7 @@ function QuickCard({ icon, label, value, subLabel, color }: any) {
     );
 }
 
-function HistoryItem({ title, date, doctor, type }: any) {
+function HistoryItem({ title, date, time, doctor, type, status }: any) {
     return (
         <div className="flex items-center gap-4 group">
             <div className="w-12 h-12 rounded-2xl bg-gray-50 dark:bg-black/40 border border-gray-100 dark:border-gray-800 flex items-center justify-center text-xl group-hover:bg-donezo-dark group-hover:text-white transition-all">
@@ -194,9 +196,15 @@ function HistoryItem({ title, date, doctor, type }: any) {
             </div>
             <div className="flex-1 min-w-0">
                 <h5 className="font-bold text-gray-900 dark:text-white text-sm truncate">{title}</h5>
-                <p className="text-xs text-gray-500 font-medium">{doctor} • {date}</p>
+                <p className="text-xs text-gray-500 font-medium">{doctor} • {date} at {time}</p>
             </div>
-            <span className="text-[10px] font-black text-donezo-dark uppercase tracking-widest group-hover:translate-x-1 transition-transform cursor-pointer">View</span>
+            <div className="flex flex-col items-end gap-1">
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                    }`}>
+                    {status}
+                </span>
+                <span className="text-[10px] font-black text-donezo-dark uppercase tracking-widest group-hover:translate-x-1 transition-transform cursor-pointer">View</span>
+            </div>
         </div>
     );
 }

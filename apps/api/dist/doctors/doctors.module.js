@@ -21,7 +21,15 @@ let DoctorsModule = class DoctorsModule {
 exports.DoctorsModule = DoctorsModule;
 exports.DoctorsModule = DoctorsModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([doctor_entity_1.Doctor, doctor_schedule_entity_1.DoctorSchedule, doctor_licence_entity_1.DoctorLicence, appointment_entity_1.Appointment]), users_module_1.UsersModule],
+        imports: [
+            typeorm_1.TypeOrmModule.forFeature([
+                doctor_entity_1.Doctor,
+                doctor_schedule_entity_1.DoctorSchedule,
+                doctor_licence_entity_1.DoctorLicence,
+                appointment_entity_1.Appointment,
+            ]),
+            users_module_1.UsersModule,
+        ],
         controllers: [doctors_controller_1.DoctorsController],
         providers: [doctors_service_1.DoctorsService],
         exports: [doctors_service_1.DoctorsService],

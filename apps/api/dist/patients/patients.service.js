@@ -51,43 +51,125 @@ const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const user_entity_1 = require("../users/entities/user.entity");
 const bcrypt = __importStar(require("bcrypt"));
+const patient_entity_1 = require("./entities/patient.entity");
 let PatientsService = class PatientsService {
     usersRepository;
-    constructor(usersRepository) {
+    patientsRepository;
+    constructor(usersRepository, patientsRepository) {
         this.usersRepository = usersRepository;
+        this.patientsRepository = patientsRepository;
     }
     async create(createPatientDto, user) {
         const email = createPatientDto.email || `patient${Date.now()}@mclinic.temp`;
         const password = createPatientDto.password || 'Patient123!';
         const hashedPassword = await bcrypt.hash(password, 10);
-        const patient = this.usersRepository.create({
+        const patientUser = this.usersRepository.create({
             email,
             password: hashedPassword,
             role: user_entity_1.UserRole.PATIENT,
             ...createPatientDto,
         });
-        return this.usersRepository.save(patient);
+        const savedUser = await this.usersRepository.save(patientUser);
+        const patientProfile = this.patientsRepository.create({
+            user: savedUser,
+            user_id: savedUser.id,
+            fname: savedUser.fname,
+            lname: savedUser.lname,
+            mobile: savedUser.mobile,
+            dob: savedUser.dob,
+            sex: savedUser.sex,
+            address: savedUser.address,
+            city: savedUser.city,
+            latitude: savedUser.latitude,
+            longitude: savedUser.longitude,
+        });
+        await this.patientsRepository.save(patientProfile);
+        return savedUser;
     }
     async findAll() {
-        return this.usersRepository.find({
-            where: { role: user_entity_1.UserRole.PATIENT }
+        const users = await this.usersRepository.find({
+            where: { role: user_entity_1.UserRole.PATIENT },
+        });
+        const profiles = await this.patientsRepository.find();
+        return users.map(user => {
+            const profile = profiles.find(p => p.user_id === user.id);
+            return {
+                ...user,
+                blood_group: profile?.blood_group,
+                genotype: profile?.genotype,
+            };
         });
     }
     async findOne(id) {
         return this.usersRepository.findOne({
-            where: { id, role: user_entity_1.UserRole.PATIENT }
+            where: { id, role: user_entity_1.UserRole.PATIENT },
         });
     }
     async findByUserId(userId) {
-        return this.usersRepository.findOne({
-            where: { id: userId, role: user_entity_1.UserRole.PATIENT }
+        const user = await this.usersRepository.findOne({
+            where: { id: userId },
         });
+        let patient = await this.patientsRepository.findOne({
+            where: { user_id: userId },
+        });
+        if (!patient && user) {
+            patient = this.patientsRepository.create({
+                user_id: user.id,
+                fname: user.fname,
+                lname: user.lname,
+                mobile: user.mobile,
+            });
+            await this.patientsRepository.save(patient);
+        }
+        return { user, patient };
     }
     async update(id, updateDto) {
+        const userFieldsAllowed = [
+            'fname', 'lname', 'mobile', 'address', 'city', 'sex', 'dob', 'profilePicture', 'latitude', 'longitude', 'national_id'
+        ];
+        const medicalFieldsAllowed = [
+            'blood_group', 'genotype', 'height', 'weight',
+            'allergies', 'medical_history', 'social_history', 'family_history',
+            'emergency_contact_name', 'emergency_contact_phone', 'emergency_contact_relation',
+            'insurance_provider', 'insurance_policy_no', 'shif_number', 'subscription_plan',
+            'current_medications', 'surgical_history', 'disability_status'
+        ];
+        const userUpdate = {};
+        const medicalUpdate = {};
+        Object.keys(updateDto).forEach(key => {
+            if (userFieldsAllowed.includes(key)) {
+                userUpdate[key] = updateDto[key];
+            }
+            else if (medicalFieldsAllowed.includes(key)) {
+                medicalUpdate[key] = updateDto[key];
+            }
+        });
         if (updateDto.password) {
-            updateDto.password = await bcrypt.hash(updateDto.password, 10);
+            userUpdate.password = await bcrypt.hash(updateDto.password, 10);
         }
-        await this.usersRepository.update(id, updateDto);
+        if (Object.keys(userUpdate).length > 0) {
+            console.log(`[PATIENTS_SVC] Updating User fields for ID ${id}`, userUpdate);
+            await this.usersRepository.update(id, userUpdate);
+        }
+        if (Object.keys(medicalUpdate).length > 0) {
+            console.log(`[PATIENTS_SVC] Searching for Patient record with user_id ${id}`);
+            const patient = await this.patientsRepository.findOne({ where: { user_id: id } });
+            if (patient) {
+                console.log(`[PATIENTS_SVC] Found Patient ID ${patient.id}. Updating medical fields.`, medicalUpdate);
+                await this.patientsRepository.update(patient.id, medicalUpdate);
+            }
+            else {
+                console.log(`[PATIENTS_SVC] Patient record not found for user_id ${id}. Creating new record.`);
+                const newP = this.patientsRepository.create({
+                    user_id: id,
+                    ...medicalUpdate
+                });
+                await this.patientsRepository.save(newP);
+            }
+        }
+        else {
+            console.log(`[PATIENTS_SVC] No medical fields to update.`);
+        }
         return this.findOne(id);
     }
 };
@@ -95,6 +177,8 @@ exports.PatientsService = PatientsService;
 exports.PatientsService = PatientsService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
-    __metadata("design:paramtypes", [typeorm_2.Repository])
+    __param(1, (0, typeorm_1.InjectRepository)(patient_entity_1.Patient)),
+    __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository])
 ], PatientsService);
 //# sourceMappingURL=patients.service.js.map

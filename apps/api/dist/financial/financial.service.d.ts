@@ -86,9 +86,11 @@ export declare class FinancialService {
         message: string;
         invoice: Invoice;
     }>;
-    withdrawFunds(userEmail: string, amount: number): Promise<{
+    releaseFunds(appointmentId: number): Promise<void>;
+    withdrawFunds(userEmail: string, amount: number, method: string, details: string): Promise<{
         success: boolean;
         newBalance: number;
         transaction: Transaction;
     }>;
+    debugListDoctors(): Promise<Doctor[]>;
 }

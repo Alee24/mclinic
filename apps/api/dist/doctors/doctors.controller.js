@@ -16,6 +16,8 @@ exports.DoctorsController = void 0;
 const common_1 = require("@nestjs/common");
 const doctors_service_1 = require("./doctors.service");
 const passport_1 = require("@nestjs/passport");
+const platform_express_1 = require("@nestjs/platform-express");
+const multer_1 = require("multer");
 let DoctorsController = class DoctorsController {
     doctorsService;
     constructor(doctorsService) {
@@ -23,6 +25,9 @@ let DoctorsController = class DoctorsController {
     }
     create(createDoctorDto) {
         return this.doctorsService.create(createDoctorDto, null);
+    }
+    async getProfile(req) {
+        return this.doctorsService.findByEmail(req.user.email);
     }
     findAll(search) {
         return this.doctorsService.findAllVerified(search);
@@ -39,6 +44,12 @@ let DoctorsController = class DoctorsController {
     update(id, updateDoctorDto) {
         return this.doctorsService.update(+id, updateDoctorDto);
     }
+    async uploadProfile(id, file) {
+        return this.doctorsService.updateProfileImage(+id, file.filename);
+    }
+    updateOnlineStatus(id, body) {
+        return this.doctorsService.updateOnlineStatus(+id, body.status, body.latitude, body.longitude);
+    }
 };
 exports.DoctorsController = DoctorsController;
 __decorate([
@@ -48,6 +59,14 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], DoctorsController.prototype, "create", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Get)('profile/me'),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], DoctorsController.prototype, "getProfile", null);
 __decorate([
     (0, common_1.Get)(),
     __param(0, (0, common_1.Query)('search')),
@@ -78,6 +97,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], DoctorsController.prototype, "verifyDoctor", null);
 __decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.Patch)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
@@ -85,6 +105,32 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], DoctorsController.prototype, "update", null);
+__decorate([
+    (0, common_1.Post)(':id/upload-profile'),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file', {
+        storage: (0, multer_1.diskStorage)({
+            destination: './uploads/profiles',
+            filename: (req, file, cb) => {
+                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+                const ext = file.originalname.split('.').pop();
+                cb(null, `doc-${uniqueSuffix}.${ext}`);
+            },
+        }),
+    })),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.UploadedFile)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], DoctorsController.prototype, "uploadProfile", null);
+__decorate([
+    (0, common_1.Patch)(':id/online-status'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], DoctorsController.prototype, "updateOnlineStatus", null);
 exports.DoctorsController = DoctorsController = __decorate([
     (0, common_1.Controller)('doctors'),
     __metadata("design:paramtypes", [doctors_service_1.DoctorsService])

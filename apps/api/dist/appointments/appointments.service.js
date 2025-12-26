@@ -18,39 +18,67 @@ const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const appointment_entity_1 = require("./entities/appointment.entity");
 const doctor_entity_1 = require("../doctors/entities/doctor.entity");
+const patient_entity_1 = require("../patients/entities/patient.entity");
 const service_entity_1 = require("../services/entities/service.entity");
 const invoice_entity_1 = require("../financial/entities/invoice.entity");
+const financial_service_1 = require("../financial/financial.service");
 let AppointmentsService = class AppointmentsService {
     appointmentsRepository;
     servicesRepository;
     invoiceRepository;
-    constructor(appointmentsRepository, servicesRepository, invoiceRepository) {
+    financialService;
+    constructor(appointmentsRepository, servicesRepository, invoiceRepository, financialService) {
         this.appointmentsRepository = appointmentsRepository;
         this.servicesRepository = servicesRepository;
         this.invoiceRepository = invoiceRepository;
+        this.financialService = financialService;
     }
     async create(createAppointmentDto) {
-        const { appointmentDate, appointmentTime, isVirtual, serviceId, ...rest } = createAppointmentDto;
+        const { appointmentDate, appointmentTime, isVirtual, serviceId, isForSelf, beneficiaryName, beneficiaryGender, beneficiaryAge, beneficiaryRelation, activeMedications, currentPrescriptions, homeAddress, ...rest } = createAppointmentDto;
+        const doctor = await this.appointmentsRepository.manager
+            .getRepository(doctor_entity_1.Doctor)
+            .findOne({ where: { id: createAppointmentDto.doctorId } });
+        if (!doctor) {
+            throw new common_1.BadRequestException('Doctor not found.');
+        }
         let fee = 0;
         if (serviceId) {
-            const service = await this.servicesRepository.findOne({ where: { id: serviceId } });
+            const service = await this.servicesRepository.findOne({
+                where: { id: serviceId },
+            });
             if (service) {
                 fee = Number(service.price);
             }
         }
+        else {
+            const drType = (doctor.dr_type || '').toLowerCase();
+            console.log(`[DEBUG_FEE] Doctor ID: ${doctor.id}, Type: ${drType}, DB Fee: ${doctor.fee}`);
+            if (drType.includes('nurse') || drType.includes('clinician')) {
+                fee = 1500;
+            }
+            else {
+                fee = Number(doctor.fee || 1500);
+            }
+            console.log(`[DEBUG_FEE] Calculated Fee: ${fee}`);
+        }
         let transportFee = 0;
         if (createAppointmentDto.patientLocation) {
-            const doctor = await this.appointmentsRepository.manager.getRepository(doctor_entity_1.Doctor).findOne({ where: { id: createAppointmentDto.doctorId } });
             if (doctor && doctor.latitude && doctor.longitude) {
                 const dist = this.calculateDistance(createAppointmentDto.patientLocation.lat, createAppointmentDto.patientLocation.lng, Number(doctor.latitude), Number(doctor.longitude));
                 transportFee = Math.ceil(dist * 120);
+                if (transportFee < 150)
+                    transportFee = 150;
             }
+        }
+        if (isVirtual) {
+            console.log(`[CREATE-APPT] Virtual Session detected. Setting Transport Fee to 0.`);
+            transportFee = 0;
         }
         let meetingId = null;
         let meetingLink = null;
         if (isVirtual) {
             meetingId = `mclinic-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-            meetingLink = `https://meet.jit.si/${meetingId}`;
+            meetingLink = `https://virtual.mclinic.co.ke/${meetingId}`;
             console.log(`[NOTIFICATION] Meeting Created. Link sent to Patient: ${meetingLink}`);
         }
         const appointment = this.appointmentsRepository.create({
@@ -61,27 +89,53 @@ let AppointmentsService = class AppointmentsService {
             transportFee,
             meetingId,
             meetingLink,
-            ...rest
+            isForSelf: isForSelf ?? true,
+            beneficiaryName,
+            beneficiaryGender,
+            beneficiaryAge,
+            beneficiaryRelation,
+            activeMedications,
+            currentPrescriptions,
+            homeAddress,
+            ...rest,
         });
         const savedAppointment = await this.appointmentsRepository.save(appointment);
         const totalAmount = fee + transportFee;
         if (totalAmount > 0) {
             const appointmentWithPatient = await this.appointmentsRepository.findOne({
                 where: { id: savedAppointment.id },
-                relations: ['patient']
+                relations: ['patient'],
             });
             if (appointmentWithPatient?.patient) {
                 const invoiceNumber = `INV-${Date.now()}-${savedAppointment.id}`;
+                const commission = fee * 0.4;
+                const doctorShare = fee * 0.6 + transportFee;
                 const invoice = this.invoiceRepository.create({
                     invoiceNumber,
                     customerName: `${appointmentWithPatient.patient.fname} ${appointmentWithPatient.patient.lname}`,
                     customerEmail: appointmentWithPatient.patient.mobile || 'noemail@mclinic.com',
                     totalAmount: totalAmount,
-                    status: invoice_entity_1.InvoiceStatus.PENDING,
+                    status: invoice_entity_1.InvoiceStatus.PAID,
                     dueDate: new Date(appointmentDate),
+                    commissionAmount: commission,
+                    doctorId: createAppointmentDto.doctorId,
+                    appointment: savedAppointment,
+                    appointmentId: savedAppointment.id,
                 });
                 await this.invoiceRepository.save(invoice);
-                console.log(`[INVOICE] Created invoice ${invoiceNumber} for appointment #${savedAppointment.id}, Amount: KES ${totalAmount} (Fee: ${fee}, Transport: ${transportFee})`);
+                await this.appointmentsRepository.manager
+                    .getRepository('Transaction')
+                    .save({
+                    amount: totalAmount,
+                    source: 'SYSTEM',
+                    reference: `SYS-${Date.now()}`,
+                    status: 'pending',
+                    invoice: invoice,
+                    invoiceId: invoice.id,
+                    type: 'credit',
+                    createdAt: new Date()
+                });
+                console.log(`[INVOICE] Created PAID invoice ${invoiceNumber}. Funds HELD for Doctor (Pending Completion).`);
             }
         }
         return savedAppointment;
@@ -89,19 +143,19 @@ let AppointmentsService = class AppointmentsService {
     async findAll() {
         return this.appointmentsRepository.find({
             relations: ['patient', 'doctor'],
-            order: { appointment_date: 'DESC' }
+            order: { appointment_date: 'DESC' },
         });
     }
     async findByPatient(patientId) {
         return this.appointmentsRepository.find({
             where: { patientId },
-            relations: ['doctor']
+            relations: ['doctor'],
         });
     }
     async findByDoctor(doctorId) {
         return this.appointmentsRepository.find({
             where: { doctorId },
-            relations: ['patient']
+            relations: ['patient'],
         });
     }
     async findAllForUser(user) {
@@ -109,7 +163,9 @@ let AppointmentsService = class AppointmentsService {
             return this.findAll();
         }
         if (user.role === 'doctor') {
-            const doctor = await this.appointmentsRepository.manager.getRepository(doctor_entity_1.Doctor).findOne({ where: { email: user.email } });
+            const doctor = await this.appointmentsRepository.manager
+                .getRepository(doctor_entity_1.Doctor)
+                .findOne({ where: { email: user.email } });
             if (!doctor) {
                 console.warn(`[Appointments] Doctor not found for email: ${user.email}`);
                 return [];
@@ -117,33 +173,62 @@ let AppointmentsService = class AppointmentsService {
             const appointments = await this.appointmentsRepository.find({
                 where: { doctorId: doctor.id },
                 relations: ['patient', 'doctor'],
-                order: { appointment_date: 'DESC' }
+                order: { appointment_date: 'DESC' },
             });
+            const userIds = appointments.map((a) => a.patient?.id).filter(Boolean);
+            if (userIds.length > 0) {
+                const profiles = await this.appointmentsRepository.manager
+                    .getRepository(patient_entity_1.Patient)
+                    .createQueryBuilder('patient')
+                    .where('patient.user_id IN (:...ids)', { ids: userIds })
+                    .getMany();
+                appointments.forEach((a) => {
+                    if (a.patient) {
+                        const profile = profiles.find((p) => p.user_id === a.patient.id);
+                        if (profile) {
+                            a.patient.blood_group = profile.blood_group;
+                            a.patient.sex = profile.sex || a.patient.sex;
+                            a.patient.genotype = profile.genotype;
+                            a.patient.allergies = profile.allergies;
+                            a.patient.conditions = profile.medical_history;
+                            a.patient.emergency_contact = profile.emergency_contact_name;
+                        }
+                    }
+                });
+            }
             return appointments;
         }
         return this.appointmentsRepository.find({
             where: { patientId: user.sub || user.id },
             relations: ['doctor'],
-            order: { appointment_date: 'DESC' }
+            order: { appointment_date: 'DESC' },
         });
     }
     async findOne(id) {
         return this.appointmentsRepository.findOne({
             where: { id },
-            relations: ['patient', 'doctor']
+            relations: ['patient', 'doctor'],
         });
     }
     async updateStatus(id, status) {
+        const appointment = await this.appointmentsRepository.findOne({ where: { id } });
+        if (!appointment)
+            return null;
         await this.appointmentsRepository.update(id, { status });
+        if (status === appointment_entity_1.AppointmentStatus.COMPLETED) {
+            await this.financialService.releaseFunds(id);
+        }
         return this.appointmentsRepository.findOne({ where: { id } });
     }
     calculateDistance(lat1, lon1, lat2, lon2) {
         const R = 6371;
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const dLat = ((lat2 - lat1) * Math.PI) / 180;
+        const dLon = ((lon2 - lon1) * Math.PI) / 180;
         const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            Math.cos((lat1 * Math.PI) / 180) *
+                Math.cos((lat2 * Math.PI) / 180) *
+                Math.sin(dLon / 2) *
+                Math.sin(dLon / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c;
     }
@@ -156,6 +241,7 @@ exports.AppointmentsService = AppointmentsService = __decorate([
     __param(2, (0, typeorm_1.InjectRepository)(invoice_entity_1.Invoice)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
         typeorm_2.Repository,
-        typeorm_2.Repository])
+        typeorm_2.Repository,
+        financial_service_1.FinancialService])
 ], AppointmentsService);
 //# sourceMappingURL=appointments.service.js.map

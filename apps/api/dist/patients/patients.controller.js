@@ -31,9 +31,11 @@ let PatientsController = class PatientsController {
         return this.patientsService.findOne(+id);
     }
     getProfile(req) {
-        return this.patientsService.findByUserId(req.user.userId);
+        return this.patientsService.findByUserId(req.user.id);
     }
     update(id, updatePatientDto) {
+        console.log(`[PATIENTS_CTRL] Update Request for ID: ${id}`);
+        console.log(`[PATIENTS_CTRL] Payload:`, updatePatientDto);
         return this.patientsService.update(+id, updatePatientDto);
     }
 };

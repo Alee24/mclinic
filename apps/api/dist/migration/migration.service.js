@@ -51,7 +51,7 @@ let MigrationService = class MigrationService {
                 'specialities',
                 'locations',
                 'services',
-                'users'
+                'users',
             ];
             for (const table of tables) {
                 try {
@@ -79,7 +79,9 @@ let MigrationService = class MigrationService {
             }
             console.log('[MIGRATION] Database cleared successfully.');
             try {
-                const adminExists = await this.userRepository.findOne({ where: { email: 'mettoalex@gmail.com' } });
+                const adminExists = await this.userRepository.findOne({
+                    where: { email: 'mettoalex@gmail.com' },
+                });
                 if (!adminExists) {
                     await this.userRepository.save({
                         fname: 'Metto',
@@ -87,7 +89,7 @@ let MigrationService = class MigrationService {
                         email: 'mettoalex@gmail.com',
                         password: 'Digital2025',
                         role: user_entity_1.UserRole.ADMIN,
-                        status: true
+                        status: true,
                     });
                     console.log('[MIGRATION] Default admin account restored.');
                 }
@@ -294,7 +296,9 @@ let MigrationService = class MigrationService {
             const sample = [];
             for (let i = 0; i < Math.min(10, rows.length); i++) {
                 const values = this.parseRow(rows[i]);
-                const transformed = dataType === 'doctors' ? this.transformDoctor(values) : this.transformUser(values);
+                const transformed = dataType === 'doctors'
+                    ? this.transformDoctor(values)
+                    : this.transformUser(values);
                 sample.push(transformed);
             }
             return {
@@ -320,7 +324,9 @@ let MigrationService = class MigrationService {
             for (let i = 0; i < rows.length; i++) {
                 try {
                     const values = this.parseRow(rows[i]);
-                    const transformed = dataType === 'doctors' ? this.transformDoctor(values) : this.transformUser(values);
+                    const transformed = dataType === 'doctors'
+                        ? this.transformDoctor(values)
+                        : this.transformUser(values);
                     if (!transformed.email) {
                         stats.skipped++;
                         stats.errors.push(`Row ${i + 1}: Missing email`);

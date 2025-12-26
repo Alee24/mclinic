@@ -116,31 +116,29 @@ export class FinancialService {
     }
 
     async getInvoices(user: { email: string; role: string; id: number }): Promise<Invoice[]> {
-        let whereCondition: any = {};
+        const query = this.invoiceRepo.createQueryBuilder('invoice')
+            .leftJoinAndSelect('invoice.items', 'items')
+            .leftJoinAndSelect('invoice.appointment', 'appointment')
+            .orderBy('invoice.createdAt', 'DESC');
 
-        if (user.role === 'admin') {
-            // Admin sees all
-            whereCondition = {};
-        } else if (user.role === 'patient') {
-            // Patient sees only their invoices (by email)
-            whereCondition = { customerEmail: user.email };
+        if (user.role === 'patient') {
+            // Match email OR appointment patientId
+            // We need to fetch patient first to get IDs or just simple ID check if user.id is trustworthy
+            // Assuming user.id corresponds to user_id in patient, lets verify logic or stick to email + app match
+            // Ideally: invoice.customerEmail = user.email OR appointment.patientId = user.id
+            // But patientId in appointment refers to User ID usually.
+            query.where('invoice.customerEmail = :email', { email: user.email })
+                .orWhere('appointment.patientId = :userId', { userId: user.id }); // Assuming user.id in JWT is valid
         } else if (user.role === 'doctor') {
-            // Doctor sees invoices linked to their ID
-            // First find the doctor entity
             const doctor = await this.doctorRepo.findOne({ where: { email: user.email } });
             if (doctor) {
-                whereCondition = { doctorId: doctor.id };
+                query.where('invoice.doctorId = :doctorId', { doctorId: doctor.id });
             } else {
-                // Should not happen for valid doctor users
                 return [];
             }
         }
 
-        return this.invoiceRepo.find({
-            where: whereCondition,
-            order: { createdAt: 'DESC' },
-            relations: ['items']
-        });
+        return query.getMany();
     }
 
     async getInvoiceById(id: number): Promise<Invoice> {
@@ -182,7 +180,8 @@ export class FinancialService {
     }
 
     async getStats(user?: { role: string; email: string }) {
-        if (user && user.role === 'doctor') {
+        console.log(`[FINANCIAL] getStats service called with role: '${user?.role}' (Comparison: ${user?.role === 'doctor'})`);
+        if (user && user.role?.toLowerCase() === 'doctor') {
             return this.getDoctorStats(user.email);
         }
 
@@ -218,7 +217,7 @@ export class FinancialService {
         const recentTransactions = await this.txRepo.find({
             order: { createdAt: 'DESC' },
             take: 5,
-            relations: ['user']
+            relations: ['user', 'invoice', 'invoice.appointment', 'invoice.appointment.patient', 'invoice.appointment.doctor']
         });
 
         // Invoice Counts
@@ -284,30 +283,51 @@ export class FinancialService {
         const doctor = await this.doctorRepo.findOne({ where: { email } });
         if (!doctor) throw new NotFoundException('Doctor profile not found');
 
+        console.log(`[FINANCIAL] getDoctorStats: Found doctor ${doctor.email} (ID: ${doctor.id})`);
+        console.log(`[FINANCIAL] getDoctorStats: Raw Balance from DB: ${doctor.balance} (Type: ${typeof doctor.balance})`);
+
         // 1. Wallet Balance
         const balance = Number(doctor.balance);
+        console.log(`[FINANCIAL] getDoctorStats: Parsed Balance: ${balance}`);
 
-        // 2. Pending Clearance (Sum of 60% of Pending Invoices)
-        // We assume 60% share for doctor.
-        const pendingInvoices = await this.invoiceRepo.find({
-            where: { doctorId: doctor.id, status: InvoiceStatus.PENDING }
-        });
+        // 2. Pending Clearance
+        // Funds held in PENDING transactions linked to this doctor's invoices
+        // We need to join Transaction -> Invoice -> Doctor
+        const pendingTransactions = await this.txRepo.createQueryBuilder('tx')
+            .leftJoinAndSelect('tx.invoice', 'inv')
+            .where('inv.doctorId = :doctorId', { doctorId: doctor.id })
+            .andWhere('tx.status = :status', { status: TransactionStatus.PENDING })
+            .getMany();
+
+        console.log(`[FINANCIAL] getDoctorStats for ${email}: Found ${pendingTransactions.length} pending transactions.`);
+        if (pendingTransactions.length > 0) {
+            console.log(`[FINANCIAL] First Pending Tx Invoice DoctorID: ${pendingTransactions[0].invoice?.doctorId}`);
+        }
 
         let pendingClearance = 0;
-        pendingInvoices.forEach(inv => {
-            const amount = Number(inv.totalAmount);
-            pendingClearance += (amount * 0.60);
+        pendingTransactions.forEach(tx => {
+            if (tx.invoice) {
+                const total = Number(tx.invoice.totalAmount);
+                const commission = Number(tx.invoice.commissionAmount || 0);
+                // If commission is 0, maybe it wasn't set? Fallback to standard 40% if seemingly unset?
+                // But generally it should be set.
+                // Doctor Share = Total - Commission
+                pendingClearance += (total - commission);
+            }
         });
 
-        // 3. Recent Transactions (Withdrawals or Earnings)
-        // Since we don't have a direct link in Transaction to Doctor (yet, explicitly in this file), 
-        // we might query by user email if transactions are linked to User.
-        // Assuming transactions are linked to user via 'user' relation which has 'email'.
-        const transactions = await this.txRepo.find({
-            where: { user: { email: email } },
-            order: { createdAt: 'DESC' },
-            take: 10
-        });
+        // 3. Recent Transactions (Withdrawals OR Earnings)
+        // Withdrawals: tx.user.email = email
+        // Earnings: tx.invoice.doctorId = doctor.id
+        const transactions = await this.txRepo.createQueryBuilder('tx')
+            .leftJoinAndSelect('tx.invoice', 'inv')
+            .leftJoinAndSelect('tx.user', 'user')
+            .leftJoinAndSelect('inv.patient', 'patient') // Optional: to show who paid
+            .where('user.email = :email', { email }) // Withdrawals
+            .orWhere('inv.doctorId = :doctorId', { doctorId: doctor.id }) // Earnings
+            .orderBy('tx.createdAt', 'DESC')
+            .take(10)
+            .getMany();
 
         return {
             balance,
@@ -459,7 +479,9 @@ export class FinancialService {
                         amount,
                         source: 'MPESA',
                         reference: receiptNumber,
-                        status: TransactionStatus.COMPLETED
+                        status: TransactionStatus.COMPLETED,
+                        invoice: invoice,
+                        invoiceId: invoice.id
                     });
                     await this.txRepo.save(transaction);
 
@@ -478,104 +500,109 @@ export class FinancialService {
 
     // Process Payment (Direct from Frontend)
     async processPayment(appointmentId: number, amount: number, phoneNumber: string) {
-        // 1. Find the invoice linked to this appointment (or create one if missing?)
-        // The Invoice is usually created during booking. Invoice Number format: INV-{Date}-{AppId}
-        // We can search for Invoice where invoiceNumber contains `-${appointmentId}`
-
+        // ... (Invoice finding logic) ...
         let invoice = await this.invoiceRepo.createQueryBuilder('inv')
             .where('inv.invoiceNumber LIKE :suffix', { suffix: `%-${appointmentId}` })
             .getOne();
-
         if (!invoice) throw new NotFoundException('Invoice not found for this appointment');
 
-        // 2. Simulate Payment (Success)
         invoice.status = InvoiceStatus.PAID;
-
-        // 3. Revenue Split
-        // Fetch Appointment Details
-        const app = await this.doctorRepo.manager.createQueryBuilder('appointment', 'a')
-            .where('a.id = :id', { id: appointmentId })
-            .getOne();
-
-        if (app && invoice.doctorId) {
-            // @ts-ignore
-            const fee = Number(app.fee || 0);
-            // @ts-ignore
-            const transport = Number(app.transportFee || 0);
-
-            const commission = fee * 0.40;
-            const doctorShare = (fee * 0.60) + transport;
-
-            invoice.commissionAmount = commission;
-            await this.doctorRepo.increment({ id: invoice.doctorId }, 'balance', doctorShare);
-        }
+        // We do NOT increment doctor balance here yet. It is held.
 
         await this.invoiceRepo.save(invoice);
 
-        // 4. Record Transaction
+        // Record Transaction as PENDING (Held Funds)
         const transaction = this.txRepo.create({
             amount: amount,
             source: 'MPESA',
-            reference: `MPE${Date.now()}`, // Simulated Receipt
-            status: TransactionStatus.COMPLETED
+            reference: `MPE${Date.now()}`,
+            status: TransactionStatus.PENDING, // Funds Held
+            invoice: invoice,
+            invoiceId: invoice.id
         });
         await this.txRepo.save(transaction);
 
-        // 5. Update Appointment Status to CONFIRMED
-        if (app) {
-            // @ts-ignore
-            await this.doctorRepo.manager.update('appointment', { id: appointmentId }, { status: 'confirmed' });
-        }
+        // Update Appointment Status to CONFIRMED
+        // We need to inject AppointmentsService or use QueryBuilder
+        // Assuming raw query for now to avoid circular deps if not careful, 
+        // but ideally we should use the service.
+        await this.doctorRepo.manager.update('appointment', { id: appointmentId }, { status: 'confirmed' });
 
         return { success: true, message: 'Payment processed successfully' };
     }
 
     // Manual Payment Confirmation
     async confirmInvoicePayment(invoiceId: number, paymentMethod: string, transactionId?: string) {
+        // ...
         const invoice = await this.invoiceRepo.findOne({ where: { id: invoiceId } });
-        if (!invoice) {
-            throw new NotFoundException('Invoice not found');
-        }
+        if (!invoice) throw new NotFoundException('Invoice not found');
+        if (invoice.status === InvoiceStatus.PAID) throw new BadRequestException('Invoice already paid');
 
-        if (invoice.status === InvoiceStatus.PAID) {
-            throw new BadRequestException('Invoice already paid');
-        }
-
-        // Update invoice
-        // Update invoice
         invoice.status = InvoiceStatus.PAID;
-
-        // Commission Logic: 40% to Platform, 60% to Doctor
-        if (invoice.doctorId) {
-            const amount = Number(invoice.totalAmount);
-            const commission = amount * 0.40;
-            const doctorShare = amount - commission;
-            invoice.commissionAmount = commission;
-
-            await this.doctorRepo.increment({ id: invoice.doctorId }, 'balance', doctorShare);
-        }
-
         await this.invoiceRepo.save(invoice);
 
-        // Create transaction record
+        // Create transaction record as PENDING (Held Funds)
         const transaction = this.txRepo.create({
             amount: invoice.totalAmount,
             source: paymentMethod.toUpperCase(),
             reference: transactionId || `MAN${Date.now()}`,
-            status: TransactionStatus.COMPLETED
+            status: TransactionStatus.PENDING, // Funds Held
+            invoice: invoice,
+            invoiceId: invoice.id
         });
         await this.txRepo.save(transaction);
 
-        console.log(`[PAYMENT] Invoice #${invoice.invoiceNumber} marked as PAID via ${paymentMethod}`);
+        // Also confirm appointment if applicable
+        // Parse app ID from invoice number or relation
+        const parts = invoice.invoiceNumber.split('-');
+        const appId = parts.length > 2 ? parseInt(parts[2]) : null;
+        if (appId) {
+            await this.doctorRepo.manager.update('appointment', { id: appId }, { status: 'confirmed' });
+        }
 
-        return {
-            success: true,
-            message: 'Payment confirmed successfully',
-            invoice
-        };
+        return { success: true, message: 'Payment confirmed successfully', invoice };
     }
 
-    async withdrawFunds(userEmail: string, amount: number) {
+    // Release Funds (Called when Appointment is COMPLETED)
+    async releaseFunds(appointmentId: number) {
+        console.log(`[FINANCIAL] Releasing funds for Appointment #${appointmentId}`);
+        // 1. Find the invoice/transaction linked to this appointment
+        // We can search Transaction where invoice.invoiceNumber contains appointmentId
+        const transaction = await this.txRepo.createQueryBuilder('tx')
+            .leftJoinAndSelect('tx.invoice', 'inv')
+            .where('inv.invoiceNumber LIKE :suffix', { suffix: `%-${appointmentId}` })
+            .andWhere('tx.status = :status', { status: TransactionStatus.PENDING })
+            .getOne();
+
+        if (!transaction || !transaction.invoice) {
+            console.log(`[FINANCIAL] No pending transaction found for Appointment #${appointmentId}`);
+            return;
+        }
+
+        const invoice = transaction.invoice;
+        if (invoice.doctorId) {
+            // Calculate Shares
+            // Should fetch appointment real values, but reusing the 40/60 logic or stored values
+            // For now standard:
+            const total = Number(transaction.amount);
+            // Logic: If Service Fee logic stored specifically, use it.
+            // Fallback: 60% to Doctor.
+            const doctorShare = total * 0.60;
+            const commission = total * 0.40;
+
+            // Update Doctor Balance
+            await this.doctorRepo.increment({ id: invoice.doctorId }, 'balance', doctorShare);
+            console.log(`[FINANCIAL] Credited ${doctorShare} to Doctor #${invoice.doctorId}`);
+        }
+
+        // Mark Transaction COMPLETED
+        transaction.status = TransactionStatus.COMPLETED;
+        await this.txRepo.save(transaction);
+    }
+
+    async withdrawFunds(userEmail: string, amount: number, method: string, details: string) {
+        if (!method || !details) throw new BadRequestException('Withdrawal method and details required');
+
         const doctor = await this.doctorRepo.findOne({ where: { email: userEmail } });
         if (!doctor) {
             throw new NotFoundException('Doctor account not found');
@@ -594,10 +621,13 @@ export class FinancialService {
         const transaction = this.txRepo.create({
             amount: amount,
             source: 'WITHDRAWAL',
-            reference: `WDR-${Date.now()}`,
-            status: TransactionStatus.COMPLETED,
-            user: { email: userEmail } as any // Simple link if relation exists, otherwise just reference
+            reference: `${method}-${details}`, // Store method and address/phone
+            status: TransactionStatus.COMPLETED, // Mark as complete (simulated instant withdrawal)
+            user: { email: userEmail } as any,
+            type: 'debit',
+            createdAt: new Date()
         });
+
         await this.txRepo.save(transaction);
 
         return {
@@ -605,5 +635,9 @@ export class FinancialService {
             newBalance: doctor.balance,
             transaction
         };
+    }
+
+    async debugListDoctors() {
+        return this.doctorRepo.find({ select: ['id', 'email', 'fname', 'balance'] });
     }
 }

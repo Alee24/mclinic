@@ -5,9 +5,9 @@ import { MedicalRecordsController } from './medical-records.controller';
 import { MedicalRecord } from './entities/medical-record.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([MedicalRecord])],
-    controllers: [MedicalRecordsController],
-    providers: [MedicalRecordsService],
-    exports: [MedicalRecordsService],
+  imports: [TypeOrmModule.forFeature([MedicalRecord])],
+  controllers: [MedicalRecordsController],
+  providers: [MedicalRecordsService],
+  exports: [MedicalRecordsService],
 })
-export class MedicalRecordsModule { }
+export class MedicalRecordsModule {}

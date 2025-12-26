@@ -4,11 +4,12 @@ import { FiX } from 'react-icons/fi';
 
 interface AddMedicalRecordModalProps {
     patientId: number;
+    appointmentId?: number; // Optional as not all records might come from apts? Actually for this flow it is required but let's make optional for safety
     onClose: () => void;
     onSuccess: () => void;
 }
 
-export default function AddMedicalRecordModal({ patientId, onClose, onSuccess }: AddMedicalRecordModalProps) {
+export default function AddMedicalRecordModal({ patientId, appointmentId, onClose, onSuccess }: AddMedicalRecordModalProps) {
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         diagnosis: '',
@@ -36,6 +37,7 @@ export default function AddMedicalRecordModal({ patientId, onClose, onSuccess }:
             const res = await api.post('/medical-records', {
                 ...formData,
                 patientId,
+                appointmentId,
                 // userId/admin handling might be needed on backend to link real doctor
             });
 

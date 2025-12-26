@@ -1,50 +1,99 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
 @Entity('patients')
 export class Patient {
-    @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })
-    id: number;
+  @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })
+  id: number;
 
-    @Column({ type: 'bigint', unsigned: true, nullable: true })
-    user_id: number;
+  @Column({ type: 'bigint', unsigned: true, nullable: true })
+  user_id: number;
 
-    @OneToOne(() => User, { nullable: true, onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'user_id' })
-    user: User;
+  @OneToOne(() => User, { nullable: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 
-    @Column({ length: 40, nullable: true })
-    fname: string;
+  @Column({ length: 40, nullable: true })
+  fname: string;
 
-    @Column({ length: 50, nullable: true })
-    lname: string;
+  @Column({ length: 50, nullable: true })
+  lname: string;
 
-    @Column({ length: 40, nullable: true })
-    mobile: string;
+  @Column({ length: 40, nullable: true })
+  mobile: string;
 
-    @Column({ length: 20, nullable: true })
-    dob: string;
+  @Column({ length: 20, nullable: true })
+  dob: string;
 
-    @Column({ length: 20, nullable: true })
-    sex: string;
+  @Column({ length: 20, nullable: true })
+  sex: string;
 
-    @Column({ length: 255, nullable: true })
-    address: string;
+  @Column({ length: 255, nullable: true })
+  address: string;
 
-    @Column({ length: 100, nullable: true })
-    city: string;
+  @Column({ length: 100, nullable: true })
+  city: string;
 
-    @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })
-    latitude: number;
+  @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })
+  latitude: number;
 
-    @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })
-    longitude: number;
+  @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })
+  longitude: number;
 
+  // Medical Biodata
+  @Column({ length: 10, nullable: true })
+  blood_group: string;
 
+  @Column({ length: 10, nullable: true })
+  genotype: string;
 
-    @CreateDateColumn()
-    createdAt: Date;
+  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
+  height: number; // in cm
 
-    @UpdateDateColumn()
-    updatedAt: Date;
+  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
+  weight: number; // in kg
+
+  // Medical Records
+  @Column({ type: 'text', nullable: true })
+  allergies: string;
+
+  @Column({ type: 'text', nullable: true })
+  medical_history: string;
+
+  @Column({ type: 'text', nullable: true })
+  family_history: string;
+
+  @Column({ type: 'text', nullable: true })
+  social_history: string;
+
+  // Emergency Contact
+  @Column({ length: 100, nullable: true })
+  emergency_contact_name: string;
+
+  @Column({ length: 40, nullable: true })
+  emergency_contact_phone: string;
+
+  @Column({ length: 40, nullable: true })
+  emergency_contact_relation: string;
+
+  // Insurance
+  @Column({ length: 100, nullable: true })
+  insurance_provider: string;
+
+  @Column({ length: 100, nullable: true })
+  insurance_policy_no: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

@@ -23,18 +23,31 @@ let MedicalRecordsService = class MedicalRecordsService {
         this.medicalRecordsRepository = medicalRecordsRepository;
     }
     async create(createMedicalRecordDto) {
-        const record = this.medicalRecordsRepository.create(createMedicalRecordDto);
-        return this.medicalRecordsRepository.save(record);
+        console.log('[MED_REC_SVC] Creating record for User ID:', createMedicalRecordDto.patientId);
+        const record = this.medicalRecordsRepository.create({
+            ...createMedicalRecordDto,
+            patientId: createMedicalRecordDto.patientId
+        });
+        try {
+            return await this.medicalRecordsRepository.save(record);
+        }
+        catch (error) {
+            console.error('[MED_REC_SVC] Error saving record:', error);
+            throw error;
+        }
     }
     async findByPatient(patientId) {
         return this.medicalRecordsRepository.find({
             where: { patientId },
-            relations: ['doctor', 'doctor.user'],
-            order: { createdAt: 'DESC' }
+            relations: ['doctor', 'doctor.user', 'appointment'],
+            order: { createdAt: 'DESC' },
         });
     }
     async findOne(id) {
-        return this.medicalRecordsRepository.findOne({ where: { id }, relations: ['patient', 'doctor'] });
+        return this.medicalRecordsRepository.findOne({
+            where: { id },
+            relations: ['patient', 'doctor'],
+        });
     }
 };
 exports.MedicalRecordsService = MedicalRecordsService;

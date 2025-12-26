@@ -49,8 +49,14 @@ let Doctor = class Doctor {
     licenceNo;
     licenceExpiry;
     residance;
+    regulatory_body;
+    years_of_experience;
+    hospital_attachment;
+    telemedicine;
+    on_call;
     featured;
     status;
+    is_online;
     created_at;
     updated_at;
     profile_image;
@@ -112,7 +118,7 @@ __decorate([
     __metadata("design:type", String)
 ], Doctor.prototype, "address", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'decimal', precision: 28, scale: 2, default: 0.00 }),
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 28, scale: 2, default: 0.0 }),
     __metadata("design:type", Number)
 ], Doctor.prototype, "balance", void 0);
 __decorate([
@@ -196,6 +202,26 @@ __decorate([
     __metadata("design:type", String)
 ], Doctor.prototype, "residance", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ length: 50, nullable: true }),
+    __metadata("design:type", String)
+], Doctor.prototype, "regulatory_body", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'int', default: 0 }),
+    __metadata("design:type", Number)
+], Doctor.prototype, "years_of_experience", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 150, nullable: true }),
+    __metadata("design:type", String)
+], Doctor.prototype, "hospital_attachment", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'tinyint', default: 0 }),
+    __metadata("design:type", Number)
+], Doctor.prototype, "telemedicine", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'tinyint', default: 0 }),
+    __metadata("design:type", Number)
+], Doctor.prototype, "on_call", void 0);
+__decorate([
     (0, typeorm_1.Column)({ type: 'tinyint', default: 0 }),
     __metadata("design:type", Number)
 ], Doctor.prototype, "featured", void 0);
@@ -203,6 +229,10 @@ __decorate([
     (0, typeorm_1.Column)({ type: 'tinyint', default: 0 }),
     __metadata("design:type", Number)
 ], Doctor.prototype, "status", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'tinyint', default: 0 }),
+    __metadata("design:type", Number)
+], Doctor.prototype, "is_online", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)

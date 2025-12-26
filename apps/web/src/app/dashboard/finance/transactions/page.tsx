@@ -12,6 +12,8 @@ export default function TransactionsPage() {
     const [doctorBalance, setDoctorBalance] = useState(0);
     const [loading, setLoading] = useState(true);
     const [withdrawAmount, setWithdrawAmount] = useState('');
+    const [withdrawMethod, setWithdrawMethod] = useState<'MPESA' | 'BTC'>('MPESA');
+    const [withdrawDetails, setWithdrawDetails] = useState('');
     const [showWithdraw, setShowWithdraw] = useState(false);
 
     useEffect(() => {
@@ -43,16 +45,36 @@ export default function TransactionsPage() {
             alert('Invalid amount');
             return;
         }
+        if (!withdrawDetails) {
+            alert('Please provide withdrawal details (Phone or Address)');
+            return;
+        }
 
-        if (!confirm(`Withdrawing KES ${amount}. Confirm?`)) return;
+        if (!confirm(`Withdrawing KES ${amount} via ${withdrawMethod}. Confirm?`)) return;
 
         try {
-            const res = await api.post('/financial/withdraw', { amount });
+            const res = await api.post('/financial/withdraw', {
+                amount,
+                method: withdrawMethod,
+                details: withdrawDetails
+            });
             if (res && res.ok) {
                 const data = await res.json();
-                setDoctorBalance(Number(data.newBalance));
+                setDoctorBalance(Number(data.newBalance)); // Ideally api returns new balance, check service if safe
+                // Service returns void in current impl, need to reload stats or trust optimistic update. 
+                // Let's reload stats to be safe or update manually.
+
+                // Reload
+                const statRes = await api.get('/financial/stats');
+                if (statRes && statRes.ok) {
+                    const statData = await statRes.json();
+                    setDoctorBalance(Number(statData.balance));
+                    setStats(statData);
+                }
+
                 setShowWithdraw(false);
                 setWithdrawAmount('');
+                setWithdrawDetails('');
                 alert('Withdrawal successful!');
             } else {
                 alert('Withdrawal failed.');
@@ -142,10 +164,37 @@ export default function TransactionsPage() {
 
             {/* Withdraw Modal */}
             {showWithdraw && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
                     <div className="bg-white dark:bg-[#1A1A1A] rounded-2xl p-6 max-w-sm w-full shadow-2xl">
-                        <h3 className="text-lg font-bold mb-4 dark:text-white">Withdraw Funds</h3>
+                        <h3 className="text-lg font-bold mb-6 dark:text-white flex items-center gap-2">
+                            <FiDollarSign /> Withdraw Funds
+                        </h3>
+
                         <form onSubmit={handleWithdraw}>
+                            {/* Method Selection */}
+                            <div className="grid grid-cols-2 gap-3 mb-6">
+                                <button
+                                    type="button"
+                                    onClick={() => setWithdrawMethod('MPESA')}
+                                    className={`p-3 rounded-xl border-2 font-bold text-sm transition-all ${withdrawMethod === 'MPESA'
+                                            ? 'border-green-500 bg-green-50 text-green-700'
+                                            : 'border-gray-100 dark:border-gray-800 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800'
+                                        }`}
+                                >
+                                    M-Pesa
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setWithdrawMethod('BTC')}
+                                    className={`p-3 rounded-xl border-2 font-bold text-sm transition-all ${withdrawMethod === 'BTC'
+                                            ? 'border-orange-500 bg-orange-50 text-orange-700'
+                                            : 'border-gray-100 dark:border-gray-800 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800'
+                                        }`}
+                                >
+                                    Bitcoin (BTC)
+                                </button>
+                            </div>
+
                             <div className="mb-4">
                                 <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Amount (KES)</label>
                                 <input
@@ -153,16 +202,31 @@ export default function TransactionsPage() {
                                     required
                                     min="100"
                                     max={doctorBalance}
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black text-xl font-bold focus:ring-2 focus:ring-primary outline-none"
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black text-2xl font-black focus:ring-2 focus:ring-primary outline-none"
                                     value={withdrawAmount}
                                     onChange={(e) => setWithdrawAmount(e.target.value)}
                                     placeholder="0"
                                 />
-                                <div className="text-xs text-gray-400 mt-2 text-right">Max: KES {doctorBalance}</div>
+                                <div className="text-xs text-gray-400 mt-2 text-right">Max: KES {doctorBalance.toLocaleString()}</div>
                             </div>
+
+                            <div className="mb-6">
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">
+                                    {withdrawMethod === 'MPESA' ? 'M-Pesa Phone Number' : 'BTC Wallet Address'}
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black font-medium focus:ring-2 focus:ring-primary outline-none"
+                                    value={withdrawDetails}
+                                    onChange={(e) => setWithdrawDetails(e.target.value)}
+                                    placeholder={withdrawMethod === 'MPESA' ? 'e.g. 0712345678' : 'e.g. bc1qxy...'}
+                                />
+                            </div>
+
                             <div className="flex gap-3">
                                 <button type="button" onClick={() => setShowWithdraw(false)} className="flex-1 py-3 text-gray-500 font-bold hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl">Cancel</button>
-                                <button type="submit" className="flex-1 py-3 bg-primary text-black font-bold rounded-xl shadow-lg">Confirm</button>
+                                <button type="submit" className="flex-1 py-3 bg-primary text-black font-bold rounded-xl shadow-lg hover:brightness-110 transition">Confirm</button>
                             </div>
                         </form>
                     </div>

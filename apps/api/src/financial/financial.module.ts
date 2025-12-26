@@ -12,9 +12,19 @@ import { Wallet } from '../wallets/entities/wallet.entity';
 import { Doctor } from '../doctors/entities/doctor.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([PaymentConfig, ServicePrice, Transaction, Invoice, InvoiceItem, Wallet, Doctor])],
-    controllers: [FinancialController],
-    providers: [FinancialService],
-    exports: [FinancialService],
+  imports: [
+    TypeOrmModule.forFeature([
+      PaymentConfig,
+      ServicePrice,
+      Transaction,
+      Invoice,
+      InvoiceItem,
+      Wallet,
+      Doctor,
+    ]),
+  ],
+  controllers: [FinancialController],
+  providers: [FinancialService],
+  exports: [FinancialService],
 })
-export class FinancialModule { }
+export class FinancialModule {}

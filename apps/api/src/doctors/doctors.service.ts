@@ -36,7 +36,8 @@ export class DoctorsService {
         // Step 1: Query Builder to handle search filters
         const query = this.doctorsRepository.createQueryBuilder('doctor')
             .where('doctor.Verified_status = :vStatus', { vStatus: 1 })
-            .andWhere('doctor.status = :status', { status: 1 });
+            .andWhere('doctor.status = :status', { status: 1 })
+            .andWhere('doctor.is_online = :isOnline', { isOnline: 1 });
 
         if (search) {
             query.andWhere(
@@ -148,7 +149,48 @@ export class DoctorsService {
         if (updateDto.password) {
             updateDto.password = await bcrypt.hash(updateDto.password, 10);
         }
+
         await this.doctorsRepository.update(id, updateDto);
+        const updatedDoctor = await this.findOne(id);
+
+        // Sync with User entity if email exists
+        if (updatedDoctor && updatedDoctor.email) {
+            try {
+                // Map doctor fields to user fields
+                const userUpdate: any = {};
+                if (updateDto.fname) userUpdate.fname = updateDto.fname;
+                if (updateDto.lname) userUpdate.lname = updateDto.lname;
+                if (updateDto.mobile) userUpdate.mobile = updateDto.mobile;
+                if (updateDto.address) userUpdate.address = updateDto.address;
+                if (updateDto.sex) userUpdate.sex = updateDto.sex;
+                if (updateDto.dob) userUpdate.dob = updateDto.dob;
+                if (updateDto.profile_image) userUpdate.profilePicture = updateDto.profile_image;
+
+                await this.usersService.updateByEmail(updatedDoctor.email, userUpdate);
+            } catch (err) {
+                console.error(`[DocsService] Failed to sync user profile for ${updatedDoctor.email}`, err);
+            }
+        }
+
+        return updatedDoctor;
+    }
+
+    async updateOnlineStatus(id: number, status: number, lat?: number, lng?: number): Promise<Doctor | null> {
+        const updates: any = { is_online: status };
+        if (lat && lng) {
+            updates.latitude = lat;
+            updates.longitude = lng;
+        }
+        await this.doctorsRepository.update(id, updates);
         return this.findOne(id);
+    }
+
+    async updateProfileImage(id: number, filename: string): Promise<Doctor | null> {
+        await this.doctorsRepository.update(id, { profile_image: filename });
+        return this.findOne(id);
+    }
+
+    async findByEmail(email: string): Promise<Doctor | null> {
+        return this.doctorsRepository.findOne({ where: { email } });
     }
 }

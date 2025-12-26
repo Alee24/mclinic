@@ -76,6 +76,7 @@ export default function PatientsPage() {
                             <th className="px-6 py-4">Name</th>
                             <th className="px-6 py-4">Age/DOB</th>
                             <th className="px-6 py-4">Gender</th>
+                            <th className="px-6 py-4">Blood Group</th>
                             <th className="px-6 py-4">Phone</th>
                             <th className="px-6 py-4">Location</th>
                             {isAdmin && <th className="px-6 py-4 text-center">Actions</th>}
@@ -102,6 +103,9 @@ export default function PatientsPage() {
                                     </td>
                                     <td className="px-6 py-4 text-gray-500 capitalize">
                                         {p.sex}
+                                    </td>
+                                    <td className="px-6 py-4 text-gray-500 font-bold">
+                                        {p.blood_group || '-'}
                                     </td>
                                     <td className="px-6 py-4 text-gray-500">
                                         {p.mobile}

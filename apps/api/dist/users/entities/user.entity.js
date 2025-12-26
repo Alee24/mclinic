@@ -28,12 +28,14 @@ let User = class User {
     fname;
     lname;
     mobile;
+    national_id;
     dob;
     sex;
     address;
     city;
     latitude;
     longitude;
+    profilePicture;
     wallets;
     createdAt;
     updatedAt;
@@ -82,6 +84,10 @@ __decorate([
 __decorate([
     (0, typeorm_1.Column)({ length: 20, nullable: true }),
     __metadata("design:type", String)
+], User.prototype, "national_id", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 20, nullable: true }),
+    __metadata("design:type", String)
 ], User.prototype, "dob", void 0);
 __decorate([
     (0, typeorm_1.Column)({ length: 20, nullable: true }),
@@ -103,6 +109,10 @@ __decorate([
     (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 8, nullable: true }),
     __metadata("design:type", Number)
 ], User.prototype, "longitude", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'profile_image', nullable: true }),
+    __metadata("design:type", String)
+], User.prototype, "profilePicture", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => wallet_entity_1.Wallet, (wallet) => wallet.user),
     __metadata("design:type", Array)

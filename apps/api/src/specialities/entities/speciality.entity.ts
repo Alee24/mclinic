@@ -3,15 +3,15 @@ import { Doctor } from '../../doctors/entities/doctor.entity';
 
 @Entity('specialities')
 export class Speciality {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column({ length: 100 })
-    name: string;
+  @Column({ length: 100 })
+  name: string;
 
-    @Column({ type: 'text', nullable: true })
-    description: string;
+  @Column({ type: 'text', nullable: true })
+  description: string;
 
-    @ManyToMany(() => Doctor, (doctor) => doctor.specialities)
-    doctors: Doctor[];
+  @ManyToMany(() => Doctor, (doctor) => doctor.specialities)
+  doctors: Doctor[];
 }

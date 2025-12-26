@@ -1,28 +1,34 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity()
 export class Service {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    name: string;
+  @Column()
+  name: string;
 
-    @Column({ nullable: true })
-    description: string;
+  @Column({ nullable: true })
+  description: string;
 
-    @Column('decimal', { precision: 10, scale: 2 })
-    price: number;
+  @Column('decimal', { precision: 10, scale: 2 })
+  price: number;
 
-    @Column({ default: 30 }) // Duration in minutes
-    duration: number;
+  @Column({ default: 30 }) // Duration in minutes
+  duration: number;
 
-    @Column({ default: true })
-    isActive: boolean;
+  @Column({ default: true })
+  isActive: boolean;
 
-    @CreateDateColumn()
-    createdAt: Date;
+  @CreateDateColumn()
+  createdAt: Date;
 
-    @UpdateDateColumn()
-    updatedAt: Date;
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

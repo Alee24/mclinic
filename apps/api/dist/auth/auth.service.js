@@ -59,7 +59,7 @@ let AuthService = class AuthService {
     }
     async validateUser(email, pass) {
         const user = await this.usersService.findOne(email);
-        if (user && await bcrypt.compare(pass, user.password)) {
+        if (user && (await bcrypt.compare(pass, user.password))) {
             const { password, ...result } = user;
             return result;
         }
@@ -70,7 +70,11 @@ let AuthService = class AuthService {
         if (!validUser) {
             throw new common_1.UnauthorizedException('Invalid credentials');
         }
-        const payload = { email: validUser.email, sub: validUser.id, role: validUser.role };
+        const payload = {
+            email: validUser.email,
+            sub: validUser.id,
+            role: validUser.role,
+        };
         return {
             access_token: this.jwtService.sign(payload),
             user: validUser,
@@ -86,13 +90,21 @@ let AuthService = class AuthService {
             fname: dto.fname,
             lname: dto.lname,
             role: 'doctor',
-            status: false
+            status: false,
         });
         const doctor = await this.doctorsService.create({
             ...dto,
-            Verified_status: 0
+            Verified_status: 0,
         }, null);
         return { user, doctor };
+    }
+    async getProfile(userId) {
+        const user = await this.usersService.findById(userId);
+        if (user) {
+            const { password, ...result } = user;
+            return result;
+        }
+        return null;
     }
 };
 exports.AuthService = AuthService;

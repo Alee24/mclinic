@@ -57,7 +57,9 @@ let UsersService = class UsersService {
         this.usersRepository = usersRepository;
     }
     async create(createUserDto) {
-        const existingUser = await this.usersRepository.findOne({ where: { email: createUserDto.email } });
+        const existingUser = await this.usersRepository.findOne({
+            where: { email: createUserDto.email },
+        });
         if (existingUser) {
             throw new common_1.ConflictException('Email already exists');
         }
@@ -92,8 +94,16 @@ let UsersService = class UsersService {
         await this.usersRepository.update(id, updateUserDto);
         return this.usersRepository.findOne({ where: { id } });
     }
+    async updateByEmail(email, updateUserDto) {
+        await this.usersRepository.update({ email }, updateUserDto);
+        return this.usersRepository.findOne({ where: { email } });
+    }
     async remove(id) {
         await this.usersRepository.delete(id);
+    }
+    async updateProfilePicture(id, filename) {
+        await this.usersRepository.update(id, { profilePicture: filename });
+        return this.usersRepository.findOne({ where: { id } });
     }
 };
 exports.UsersService = UsersService;

@@ -12,6 +12,19 @@ export declare class Patient {
     city: string;
     latitude: number;
     longitude: number;
+    blood_group: string;
+    genotype: string;
+    height: number;
+    weight: number;
+    allergies: string;
+    medical_history: string;
+    family_history: string;
+    social_history: string;
+    emergency_contact_name: string;
+    emergency_contact_phone: string;
+    emergency_contact_relation: string;
+    insurance_provider: string;
+    insurance_policy_no: string;
     createdAt: Date;
     updatedAt: Date;
 }

@@ -31,7 +31,7 @@ export default function MeetingPage({ params }: { params: Promise<{ id: string }
                 {/* Video Area (2/3) */}
                 <div className="flex-[2] bg-black rounded-xl overflow-hidden shadow-lg border border-gray-800 relative">
                     <iframe
-                        src={`https://meet.jit.si/${id}`}
+                        src={`https://virtual.mclinic.co.ke/${id}`}
                         allow="camera; microphone; fullscreen; display-capture; autoplay"
                         className="w-full h-full border-0"
                     ></iframe>

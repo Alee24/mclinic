@@ -13,12 +13,15 @@ exports.Appointment = exports.AppointmentStatus = void 0;
 const typeorm_1 = require("typeorm");
 const user_entity_1 = require("../../users/entities/user.entity");
 const doctor_entity_1 = require("../../doctors/entities/doctor.entity");
+const review_entity_1 = require("../../reviews/entities/review.entity");
 var AppointmentStatus;
 (function (AppointmentStatus) {
     AppointmentStatus["PENDING"] = "pending";
     AppointmentStatus["CONFIRMED"] = "confirmed";
     AppointmentStatus["COMPLETED"] = "completed";
     AppointmentStatus["CANCELLED"] = "cancelled";
+    AppointmentStatus["MISSED"] = "missed";
+    AppointmentStatus["RESCHEDULED"] = "rescheduled";
 })(AppointmentStatus || (exports.AppointmentStatus = AppointmentStatus = {}));
 let Appointment = class Appointment {
     id;
@@ -35,6 +38,16 @@ let Appointment = class Appointment {
     notes;
     meetingLink;
     meetingId;
+    reason;
+    isForSelf;
+    beneficiaryName;
+    beneficiaryGender;
+    beneficiaryAge;
+    beneficiaryRelation;
+    activeMedications;
+    currentPrescriptions;
+    homeAddress;
+    review;
     createdAt;
     updatedAt;
 };
@@ -99,6 +112,46 @@ __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], Appointment.prototype, "meetingId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
+    __metadata("design:type", String)
+], Appointment.prototype, "reason", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: true }),
+    __metadata("design:type", Boolean)
+], Appointment.prototype, "isForSelf", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Appointment.prototype, "beneficiaryName", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Appointment.prototype, "beneficiaryGender", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Appointment.prototype, "beneficiaryAge", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Appointment.prototype, "beneficiaryRelation", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
+    __metadata("design:type", String)
+], Appointment.prototype, "activeMedications", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
+    __metadata("design:type", String)
+], Appointment.prototype, "currentPrescriptions", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Appointment.prototype, "homeAddress", void 0);
+__decorate([
+    (0, typeorm_1.OneToOne)(() => review_entity_1.Review, (review) => review.appointment),
+    __metadata("design:type", review_entity_1.Review)
+], Appointment.prototype, "review", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)

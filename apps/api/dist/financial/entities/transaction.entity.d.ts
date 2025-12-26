@@ -1,4 +1,5 @@
 import { User } from '../../users/entities/user.entity';
+import { Invoice } from './invoice.entity';
 export declare enum TransactionStatus {
     PENDING = "pending",
     COMPLETED = "completed",
@@ -15,5 +16,7 @@ export declare class Transaction {
     status: TransactionStatus;
     userId: number;
     user: User;
+    invoiceId: number;
+    invoice: Invoice;
     createdAt: Date;
 }

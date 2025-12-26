@@ -23,7 +23,7 @@ let FinancialController = class FinancialController {
         this.financialService = financialService;
     }
     async withdraw(body, req) {
-        return this.financialService.withdrawFunds(req.user.email, body.amount);
+        return this.financialService.withdrawFunds(req.user.email, body.amount, body.method, body.details);
     }
     setConfig(body) {
         return this.financialService.setConfig(body.provider, body.credentials);
@@ -55,8 +55,17 @@ let FinancialController = class FinancialController {
     deleteInvoice(id) {
         return this.financialService.deleteInvoice(Number(id));
     }
-    getStats(req) {
-        return this.financialService.getStats(req.user);
+    async getStats(req) {
+        console.log(`[FINANCIAL] getStats (AUTH) called for: ${req.user.email}`);
+        try {
+            const stats = await this.financialService.getStats(req.user);
+            console.log(`[FINANCIAL] success stats for ${req.user.email}:`, stats.balance);
+            return stats;
+        }
+        catch (e) {
+            console.error(`[FINANCIAL] error for ${req.user.email}:`, e.message);
+            throw e;
+        }
     }
     async initiateMpesaPayment(body) {
         return this.financialService.initiateMpesaPayment(body.phoneNumber, body.amount, body.invoiceId);
@@ -69,6 +78,17 @@ let FinancialController = class FinancialController {
     }
     async processPayment(body) {
         return this.financialService.processPayment(body.appointmentId, body.amount, body.phoneNumber);
+    }
+    async getStatsDebug(email) {
+        console.log(`[DEBUG] calling getDoctorStats for ${email}`);
+        try {
+            const stats = await this.financialService.getDoctorStats(email);
+            return { status: 'OK', stats };
+        }
+        catch (e) {
+            const allDoctors = await this.financialService.debugListDoctors();
+            return { status: 'ERROR', message: e.message, email, availableDoctors: allDoctors };
+        }
     }
 };
 exports.FinancialController = FinancialController;
@@ -166,7 +186,7 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], FinancialController.prototype, "getStats", null);
 __decorate([
     (0, common_1.Post)('mpesa/stk-push'),
@@ -197,6 +217,13 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], FinancialController.prototype, "processPayment", null);
+__decorate([
+    (0, common_1.Get)('stats/debug'),
+    __param(0, (0, common_1.Query)('email')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], FinancialController.prototype, "getStatsDebug", null);
 exports.FinancialController = FinancialController = __decorate([
     (0, common_1.Controller)('financial'),
     __metadata("design:paramtypes", [financial_service_1.FinancialService])

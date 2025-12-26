@@ -11,14 +11,17 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MedicalRecord = void 0;
 const typeorm_1 = require("typeorm");
-const patient_entity_1 = require("../../patients/entities/patient.entity");
+const user_entity_1 = require("../../users/entities/user.entity");
 const doctor_entity_1 = require("../../doctors/entities/doctor.entity");
+const appointment_entity_1 = require("../../appointments/entities/appointment.entity");
 let MedicalRecord = class MedicalRecord {
     id;
     patient;
     patientId;
     doctor;
     doctorId;
+    appointment;
+    appointmentId;
     diagnosis;
     prescription;
     notes;
@@ -31,8 +34,8 @@ __decorate([
     __metadata("design:type", Number)
 ], MedicalRecord.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => patient_entity_1.Patient),
-    __metadata("design:type", patient_entity_1.Patient)
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User),
+    __metadata("design:type", user_entity_1.User)
 ], MedicalRecord.prototype, "patient", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'bigint', unsigned: true }),
@@ -46,6 +49,14 @@ __decorate([
     (0, typeorm_1.Column)({ type: 'bigint', unsigned: true }),
     __metadata("design:type", Number)
 ], MedicalRecord.prototype, "doctorId", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => appointment_entity_1.Appointment, { nullable: true }),
+    __metadata("design:type", appointment_entity_1.Appointment)
+], MedicalRecord.prototype, "appointment", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Number)
+], MedicalRecord.prototype, "appointmentId", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)

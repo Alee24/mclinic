@@ -5,6 +5,8 @@ import { api } from '@/lib/api';
 import Link from 'next/link';
 import { FiUsers, FiActivity, FiBriefcase, FiCalendar, FiArrowUpRight, FiMail, FiBell } from 'react-icons/fi';
 
+import TransactionDetailsModal from './finance/TransactionDetailsModal';
+
 export default function AdminView() {
     const [stats, setStats] = useState({
         patients: 0,
@@ -16,8 +18,12 @@ export default function AdminView() {
         totalRevenue: 0,
         pendingDoctors: [] as any[],
         invoices: { pending: 12, paid: 45, total: 57 },
-        paymentStats: { mpesa: 120000, visa: 85000, paypal: 140000, cash: 0, others: 0 }
+        paymentStats: { mpesa: 120000, visa: 85000, paypal: 140000, cash: 0, others: 0 },
+        recentTransactions: [] as any[]
     });
+
+    const [selectedTx, setSelectedTx] = useState<any>(null);
+    const [showTxModal, setShowTxModal] = useState(false);
 
     useEffect(() => {
         const fetchStats = async () => {
@@ -120,6 +126,39 @@ export default function AdminView() {
                             <div className="text-sm text-gray-500 italic">System is running optimally with low latency.</div>
                         </div>
                     </div>
+                </div>
+
+                <div className="lg:col-span-2 bg-white dark:bg-[#161616] rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
+                    <h3 className="font-bold text-lg mb-4 dark:text-white">Transaction History</h3>
+                    {(stats?.recentTransactions?.length > 0 || (stats as any)?.transactions?.length > 0) ? (
+                        <div className="space-y-4">
+                            {(stats.recentTransactions || (stats as any).transactions).map((tx: any) => (
+                                <div
+                                    key={tx.id}
+                                    onClick={() => {
+                                        setSelectedTx(tx);
+                                        setShowTxModal(true);
+                                    }}
+                                    className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className={`p-3 rounded-lg ${tx.source === 'WITHDRAWAL' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                                            <FiDollarSign />
+                                        </div>
+                                        <div>
+                                            <div className="font-bold dark:text-white">{tx.source}</div>
+                                            <div className="text-xs text-gray-500">{new Date(tx.createdAt).toLocaleDateString()}</div>
+                                        </div>
+                                    </div>
+                                    <div className={`font-bold ${tx.source === 'WITHDRAWAL' ? 'text-red-600' : 'text-green-600'}`}>
+                                        {tx.source === 'WITHDRAWAL' ? '-' : '+'} KES {Number(tx.amount).toLocaleString()}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center text-gray-500 py-8">No recent transactions found.</div>
+                    )}
                 </div>
             </div>
 

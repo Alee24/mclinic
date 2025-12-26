@@ -25,6 +25,19 @@ let Patient = class Patient {
     city;
     latitude;
     longitude;
+    blood_group;
+    genotype;
+    height;
+    weight;
+    allergies;
+    medical_history;
+    family_history;
+    social_history;
+    emergency_contact_name;
+    emergency_contact_phone;
+    emergency_contact_relation;
+    insurance_provider;
+    insurance_policy_no;
     createdAt;
     updatedAt;
 };
@@ -78,6 +91,58 @@ __decorate([
     (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 8, nullable: true }),
     __metadata("design:type", Number)
 ], Patient.prototype, "longitude", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 10, nullable: true }),
+    __metadata("design:type", String)
+], Patient.prototype, "blood_group", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 10, nullable: true }),
+    __metadata("design:type", String)
+], Patient.prototype, "genotype", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 5, scale: 2, nullable: true }),
+    __metadata("design:type", Number)
+], Patient.prototype, "height", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 5, scale: 2, nullable: true }),
+    __metadata("design:type", Number)
+], Patient.prototype, "weight", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
+    __metadata("design:type", String)
+], Patient.prototype, "allergies", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
+    __metadata("design:type", String)
+], Patient.prototype, "medical_history", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
+    __metadata("design:type", String)
+], Patient.prototype, "family_history", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
+    __metadata("design:type", String)
+], Patient.prototype, "social_history", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 100, nullable: true }),
+    __metadata("design:type", String)
+], Patient.prototype, "emergency_contact_name", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 40, nullable: true }),
+    __metadata("design:type", String)
+], Patient.prototype, "emergency_contact_phone", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 40, nullable: true }),
+    __metadata("design:type", String)
+], Patient.prototype, "emergency_contact_relation", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 100, nullable: true }),
+    __metadata("design:type", String)
+], Patient.prototype, "insurance_provider", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 100, nullable: true }),
+    __metadata("design:type", String)
+], Patient.prototype, "insurance_policy_no", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)

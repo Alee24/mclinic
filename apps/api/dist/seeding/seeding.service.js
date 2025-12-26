@@ -187,9 +187,16 @@ let SeedingService = class SeedingService {
                 patients.push({ ...savedPatient, user });
             }
             const specialties = [
-                'General Surgeon', 'Cardiologist', 'Dermatologist', 'Pediatrician',
-                'Neurologist', 'Psychiatrist', 'Orthopedic Surgeon', 'Emergency Physician',
-                'Optometrist', 'Dentist'
+                'General Surgeon',
+                'Cardiologist',
+                'Dermatologist',
+                'Pediatrician',
+                'Neurologist',
+                'Psychiatrist',
+                'Orthopedic Surgeon',
+                'Emergency Physician',
+                'Optometrist',
+                'Dentist',
             ];
             const doctors = [];
             for (let i = 0; i < specialties.length; i++) {
@@ -232,12 +239,15 @@ let SeedingService = class SeedingService {
                     patient: patientData.user,
                     doctor,
                     appointment_date: futureDate,
-                    appointment_time: futureDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    appointment_time: futureDate.toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                    }),
                     fee: doctor.fee || 1500,
                     status: faker_1.faker.helpers.arrayElement([
                         appointment_entity_1.AppointmentStatus.PENDING,
                         appointment_entity_1.AppointmentStatus.CONFIRMED,
-                        appointment_entity_1.AppointmentStatus.COMPLETED
+                        appointment_entity_1.AppointmentStatus.COMPLETED,
                     ]),
                     notes: faker_1.faker.lorem.sentence(),
                 });
@@ -272,13 +282,20 @@ let SeedingService = class SeedingService {
                     status: faker_1.faker.helpers.arrayElement([
                         transaction_entity_1.TransactionStatus.SUCCESS,
                         transaction_entity_1.TransactionStatus.PENDING,
-                        transaction_entity_1.TransactionStatus.FAILED
+                        transaction_entity_1.TransactionStatus.FAILED,
                     ]),
                     reference: faker_1.faker.string.alphanumeric(10).toUpperCase(),
                 });
                 await this.txRepo.save(tx);
             }
-            const services = ['Consultation', 'Home Visit', 'Lab Test', 'Ambulance', 'Dental Checkup', 'Video Consult'];
+            const services = [
+                'Consultation',
+                'Home Visit',
+                'Lab Test',
+                'Ambulance',
+                'Dental Checkup',
+                'Video Consult',
+            ];
             for (const s of services) {
                 const price = this.priceRepo.create({
                     serviceName: s,
@@ -287,7 +304,16 @@ let SeedingService = class SeedingService {
                 });
                 await this.priceRepo.save(price);
             }
-            return { message: 'Database cleared and re-seeded successfully with updated schema.', counts: { patients: 10, doctors: 10, appointments: 20, records: 12, transactions: 30 } };
+            return {
+                message: 'Database cleared and re-seeded successfully with updated schema.',
+                counts: {
+                    patients: 10,
+                    doctors: 10,
+                    appointments: 20,
+                    records: 12,
+                    transactions: 30,
+                },
+            };
         }
         catch (error) {
             console.error('SEEDING ERROR:', error);

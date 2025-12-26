@@ -12,5 +12,7 @@ export declare class UsersService {
     updateUserStatus(email: string, status: boolean): Promise<void>;
     resetPassword(id: number, pass: string): Promise<User | null>;
     update(id: number, updateUserDto: any): Promise<User>;
+    updateByEmail(email: string, updateUserDto: any): Promise<User | null>;
     remove(id: number): Promise<void>;
+    updateProfilePicture(id: number, filename: string): Promise<User>;
 }

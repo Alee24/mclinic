@@ -33,7 +33,7 @@ __decorate([
     __metadata("design:type", user_entity_1.User)
 ], Wallet.prototype, "user", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'decimal', precision: 28, scale: 2, default: 0.00 }),
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 28, scale: 2, default: 0.0 }),
     __metadata("design:type", Number)
 ], Wallet.prototype, "balance", void 0);
 exports.Wallet = Wallet = __decorate([

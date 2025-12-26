@@ -9,6 +9,8 @@ interface EditDoctorModalProps {
 }
 
 export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDoctorModalProps) {
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
     const [formData, setFormData] = useState({
@@ -54,6 +56,9 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
                         fee: data.fee || 0,
                         bio: data.bio || '',
                     });
+                    if (data.profile_image) {
+                        setPreviewUrl(`${process.env.NEXT_PUBLIC_API_URL}/uploads/profiles/${data.profile_image}`);
+                    }
                 }
             } catch (err) {
                 console.error(err);
@@ -69,21 +74,43 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setSelectedFile(file);
+            setPreviewUrl(URL.createObjectURL(file));
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
 
         try {
+            // 1. Upload Image if selected
+            if (selectedFile) {
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                const uploadRes = await api.post(`/doctors/${doctorId}/upload-profile`, formData);
+                if (!uploadRes || !uploadRes.ok) {
+                    console.error('Image upload failed');
+                    // Continue to save text data anyway, or stop?
+                    // Let's warn but continue
+                }
+            }
+
+            // 2. Update Profile Data
             const res = await api.patch(`/doctors/${doctorId}`, {
                 ...formData,
                 fee: Number(formData.fee)
             });
 
             if (res && res.ok) {
-                alert('Doctor updated successfully');
+                // alert('Doctor updated successfully');
+                // Replaced alert with callback or toast logic if avail, for now just call success
                 onSuccess();
             } else {
-                alert('Failed to update doctor');
+                alert('Failed to update doctor profile text');
             }
         } catch (err) {
             console.error(err);
@@ -106,8 +133,25 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-6 overflow-y-auto">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
+                    {/* Image Upload Section */}
+                    <div className="flex flex-col items-center mb-6">
+                        <div className="w-24 h-24 rounded-full bg-gray-100 dark:bg-gray-800 mb-3 overflow-hidden border-4 border-white dark:border-[#1A1A1A] shadow-lg relative group">
+                            {previewUrl ? (
+                                <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-3xl">👨‍⚕️</div>
+                            )}
+
+                            <label className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                <span className="text-white text-xs font-bold">Change</span>
+                                <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+                            </label>
+                        </div>
+                        <p className="text-xs text-gray-500">Tap image to upload new photo</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Section: Personal Details */}
                         <div className="md:col-span-2 border-b pb-2 mb-2">
                             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Personal Information</h3>
