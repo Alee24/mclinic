@@ -60,6 +60,25 @@ interface BookAppointmentModalProps {
     onSuccess: () => void;
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+const DoctorAvatar = ({ doctor }: { doctor: Doctor }) => {
+    const [error, setError] = useState(false);
+
+    if (!doctor.profile_image || error) {
+        return <>{'👨‍⚕️'}</>;
+    }
+
+    return (
+        <img
+            src={`${API_URL}/uploads/profiles/${doctor.profile_image}`}
+            alt={doctor.fname}
+            className="w-full h-full object-cover"
+            onError={() => setError(true)}
+        />
+    );
+};
+
 export default function BookAppointmentModal({ onClose, onSuccess }: BookAppointmentModalProps) {
     const router = useRouter();
     const { user } = useAuth();
@@ -253,7 +272,7 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
 
         try {
             // Determine if virtual
-            const isVirtual = selectedService?.id === 'VIRTUAL_DOC' || selectedService?.id === 2 || selectedService?.name?.toLowerCase().includes('virtual');
+            const isVirtual = selectedService?.id === 'VIRTUAL_DOC' || selectedService?.id === 'VIRTUAL_NURSE' || selectedService?.id === 2 || selectedService?.name?.toLowerCase().includes('virtual');
 
             const payload = {
                 doctorId: selectedDoctor.id,
@@ -443,15 +462,7 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                                         <div className="flex items-start justify-between mb-3">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xl overflow-hidden shrink-0">
-                                                    {doc.profile_image ? (
-                                                        <img
-                                                            src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/profiles/${doc.profile_image}`}
-                                                            alt={doc.fname}
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                    ) : (
-                                                        '👨‍⚕️'
-                                                    )}
+                                                    <DoctorAvatar doctor={doc} />
                                                 </div>
                                                 <div>
                                                     <h4 className="font-bold text-gray-900 dark:text-white line-clamp-1">{doc.fname} {doc.lname}</h4>
@@ -492,15 +503,7 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
 
                             <div className="bg-primary/10 rounded-2xl p-6 flex items-center gap-4 border border-primary/20">
                                 <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-2xl shadow-sm overflow-hidden shrink-0">
-                                    {selectedDoctor.profile_image ? (
-                                        <img
-                                            src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/profiles/${selectedDoctor.profile_image}`}
-                                            alt={selectedDoctor.fname}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    ) : (
-                                        '👨‍⚕️'
-                                    )}
+                                    <DoctorAvatar doctor={selectedDoctor} />
                                 </div>
                                 <div>
                                     <h3 className="font-black text-xl text-gray-900 dark:text-white">Dr. {selectedDoctor.fname} {selectedDoctor.lname}</h3>
@@ -689,9 +692,11 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                                         value={selectedService?.id || ''}
                                         onChange={(e) => {
                                             const val = e.target.value;
-                                            if (val === 'VIRTUAL_DOC') {
-                                                // Special Virtual Session for Doctors
-                                                setSelectedService({ id: 'VIRTUAL_DOC', name: 'Virtual Session', price: getDisplayFee(selectedDoctor) } as any);
+                                            if (val === 'VIRTUAL_DOC' || val === 'VIRTUAL_NURSE') {
+                                                // Virtual Session
+                                                setSelectedService({ id: val, name: 'Virtual Consultation', price: getDisplayFee(selectedDoctor) } as any);
+                                            } else if (val === 'HOME_VISIT_NURSE') {
+                                                setSelectedService({ id: val, name: 'Home Visit', price: getDisplayFee(selectedDoctor) } as any);
                                             } else {
                                                 const sId = Number(val);
                                                 const svc = services.find(s => s.id === sId) || null;
@@ -708,6 +713,8 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                                         ) : (
                                             <>
                                                 <option value="">Select Service...</option>
+                                                <option value="HOME_VISIT_NURSE">Home Visit - KES {getDisplayFee(selectedDoctor)} + Transport</option>
+                                                <option value="VIRTUAL_NURSE">Virtual Consultation - KES {getDisplayFee(selectedDoctor)}</option>
                                                 {services.map(s => (
                                                     <option key={s.id} value={s.id}>
                                                         {s.name} - KES {s.price}

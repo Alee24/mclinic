@@ -50,6 +50,14 @@ let DoctorsController = class DoctorsController {
     updateOnlineStatus(id, body) {
         return this.doctorsService.updateOnlineStatus(+id, body.status, body.latitude, body.longitude);
     }
+    async uploadSignature(id, file) {
+        const filePath = `${process.env.API_URL || 'http://localhost:3001'}/uploads/signatures/${file.filename}`;
+        return this.doctorsService.updateSignature(+id, filePath);
+    }
+    async uploadStamp(id, file) {
+        const filePath = `${process.env.API_URL || 'http://localhost:3001'}/uploads/stamps/${file.filename}`;
+        return this.doctorsService.updateStamp(+id, filePath);
+    }
 };
 exports.DoctorsController = DoctorsController;
 __decorate([
@@ -131,6 +139,42 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], DoctorsController.prototype, "updateOnlineStatus", null);
+__decorate([
+    (0, common_1.Post)(':id/upload-signature'),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file', {
+        storage: (0, multer_1.diskStorage)({
+            destination: './uploads/signatures',
+            filename: (req, file, cb) => {
+                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+                const ext = file.originalname.split('.').pop();
+                cb(null, `sig-${uniqueSuffix}.${ext}`);
+            },
+        }),
+    })),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.UploadedFile)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], DoctorsController.prototype, "uploadSignature", null);
+__decorate([
+    (0, common_1.Post)(':id/upload-stamp'),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file', {
+        storage: (0, multer_1.diskStorage)({
+            destination: './uploads/stamps',
+            filename: (req, file, cb) => {
+                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+                const ext = file.originalname.split('.').pop();
+                cb(null, `stamp-${uniqueSuffix}.${ext}`);
+            },
+        }),
+    })),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.UploadedFile)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], DoctorsController.prototype, "uploadStamp", null);
 exports.DoctorsController = DoctorsController = __decorate([
     (0, common_1.Controller)('doctors'),
     __metadata("design:paramtypes", [doctors_service_1.DoctorsService])

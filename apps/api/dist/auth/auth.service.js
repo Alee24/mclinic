@@ -46,15 +46,18 @@ exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
 const users_service_1 = require("../users/users.service");
 const doctors_service_1 = require("../doctors/doctors.service");
+const medical_profiles_service_1 = require("../medical-profiles/medical-profiles.service");
 const jwt_1 = require("@nestjs/jwt");
 const bcrypt = __importStar(require("bcrypt"));
 let AuthService = class AuthService {
     usersService;
     doctorsService;
+    medicalProfilesService;
     jwtService;
-    constructor(usersService, doctorsService, jwtService) {
+    constructor(usersService, doctorsService, medicalProfilesService, jwtService) {
         this.usersService = usersService;
         this.doctorsService = doctorsService;
+        this.medicalProfilesService = medicalProfilesService;
         this.jwtService = jwtService;
     }
     async validateUser(email, pass) {
@@ -80,16 +83,43 @@ let AuthService = class AuthService {
             user: validUser,
         };
     }
-    async register(createUserDto) {
-        return this.usersService.create(createUserDto);
+    async register(dto) {
+        const user = await this.usersService.create(dto);
+        if (user.role === 'patient') {
+            try {
+                await this.medicalProfilesService.update(user.id, {
+                    dob: dto.dob,
+                    sex: dto.sex,
+                    blood_group: dto.blood_group,
+                    genotype: dto.genotype,
+                    allergies: dto.allergies,
+                    medical_history: dto.medical_history,
+                    shif_number: dto.shif_number,
+                    insurance_provider: dto.insurance_provider,
+                    insurance_policy_no: dto.insurance_policy_no,
+                    emergency_contact_name: dto.emergency_contact_name,
+                    emergency_contact_phone: dto.emergency_contact_phone,
+                    emergency_contact_relation: dto.emergency_contact_relation,
+                });
+            }
+            catch (err) {
+                console.error('Failed to create medical profile during registration', err);
+            }
+        }
+        return user;
     }
     async registerDoctor(dto) {
+        let role = 'doctor';
+        if (dto.cadre === 'Nursing')
+            role = 'nurse';
+        if (dto.cadre === 'Clinical Officers')
+            role = 'clinician';
         const user = await this.usersService.create({
             email: dto.email,
             password: dto.password,
             fname: dto.fname,
             lname: dto.lname,
-            role: 'doctor',
+            role: role,
             status: false,
         });
         const doctor = await this.doctorsService.create({
@@ -112,6 +142,7 @@ exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [users_service_1.UsersService,
         doctors_service_1.DoctorsService,
+        medical_profiles_service_1.MedicalProfilesService,
         jwt_1.JwtService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

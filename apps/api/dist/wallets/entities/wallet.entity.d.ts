@@ -4,4 +4,7 @@ export declare class Wallet {
     user_id: number;
     user: User;
     balance: number;
+    currency: string;
+    createdAt: Date;
+    updatedAt: Date;
 }

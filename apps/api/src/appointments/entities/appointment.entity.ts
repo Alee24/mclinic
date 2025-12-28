@@ -38,10 +38,10 @@ export class Appointment {
   @Column({ type: 'bigint', unsigned: true })
   doctorId: number;
 
-  // @ManyToOne(() => Service, { nullable: true, onDelete: 'SET NULL' })
-  // service: Service;
+  @ManyToOne(() => Service, { nullable: true, onDelete: 'SET NULL' })
+  service: Service;
 
-  @Column({ type: 'bigint', unsigned: true, nullable: true })
+  @Column({ nullable: true })
   serviceId: number;
 
   @Column({ type: 'date', nullable: true })

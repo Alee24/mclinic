@@ -9,6 +9,7 @@ import EditMedicalProfileModal from '@/components/dashboard/patients/EditMedical
 import EditPersonalDetailsModal from '@/components/dashboard/patients/EditPersonalDetailsModal';
 import ChangePasswordModal from '@/components/dashboard/patients/ChangePasswordModal';
 import EditDoctorProfileModal from '@/components/dashboard/doctors/EditDoctorProfileModal';
+import UserAvatar from '@/components/dashboard/UserAvatar';
 
 export default function ProfilePage() {
     const { user, refreshUser } = useAuth();
@@ -141,11 +142,7 @@ export default function ProfilePage() {
                 <div className="relative group cursor-pointer" onClick={handleImageClick}>
                     <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-green-400 to-blue-500 p-1">
                         <div className="w-full h-full rounded-full bg-white dark:bg-gray-900 overflow-hidden">
-                            {user?.profilePicture ? (
-                                <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/uploads/profiles/${user.profilePicture}`} alt="Profile" className="w-full h-full object-cover" />
-                            ) : (
-                                <img src={`https://ui-avatars.com/api/?name=${user?.fname}+${user?.lname}&size=200`} alt="Profile" className="w-full h-full object-cover" />
-                            )}
+                            <UserAvatar user={user} className="w-full h-full object-cover" />
                         </div>
                     </div>
                     <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
@@ -471,8 +468,13 @@ export default function ProfilePage() {
                     onClose={() => setShowEditDocModal(false)}
                     onSuccess={() => {
                         setShowEditDocModal(false);
+                        reloadUser(); // Sync Global User State (Avatar, etc)
                         // trigger refetch hack or state update
-                        api.get('/doctors/profile/me').then(res => res.json()).then(data => setDocProfile(data));
+                        api.get('/doctors/profile/me').then(res => {
+                            if (res && res.ok) {
+                                res.json().then(data => setDocProfile(data));
+                            }
+                        });
                     }}
                 />
             )}

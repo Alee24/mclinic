@@ -22,6 +22,11 @@ export class DoctorsService {
     }
 
     private async createDoctorLogic(dto: any, user: User | null) {
+        // Hash password if present
+        if (dto.password) {
+            dto.password = await bcrypt.hash(dto.password, 10);
+        }
+
         // In the new schema, we don't necessarily link to User via user_id
         // unless we add it back. The production schema uses email/password directly.
         const doctor = this.doctorsRepository.create({
@@ -187,10 +192,35 @@ export class DoctorsService {
 
     async updateProfileImage(id: number, filename: string): Promise<Doctor | null> {
         await this.doctorsRepository.update(id, { profile_image: filename });
-        return this.findOne(id);
+        const doctor = await this.findOne(id);
+
+        // Sync with User entity based on email
+        if (doctor && doctor.email) {
+            try {
+                // Construct the full URL if it's just a filename coming in, or pass as is?
+                // The controller saves just the filename. The User entity usually expects a path or filename.
+                // Let's assume consistent handling.
+                // We'll update the User's profilePicture.
+                // Assuming we have access to usersService here.
+                await this.usersService.updateByEmail(doctor.email, { profilePicture: filename });
+            } catch (error) {
+                console.error('Failed to sync profile image to User entity:', error);
+            }
+        }
+
+        return doctor;
     }
 
     async findByEmail(email: string): Promise<Doctor | null> {
         return this.doctorsRepository.findOne({ where: { email } });
+    }
+    async updateSignature(id: number, filename: string): Promise<Doctor | null> {
+        await this.doctorsRepository.update(id, { signatureUrl: filename });
+        return this.findOne(id);
+    }
+
+    async updateStamp(id: number, filename: string): Promise<Doctor | null> {
+        await this.doctorsRepository.update(id, { stampUrl: filename });
+        return this.findOne(id);
     }
 }

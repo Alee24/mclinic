@@ -1,0 +1,52 @@
+import { User } from '../../users/entities/user.entity';
+export declare class AmbulanceSubscription {
+    id: number;
+    user: User;
+    user_id: number;
+    primary_subscriber_name: string;
+    dob: string;
+    gender: string;
+    identification_number: string;
+    nationality: string;
+    language_spoken: string;
+    photo_url: string;
+    primary_phone: string;
+    secondary_phone: string;
+    email: string;
+    residential_address: string;
+    county: string;
+    estate: string;
+    street: string;
+    house_details: string;
+    landmark: string;
+    gps_coordinates: string;
+    work_address: string;
+    blood_type: string;
+    allergies: string;
+    chronic_conditions: string;
+    current_medications: string;
+    surgical_history: string;
+    disabilities: string;
+    pregnancy_status: string;
+    preferred_hospital: string;
+    insurance_details: string;
+    family_members: {
+        name: string;
+        relationship: string;
+        dob: string;
+        gender: string;
+        medical_conditions: string;
+        photo_url?: string;
+    }[];
+    emergency_contacts: {
+        name: string;
+        relationship: string;
+        phone: string;
+    }[];
+    package_type: string;
+    status: string;
+    start_date: string;
+    end_date: string;
+    created_at: Date;
+    updated_at: Date;
+}

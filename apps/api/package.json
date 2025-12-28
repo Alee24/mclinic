@@ -8,6 +8,7 @@
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "dev": "npm run start:dev",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
@@ -26,6 +27,7 @@
     "@nestjs/jwt": "^11.0.2",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.1.10",
+    "@nestjs/serve-static": "^5.0.4",
     "@nestjs/typeorm": "^11.0.0",
     "@types/bcrypt": "^6.0.0",
     "@types/multer": "^2.0.0",

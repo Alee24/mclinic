@@ -43,6 +43,13 @@ let MedicalRecordsService = class MedicalRecordsService {
             order: { createdAt: 'DESC' },
         });
     }
+    async findByAppointment(appointmentId) {
+        return this.medicalRecordsRepository.find({
+            where: { appointmentId },
+            relations: ['doctor', 'doctor.user'],
+            order: { createdAt: 'DESC' },
+        });
+    }
     async findOne(id) {
         return this.medicalRecordsRepository.findOne({
             where: { id },

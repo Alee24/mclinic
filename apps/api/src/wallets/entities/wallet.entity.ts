@@ -4,6 +4,8 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
@@ -21,4 +23,13 @@ export class Wallet {
 
   @Column({ type: 'decimal', precision: 28, scale: 2, default: 0.0 })
   balance: number;
+
+  @Column({ default: 'KES' })
+  currency: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

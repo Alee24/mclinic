@@ -27,6 +27,9 @@ let MedicalRecordsController = class MedicalRecordsController {
     findByPatient(id) {
         return this.medicalRecordsService.findByPatient(+id);
     }
+    findByAppointment(id) {
+        return this.medicalRecordsService.findByAppointment(+id);
+    }
 };
 exports.MedicalRecordsController = MedicalRecordsController;
 __decorate([
@@ -45,6 +48,14 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], MedicalRecordsController.prototype, "findByPatient", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Get)('appointment/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], MedicalRecordsController.prototype, "findByAppointment", null);
 exports.MedicalRecordsController = MedicalRecordsController = __decorate([
     (0, common_1.Controller)('medical-records'),
     __metadata("design:paramtypes", [medical_records_service_1.MedicalRecordsService])

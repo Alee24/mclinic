@@ -13,6 +13,7 @@ exports.Appointment = exports.AppointmentStatus = void 0;
 const typeorm_1 = require("typeorm");
 const user_entity_1 = require("../../users/entities/user.entity");
 const doctor_entity_1 = require("../../doctors/entities/doctor.entity");
+const service_entity_1 = require("../../services/entities/service.entity");
 const review_entity_1 = require("../../reviews/entities/review.entity");
 var AppointmentStatus;
 (function (AppointmentStatus) {
@@ -29,6 +30,7 @@ let Appointment = class Appointment {
     patientId;
     doctor;
     doctorId;
+    service;
     serviceId;
     appointment_date;
     appointment_time;
@@ -73,7 +75,11 @@ __decorate([
     __metadata("design:type", Number)
 ], Appointment.prototype, "doctorId", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'bigint', unsigned: true, nullable: true }),
+    (0, typeorm_1.ManyToOne)(() => service_entity_1.Service, { nullable: true, onDelete: 'SET NULL' }),
+    __metadata("design:type", service_entity_1.Service)
+], Appointment.prototype, "service", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", Number)
 ], Appointment.prototype, "serviceId", void 0);
 __decorate([

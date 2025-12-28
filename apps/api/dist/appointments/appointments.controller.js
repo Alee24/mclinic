@@ -51,6 +51,9 @@ let AppointmentsController = class AppointmentsController {
     updateStatus(id, status) {
         return this.appointmentsService.updateStatus(+id, status);
     }
+    reschedule(id, body) {
+        return this.appointmentsService.reschedule(+id, body.date, body.time);
+    }
 };
 exports.AppointmentsController = AppointmentsController;
 __decorate([
@@ -107,6 +110,15 @@ __decorate([
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], AppointmentsController.prototype, "updateStatus", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Patch)(':id/reschedule'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], AppointmentsController.prototype, "reschedule", null);
 exports.AppointmentsController = AppointmentsController = __decorate([
     (0, common_1.Controller)('appointments'),
     __metadata("design:paramtypes", [appointments_service_1.AppointmentsService])

@@ -17,6 +17,9 @@ let Wallet = class Wallet {
     user_id;
     user;
     balance;
+    currency;
+    createdAt;
+    updatedAt;
 };
 exports.Wallet = Wallet;
 __decorate([
@@ -36,6 +39,18 @@ __decorate([
     (0, typeorm_1.Column)({ type: 'decimal', precision: 28, scale: 2, default: 0.0 }),
     __metadata("design:type", Number)
 ], Wallet.prototype, "balance", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: 'KES' }),
+    __metadata("design:type", String)
+], Wallet.prototype, "currency", void 0);
+__decorate([
+    (0, typeorm_1.CreateDateColumn)(),
+    __metadata("design:type", Date)
+], Wallet.prototype, "createdAt", void 0);
+__decorate([
+    (0, typeorm_1.UpdateDateColumn)(),
+    __metadata("design:type", Date)
+], Wallet.prototype, "updatedAt", void 0);
 exports.Wallet = Wallet = __decorate([
     (0, typeorm_1.Entity)('wallets')
 ], Wallet);

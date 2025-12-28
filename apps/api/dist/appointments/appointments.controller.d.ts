@@ -10,4 +10,8 @@ export declare class AppointmentsController {
     findByDoctor(id: string): Promise<import("./entities/appointment.entity").Appointment[]>;
     findOne(id: string): Promise<import("./entities/appointment.entity").Appointment>;
     updateStatus(id: string, status: AppointmentStatus): Promise<import("./entities/appointment.entity").Appointment | null>;
+    reschedule(id: string, body: {
+        date: string;
+        time: string;
+    }): Promise<import("./entities/appointment.entity").Appointment>;
 }

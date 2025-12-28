@@ -22,6 +22,7 @@ const transaction_entity_1 = require("./entities/transaction.entity");
 const invoice_entity_1 = require("./entities/invoice.entity");
 const invoice_item_entity_1 = require("./entities/invoice-item.entity");
 const doctor_entity_1 = require("../doctors/entities/doctor.entity");
+const wallets_service_1 = require("../wallets/wallets.service");
 let FinancialService = class FinancialService {
     configRepo;
     priceRepo;
@@ -29,13 +30,15 @@ let FinancialService = class FinancialService {
     invoiceRepo;
     invoiceItemRepo;
     doctorRepo;
-    constructor(configRepo, priceRepo, txRepo, invoiceRepo, invoiceItemRepo, doctorRepo) {
+    walletsService;
+    constructor(configRepo, priceRepo, txRepo, invoiceRepo, invoiceItemRepo, doctorRepo, walletsService) {
         this.configRepo = configRepo;
         this.priceRepo = priceRepo;
         this.txRepo = txRepo;
         this.invoiceRepo = invoiceRepo;
         this.invoiceItemRepo = invoiceItemRepo;
         this.doctorRepo = doctorRepo;
+        this.walletsService = walletsService;
     }
     async setConfig(provider, credentials) {
         let config = await this.configRepo.findOne({ where: { provider } });
@@ -86,7 +89,7 @@ let FinancialService = class FinancialService {
         return this.txRepo.find({ order: { createdAt: 'DESC' }, relations: ['user'] });
     }
     async createInvoice(data) {
-        const invoiceNumber = `INV-${Date.now().toString().slice(-6)}`;
+        const invoiceNumber = data.invoiceNumber || `INV-${Date.now().toString().slice(-6)}`;
         let totalAmount = 0;
         const items = data.items.map(item => {
             const amount = item.quantity * item.unitPrice;
@@ -165,7 +168,7 @@ let FinancialService = class FinancialService {
     async getStats(user) {
         console.log(`[FINANCIAL] getStats service called with role: '${user?.role}' (Comparison: ${user?.role === 'doctor'})`);
         if (user && user.role?.toLowerCase() === 'doctor') {
-            return this.getDoctorStats(user.email);
+            return this.getDoctorStats(user);
         }
         const paidStats = await this.invoiceRepo
             .createQueryBuilder('inv')
@@ -243,23 +246,28 @@ let FinancialService = class FinancialService {
             paymentStats
         };
     }
-    async getDoctorStats(email) {
+    async getDoctorStats(user) {
+        const email = user.email.trim();
         const doctor = await this.doctorRepo.findOne({ where: { email } });
-        if (!doctor)
+        if (!doctor) {
+            console.error(`[FINANCIAL] getDoctorStats: FAILED to find doctor with email '${email}'`);
             throw new common_1.NotFoundException('Doctor profile not found');
-        console.log(`[FINANCIAL] getDoctorStats: Found doctor ${doctor.email} (ID: ${doctor.id})`);
-        console.log(`[FINANCIAL] getDoctorStats: Raw Balance from DB: ${doctor.balance} (Type: ${typeof doctor.balance})`);
-        const balance = Number(doctor.balance);
-        console.log(`[FINANCIAL] getDoctorStats: Parsed Balance: ${balance}`);
+        }
+        console.log(`[FINANCIAL] getDoctorStats: Found doctor ${doctor.email} (ID: ${doctor.id}) for User ID: ${user.id}`);
+        let balance = 0;
+        try {
+            const wallet = await this.walletsService.getBalanceByEmail(doctor.email);
+            balance = Number(wallet.balance);
+        }
+        catch (e) {
+            console.warn(`[FINANCIAL] No wallet found for ${doctor.email}, using legacy balance.`);
+            balance = Number(doctor.balance);
+        }
         const pendingTransactions = await this.txRepo.createQueryBuilder('tx')
             .leftJoinAndSelect('tx.invoice', 'inv')
             .where('inv.doctorId = :doctorId', { doctorId: doctor.id })
             .andWhere('tx.status = :status', { status: transaction_entity_1.TransactionStatus.PENDING })
             .getMany();
-        console.log(`[FINANCIAL] getDoctorStats for ${email}: Found ${pendingTransactions.length} pending transactions.`);
-        if (pendingTransactions.length > 0) {
-            console.log(`[FINANCIAL] First Pending Tx Invoice DoctorID: ${pendingTransactions[0].invoice?.doctorId}`);
-        }
         let pendingClearance = 0;
         pendingTransactions.forEach(tx => {
             if (tx.invoice) {
@@ -271,8 +279,9 @@ let FinancialService = class FinancialService {
         const transactions = await this.txRepo.createQueryBuilder('tx')
             .leftJoinAndSelect('tx.invoice', 'inv')
             .leftJoinAndSelect('tx.user', 'user')
-            .leftJoinAndSelect('inv.patient', 'patient')
-            .where('user.email = :email', { email })
+            .leftJoinAndSelect('inv.appointment', 'appt')
+            .leftJoinAndSelect('appt.patient', 'patient')
+            .where('tx.userId = :userId', { userId: user.id })
             .orWhere('inv.doctorId = :doctorId', { doctorId: doctor.id })
             .orderBy('tx.createdAt', 'DESC')
             .take(10)
@@ -333,6 +342,19 @@ let FinancialService = class FinancialService {
                 });
                 if (invoice) {
                     invoice.status = invoice_entity_1.InvoiceStatus.PAID;
+                    if (invoice.invoiceNumber && invoice.invoiceNumber.startsWith('AMB-SUB-')) {
+                        const parts = invoice.invoiceNumber.split('-');
+                        const subId = parts[2];
+                        if (subId) {
+                            try {
+                                await this.invoiceRepo.query('UPDATE ambulance_subscriptions SET status = ? WHERE id = ?', ['active', subId]);
+                                console.log(`[FINANCIAL] Activated Ambulance Subscription #${subId}`);
+                            }
+                            catch (e) {
+                                console.error(`[FINANCIAL] Failed to activate subscription #${subId}:`, e);
+                            }
+                        }
+                    }
                     if (invoice.doctorId) {
                         let doctorShare = 0;
                         let commission = 0;
@@ -360,7 +382,11 @@ let FinancialService = class FinancialService {
                             doctorShare = total * 0.60;
                         }
                         invoice.commissionAmount = commission;
-                        await this.doctorRepo.increment({ id: invoice.doctorId }, 'balance', doctorShare);
+                        invoice.commissionAmount = commission;
+                        const doctor = await this.doctorRepo.findOne({ where: { id: invoice.doctorId } });
+                        if (doctor && doctor.email) {
+                            await this.walletsService.creditByEmail(doctor.email, doctorShare, `Credit for Invoice #${invoice.invoiceNumber}`);
+                        }
                     }
                     await this.invoiceRepo.save(invoice);
                     const transaction = this.txRepo.create({
@@ -393,11 +419,21 @@ let FinancialService = class FinancialService {
             throw new common_1.NotFoundException('Invoice not found for this appointment');
         invoice.status = invoice_entity_1.InvoiceStatus.PAID;
         await this.invoiceRepo.save(invoice);
+        if (invoice.doctorId) {
+            const doctorShare = amount * 0.60;
+            const commission = amount * 0.40;
+            invoice.commissionAmount = commission;
+            await this.invoiceRepo.save(invoice);
+            const doctor = await this.doctorRepo.findOne({ where: { id: invoice.doctorId } });
+            if (doctor && doctor.email) {
+                await this.walletsService.creditByEmail(doctor.email, doctorShare, `Payment for Appointment #${appointmentId}`);
+            }
+        }
         const transaction = this.txRepo.create({
             amount: amount,
             source: 'MPESA',
             reference: `MPE${Date.now()}`,
-            status: transaction_entity_1.TransactionStatus.PENDING,
+            status: transaction_entity_1.TransactionStatus.COMPLETED,
             invoice: invoice,
             invoiceId: invoice.id
         });
@@ -413,55 +449,75 @@ let FinancialService = class FinancialService {
             throw new common_1.BadRequestException('Invoice already paid');
         invoice.status = invoice_entity_1.InvoiceStatus.PAID;
         await this.invoiceRepo.save(invoice);
+        if (invoice.doctorId) {
+            const total = Number(invoice.totalAmount);
+            const doctorShare = total * 0.60;
+            const commission = total * 0.40;
+            invoice.commissionAmount = commission;
+            await this.invoiceRepo.save(invoice);
+            const doctor = await this.doctorRepo.findOne({ where: { id: invoice.doctorId } });
+            if (doctor && doctor.email) {
+                await this.walletsService.creditByEmail(doctor.email, doctorShare, `Manual Payment for Invoice #${invoiceId}`);
+            }
+        }
         const transaction = this.txRepo.create({
             amount: invoice.totalAmount,
             source: paymentMethod.toUpperCase(),
             reference: transactionId || `MAN${Date.now()}`,
-            status: transaction_entity_1.TransactionStatus.PENDING,
+            status: transaction_entity_1.TransactionStatus.COMPLETED,
             invoice: invoice,
             invoiceId: invoice.id
         });
         await this.txRepo.save(transaction);
-        const parts = invoice.invoiceNumber.split('-');
-        const appId = parts.length > 2 ? parseInt(parts[2]) : null;
-        if (appId) {
-            await this.doctorRepo.manager.update('appointment', { id: appId }, { status: 'confirmed' });
+        if (invoice.invoiceNumber && invoice.invoiceNumber.startsWith('AMB-SUB-')) {
+            const parts = invoice.invoiceNumber.split('-');
+            const subId = parts[2];
+            if (subId) {
+                await this.invoiceRepo.query('UPDATE ambulance_subscriptions SET status = ? WHERE id = ?', ['active', subId]);
+            }
+        }
+        else {
+            const parts = invoice.invoiceNumber.split('-');
+            const appId = parts.length > 2 ? parseInt(parts[2]) : null;
+            if (appId && parts[0] === 'INV') {
+                await this.doctorRepo.manager.update('appointment', { id: appId }, { status: 'confirmed' });
+            }
         }
         return { success: true, message: 'Payment confirmed successfully', invoice };
     }
     async releaseFunds(appointmentId) {
-        console.log(`[FINANCIAL] Releasing funds for Appointment #${appointmentId}`);
+        console.log(`[FINANCIAL] releaseFunds called for Appointment #${appointmentId} - (Funds already released on payment)`);
         const transaction = await this.txRepo.createQueryBuilder('tx')
             .leftJoinAndSelect('tx.invoice', 'inv')
             .where('inv.invoiceNumber LIKE :suffix', { suffix: `%-${appointmentId}` })
             .andWhere('tx.status = :status', { status: transaction_entity_1.TransactionStatus.PENDING })
             .getOne();
-        if (!transaction || !transaction.invoice) {
-            console.log(`[FINANCIAL] No pending transaction found for Appointment #${appointmentId}`);
-            return;
+        if (transaction) {
+            transaction.status = transaction_entity_1.TransactionStatus.COMPLETED;
+            await this.txRepo.save(transaction);
+            if (transaction.invoice && transaction.invoice.doctorId) {
+                const total = Number(transaction.amount);
+                const doctorShare = total * 0.60;
+                const doctor = await this.doctorRepo.findOne({ where: { id: transaction.invoice.doctorId } });
+                if (doctor && doctor.email) {
+                    await this.walletsService.creditByEmail(doctor.email, doctorShare, `Release released for Appt #${appointmentId}`);
+                }
+            }
         }
-        const invoice = transaction.invoice;
-        if (invoice.doctorId) {
-            const total = Number(transaction.amount);
-            const doctorShare = total * 0.60;
-            const commission = total * 0.40;
-            await this.doctorRepo.increment({ id: invoice.doctorId }, 'balance', doctorShare);
-            console.log(`[FINANCIAL] Credited ${doctorShare} to Doctor #${invoice.doctorId}`);
-        }
-        transaction.status = transaction_entity_1.TransactionStatus.COMPLETED;
-        await this.txRepo.save(transaction);
     }
-    async withdrawFunds(userEmail, amount, method, details) {
+    async withdrawFunds(user, amount, method, details) {
         if (!method || !details)
             throw new common_1.BadRequestException('Withdrawal method and details required');
-        const doctor = await this.doctorRepo.findOne({ where: { email: userEmail } });
+        const doctor = await this.doctorRepo.findOne({ where: { email: user.email } });
         if (!doctor) {
             throw new common_1.NotFoundException('Doctor account not found');
         }
-        const balance = Number(doctor.balance);
+        const wallet = await this.walletsService.getBalanceByEmail(user.email);
+        const balance = Number(wallet.balance);
         if (balance < amount) {
             throw new common_1.BadRequestException('Insufficient funds');
         }
+        await this.walletsService.debitByEmail(user.email, amount, `Withdrawal: ${method} - ${details}`);
         doctor.balance = balance - amount;
         await this.doctorRepo.save(doctor);
         const transaction = this.txRepo.create({
@@ -469,7 +525,8 @@ let FinancialService = class FinancialService {
             source: 'WITHDRAWAL',
             reference: `${method}-${details}`,
             status: transaction_entity_1.TransactionStatus.COMPLETED,
-            user: { email: userEmail },
+            user: { id: user.id },
+            userId: user.id,
             type: 'debit',
             createdAt: new Date()
         });
@@ -482,6 +539,76 @@ let FinancialService = class FinancialService {
     }
     async debugListDoctors() {
         return this.doctorRepo.find({ select: ['id', 'email', 'fname', 'balance'] });
+    }
+    async recalculateDoctorBalance(doctorId) {
+        const doctor = await this.doctorRepo.findOne({ where: { id: doctorId } });
+        if (!doctor)
+            throw new common_1.NotFoundException('Doctor not found');
+        console.log(`[FINANCIAL] Reconciling Balance for Doctor: ${doctor.email} (ID: ${doctor.id})`);
+        const invoices = await this.invoiceRepo.find({
+            where: {
+                doctorId: doctorId,
+                status: invoice_entity_1.InvoiceStatus.PAID
+            }
+        });
+        let totalEarnings = 0;
+        invoices.forEach(inv => {
+            const total = Number(inv.totalAmount);
+            const commission = Number(inv.commissionAmount || (total * 0.40));
+            const doctorShare = total - commission;
+            totalEarnings += doctorShare;
+        });
+        console.log(`[FINANCIAL] Total Earnings (Paid Invoices): ${totalEarnings}`);
+        const withdrawals = await this.txRepo.createQueryBuilder('tx')
+            .leftJoinAndSelect('tx.user', 'user')
+            .where('tx.type = :type', { type: 'debit' })
+            .andWhere('tx.status = :status', { status: transaction_entity_1.TransactionStatus.COMPLETED })
+            .andWhere('(user.email = :email OR tx.userId = (SELECT id FROM user WHERE email = :email))', { email: doctor.email })
+            .getMany();
+        let totalWithdrawals = 0;
+        withdrawals.forEach(tx => {
+            totalWithdrawals += Number(tx.amount);
+        });
+        console.log(`[FINANCIAL] Total Withdrawals: ${totalWithdrawals}`);
+        const newBalance = totalEarnings - totalWithdrawals;
+        console.log(`[FINANCIAL] New Balance: ${newBalance} (Old: ${doctor.balance})`);
+        doctor.balance = newBalance;
+        await this.doctorRepo.save(doctor);
+        return {
+            success: true,
+            oldBalance: doctor.balance,
+            newBalance,
+            totalEarnings,
+            totalWithdrawals,
+            invoicesCount: invoices.length,
+            withdrawalsCount: withdrawals.length
+        };
+    }
+    async migrateBalancesToWallets() {
+        const doctors = await this.doctorRepo.find();
+        let migratedCount = 0;
+        const results = [];
+        for (const doctor of doctors) {
+            if (Number(doctor.balance) > 0 && doctor.email) {
+                try {
+                    await this.walletsService.setBalanceByEmail(doctor.email, Number(doctor.balance));
+                    results.push({ email: doctor.email, balance: doctor.balance, status: 'Migrated' });
+                    migratedCount++;
+                }
+                catch (e) {
+                    results.push({ email: doctor.email, error: e.message, status: 'Failed' });
+                }
+            }
+            else {
+                if (doctor.email) {
+                    try {
+                        await this.walletsService.getBalanceByEmail(doctor.email);
+                    }
+                    catch (e) { }
+                }
+            }
+        }
+        return { success: true, migratedCount, details: results };
     }
 };
 exports.FinancialService = FinancialService;
@@ -498,6 +625,7 @@ exports.FinancialService = FinancialService = __decorate([
         typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
-        typeorm_2.Repository])
+        typeorm_2.Repository,
+        wallets_service_1.WalletsService])
 ], FinancialService);
 //# sourceMappingURL=financial.service.js.map

@@ -66,6 +66,9 @@ let DoctorsService = class DoctorsService {
         return this.createDoctorLogic(createDoctorDto, user);
     }
     async createDoctorLogic(dto, user) {
+        if (dto.password) {
+            dto.password = await bcrypt.hash(dto.password, 10);
+        }
         const doctor = this.doctorsRepository.create({
             ...dto,
             status: 1,
@@ -195,10 +198,27 @@ let DoctorsService = class DoctorsService {
     }
     async updateProfileImage(id, filename) {
         await this.doctorsRepository.update(id, { profile_image: filename });
-        return this.findOne(id);
+        const doctor = await this.findOne(id);
+        if (doctor && doctor.email) {
+            try {
+                await this.usersService.updateByEmail(doctor.email, { profilePicture: filename });
+            }
+            catch (error) {
+                console.error('Failed to sync profile image to User entity:', error);
+            }
+        }
+        return doctor;
     }
     async findByEmail(email) {
         return this.doctorsRepository.findOne({ where: { email } });
+    }
+    async updateSignature(id, filename) {
+        await this.doctorsRepository.update(id, { signatureUrl: filename });
+        return this.findOne(id);
+    }
+    async updateStamp(id, filename) {
+        await this.doctorsRepository.update(id, { stampUrl: filename });
+        return this.findOne(id);
     }
 };
 exports.DoctorsService = DoctorsService;

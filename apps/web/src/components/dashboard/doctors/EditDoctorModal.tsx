@@ -8,6 +8,8 @@ interface EditDoctorModalProps {
     onSuccess: () => void;
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
 export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDoctorModalProps) {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -57,7 +59,11 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
                         bio: data.bio || '',
                     });
                     if (data.profile_image) {
-                        setPreviewUrl(`${process.env.NEXT_PUBLIC_API_URL}/uploads/profiles/${data.profile_image}`);
+                        if (data.profile_image.startsWith('http') || data.profile_image.startsWith('blob:')) {
+                            setPreviewUrl(data.profile_image);
+                        } else {
+                            setPreviewUrl(`${API_URL}/uploads/profiles/${data.profile_image}`);
+                        }
                     }
                 }
             } catch (err) {

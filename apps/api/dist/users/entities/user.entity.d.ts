@@ -2,7 +2,10 @@ import { Wallet } from '../../wallets/entities/wallet.entity';
 export declare enum UserRole {
     PATIENT = "patient",
     DOCTOR = "doctor",
-    ADMIN = "admin"
+    ADMIN = "admin",
+    LAB_TECH = "lab_tech",
+    NURSE = "nurse",
+    CLINICIAN = "clinician"
 }
 export declare class User {
     id: number;

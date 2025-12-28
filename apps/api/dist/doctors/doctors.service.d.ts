@@ -19,4 +19,6 @@ export declare class DoctorsService {
     updateOnlineStatus(id: number, status: number, lat?: number, lng?: number): Promise<Doctor | null>;
     updateProfileImage(id: number, filename: string): Promise<Doctor | null>;
     findByEmail(email: string): Promise<Doctor | null>;
+    updateSignature(id: number, filename: string): Promise<Doctor | null>;
+    updateStamp(id: number, filename: string): Promise<Doctor | null>;
 }

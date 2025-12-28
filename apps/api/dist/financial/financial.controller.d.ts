@@ -102,4 +102,30 @@ export declare class FinancialController {
         availableDoctors: import("../doctors/entities/doctor.entity").Doctor[];
         stats?: undefined;
     }>;
+    reconcileBalance(body: {
+        doctorId: number;
+    }): Promise<{
+        success: boolean;
+        oldBalance: number;
+        newBalance: number;
+        totalEarnings: number;
+        totalWithdrawals: number;
+        invoicesCount: number;
+        withdrawalsCount: number;
+    }>;
+    migrateWallets(): Promise<{
+        success: boolean;
+        migratedCount: number;
+        details: ({
+            email: string;
+            balance: number;
+            status: string;
+            error?: undefined;
+        } | {
+            email: string;
+            error: any;
+            status: string;
+            balance?: undefined;
+        })[];
+    }>;
 }

@@ -4,7 +4,7 @@ import { AuthGuard } from '@nestjs/passport';
 
 @Controller('medical-records')
 export class MedicalRecordsController {
-  constructor(private readonly medicalRecordsService: MedicalRecordsService) {}
+  constructor(private readonly medicalRecordsService: MedicalRecordsService) { }
 
   @UseGuards(AuthGuard('jwt'))
   @Post()
@@ -16,5 +16,11 @@ export class MedicalRecordsController {
   @Get('patient/:id')
   findByPatient(@Param('id') id: string) {
     return this.medicalRecordsService.findByPatient(+id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('appointment/:id')
+  findByAppointment(@Param('id') id: string) {
+    return this.medicalRecordsService.findByAppointment(+id);
   }
 }

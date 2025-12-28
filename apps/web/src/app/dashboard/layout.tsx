@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { ReactNode, useEffect } from 'react';
-import { FiGrid, FiList, FiCalendar, FiBarChart2, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiSearch, FiBell, FiMail, FiMap, FiPackage, FiFileText, FiDatabase, FiPlusCircle, FiUser } from 'react-icons/fi';
+import { FiGrid, FiList, FiCalendar, FiBarChart2, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiSearch, FiBell, FiMail, FiMap, FiPackage, FiFileText, FiDatabase, FiPlusCircle, FiUser, FiTruck, FiCheckCircle, FiActivity } from 'react-icons/fi';
 import { useAuth, UserRole } from '@/lib/auth';
+import UserAvatar from '@/components/dashboard/UserAvatar';
 import { usePathname, useRouter } from 'next/navigation';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
@@ -44,69 +45,125 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         <nav className="space-y-1">
                             <NavItem href="/dashboard" icon={<FiGrid />} label="Dashboard" active={pathname === '/dashboard'} />
 
+                            {/* ADMIN & LAB TECH: CLINICAL OPERATIONS */}
+                            {(user.role === UserRole.ADMIN || user.role === UserRole.LAB_TECH) && (
+                                <div className="mt-4">
+                                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">Clinical Operations</div>
+                                    <NavItem href="/dashboard/appointments" icon={<FiCalendar />} label="All Appointments" active={pathname === '/dashboard/appointments'} />
+
+                                    {/* Laboratory Group */}
+                                    <NavGroup
+                                        label="Laboratory"
+                                        icon={<FiActivity />}
+                                        active={pathname?.startsWith('/dashboard/lab')}
+                                        items={[
+                                            { href: '/dashboard/lab/orders', label: 'Lab Orders' },
+                                            { href: '/dashboard/lab/tests', label: 'Test Catalog' }
+                                        ]}
+                                        pathname={pathname}
+                                    />
+
+                                    {/* Pharmacy Group (Admin Only) */}
+                                    {user.role === UserRole.ADMIN && (
+                                        <NavGroup
+                                            label="Pharmacy"
+                                            icon={<FiPackage />}
+                                            active={pathname?.startsWith('/dashboard/admin/pharmacy')}
+                                            items={[
+                                                { href: '/dashboard/admin/pharmacy', label: 'Inventory' },
+                                                { href: '/dashboard/admin/pharmacy/orders', label: 'Orders' }
+                                            ]}
+                                            pathname={pathname}
+                                        />
+                                    )}
+
+                                    {user.role === UserRole.ADMIN && (
+                                        <>
+                                            <NavItem href="/dashboard/services" icon={<FiList />} label="Service Catalog" active={pathname === '/dashboard/services'} />
+                                            <NavItem href="/dashboard/admin/ambulance-packages" icon={<FiTruck />} label="Ambulance Plans" active={pathname === '/dashboard/admin/ambulance-packages'} />
+                                        </>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* ADMIN: USER MANAGEMENT */}
                             {user.role === UserRole.ADMIN && (
+                                <div className="mt-4">
+                                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">User Management</div>
+                                    <NavGroup
+                                        label="Users & Access"
+                                        icon={<FiUsers />}
+                                        active={['/dashboard/users', '/dashboard/doctors', '/dashboard/patients', '/dashboard/doctors/map'].some(p => pathname?.startsWith(p))}
+                                        items={[
+                                            { href: '/dashboard/users', label: 'All Users' },
+                                            { href: '/dashboard/doctors', label: 'Doctors & Staff' },
+                                            { href: '/dashboard/patients', label: 'Patients' },
+                                            { href: '/dashboard/doctors/map', label: 'Live Map' }
+                                        ]}
+                                        pathname={pathname}
+                                    />
+                                </div>
+                            )}
+
+                            {/* ADMIN: FINANCE */}
+                            {user.role === UserRole.ADMIN && (
+                                <div className="mt-4">
+                                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">Financials</div>
+                                    <NavGroup
+                                        label="Finance & Billing"
+                                        icon={<FiBarChart2 />}
+                                        active={pathname?.startsWith('/dashboard/finance') || pathname?.startsWith('/dashboard/invoices')}
+                                        items={[
+                                            { href: '/dashboard/finance/transactions', label: 'Overview' },
+                                            { href: '/dashboard/invoices', label: 'Invoices' },
+                                            { href: '/dashboard/finance/settings', label: 'Settings' }
+                                        ]}
+                                        pathname={pathname}
+                                    />
+                                </div>
+                            )}
+
+                            {/* PROVIDER MENU (Doctor, Nurse, Clinician) */}
+                            {(user.role === UserRole.DOCTOR || user.role === UserRole.NURSE || user.role === UserRole.CLINICIAN) && (
                                 <>
-                                    <NavItem href="/dashboard/patients" icon={<FiList />} label="Patients" active={pathname === '/dashboard/patients'} />
-                                    <NavItem href="/dashboard/appointments" icon={<FiCalendar />} label="Appointments" active={pathname === '/dashboard/appointments'} />
-                                    <NavItem href="/dashboard/services" icon={<FiPackage />} label="Services" active={pathname === '/dashboard/services'} />
-
-                                    {/* Finance Module Dropdown */}
-                                    <details className="group/finance" open={pathname?.startsWith('/dashboard/finance') || pathname?.startsWith('/dashboard/invoices')}>
-                                        <summary className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all list-none ${(pathname?.startsWith('/dashboard/finance') || pathname?.startsWith('/dashboard/invoices')) ? 'bg-donezo-dark/5 text-donezo-dark font-bold' : 'text-gray-500 hover:text-gray-900 group-hover/finance:text-gray-900'}`}>
-                                            <div className="flex items-center gap-3">
-                                                <span className="text-xl"><FiBarChart2 /></span>
-                                                <span className="text-sm">Finance</span>
-                                            </div>
-                                            <div className="transition-transform group-open/finance:rotate-180">
-                                                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                </svg>
-                                            </div>
-                                        </summary>
-                                        <div className="pl-4 mt-1 space-y-1 border-l-2 border-gray-100 dark:border-gray-800 ml-5">
-                                            <NavItem href="/dashboard/finance/transactions" icon={<div className="w-1.5 h-1.5 rounded-full bg-current" />} label="Overview" active={pathname === '/dashboard/finance/transactions'} />
-                                            <NavItem href="/dashboard/invoices" icon={<div className="w-1.5 h-1.5 rounded-full bg-current" />} label="Invoices" active={pathname === '/dashboard/invoices'} />
-                                        </div>
-                                    </details>
-
-                                    <NavItem href="/dashboard/users" icon={<FiUsers />} label="Users" active={pathname === '/dashboard/users'} />
-
-                                    <NavItem href="/dashboard/doctors" icon={<FiUsers />} label="Doctors" active={pathname === '/dashboard/doctors'} />
-                                    <NavItem href="/dashboard/doctors/map" icon={<FiMap />} label="Live Map" />
+                                    <div className="mt-4">
+                                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">Practice</div>
+                                        <NavItem href="/dashboard/appointments" icon={<FiCalendar />} label="My Appointments" active={pathname === '/dashboard/appointments'} />
+                                        <NavItem href="/dashboard/patients" icon={<FiList />} label="My Patients" active={pathname === '/dashboard/patients'} />
+                                        <NavItem href="/dashboard/ambulance" icon={<FiMap />} label="Ambulance Service" active={pathname?.startsWith('/dashboard/ambulance')} />
+                                    </div>
+                                    <div className="mt-4">
+                                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">Personal</div>
+                                        <NavItem href="/dashboard/finance/transactions" icon={<FiBarChart2 />} label="Wallet & Earnings" active={pathname === '/dashboard/finance/transactions'} />
+                                        <NavItem href="/dashboard/profile" icon={<FiUser />} label="My Profile" active={pathname === '/dashboard/profile'} />
+                                    </div>
                                 </>
                             )}
 
-                            {user.role === UserRole.DOCTOR && (
-                                <>
-                                    <NavItem href="/dashboard/appointments" icon={<FiCalendar />} label="My Appointments" active={pathname === '/dashboard/appointments'} />
-                                    <NavItem href="/dashboard/patients" icon={<FiList />} label="My Patients" active={pathname === '/dashboard/patients'} />
-                                    <NavItem href="/dashboard/profile" icon={<FiUser />} label="My Profile" active={pathname === '/dashboard/profile'} />
-                                    <NavItem href="/dashboard/finance/transactions" icon={<FiBarChart2 />} label="Earnings" active={pathname === '/dashboard/finance/transactions'} />
-                                </>
-                            )}
-
+                            {/* PATIENT MENU */}
                             {user.role === UserRole.PATIENT && (
                                 <>
-                                    <NavItem href="/dashboard/appointments" icon={<FiCalendar />} label="My Appointments" active={pathname === '/dashboard/appointments'} />
+                                    <div className="mt-4">
+                                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">My Care</div>
+                                        <NavItem href="/dashboard/appointments" icon={<FiCalendar />} label="Appointments" active={pathname === '/dashboard/appointments'} />
+                                        <NavItem href="/dashboard/records" icon={<FiPlusCircle />} label="Medical Records" active={pathname === '/dashboard/records'} />
+                                        <NavItem href="/dashboard/pharmacy" icon={<FiPackage />} label="My Pharmacy" active={pathname === '/dashboard/pharmacy'} />
+                                        <NavItem href="/dashboard/lab/results" icon={<FiActivity />} label="Lab Results" active={pathname === '/dashboard/lab/results'} />
+                                    </div>
+                                    <div className="mt-4">
+                                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">Services & Billing</div>
+                                        <NavItem href="/dashboard/ambulance" icon={<FiTruck />} label="Ambulance" active={pathname?.startsWith('/dashboard/ambulance')} />
 
-                                    <details className="group/finance" open={pathname?.startsWith('/dashboard/invoices')}>
-                                        <summary className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all list-none ${pathname?.startsWith('/dashboard/invoices') ? 'bg-donezo-dark/5 text-donezo-dark font-bold' : 'text-gray-500 hover:text-gray-900 group-hover/finance:text-gray-900'}`}>
-                                            <div className="flex items-center gap-3">
-                                                <span className="text-xl"><FiBarChart2 /></span>
-                                                <span className="text-sm">Finances</span>
-                                            </div>
-                                            <div className="transition-transform group-open/finance:rotate-180">
-                                                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                </svg>
-                                            </div>
-                                        </summary>
-                                        <div className="pl-4 mt-1 space-y-1 border-l-2 border-gray-100 dark:border-gray-800 ml-5">
-                                            <NavItem href="/dashboard/invoices" icon={<div className="w-1.5 h-1.5 rounded-full bg-current" />} label="Invoices" active={pathname === '/dashboard/invoices'} />
-                                        </div>
-                                    </details>
-
-                                    <NavItem href="/dashboard/records" icon={<FiPlusCircle />} label="Medical Records" active={pathname === '/dashboard/records'} />
+                                        <NavGroup
+                                            label="Finances"
+                                            icon={<FiBarChart2 />}
+                                            active={pathname?.startsWith('/dashboard/invoices')}
+                                            items={[
+                                                { href: '/dashboard/invoices', label: 'Invoices' }
+                                            ]}
+                                            pathname={pathname}
+                                        />
+                                    </div>
                                     <NavItem href="/dashboard/profile" icon={<FiUser />} label="My Profile" active={pathname === '/dashboard/profile'} />
                                 </>
                             )}
@@ -189,7 +246,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                             </div>
                             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-green-400 to-blue-500 p-0.5">
                                 <div className="w-full h-full rounded-full bg-white dark:bg-gray-900 border-2 border-transparent overflow-hidden">
-                                    <img src={`https://ui-avatars.com/api/?name=${user.fname}+${user.lname || user.role}&background=random`} alt="Profile" className="w-full h-full object-cover" />
+                                    <UserAvatar user={user} />
                                 </div>
                             </div>
                         </div>
@@ -229,5 +286,34 @@ function NavItem({ href, icon, label, active, badge }: { href: string; icon: any
                 </span>
             )}
         </Link>
+    );
+}
+
+function NavGroup({ label, icon, active, items, pathname }: { label: string; icon: any; active?: boolean; items: { href: string; label: string }[]; pathname: string | null }) {
+    return (
+        <details className="group/navgroup" open={active}>
+            <summary className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all list-none ${active ? 'bg-donezo-dark/5 text-donezo-dark font-bold' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}>
+                <div className="flex items-center gap-3">
+                    <span className="text-xl">{icon}</span>
+                    <span className="text-sm">{label}</span>
+                </div>
+                <div className="transition-transform group-open/navgroup:rotate-180">
+                    <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                </div>
+            </summary>
+            <div className="pl-4 mt-1 space-y-1 border-l-2 border-gray-100 dark:border-gray-800 ml-5">
+                {items.map((item) => (
+                    <NavItem
+                        key={item.href}
+                        href={item.href}
+                        icon={<div className={`w-1.5 h-1.5 rounded-full ${pathname === item.href ? 'bg-donezo-dark' : 'bg-gray-400'}`} />}
+                        label={item.label}
+                        active={pathname === item.href}
+                    />
+                ))}
+            </div>
+        </details>
     );
 }

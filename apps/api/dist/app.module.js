@@ -10,6 +10,8 @@ exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const typeorm_1 = require("@nestjs/typeorm");
+const serve_static_1 = require("@nestjs/serve-static");
+const path_1 = require("path");
 const auth_module_1 = require("./auth/auth.module");
 const users_module_1 = require("./users/users.module");
 const patients_module_1 = require("./patients/patients.module");
@@ -29,6 +31,10 @@ const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
 const common_2 = require("@nestjs/common");
 const core_1 = require("@nestjs/core");
+const ambulance_module_1 = require("./ambulance/ambulance.module");
+const pharmacy_module_1 = require("./pharmacy/pharmacy.module");
+const laboratory_module_1 = require("./laboratory/laboratory.module");
+const wallets_module_1 = require("./wallets/wallets.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -36,6 +42,10 @@ exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
             config_1.ConfigModule.forRoot({ isGlobal: true }),
+            serve_static_1.ServeStaticModule.forRoot({
+                rootPath: (0, path_1.join)(__dirname, '..', 'uploads'),
+                serveRoot: '/uploads',
+            }),
             typeorm_1.TypeOrmModule.forRoot({
                 type: 'mysql',
                 host: '127.0.0.1',
@@ -61,6 +71,10 @@ exports.AppModule = AppModule = __decorate([
             migration_module_1.MigrationModule,
             reviews_module_1.ReviewsModule,
             medical_profiles_module_1.MedicalProfilesModule,
+            ambulance_module_1.AmbulanceModule,
+            pharmacy_module_1.PharmacyModule,
+            laboratory_module_1.LaboratoryModule,
+            wallets_module_1.WalletsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [

@@ -12,6 +12,7 @@ const auth_service_1 = require("./auth.service");
 const auth_controller_1 = require("./auth.controller");
 const users_module_1 = require("../users/users.module");
 const doctors_module_1 = require("../doctors/doctors.module");
+const medical_profiles_module_1 = require("../medical-profiles/medical-profiles.module");
 const jwt_1 = require("@nestjs/jwt");
 const passport_1 = require("@nestjs/passport");
 const config_1 = require("@nestjs/config");
@@ -24,6 +25,7 @@ exports.AuthModule = AuthModule = __decorate([
         imports: [
             users_module_1.UsersModule,
             doctors_module_1.DoctorsModule,
+            medical_profiles_module_1.MedicalProfilesModule,
             passport_1.PassportModule,
             jwt_1.JwtModule.registerAsync({
                 imports: [config_1.ConfigModule],

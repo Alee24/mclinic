@@ -47,6 +47,8 @@ export declare class Doctor {
     created_at: Date;
     updated_at: Date;
     profile_image: string;
+    signatureUrl: string;
+    stampUrl: string;
     specialities: Speciality[];
     schedules: DoctorSchedule[];
     licences: DoctorLicence[];

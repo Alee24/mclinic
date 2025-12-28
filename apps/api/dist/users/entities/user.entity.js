@@ -17,6 +17,9 @@ var UserRole;
     UserRole["PATIENT"] = "patient";
     UserRole["DOCTOR"] = "doctor";
     UserRole["ADMIN"] = "admin";
+    UserRole["LAB_TECH"] = "lab_tech";
+    UserRole["NURSE"] = "nurse";
+    UserRole["CLINICIAN"] = "clinician";
 })(UserRole || (exports.UserRole = UserRole = {}));
 let User = class User {
     id;

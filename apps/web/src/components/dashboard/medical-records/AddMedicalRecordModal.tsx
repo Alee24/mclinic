@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
 import { FiX } from 'react-icons/fi';
+import toast from 'react-hot-toast';
 
 interface AddMedicalRecordModalProps {
     patientId: number;
@@ -10,12 +12,12 @@ interface AddMedicalRecordModalProps {
 }
 
 export default function AddMedicalRecordModal({ patientId, appointmentId, onClose, onSuccess }: AddMedicalRecordModalProps) {
+    const { user } = useAuth();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         diagnosis: '',
         prescription: '',
         notes: '',
-        doctorId: 1, // Mocked for now, assumes admin/doctor is logged in
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
@@ -29,7 +31,7 @@ export default function AddMedicalRecordModal({ patientId, appointmentId, onClos
 
         try {
             if (!formData.diagnosis) {
-                alert('Diagnosis is required');
+                toast.error('Diagnosis is required');
                 setLoading(false);
                 return;
             }
@@ -38,26 +40,27 @@ export default function AddMedicalRecordModal({ patientId, appointmentId, onClos
                 ...formData,
                 patientId,
                 appointmentId,
-                // userId/admin handling might be needed on backend to link real doctor
+                doctorId: user?.doctorId || user?.id, // Use doctorId if available, otherwise user ID
             });
 
             if (res && res.ok) {
-                alert('Medical record added');
+                toast.success('Medical record added successfully');
                 onSuccess();
+                onClose();
             } else {
-                alert('Failed to add medical record');
+                toast.error('Failed to add medical record');
             }
         } catch (err) {
             console.error(err);
-            alert('An error occurred');
+            toast.error('An error occurred while saving the record');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-[#1A1A1A] w-full max-w-lg rounded-xl shadow-2xl p-6">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
+            <div className="bg-white dark:bg-[#1A1A1A] w-full max-w-lg rounded-xl shadow-2xl p-6 relative z-[10000]">
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-xl font-bold dark:text-white">Add Medical Record</h2>
                     <button onClick={onClose} className="text-gray-500 hover:text-black dark:hover:text-white transition">

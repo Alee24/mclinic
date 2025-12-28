@@ -21,7 +21,6 @@ import type { Express } from 'express';
 export class DoctorsController {
   constructor(private readonly doctorsService: DoctorsService) { }
 
-  // @UseGuards(AuthGuard('jwt')) // Temporarily disabled for testing
   @Post()
   create(@Body() createDoctorDto: any) {
     return this.doctorsService.create(createDoctorDto, null);
@@ -92,5 +91,49 @@ export class DoctorsController {
       body.latitude,
       body.longitude,
     );
+  }
+  @Post(':id/upload-signature')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads/signatures',
+        filename: (req, file, cb) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const ext = file.originalname.split('.').pop();
+          cb(null, `sig-${uniqueSuffix}.${ext}`);
+        },
+      }),
+    }),
+  )
+  async uploadSignature(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    // In production, you would construct a full URL or relative path handled by static file serving
+    // For now, mirroring how profile_image is likely handled (just filename or relative path)
+    // Assuming static serve at /uploads/signatures
+    const filePath = `${process.env.API_URL || 'http://localhost:3001'}/uploads/signatures/${file.filename}`;
+    return this.doctorsService.updateSignature(+id, filePath);
+  }
+
+  @Post(':id/upload-stamp')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads/stamps',
+        filename: (req, file, cb) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const ext = file.originalname.split('.').pop();
+          cb(null, `stamp-${uniqueSuffix}.${ext}`);
+        },
+      }),
+    }),
+  )
+  async uploadStamp(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    const filePath = `${process.env.API_URL || 'http://localhost:3001'}/uploads/stamps/${file.filename}`;
+    return this.doctorsService.updateStamp(+id, filePath);
   }
 }

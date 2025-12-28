@@ -5,6 +5,7 @@ import { Transaction } from './entities/transaction.entity';
 import { Invoice } from './entities/invoice.entity';
 import { InvoiceItem } from './entities/invoice-item.entity';
 import { Doctor } from '../doctors/entities/doctor.entity';
+import { WalletsService } from '../wallets/wallets.service';
 export declare class FinancialService {
     private configRepo;
     private priceRepo;
@@ -12,7 +13,8 @@ export declare class FinancialService {
     private invoiceRepo;
     private invoiceItemRepo;
     private doctorRepo;
-    constructor(configRepo: Repository<PaymentConfig>, priceRepo: Repository<ServicePrice>, txRepo: Repository<Transaction>, invoiceRepo: Repository<Invoice>, invoiceItemRepo: Repository<InvoiceItem>, doctorRepo: Repository<Doctor>);
+    private walletsService;
+    constructor(configRepo: Repository<PaymentConfig>, priceRepo: Repository<ServicePrice>, txRepo: Repository<Transaction>, invoiceRepo: Repository<Invoice>, invoiceItemRepo: Repository<InvoiceItem>, doctorRepo: Repository<Doctor>, walletsService: WalletsService);
     setConfig(provider: PaymentProvider, credentials: any): Promise<PaymentConfig>;
     getConfig(provider: PaymentProvider): Promise<PaymentConfig | null>;
     setPrice(serviceName: string, amount: number, doctorId?: number): Promise<ServicePrice>;
@@ -24,6 +26,7 @@ export declare class FinancialService {
         customerEmail: string;
         dueDate?: Date;
         items: any[];
+        invoiceNumber?: string;
     }): Promise<Invoice>;
     getInvoices(user: {
         email: string;
@@ -36,6 +39,7 @@ export declare class FinancialService {
     getStats(user?: {
         role: string;
         email: string;
+        id: number;
     }): Promise<{
         balance: number;
         pendingClearance: number;
@@ -64,7 +68,10 @@ export declare class FinancialService {
             others: number;
         };
     }>;
-    getDoctorStats(email: string): Promise<{
+    getDoctorStats(user: {
+        email: string;
+        id: number;
+    }): Promise<{
         balance: number;
         pendingClearance: number;
         transactions: Transaction[];
@@ -87,10 +94,37 @@ export declare class FinancialService {
         invoice: Invoice;
     }>;
     releaseFunds(appointmentId: number): Promise<void>;
-    withdrawFunds(userEmail: string, amount: number, method: string, details: string): Promise<{
+    withdrawFunds(user: {
+        email: string;
+        id: number;
+    }, amount: number, method: string, details: string): Promise<{
         success: boolean;
         newBalance: number;
         transaction: Transaction;
     }>;
     debugListDoctors(): Promise<Doctor[]>;
+    recalculateDoctorBalance(doctorId: number): Promise<{
+        success: boolean;
+        oldBalance: number;
+        newBalance: number;
+        totalEarnings: number;
+        totalWithdrawals: number;
+        invoicesCount: number;
+        withdrawalsCount: number;
+    }>;
+    migrateBalancesToWallets(): Promise<{
+        success: boolean;
+        migratedCount: number;
+        details: ({
+            email: string;
+            balance: number;
+            status: string;
+            error?: undefined;
+        } | {
+            email: string;
+            error: any;
+            status: string;
+            balance?: undefined;
+        })[];
+    }>;
 }

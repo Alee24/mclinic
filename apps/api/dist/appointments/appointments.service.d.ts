@@ -17,4 +17,5 @@ export declare class AppointmentsService {
     findOne(id: number): Promise<Appointment | null>;
     updateStatus(id: number, status: AppointmentStatus): Promise<Appointment | null>;
     private calculateDistance;
+    reschedule(id: number, date: string, time: string): Promise<Appointment>;
 }

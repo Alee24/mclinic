@@ -23,7 +23,7 @@ let FinancialController = class FinancialController {
         this.financialService = financialService;
     }
     async withdraw(body, req) {
-        return this.financialService.withdrawFunds(req.user.email, body.amount, body.method, body.details);
+        return this.financialService.withdrawFunds(req.user, body.amount, body.method, body.details);
     }
     setConfig(body) {
         return this.financialService.setConfig(body.provider, body.credentials);
@@ -56,10 +56,9 @@ let FinancialController = class FinancialController {
         return this.financialService.deleteInvoice(Number(id));
     }
     async getStats(req) {
-        console.log(`[FINANCIAL] getStats (AUTH) called for: ${req.user.email}`);
+        console.log(`[FINANCIAL] getStats (AUTH) called for User ID: ${req.user.id}, Role: ${req.user.role}, Email: ${req.user.email}`);
         try {
             const stats = await this.financialService.getStats(req.user);
-            console.log(`[FINANCIAL] success stats for ${req.user.email}:`, stats.balance);
             return stats;
         }
         catch (e) {
@@ -82,13 +81,19 @@ let FinancialController = class FinancialController {
     async getStatsDebug(email) {
         console.log(`[DEBUG] calling getDoctorStats for ${email}`);
         try {
-            const stats = await this.financialService.getDoctorStats(email);
+            const stats = await this.financialService.getDoctorStats({ email, id: 0 });
             return { status: 'OK', stats };
         }
         catch (e) {
             const allDoctors = await this.financialService.debugListDoctors();
             return { status: 'ERROR', message: e.message, email, availableDoctors: allDoctors };
         }
+    }
+    async reconcileBalance(body) {
+        return this.financialService.recalculateDoctorBalance(body.doctorId);
+    }
+    async migrateWallets() {
+        return this.financialService.migrateBalancesToWallets();
     }
 };
 exports.FinancialController = FinancialController;
@@ -224,6 +229,19 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], FinancialController.prototype, "getStatsDebug", null);
+__decorate([
+    (0, common_1.Post)('reconcile'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], FinancialController.prototype, "reconcileBalance", null);
+__decorate([
+    (0, common_1.Post)('migrate-wallets'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], FinancialController.prototype, "migrateWallets", null);
 exports.FinancialController = FinancialController = __decorate([
     (0, common_1.Controller)('financial'),
     __metadata("design:paramtypes", [financial_service_1.FinancialService])

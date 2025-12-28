@@ -150,6 +150,12 @@ export class Doctor {
   @Column({ length: 255, nullable: true })
   profile_image: string;
 
+  @Column({ length: 255, nullable: true })
+  signatureUrl: string;
+
+  @Column({ length: 255, nullable: true })
+  stampUrl: string;
+
   // Relations restored to satisfy compilation
   @ManyToMany(() => Speciality, (speciality) => speciality.doctors)
   @JoinTable({

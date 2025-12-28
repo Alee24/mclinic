@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DeepPartial } from 'typeorm';
 import { Appointment, AppointmentStatus } from './entities/appointment.entity';
@@ -38,6 +38,15 @@ export class AppointmentsService {
       ...rest
     } = createAppointmentDto;
 
+    // Sanitize serviceId: If it's a special string (e.g. HOME_VISIT_NURSE), treat as generic (null)
+    // and rely on dr_type logic for fees.
+    let finalServiceId = serviceId;
+    if (typeof serviceId === 'string' && isNaN(Number(serviceId))) {
+      finalServiceId = null;
+    } else if (serviceId) {
+      finalServiceId = Number(serviceId);
+    }
+
     // Fetch doctor once for fee and location calculations
     const doctor = await this.appointmentsRepository.manager
       .getRepository(Doctor)
@@ -50,9 +59,9 @@ export class AppointmentsService {
     let fee = 0;
 
     // Check if a specific service was selected
-    if (serviceId) {
+    if (finalServiceId) {
       const service = await this.servicesRepository.findOne({
-        where: { id: serviceId },
+        where: { id: finalServiceId },
       });
       if (service) {
         fee = Number(service.price);
@@ -113,7 +122,7 @@ export class AppointmentsService {
     const appointment = this.appointmentsRepository.create({
       appointment_date: appointmentDate,
       appointment_time: appointmentTime,
-      serviceId,
+      serviceId: finalServiceId,
       fee,
       transportFee,
       meetingId,
@@ -188,7 +197,7 @@ export class AppointmentsService {
 
   async findAll(): Promise<Appointment[]> {
     return this.appointmentsRepository.find({
-      relations: ['patient', 'doctor'],
+      relations: ['patient', 'doctor', 'service'],
       order: { appointment_date: 'DESC' },
     });
   }
@@ -196,14 +205,14 @@ export class AppointmentsService {
   async findByPatient(patientId: number): Promise<Appointment[]> {
     return this.appointmentsRepository.find({
       where: { patientId },
-      relations: ['doctor'],
+      relations: ['doctor', 'service'],
     });
   }
 
   async findByDoctor(doctorId: number): Promise<Appointment[]> {
     return this.appointmentsRepository.find({
       where: { doctorId },
-      relations: ['patient'],
+      relations: ['patient', 'service'],
     });
   }
 
@@ -227,7 +236,7 @@ export class AppointmentsService {
 
       const appointments = await this.appointmentsRepository.find({
         where: { doctorId: doctor.id },
-        relations: ['patient', 'doctor'],
+        relations: ['patient', 'doctor', 'service'],
         order: { appointment_date: 'DESC' },
       });
 
@@ -266,7 +275,7 @@ export class AppointmentsService {
     // Default: Patient
     return this.appointmentsRepository.find({
       where: { patientId: user.sub || user.id }, // sub is often used for ID in JWT
-      relations: ['doctor'],
+      relations: ['doctor', 'service'],
       order: { appointment_date: 'DESC' },
     });
   }
@@ -274,7 +283,7 @@ export class AppointmentsService {
   async findOne(id: number): Promise<Appointment | null> {
     return this.appointmentsRepository.findOne({
       where: { id },
-      relations: ['patient', 'doctor'],
+      relations: ['patient', 'doctor', 'service'],
     });
   }
 
@@ -312,5 +321,18 @@ export class AppointmentsService {
       Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
+  }
+
+  async reschedule(id: number, date: string, time: string) {
+    const appointment = await this.findOne(id);
+    if (!appointment) {
+      throw new NotFoundException(`Appointment #${id} not found`);
+    }
+
+    appointment.appointment_date = new Date(date);
+    appointment.appointment_time = time;
+    appointment.status = AppointmentStatus.RESCHEDULED;
+
+    return this.appointmentsRepository.save(appointment);
   }
 }

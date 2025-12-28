@@ -35,6 +35,13 @@ let AppointmentsService = class AppointmentsService {
     }
     async create(createAppointmentDto) {
         const { appointmentDate, appointmentTime, isVirtual, serviceId, isForSelf, beneficiaryName, beneficiaryGender, beneficiaryAge, beneficiaryRelation, activeMedications, currentPrescriptions, homeAddress, ...rest } = createAppointmentDto;
+        let finalServiceId = serviceId;
+        if (typeof serviceId === 'string' && isNaN(Number(serviceId))) {
+            finalServiceId = null;
+        }
+        else if (serviceId) {
+            finalServiceId = Number(serviceId);
+        }
         const doctor = await this.appointmentsRepository.manager
             .getRepository(doctor_entity_1.Doctor)
             .findOne({ where: { id: createAppointmentDto.doctorId } });
@@ -42,9 +49,9 @@ let AppointmentsService = class AppointmentsService {
             throw new common_1.BadRequestException('Doctor not found.');
         }
         let fee = 0;
-        if (serviceId) {
+        if (finalServiceId) {
             const service = await this.servicesRepository.findOne({
-                where: { id: serviceId },
+                where: { id: finalServiceId },
             });
             if (service) {
                 fee = Number(service.price);
@@ -84,7 +91,7 @@ let AppointmentsService = class AppointmentsService {
         const appointment = this.appointmentsRepository.create({
             appointment_date: appointmentDate,
             appointment_time: appointmentTime,
-            serviceId,
+            serviceId: finalServiceId,
             fee,
             transportFee,
             meetingId,
@@ -142,20 +149,20 @@ let AppointmentsService = class AppointmentsService {
     }
     async findAll() {
         return this.appointmentsRepository.find({
-            relations: ['patient', 'doctor'],
+            relations: ['patient', 'doctor', 'service'],
             order: { appointment_date: 'DESC' },
         });
     }
     async findByPatient(patientId) {
         return this.appointmentsRepository.find({
             where: { patientId },
-            relations: ['doctor'],
+            relations: ['doctor', 'service'],
         });
     }
     async findByDoctor(doctorId) {
         return this.appointmentsRepository.find({
             where: { doctorId },
-            relations: ['patient'],
+            relations: ['patient', 'service'],
         });
     }
     async findAllForUser(user) {
@@ -172,7 +179,7 @@ let AppointmentsService = class AppointmentsService {
             }
             const appointments = await this.appointmentsRepository.find({
                 where: { doctorId: doctor.id },
-                relations: ['patient', 'doctor'],
+                relations: ['patient', 'doctor', 'service'],
                 order: { appointment_date: 'DESC' },
             });
             const userIds = appointments.map((a) => a.patient?.id).filter(Boolean);
@@ -200,14 +207,14 @@ let AppointmentsService = class AppointmentsService {
         }
         return this.appointmentsRepository.find({
             where: { patientId: user.sub || user.id },
-            relations: ['doctor'],
+            relations: ['doctor', 'service'],
             order: { appointment_date: 'DESC' },
         });
     }
     async findOne(id) {
         return this.appointmentsRepository.findOne({
             where: { id },
-            relations: ['patient', 'doctor'],
+            relations: ['patient', 'doctor', 'service'],
         });
     }
     async updateStatus(id, status) {
@@ -231,6 +238,16 @@ let AppointmentsService = class AppointmentsService {
                 Math.sin(dLon / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c;
+    }
+    async reschedule(id, date, time) {
+        const appointment = await this.findOne(id);
+        if (!appointment) {
+            throw new common_1.NotFoundException(`Appointment #${id} not found`);
+        }
+        appointment.appointment_date = new Date(date);
+        appointment.appointment_time = time;
+        appointment.status = appointment_entity_1.AppointmentStatus.RESCHEDULED;
+        return this.appointmentsRepository.save(appointment);
     }
 };
 exports.AppointmentsService = AppointmentsService;

@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { PatientsModule } from './patients/patients.module';
@@ -20,10 +22,18 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ValidationPipe } from '@nestjs/common';
 import { APP_PIPE } from '@nestjs/core';
+import { AmbulanceModule } from './ambulance/ambulance.module';
+import { PharmacyModule } from './pharmacy/pharmacy.module';
+import { LaboratoryModule } from './laboratory/laboratory.module';
+import { WalletsModule } from './wallets/wallets.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
+    }),
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: '127.0.0.1',
@@ -49,6 +59,11 @@ import { APP_PIPE } from '@nestjs/core';
     MigrationModule,
     ReviewsModule,
     MedicalProfilesModule,
+    AmbulanceModule,
+    PharmacyModule,
+
+    LaboratoryModule,
+    WalletsModule,
   ],
   controllers: [AppController],
   providers: [

@@ -15,7 +15,7 @@ import { AuthGuard } from '@nestjs/passport';
 
 @Controller('appointments')
 export class AppointmentsController {
-  constructor(private readonly appointmentsService: AppointmentsService) {}
+  constructor(private readonly appointmentsService: AppointmentsService) { }
 
   @UseGuards(AuthGuard('jwt'))
   @Post()
@@ -67,5 +67,14 @@ export class AppointmentsController {
     @Body('status') status: AppointmentStatus,
   ) {
     return this.appointmentsService.updateStatus(+id, status);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch(':id/reschedule')
+  reschedule(
+    @Param('id') id: string,
+    @Body() body: { date: string; time: string },
+  ) {
+    return this.appointmentsService.reschedule(+id, body.date, body.time);
   }
 }

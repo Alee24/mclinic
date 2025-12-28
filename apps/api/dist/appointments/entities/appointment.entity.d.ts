@@ -1,5 +1,6 @@
 import { User } from '../../users/entities/user.entity';
 import { Doctor } from '../../doctors/entities/doctor.entity';
+import { Service } from '../../services/entities/service.entity';
 import { Review } from '../../reviews/entities/review.entity';
 export declare enum AppointmentStatus {
     PENDING = "pending",
@@ -15,6 +16,7 @@ export declare class Appointment {
     patientId: number;
     doctor: Doctor;
     doctorId: number;
+    service: Service;
     serviceId: number;
     appointment_date: Date;
     appointment_time: string;

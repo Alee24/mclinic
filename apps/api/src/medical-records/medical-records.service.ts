@@ -36,6 +36,14 @@ export class MedicalRecordsService {
     });
   }
 
+  async findByAppointment(appointmentId: number): Promise<MedicalRecord[]> {
+    return this.medicalRecordsRepository.find({
+      where: { appointmentId },
+      relations: ['doctor', 'doctor.user'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
   async findOne(id: number): Promise<MedicalRecord | null> {
     return this.medicalRecordsRepository.findOne({
       where: { id },

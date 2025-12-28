@@ -60,6 +60,8 @@ let Doctor = class Doctor {
     created_at;
     updated_at;
     profile_image;
+    signatureUrl;
+    stampUrl;
     specialities;
     schedules;
     licences;
@@ -245,6 +247,14 @@ __decorate([
     (0, typeorm_1.Column)({ length: 255, nullable: true }),
     __metadata("design:type", String)
 ], Doctor.prototype, "profile_image", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 255, nullable: true }),
+    __metadata("design:type", String)
+], Doctor.prototype, "signatureUrl", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 255, nullable: true }),
+    __metadata("design:type", String)
+], Doctor.prototype, "stampUrl", void 0);
 __decorate([
     (0, typeorm_1.ManyToMany)(() => speciality_entity_1.Speciality, (speciality) => speciality.doctors),
     (0, typeorm_1.JoinTable)({

@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { DoctorsService } from '../doctors/doctors.service';
+import { MedicalProfilesService } from '../medical-profiles/medical-profiles.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
@@ -9,6 +10,7 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private doctorsService: DoctorsService,
+    private medicalProfilesService: MedicalProfilesService,
     private jwtService: JwtService,
   ) { }
 
@@ -37,18 +39,47 @@ export class AuthService {
     };
   }
 
-  async register(createUserDto: any) {
-    return this.usersService.create(createUserDto);
+  async register(dto: any) {
+    // 1. Create User
+    const user = await this.usersService.create(dto);
+
+    // 2. Create Medical Profile if role is patient
+    if (user.role === 'patient') {
+      try {
+        await this.medicalProfilesService.update(user.id, {
+          dob: dto.dob,
+          sex: dto.sex,
+          blood_group: dto.blood_group,
+          genotype: dto.genotype,
+          allergies: dto.allergies,
+          medical_history: dto.medical_history,
+          shif_number: dto.shif_number,
+          insurance_provider: dto.insurance_provider,
+          insurance_policy_no: dto.insurance_policy_no,
+          emergency_contact_name: dto.emergency_contact_name,
+          emergency_contact_phone: dto.emergency_contact_phone,
+          emergency_contact_relation: dto.emergency_contact_relation,
+        });
+      } catch (err) {
+        console.error('Failed to create medical profile during registration', err);
+      }
+    }
+
+    return user;
   }
 
   async registerDoctor(dto: any) {
+    let role = 'doctor';
+    if (dto.cadre === 'Nursing') role = 'nurse';
+    if (dto.cadre === 'Clinical Officers') role = 'clinician';
+
     // 1. Create User (Inactive)
     const user = await this.usersService.create({
       email: dto.email,
       password: dto.password,
       fname: dto.fname,
       lname: dto.lname,
-      role: 'doctor', // Type correction might be needed depending on interface
+      role: role,
       status: false, // Inactive until approved
     } as any);
 

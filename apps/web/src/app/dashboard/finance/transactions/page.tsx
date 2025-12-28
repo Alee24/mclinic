@@ -89,7 +89,7 @@ export default function TransactionsPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold dark:text-white">{isDoctor ? 'My Earnings' : 'Financial Transactions'}</h1>
+                    <h1 className="text-2xl font-bold dark:text-white">{isDoctor ? 'My Wallet & Earnings' : 'Financial Transactions'}</h1>
                     <p className="text-gray-500 text-sm">
                         {isDoctor ? 'Track your consultation fees and payouts.' : 'Overview of clinic revenue and expenses.'}
                     </p>
@@ -177,8 +177,8 @@ export default function TransactionsPage() {
                                     type="button"
                                     onClick={() => setWithdrawMethod('MPESA')}
                                     className={`p-3 rounded-xl border-2 font-bold text-sm transition-all ${withdrawMethod === 'MPESA'
-                                            ? 'border-green-500 bg-green-50 text-green-700'
-                                            : 'border-gray-100 dark:border-gray-800 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800'
+                                        ? 'border-green-500 bg-green-50 text-green-700'
+                                        : 'border-gray-100 dark:border-gray-800 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800'
                                         }`}
                                 >
                                     M-Pesa
@@ -187,8 +187,8 @@ export default function TransactionsPage() {
                                     type="button"
                                     onClick={() => setWithdrawMethod('BTC')}
                                     className={`p-3 rounded-xl border-2 font-bold text-sm transition-all ${withdrawMethod === 'BTC'
-                                            ? 'border-orange-500 bg-orange-50 text-orange-700'
-                                            : 'border-gray-100 dark:border-gray-800 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800'
+                                        ? 'border-orange-500 bg-orange-50 text-orange-700'
+                                        : 'border-gray-100 dark:border-gray-800 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800'
                                         }`}
                                 >
                                     Bitcoin (BTC)

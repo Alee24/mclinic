@@ -21,7 +21,7 @@ export class FinancialController {
   @UseGuards(AuthGuard('jwt'))
   @Post('withdraw')
   async withdraw(@Body() body: { amount: number; method: string; details: string }, @Req() req: any) {
-    return this.financialService.withdrawFunds(req.user.email, body.amount, body.method, body.details);
+    return this.financialService.withdrawFunds(req.user, body.amount, body.method, body.details);
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -94,10 +94,9 @@ export class FinancialController {
   @Get('stats')
   @UseGuards(AuthGuard('jwt'))
   async getStats(@Req() req: any) {
-    console.log(`[FINANCIAL] getStats (AUTH) called for: ${req.user.email}`);
+    console.log(`[FINANCIAL] getStats (AUTH) called for User ID: ${req.user.id}, Role: ${req.user.role}, Email: ${req.user.email}`);
     try {
       const stats = await this.financialService.getStats(req.user);
-      console.log(`[FINANCIAL] success stats for ${req.user.email}:`, (stats as any).balance);
       return stats;
     } catch (e) {
       console.error(`[FINANCIAL] error for ${req.user.email}:`, e.message);
@@ -155,11 +154,21 @@ export class FinancialController {
   async getStatsDebug(@Query('email') email: string) {
     console.log(`[DEBUG] calling getDoctorStats for ${email}`);
     try {
-      const stats = await this.financialService.getDoctorStats(email);
+      const stats = await this.financialService.getDoctorStats({ email, id: 0 } as any); // ID 0 mock for debug
       return { status: 'OK', stats };
     } catch (e) {
       const allDoctors = await this.financialService.debugListDoctors();
       return { status: 'ERROR', message: e.message, email, availableDoctors: allDoctors };
     }
+  }
+
+  @Post('reconcile')
+  async reconcileBalance(@Body() body: { doctorId: number }) {
+    return this.financialService.recalculateDoctorBalance(body.doctorId);
+  }
+
+  @Post('migrate-wallets')
+  async migrateWallets() {
+    return this.financialService.migrateBalancesToWallets();
   }
 }

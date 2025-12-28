@@ -10,6 +10,7 @@ import { InvoiceItem } from './entities/invoice-item.entity';
 
 import { Wallet } from '../wallets/entities/wallet.entity';
 import { Doctor } from '../doctors/entities/doctor.entity';
+import { WalletsModule } from '../wallets/wallets.module';
 
 @Module({
   imports: [
@@ -22,9 +23,10 @@ import { Doctor } from '../doctors/entities/doctor.entity';
       Wallet,
       Doctor,
     ]),
+    WalletsModule,
   ],
   controllers: [FinancialController],
   providers: [FinancialService],
   exports: [FinancialService],
 })
-export class FinancialModule {}
+export class FinancialModule { }

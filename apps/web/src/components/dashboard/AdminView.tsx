@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import Link from 'next/link';
-import { FiUsers, FiActivity, FiBriefcase, FiCalendar, FiArrowUpRight, FiMail, FiBell } from 'react-icons/fi';
+import { FiUsers, FiActivity, FiBriefcase, FiCalendar, FiArrowUpRight, FiMail, FiBell, FiDollarSign } from 'react-icons/fi';
 
 import TransactionDetailsModal from './finance/TransactionDetailsModal';
 
@@ -81,8 +81,8 @@ export default function AdminView() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard label="Total Patients" value={stats.patients} trend="+12%" iconNode={<FiUsers />} />
                 <StatCard label="Active Users" value={stats.activeUsers} trend="Live" color="green" iconNode={<FiActivity />} />
-                <StatCard label="Total Doctors" value={stats.doctors} trend={`${stats.activeDoctors} Active`} iconNode={<FiBriefcase />} />
-                <StatCard dark label="Appointments" value={stats.appointments} trend="Upcoming" iconNode={<FiCalendar />} />
+                <StatCard label="Total Medics" value={stats.doctors} trend={`${stats.activeDoctors} Online`} iconNode={<FiBriefcase />} />
+                <StatCard dark label="Appointments" value={stats.appointments} trend="Total" iconNode={<FiCalendar />} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -192,6 +192,18 @@ export default function AdminView() {
                                 <p className="text-xs text-green-600/70 truncate">Create Invoices / View Payouts</p>
                             </div>
                             <Link href="/dashboard/invoices" className="px-3 py-1 bg-white dark:bg-black text-green-600 text-[10px] font-bold rounded-lg border border-green-100 shadow-sm flex items-center">View</Link>
+                        </div>
+
+                        {/* Pharmacy Shortcut */}
+                        <div className="flex items-center gap-4 p-4 rounded-2xl border border-purple-50 dark:border-purple-900/30 bg-purple-50/50 dark:bg-purple-900/10 hover:bg-purple-100/50 transition-colors group">
+                            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-purple-100 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-all">
+                                <FiActivity />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <h4 className="font-bold text-sm text-purple-900 dark:text-purple-100">Pharmacy Inventory</h4>
+                                <p className="text-xs text-purple-600/70 truncate">Manage Stock & Pricing</p>
+                            </div>
+                            <Link href="/dashboard/admin/pharmacy" className="px-3 py-1 bg-white dark:bg-black text-purple-600 text-[10px] font-bold rounded-lg border border-purple-100 shadow-sm flex items-center">Open</Link>
                         </div>
                     </div>
 

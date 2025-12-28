@@ -15,4 +15,6 @@ export declare class DoctorsController {
         latitude?: number;
         longitude?: number;
     }): Promise<import("./entities/doctor.entity").Doctor | null>;
+    uploadSignature(id: string, file: Express.Multer.File): Promise<import("./entities/doctor.entity").Doctor | null>;
+    uploadStamp(id: string, file: Express.Multer.File): Promise<import("./entities/doctor.entity").Doctor | null>;
 }
