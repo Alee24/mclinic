@@ -93,11 +93,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                     <NavGroup
                                         label="Users & Access"
                                         icon={<FiUsers />}
-                                        active={['/dashboard/users', '/dashboard/doctors', '/dashboard/patients', '/dashboard/doctors/map'].some(p => pathname?.startsWith(p))}
+                                        active={['/dashboard/users', '/dashboard/doctors', '/dashboard/patients', '/dashboard/doctors/map', '/dashboard/admin/doctors/pending'].some(p => pathname?.startsWith(p))}
                                         items={[
                                             { href: '/dashboard/users', label: 'All Users' },
                                             { href: '/dashboard/doctors', label: 'Doctors & Staff' },
                                             { href: '/dashboard/patients', label: 'Patients' },
+                                            { href: '/dashboard/admin/doctors/pending', label: 'Medic Approvals' },
                                             { href: '/dashboard/doctors/map', label: 'Live Map' }
                                         ]}
                                         pathname={pathname}
