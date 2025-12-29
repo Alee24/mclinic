@@ -3,8 +3,7 @@ import { Response } from 'express';
 export declare class IdCardController {
     private readonly doctorsService;
     constructor(doctorsService: DoctorsService);
-    generateIdCard(id: string, res: Response): Promise<Response<any, Record<string, any>>>;
-    verifyDoctor(id: string): Promise<{
+    generateIdCard(id: string, res: Response): Promise<Response<any, Record<string, any>> | {
         valid: boolean;
         message: string;
         doctor?: undefined;

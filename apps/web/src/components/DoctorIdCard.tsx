@@ -20,9 +20,9 @@ export default function DoctorIdCard({ doctorId }: IdCardProps) {
                 const data = await res.json();
                 setIdCardData(data);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to generate ID card:', error);
-            alert('Failed to generate ID card');
+            alert(`Failed to generate ID card: ${error.message || 'Unknown error'}`);
         } finally {
             setLoading(false);
         }

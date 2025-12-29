@@ -56,51 +56,58 @@ let IdCardController = class IdCardController {
         this.doctorsService = doctorsService;
     }
     async generateIdCard(id, res) {
-        const doctor = await this.doctorsService.findOne(+id);
-        if (!doctor) {
-            return res.status(404).json({ message: 'Doctor not found' });
+        console.log(`Generating ID card for doctor ${id}`);
+        try {
+            const doctor = await this.doctorsService.findOne(+id);
+            console.log('Doctor found:', doctor ? doctor.id : 'null');
+            if (!doctor) {
+                return res.status(404).json({ message: 'Doctor not found' });
+            }
+            if (doctor.approvalStatus !== 'approved') {
+                return res.status(403).json({ message: 'Only approved doctors can generate ID cards' });
+            }
+            const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-doctor/${doctor.id}`;
+            const qrCodeDataUrl = await QRCode.toDataURL(verificationUrl);
+            const idCardData = {
+                doctor: {
+                    id: doctor.id,
+                    name: `Dr. ${doctor.fname} ${doctor.lname}`,
+                    speciality: doctor.speciality || 'General Practice',
+                    drType: doctor.dr_type,
+                    licenseNumber: doctor.licenceNo || doctor.reg_code,
+                    licenseExpiry: doctor.licenseExpiryDate,
+                    email: doctor.email,
+                    mobile: doctor.mobile,
+                    profileImage: doctor.profile_image,
+                },
+                qrCode: qrCodeDataUrl,
+                issuedDate: new Date().toISOString(),
+                verificationUrl,
+            };
+            return res.json(idCardData);
         }
-        if (doctor.approvalStatus !== 'approved') {
-            return res.status(403).json({ message: 'Only approved doctors can generate ID cards' });
+        finally {
         }
-        const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-doctor/${doctor.id}`;
-        const qrCodeDataUrl = await QRCode.toDataURL(verificationUrl);
-        const idCardData = {
-            doctor: {
-                id: doctor.id,
-                name: `Dr. ${doctor.fname} ${doctor.lname}`,
-                speciality: doctor.speciality || 'General Practice',
-                drType: doctor.dr_type,
-                licenseNumber: doctor.licenceNo || doctor.reg_code,
-                licenseExpiry: doctor.licenseExpiryDate,
-                email: doctor.email,
-                mobile: doctor.mobile,
-                profileImage: doctor.profile_image,
-            },
-            qrCode: qrCodeDataUrl,
-            issuedDate: new Date().toISOString(),
-            verificationUrl,
-        };
-        return res.json(idCardData);
-    }
-    async verifyDoctor(id) {
-        const doctor = await this.doctorsService.findOne(+id);
-        if (!doctor) {
-            return { valid: false, message: 'Doctor not found' };
+        verifyDoctor(, id, string);
+        {
+            const doctor = await this.doctorsService.findOne(+id);
+            if (!doctor) {
+                return { valid: false, message: 'Doctor not found' };
+            }
+            const isValid = doctor.approvalStatus === 'approved' &&
+                doctor.licenseStatus === 'valid' &&
+                doctor.status === 1;
+            return {
+                valid: isValid,
+                doctor: isValid ? {
+                    name: `Dr. ${doctor.fname} ${doctor.lname}`,
+                    speciality: doctor.speciality,
+                    licenseNumber: doctor.licenceNo || doctor.reg_code,
+                    licenseExpiry: doctor.licenseExpiryDate,
+                } : null,
+                message: isValid ? 'Valid doctor credentials' : 'Invalid or inactive doctor',
+            };
         }
-        const isValid = doctor.approvalStatus === 'approved' &&
-            doctor.licenseStatus === 'valid' &&
-            doctor.status === 1;
-        return {
-            valid: isValid,
-            doctor: isValid ? {
-                name: `Dr. ${doctor.fname} ${doctor.lname}`,
-                speciality: doctor.speciality,
-                licenseNumber: doctor.licenceNo || doctor.reg_code,
-                licenseExpiry: doctor.licenseExpiryDate,
-            } : null,
-            message: isValid ? 'Valid doctor credentials' : 'Invalid or inactive doctor',
-        };
     }
 };
 exports.IdCardController = IdCardController;
@@ -113,13 +120,6 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], IdCardController.prototype, "generateIdCard", null);
-__decorate([
-    (0, common_1.Get)('verify/:id'),
-    __param(0, (0, common_1.Param)('id')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", Promise)
-], IdCardController.prototype, "verifyDoctor", null);
 exports.IdCardController = IdCardController = __decorate([
     (0, common_1.Controller)('doctors'),
     __metadata("design:paramtypes", [doctors_service_1.DoctorsService])
