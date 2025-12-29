@@ -5,6 +5,7 @@ import { api } from '@/lib/api';
 import { FiCalendar, FiUsers, FiClock, FiActivity, FiDollarSign, FiPlus, FiCheckCircle } from 'react-icons/fi';
 import { useAuth } from '@/lib/auth';
 import Link from 'next/link';
+import ApprovalStatusBanner from '../ApprovalStatusBanner';
 
 import EditDoctorProfileModal from './doctors/EditDoctorProfileModal';
 import ViewAppointmentDetailsModal from './appointments/ViewAppointmentDetailsModal';
@@ -125,6 +126,16 @@ export default function DoctorView() {
                         Edit Profile
                     </button>
                 </div>
+            )}
+
+            {/* Approval Status Banner */}
+            {doctorProfile && (
+                <ApprovalStatusBanner
+                    status={doctorProfile.approvalStatus || 'pending'}
+                    rejectionReason={doctorProfile.rejectionReason}
+                    licenseStatus={doctorProfile.licenseStatus || 'valid'}
+                    licenseExpiryDate={doctorProfile.licenseExpiryDate}
+                />
             )}
 
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
