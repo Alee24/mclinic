@@ -241,4 +241,62 @@ export class EmailService {
             console.error('Failed to send appointment cancellation email:', error);
         }
     }
+
+    async sendLicenseExpiryWarning(doctor: any, daysRemaining: number) {
+        try {
+            await this.mailerService.sendMail({
+                to: doctor.email,
+                subject: `License Expiry Warning - ${daysRemaining} Days Remaining`,
+                template: './license-expiry-warning',
+                context: {
+                    name: `Dr. ${doctor.fname} ${doctor.lname}`,
+                    daysRemaining: daysRemaining,
+                    expiryDate: new Date(doctor.licenseExpiryDate).toLocaleDateString(),
+                    licenseNumber: doctor.licenceNo || doctor.reg_code,
+                    renewUrl: `${this.frontendUrl}/dashboard/profile`,
+                },
+            });
+            console.log(`License expiry warning sent to ${doctor.email}`);
+        } catch (error) {
+            console.error('Failed to send license expiry warning:', error);
+        }
+    }
+
+    async sendLicenseExpiredNotification(doctor: any) {
+        try {
+            await this.mailerService.sendMail({
+                to: doctor.email,
+                subject: 'Account Deactivated - License Expired',
+                template: './license-expired',
+                context: {
+                    name: `Dr. ${doctor.fname} ${doctor.lname}`,
+                    expiryDate: new Date(doctor.licenseExpiryDate).toLocaleDateString(),
+                    licenseNumber: doctor.licenceNo || doctor.reg_code,
+                    renewUrl: `${this.frontendUrl}/dashboard/profile`,
+                    supportEmail: this.configService.get('SMTP_FROM_EMAIL'),
+                },
+            });
+            console.log(`License expired notification sent to ${doctor.email}`);
+        } catch (error) {
+            console.error('Failed to send license expired notification:', error);
+        }
+    }
+
+    async sendAccountReactivatedEmail(doctor: any) {
+        try {
+            await this.mailerService.sendMail({
+                to: doctor.email,
+                subject: 'Account Reactivated - License Renewed',
+                template: './account-reactivated',
+                context: {
+                    name: `Dr. ${doctor.fname} ${doctor.lname}`,
+                    newExpiryDate: new Date(doctor.licenseExpiryDate).toLocaleDateString(),
+                    dashboardUrl: `${this.frontendUrl}/dashboard`,
+                },
+            });
+            console.log(`Account reactivated email sent to ${doctor.email}`);
+        } catch (error) {
+            console.error('Failed to send account reactivated email:', error);
+        }
+    }
 }

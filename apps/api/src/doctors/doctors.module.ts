@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 import { DoctorsService } from './doctors.service';
 import { DoctorsController } from './doctors.controller';
 import { Doctor } from './entities/doctor.entity';
@@ -9,6 +10,7 @@ import { DoctorLicence } from '../doctor-licences/entities/doctor-licence.entity
 import { Appointment } from '../appointments/entities/appointment.entity';
 import { UsersModule } from '../users/users.module';
 import { EmailModule } from '../email/email.module';
+import { LicenseCheckService } from './services/license-check.service';
 
 @Module({
   imports: [
@@ -20,9 +22,10 @@ import { EmailModule } from '../email/email.module';
     ]),
     UsersModule,
     EmailModule,
+    ScheduleModule.forRoot(),
   ],
   controllers: [DoctorsController],
-  providers: [DoctorsService],
+  providers: [DoctorsService, LicenseCheckService],
   exports: [DoctorsService],
 })
 export class DoctorsModule { }

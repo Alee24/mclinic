@@ -295,7 +295,14 @@ let DoctorsService = class DoctorsService {
         doctor.licenseStatus = 'valid';
         doctor.status = 1;
         doctor.lastLicenseCheck = new Date();
-        return await this.doctorsRepository.save(doctor);
+        const savedDoctor = await this.doctorsRepository.save(doctor);
+        try {
+            await this.emailService.sendAccountReactivatedEmail(savedDoctor);
+        }
+        catch (error) {
+            console.error('Failed to send reactivation email:', error);
+        }
+        return savedDoctor;
     }
 };
 exports.DoctorsService = DoctorsService;

@@ -16,4 +16,7 @@ export declare class EmailService {
     sendOrderShippedEmail(user: any, order: any, trackingNumber: string): Promise<void>;
     sendPasswordResetEmail(user: any, resetToken: string): Promise<void>;
     sendAppointmentCancellationEmail(user: any, appointment: any, reason: string): Promise<void>;
+    sendLicenseExpiryWarning(doctor: any, daysRemaining: number): Promise<void>;
+    sendLicenseExpiredNotification(doctor: any): Promise<void>;
+    sendAccountReactivatedEmail(doctor: any): Promise<void>;
 }

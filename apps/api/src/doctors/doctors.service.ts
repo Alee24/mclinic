@@ -311,6 +311,15 @@ export class DoctorsService {
         doctor.status = 1;
         doctor.lastLicenseCheck = new Date();
 
-        return await this.doctorsRepository.save(doctor);
+        const savedDoctor = await this.doctorsRepository.save(doctor);
+
+        // Send reactivation email
+        try {
+            await this.emailService.sendAccountReactivatedEmail(savedDoctor);
+        } catch (error) {
+            console.error('Failed to send reactivation email:', error);
+        }
+
+        return savedDoctor;
     }
 }

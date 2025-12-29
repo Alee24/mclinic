@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #f39c12 0%, #e74c3c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .content {
+            background: #f9f9f9;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #f39c12;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #f39c12;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚠️ License Expiry Warning</h1>
+        </div>
+        <div class="content">
+            <p>Dear {{name}},</p>
+
+            <div class="warning-box">
+                <strong>Important:</strong> Your medical license is expiring in <strong>{{daysRemaining}} days</strong>.
+            </div>
+
+            <p><strong>License Details:</strong></p>
+            <ul>
+                <li><strong>License Number:</strong> {{licenseNumber}}</li>
+                <li><strong>Expiry Date:</strong> {{expiryDate}}</li>
+                <li><strong>Days Remaining:</strong> {{daysRemaining}}</li>
+            </ul>
+
+            <p><strong>Action Required:</strong></p>
+            <p>Please renew your license before the expiry date to avoid account deactivation. Once your license
+                expires, your account will be automatically deactivated and you will not be able to:</p>
+            <ul>
+                <li>Accept new appointments</li>
+                <li>Be visible to patients</li>
+                <li>Access platform features</li>
+            </ul>
+
+            <a href="{{renewUrl}}" class="button">Renew License Now</a>
+
+            <p>After renewing your license, please upload the updated license document in your profile to reactivate
+                your account.</p>
+
+            <p>Best regards,<br>The M-Clinic Health Team</p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2025 M-Clinic Health. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+
+</html>

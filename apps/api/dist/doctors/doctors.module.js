@@ -9,6 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.DoctorsModule = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
+const schedule_1 = require("@nestjs/schedule");
 const doctors_service_1 = require("./doctors.service");
 const doctors_controller_1 = require("./doctors.controller");
 const doctor_entity_1 = require("./entities/doctor.entity");
@@ -17,6 +18,7 @@ const doctor_licence_entity_1 = require("../doctor-licences/entities/doctor-lice
 const appointment_entity_1 = require("../appointments/entities/appointment.entity");
 const users_module_1 = require("../users/users.module");
 const email_module_1 = require("../email/email.module");
+const license_check_service_1 = require("./services/license-check.service");
 let DoctorsModule = class DoctorsModule {
 };
 exports.DoctorsModule = DoctorsModule;
@@ -31,9 +33,10 @@ exports.DoctorsModule = DoctorsModule = __decorate([
             ]),
             users_module_1.UsersModule,
             email_module_1.EmailModule,
+            schedule_1.ScheduleModule.forRoot(),
         ],
         controllers: [doctors_controller_1.DoctorsController],
-        providers: [doctors_service_1.DoctorsService],
+        providers: [doctors_service_1.DoctorsService, license_check_service_1.LicenseCheckService],
         exports: [doctors_service_1.DoctorsService],
     })
 ], DoctorsModule);
