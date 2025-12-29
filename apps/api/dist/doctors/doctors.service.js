@@ -74,8 +74,10 @@ let DoctorsService = class DoctorsService {
         }
         const doctor = this.doctorsRepository.create({
             ...dto,
-            status: 1,
+            status: 0,
             Verified_status: 0,
+            approvalStatus: 'pending',
+            licenseStatus: 'valid',
         });
         return this.doctorsRepository.save(doctor);
     }

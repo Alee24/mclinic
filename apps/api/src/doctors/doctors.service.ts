@@ -33,8 +33,10 @@ export class DoctorsService {
         // unless we add it back. The production schema uses email/password directly.
         const doctor = this.doctorsRepository.create({
             ...dto,
-            status: 1,
+            status: 0, // Inactive until approved
             Verified_status: 0,
+            approvalStatus: 'pending', // Default to pending
+            licenseStatus: 'valid', // Assume valid initially
         } as unknown as DeepPartial<Doctor>);
         return this.doctorsRepository.save(doctor);
     }

@@ -177,138 +177,159 @@ export default function DoctorView() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Link href="/dashboard/finance/transactions">
-                    <DrStatCard label="Wallet Balance" value={`KES ${stats.earningsAmount.toLocaleString()}`} icon={<FiDollarSign />} color="green" />
-                </Link>
-                <Link href="/dashboard/appointments">
-                    <DrStatCard label="Today's Appointments" value={stats.appointmentsToday} icon={<FiCalendar />} color="blue" />
-                </Link>
-                {/* Changed from Reviews to My Patients for better utility */}
-                <Link href="/dashboard/patients">
-                    <DrStatCard label="My Patients" value={doctorProfile?.patients_count || "View"} icon={<FiUsers />} color="purple" />
-                </Link>
-                <Link href="/dashboard/appointments">
-                    <DrStatCard label="Pending Reports" value={stats.pendingReports} icon={<FiClock />} color="orange" />
-                </Link>
-            </div>
-
-            {/* ID Card Generation Section - Only for Approved Doctors */}
-            {doctorProfile && doctorProfile.approvalStatus === 'approved' && (
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-                    <h3 className="text-lg font-bold dark:text-white mb-4">Professional ID Card</h3>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-                        Generate and print your official M-Clinic Health ID card with QR code verification.
-                    </p>
-                    <DoctorIdCard doctorId={doctorProfile.id} />
-                </div>
-            )}
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 bg-white dark:bg-[#161616] rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="font-bold text-lg dark:text-white">Upcoming Appointments</h3>
-                        <Link href="/dashboard/appointments" className="text-sm font-bold text-donezo-dark hover:underline">View Schedule</Link>
+            {/* Restrict features for pending/rejected doctors */}
+            {doctorProfile && (doctorProfile.approvalStatus === 'pending' || doctorProfile.approvalStatus === 'rejected') ? (
+                <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-8 text-center">
+                    <div className="max-w-md mx-auto">
+                        <div className="text-6xl mb-4">🔒</div>
+                        <h3 className="text-xl font-bold dark:text-white mb-2">Limited Access</h3>
+                        <p className="text-gray-600 dark:text-gray-400 mb-4">
+                            {doctorProfile.approvalStatus === 'pending'
+                                ? 'Your account is pending approval. You can update your profile while waiting for admin review.'
+                                : 'Your account application was not approved. Please contact support for more information.'}
+                        </p>
+                        <button
+                            onClick={() => setShowEditProfileModal(true)}
+                            className="bg-primary hover:bg-primary/90 text-black px-6 py-3 rounded-lg font-medium transition"
+                        >
+                            Update Profile
+                        </button>
                     </div>
-                    <div className="space-y-4">
-                        {stats.upcomingAppointments.length === 0 ? (
-                            <div className="py-12 text-center text-gray-400 italic">No appointments found.</div>
-                        ) : stats.upcomingAppointments.map((apt, i) => (
-                            <div
-                                key={apt.id}
-                                onClick={() => {
-                                    setSelectedAppointment(apt);
-                                    setShowDetailsModal(true);
-                                }}
-                                className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50/50 dark:bg-black/20 border border-gray-100 dark:border-gray-800/50 hover:border-donezo-dark/30 transition-colors group cursor-pointer"
-                            >
-                                <div className="w-12 h-12 rounded-xl bg-white dark:bg-gray-800 flex items-center justify-center font-bold text-donezo-dark shadow-sm group-hover:bg-donezo-dark group-hover:text-white transition-colors capitalize">
-                                    {apt.patient?.fname?.[0] || 'P'}
+                </div>
+            ) : (
+                <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <Link href="/dashboard/finance/transactions">
+                            <DrStatCard label="Wallet Balance" value={`KES ${stats.earningsAmount.toLocaleString()}`} icon={<FiDollarSign />} color="green" />
+                        </Link>
+                        <Link href="/dashboard/appointments">
+                            <DrStatCard label="Today's Appointments" value={stats.appointmentsToday} icon={<FiCalendar />} color="blue" />
+                        </Link>
+                        {/* Changed from Reviews to My Patients for better utility */}
+                        <Link href="/dashboard/patients">
+                            <DrStatCard label="My Patients" value={doctorProfile?.patients_count || "View"} icon={<FiUsers />} color="purple" />
+                        </Link>
+                        <Link href="/dashboard/appointments">
+                            <DrStatCard label="Pending Reports" value={stats.pendingReports} icon={<FiClock />} color="orange" />
+                        </Link>
+                    </div>
+
+                    {/* ID Card Generation Section - Only for Approved Doctors */}
+                    {doctorProfile && doctorProfile.approvalStatus === 'approved' && (
+                        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                            <h3 className="text-lg font-bold dark:text-white mb-4">Professional ID Card</h3>
+                            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                                Generate and print your official M-Clinic Health ID card with QR code verification.
+                            </p>
+                            <DoctorIdCard doctorId={doctorProfile.id} />
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2 bg-white dark:bg-[#161616] rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="font-bold text-lg dark:text-white">Upcoming Appointments</h3>
+                                <Link href="/dashboard/appointments" className="text-sm font-bold text-donezo-dark hover:underline">View Schedule</Link>
+                            </div>
+                            <div className="space-y-4">
+                                {stats.upcomingAppointments.length === 0 ? (
+                                    <div className="py-12 text-center text-gray-400 italic">No appointments found.</div>
+                                ) : stats.upcomingAppointments.map((apt, i) => (
+                                    <div
+                                        key={apt.id}
+                                        onClick={() => {
+                                            setSelectedAppointment(apt);
+                                            setShowDetailsModal(true);
+                                        }}
+                                        className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50/50 dark:bg-black/20 border border-gray-100 dark:border-gray-800/50 hover:border-donezo-dark/30 transition-colors group cursor-pointer"
+                                    >
+                                        <div className="w-12 h-12 rounded-xl bg-white dark:bg-gray-800 flex items-center justify-center font-bold text-donezo-dark shadow-sm group-hover:bg-donezo-dark group-hover:text-white transition-colors capitalize">
+                                            {apt.patient?.fname?.[0] || 'P'}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="font-bold text-gray-900 dark:text-white">{apt.patient?.fname || 'Guest Patient'}</h4>
+                                            <p className="text-xs text-gray-500 font-medium">{apt.appointment_time} • {new Date(apt.appointment_date).toDateString()}</p>
+                                        </div>
+                                        <div className="flex flex-col items-end gap-1.5">
+                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${apt.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                                                }`}>
+                                                {apt.status}
+                                            </span>
+                                            <button className="text-[10px] font-bold text-donezo-dark hover:underline">View Details</button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="bg-donezo-dark rounded-3xl p-6 text-white flex flex-col justify-between shadow-xl shadow-donezo-dark/20 relative overflow-hidden group">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-1000"></div>
+                            <div>
+                                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl mb-6">
+                                    <FiCheckCircle />
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <h4 className="font-bold text-gray-900 dark:text-white">{apt.patient?.fname || 'Guest Patient'}</h4>
-                                    <p className="text-xs text-gray-500 font-medium">{apt.appointment_time} • {new Date(apt.appointment_date).toDateString()}</p>
-                                </div>
-                                <div className="flex flex-col items-end gap-1.5">
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${apt.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
-                                        }`}>
-                                        {apt.status}
-                                    </span>
-                                    <button className="text-[10px] font-bold text-donezo-dark hover:underline">View Details</button>
+                                <h3 className="text-xl font-bold mb-2">Telemedicine Ready</h3>
+                                <p className="text-sm text-green-100/70 mb-6 font-medium leading-relaxed">Your virtual room is active. Patients can join using the link in their portal.</p>
+                                <div className="p-3 bg-white/10 rounded-xl border border-white/20 text-xs font-mono break-all mb-4">
+                                    {`virtual.mclinic.co.ke/Dr-${user?.fname}-${user?.id || 'me'}`}
                                 </div>
                             </div>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="bg-donezo-dark rounded-3xl p-6 text-white flex flex-col justify-between shadow-xl shadow-donezo-dark/20 relative overflow-hidden group">
-                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-1000"></div>
-                    <div>
-                        <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl mb-6">
-                            <FiCheckCircle />
-                        </div>
-                        <h3 className="text-xl font-bold mb-2">Telemedicine Ready</h3>
-                        <p className="text-sm text-green-100/70 mb-6 font-medium leading-relaxed">Your virtual room is active. Patients can join using the link in their portal.</p>
-                        <div className="p-3 bg-white/10 rounded-xl border border-white/20 text-xs font-mono break-all mb-4">
-                            {`virtual.mclinic.co.ke/Dr-${user?.fname}-${user?.id || 'me'}`}
+                            <button
+                                onClick={() => {
+                                    const roomName = `Dr-${user?.fname}-${user?.id}`;
+                                    const url = `https://virtual.mclinic.co.ke/${roomName}`;
+                                    window.open(url, '_blank');
+                                    if (!isOnline) handleToggleOnline();
+                                }}
+                                className="w-full py-3 bg-white text-donezo-dark font-black rounded-xl hover:bg-green-50 transition-colors"
+                            >
+                                Go Live Now
+                            </button>
                         </div>
                     </div>
-                    <button
-                        onClick={() => {
-                            const roomName = `Dr-${user?.fname}-${user?.id}`;
-                            const url = `https://virtual.mclinic.co.ke/${roomName}`;
-                            window.open(url, '_blank');
-                            if (!isOnline) handleToggleOnline();
-                        }}
-                        className="w-full py-3 bg-white text-donezo-dark font-black rounded-xl hover:bg-green-50 transition-colors"
-                    >
-                        Go Live Now
-                    </button>
+
+                    {showEditProfileModal && doctorProfile && (
+                        <EditDoctorProfileModal
+                            doctor={doctorProfile}
+                            onClose={() => setShowEditProfileModal(false)}
+                            onSuccess={() => {
+                                // Trigger re-fetch via dependency array if needed, but handled by useEffect based on showEditProfileModal possibly?
+                                // Actually I added showEditProfileModal as deep dependency so it should re-fetch when modal closes if I toggle it?
+                                // Wait, I toggled it to false. 
+                                // Let's rely on standard re-fetch or I can manually trigger.
+                                // For now reliance on setDoctorProfile might need manual update or re-fetch.
+                                // The dependency [user, showEditProfileModal] will trigger when modal closes?
+                                // Only if showEditProfileModal changes. It changes from true to false. So yes.
+                            }}
+                        />
+                    )}
+
+                    {showDetailsModal && selectedAppointment && (
+                        <ViewAppointmentDetailsModal
+                            appointment={selectedAppointment}
+                            onClose={() => setShowDetailsModal(false)}
+                        />
+                    )}
                 </div>
-            </div>
-
-            {showEditProfileModal && doctorProfile && (
-                <EditDoctorProfileModal
-                    doctor={doctorProfile}
-                    onClose={() => setShowEditProfileModal(false)}
-                    onSuccess={() => {
-                        // Trigger re-fetch via dependency array if needed, but handled by useEffect based on showEditProfileModal possibly?
-                        // Actually I added showEditProfileModal as deep dependency so it should re-fetch when modal closes if I toggle it?
-                        // Wait, I toggled it to false. 
-                        // Let's rely on standard re-fetch or I can manually trigger.
-                        // For now reliance on setDoctorProfile might need manual update or re-fetch.
-                        // The dependency [user, showEditProfileModal] will trigger when modal closes?
-                        // Only if showEditProfileModal changes. It changes from true to false. So yes.
-                    }}
-                />
-            )}
-
-            {showDetailsModal && selectedAppointment && (
-                <ViewAppointmentDetailsModal
-                    appointment={selectedAppointment}
-                    onClose={() => setShowDetailsModal(false)}
-                />
-            )}
-        </div>
-    );
+            );
 }
 
-function DrStatCard({ label, value, icon, color }: any) {
+            function DrStatCard({label, value, icon, color}: any) {
     const colors: any = {
-        green: 'bg-green-50 text-green-600 dark:bg-green-900/20',
-        blue: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20',
-        purple: 'bg-purple-50 text-purple-600 dark:bg-purple-900/20',
-        orange: 'bg-orange-50 text-orange-600 dark:bg-orange-900/20',
+                green: 'bg-green-50 text-green-600 dark:bg-green-900/20',
+            blue: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20',
+            purple: 'bg-purple-50 text-purple-600 dark:bg-purple-900/20',
+            orange: 'bg-orange-50 text-orange-600 dark:bg-orange-900/20',
     };
-    return (
-        <div className="bg-white dark:bg-[#161616] p-6 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-4 group hover:border-primary/50 transition-all cursor-pointer h-full">
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl transition-transform group-hover:scale-110 duration-500 ${colors[color] || 'bg-gray-50'}`}>
-                {icon}
+            return (
+            <div className="bg-white dark:bg-[#161616] p-6 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-4 group hover:border-primary/50 transition-all cursor-pointer h-full">
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl transition-transform group-hover:scale-110 duration-500 ${colors[color] || 'bg-gray-50'}`}>
+                    {icon}
+                </div>
+                <div>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{label}</p>
+                    <p className="text-2xl font-black text-gray-900 dark:text-white leading-tight">{value}</p>
+                </div>
             </div>
-            <div>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{label}</p>
-                <p className="text-2xl font-black text-gray-900 dark:text-white leading-tight">{value}</p>
-            </div>
-        </div>
-    );
+            );
 }
