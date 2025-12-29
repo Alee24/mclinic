@@ -20,7 +20,7 @@ export default function DashboardPage() {
         return <AdminView />;
     }
 
-    if (user?.role === UserRole.DOCTOR) {
+    if (user?.role === UserRole.DOCTOR || user?.role === UserRole.NURSE || user?.role === UserRole.CLINICIAN) {
         return <DoctorView />;
     }
 
