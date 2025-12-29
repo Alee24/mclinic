@@ -6,6 +6,7 @@ import { FiCalendar, FiUsers, FiClock, FiActivity, FiDollarSign, FiPlus, FiCheck
 import { useAuth } from '@/lib/auth';
 import Link from 'next/link';
 import ApprovalStatusBanner from '../ApprovalStatusBanner';
+import DoctorIdCard from '../DoctorIdCard';
 
 import EditDoctorProfileModal from './doctors/EditDoctorProfileModal';
 import ViewAppointmentDetailsModal from './appointments/ViewAppointmentDetailsModal';
@@ -191,6 +192,17 @@ export default function DoctorView() {
                     <DrStatCard label="Pending Reports" value={stats.pendingReports} icon={<FiClock />} color="orange" />
                 </Link>
             </div>
+
+            {/* ID Card Generation Section - Only for Approved Doctors */}
+            {doctorProfile && doctorProfile.approvalStatus === 'approved' && (
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                    <h3 className="text-lg font-bold dark:text-white mb-4">Professional ID Card</h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                        Generate and print your official M-Clinic Health ID card with QR code verification.
+                    </p>
+                    <DoctorIdCard doctorId={doctorProfile.id} />
+                </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 bg-white dark:bg-[#161616] rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">

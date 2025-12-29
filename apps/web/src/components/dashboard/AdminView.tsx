@@ -205,6 +205,18 @@ export default function AdminView() {
                             </div>
                             <Link href="/dashboard/admin/pharmacy" className="px-3 py-1 bg-white dark:bg-black text-purple-600 text-[10px] font-bold rounded-lg border border-purple-100 shadow-sm flex items-center">Open</Link>
                         </div>
+
+                        {/* Pending Doctor Approvals Shortcut */}
+                        <div className="flex items-center gap-4 p-4 rounded-2xl border border-yellow-50 dark:border-yellow-900/30 bg-yellow-50/50 dark:bg-yellow-900/10 hover:bg-yellow-100/50 transition-colors group">
+                            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-yellow-100 text-yellow-600 group-hover:bg-yellow-600 group-hover:text-white transition-all">
+                                <FiUsers />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <h4 className="font-bold text-sm text-yellow-900 dark:text-yellow-100">Pending Approvals</h4>
+                                <p className="text-xs text-yellow-600/70 truncate">Review Doctor Applications</p>
+                            </div>
+                            <Link href="/dashboard/admin/doctors/pending" className="px-3 py-1 bg-white dark:bg-black text-yellow-600 text-[10px] font-bold rounded-lg border border-yellow-100 shadow-sm flex items-center">Review</Link>
+                        </div>
                     </div>
 
                     {stats.pendingDoctors.length === 0 ? (
