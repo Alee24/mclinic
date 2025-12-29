@@ -156,6 +156,36 @@ export class Doctor {
   @Column({ length: 255, nullable: true })
   stampUrl: string;
 
+  // Approval and License Management Fields
+  @Column({
+    type: 'enum',
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending'
+  })
+  approvalStatus: string;
+
+  @Column({ type: 'text', nullable: true })
+  rejectionReason: string;
+
+  @Column({ type: 'date', nullable: true })
+  licenseExpiryDate: Date;
+
+  @Column({
+    type: 'enum',
+    enum: ['valid', 'expiring_soon', 'expired'],
+    default: 'valid'
+  })
+  licenseStatus: string;
+
+  @Column({ type: 'datetime', nullable: true })
+  lastLicenseCheck: Date;
+
+  @Column({ type: 'datetime', nullable: true })
+  approvedAt: Date;
+
+  @Column({ type: 'bigint', nullable: true })
+  approvedBy: number;
+
   // Relations restored to satisfy compilation
   @ManyToMany(() => Speciality, (speciality) => speciality.doctors)
   @JoinTable({

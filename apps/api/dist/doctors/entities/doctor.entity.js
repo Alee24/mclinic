@@ -62,6 +62,13 @@ let Doctor = class Doctor {
     profile_image;
     signatureUrl;
     stampUrl;
+    approvalStatus;
+    rejectionReason;
+    licenseExpiryDate;
+    licenseStatus;
+    lastLicenseCheck;
+    approvedAt;
+    approvedBy;
     specialities;
     schedules;
     licences;
@@ -255,6 +262,42 @@ __decorate([
     (0, typeorm_1.Column)({ length: 255, nullable: true }),
     __metadata("design:type", String)
 ], Doctor.prototype, "stampUrl", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        type: 'enum',
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
+    }),
+    __metadata("design:type", String)
+], Doctor.prototype, "approvalStatus", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
+    __metadata("design:type", String)
+], Doctor.prototype, "rejectionReason", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'date', nullable: true }),
+    __metadata("design:type", Date)
+], Doctor.prototype, "licenseExpiryDate", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        type: 'enum',
+        enum: ['valid', 'expiring_soon', 'expired'],
+        default: 'valid'
+    }),
+    __metadata("design:type", String)
+], Doctor.prototype, "licenseStatus", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'datetime', nullable: true }),
+    __metadata("design:type", Date)
+], Doctor.prototype, "lastLicenseCheck", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'datetime', nullable: true }),
+    __metadata("design:type", Date)
+], Doctor.prototype, "approvedAt", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'bigint', nullable: true }),
+    __metadata("design:type", Number)
+], Doctor.prototype, "approvedBy", void 0);
 __decorate([
     (0, typeorm_1.ManyToMany)(() => speciality_entity_1.Speciality, (speciality) => speciality.doctors),
     (0, typeorm_1.JoinTable)({

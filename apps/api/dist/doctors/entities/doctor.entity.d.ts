@@ -49,6 +49,13 @@ export declare class Doctor {
     profile_image: string;
     signatureUrl: string;
     stampUrl: string;
+    approvalStatus: string;
+    rejectionReason: string;
+    licenseExpiryDate: Date;
+    licenseStatus: string;
+    lastLicenseCheck: Date;
+    approvedAt: Date;
+    approvedBy: number;
     specialities: Speciality[];
     schedules: DoctorSchedule[];
     licences: DoctorLicence[];
