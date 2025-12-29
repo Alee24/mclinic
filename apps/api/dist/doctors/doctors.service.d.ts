@@ -27,5 +27,6 @@ export declare class DoctorsService {
     rejectDoctor(id: number, adminId: number, reason: string): Promise<Doctor>;
     findPendingDoctors(): Promise<Doctor[]>;
     checkLicenseStatus(): Promise<void>;
+    getExpiringSoonLicenses(): Promise<Doctor[]>;
     renewLicense(id: number, newExpiryDate: Date): Promise<Doctor>;
 }

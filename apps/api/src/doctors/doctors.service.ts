@@ -302,6 +302,12 @@ export class DoctorsService {
         }
     }
 
+    async getExpiringSoonLicenses(): Promise<Doctor[]> {
+        return await this.doctorsRepository.find({
+            where: { licenseStatus: 'expiring_soon' },
+        });
+    }
+
     async renewLicense(id: number, newExpiryDate: Date): Promise<Doctor> {
         const doctor = await this.doctorsRepository.findOne({ where: { id } });
         if (!doctor) throw new Error('Doctor not found');

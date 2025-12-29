@@ -287,6 +287,11 @@ let DoctorsService = class DoctorsService {
             }
         }
     }
+    async getExpiringSoonLicenses() {
+        return await this.doctorsRepository.find({
+            where: { licenseStatus: 'expiring_soon' },
+        });
+    }
     async renewLicense(id, newExpiryDate) {
         const doctor = await this.doctorsRepository.findOne({ where: { id } });
         if (!doctor)
