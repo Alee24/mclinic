@@ -14,6 +14,15 @@ export declare class AppointmentsService {
     create(createAppointmentDto: any): Promise<Appointment>;
     findAll(): Promise<Appointment[]>;
     findByPatient(patientId: number): Promise<Appointment[]>;
+    diagnoseUser(user: any): Promise<{
+        userContext: any;
+        doctorMatch: {
+            id: number;
+            email: string;
+            type: string;
+        } | null;
+        appointmentsCount: number;
+    }>;
     findByDoctor(doctorId: number): Promise<Appointment[]>;
     findAllForUser(user: any): Promise<Appointment[]>;
     findOne(id: number): Promise<Appointment | null>;

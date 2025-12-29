@@ -141,7 +141,7 @@ export default function DoctorView() {
 
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
                 <div>
-                    <h1 className="text-3xl font-bold dark:text-white">Welcome back, {user?.role === 'doctor' ? 'Dr.' : ''} {user?.fname}</h1>
+                    <h1 className="text-3xl font-bold dark:text-white">Welcome back, {user?.role === 'doctor' ? 'Dr.' : user?.role === 'nurse' ? 'Nurse' : user?.role === 'clinician' ? 'Clinician' : ''} {user?.fname}</h1>
                     <p className="text-gray-500 font-medium tracking-tight">You have {stats.appointmentsToday} appointments scheduled for today.</p>
                 </div>
 

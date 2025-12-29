@@ -32,6 +32,9 @@ let AppointmentsController = class AppointmentsController {
     findAll(req) {
         return this.appointmentsService.findAllForUser(req.user);
     }
+    async diagnoseRole(req) {
+        return this.appointmentsService.diagnoseUser(req.user);
+    }
     async findMyAppointments(req) {
         return [];
     }
@@ -73,6 +76,14 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], AppointmentsController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Get)('diagnose-role'),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AppointmentsController.prototype, "diagnoseRole", null);
 __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.Get)('my-appointments'),

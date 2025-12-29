@@ -229,6 +229,22 @@ export class AppointmentsService {
     });
   }
 
+  async diagnoseUser(user: any) {
+    const doctor = await this.appointmentsRepository.manager
+      .getRepository(Doctor)
+      .findOne({ where: { email: user.email } });
+
+    const appointments = doctor
+      ? await this.appointmentsRepository.count({ where: { doctorId: doctor.id } })
+      : 0;
+
+    return {
+      userContext: user,
+      doctorMatch: doctor ? { id: doctor.id, email: doctor.email, type: doctor.dr_type } : null,
+      appointmentsCount: appointments
+    };
+  }
+
   async findByDoctor(doctorId: number): Promise<Appointment[]> {
     return this.appointmentsRepository.find({
       where: { doctorId },
@@ -241,15 +257,19 @@ export class AppointmentsService {
       return this.findAll();
     }
 
-    if (user.role === 'doctor') {
+    console.log(`[Appointments] findAllForUser called. Role: ${user.role}, Email: ${user.email}`);
+
+    if (user.role === 'doctor' || user.role === 'nurse' || user.role === 'clinician') {
       // Find doctor ID by email
       const doctor = await this.appointmentsRepository.manager
         .getRepository(Doctor)
         .findOne({ where: { email: user.email } });
 
+      console.log(`[Appointments] Doctor match attempt for ${user.email}:`, doctor ? `Found ID ${doctor.id}` : 'Not Found');
+
       if (!doctor) {
         console.warn(
-          `[Appointments] Doctor not found for email: ${user.email}`,
+          `[Appointments] Provider (Dr/Nurse/Clinician) not found for email: ${user.email}`,
         );
         return [];
       }

@@ -25,6 +25,7 @@ exports.AppointmentsModule = AppointmentsModule = __decorate([
             typeorm_1.TypeOrmModule.forFeature([appointment_entity_1.Appointment, service_entity_1.Service, invoice_entity_1.Invoice]),
             financial_module_1.FinancialModule,
             email_module_1.EmailModule,
+            DoctorsModule,
         ],
         controllers: [appointments_controller_1.AppointmentsController],
         providers: [appointments_service_1.AppointmentsService],

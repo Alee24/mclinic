@@ -35,6 +35,12 @@ export class AppointmentsController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Get('diagnose-role')
+  async diagnoseRole(@Request() req: any) {
+    return this.appointmentsService.diagnoseUser(req.user);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Get('my-appointments')
   async findMyAppointments(@Request() req: any) {
     // Determine if user is doctor or patient and fetch relevant appointments

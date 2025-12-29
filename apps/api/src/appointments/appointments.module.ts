@@ -13,6 +13,7 @@ import { EmailModule } from '../email/email.module';
     TypeOrmModule.forFeature([Appointment, Service, Invoice]),
     FinancialModule,
     EmailModule,
+    DoctorsModule,
   ],
   controllers: [AppointmentsController],
   providers: [AppointmentsService],

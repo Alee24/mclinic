@@ -5,6 +5,15 @@ export declare class AppointmentsController {
     constructor(appointmentsService: AppointmentsService);
     create(createAppointmentDto: any, req: any): Promise<import("./entities/appointment.entity").Appointment>;
     findAll(req: any): Promise<import("./entities/appointment.entity").Appointment[]>;
+    diagnoseRole(req: any): Promise<{
+        userContext: any;
+        doctorMatch: {
+            id: number;
+            email: string;
+            type: string;
+        } | null;
+        appointmentsCount: number;
+    }>;
     findMyAppointments(req: any): Promise<never[]>;
     findByPatient(id: string): Promise<import("./entities/appointment.entity").Appointment[]>;
     findByDoctor(id: string): Promise<import("./entities/appointment.entity").Appointment[]>;

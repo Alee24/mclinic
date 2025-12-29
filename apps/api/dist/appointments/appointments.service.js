@@ -174,6 +174,19 @@ let AppointmentsService = class AppointmentsService {
             relations: ['doctor', 'service'],
         });
     }
+    async diagnoseUser(user) {
+        const doctor = await this.appointmentsRepository.manager
+            .getRepository(doctor_entity_1.Doctor)
+            .findOne({ where: { email: user.email } });
+        const appointments = doctor
+            ? await this.appointmentsRepository.count({ where: { doctorId: doctor.id } })
+            : 0;
+        return {
+            userContext: user,
+            doctorMatch: doctor ? { id: doctor.id, email: doctor.email, type: doctor.dr_type } : null,
+            appointmentsCount: appointments
+        };
+    }
     async findByDoctor(doctorId) {
         return this.appointmentsRepository.find({
             where: { doctorId },
@@ -184,12 +197,14 @@ let AppointmentsService = class AppointmentsService {
         if (user.role === 'admin') {
             return this.findAll();
         }
-        if (user.role === 'doctor') {
+        console.log(`[Appointments] findAllForUser called. Role: ${user.role}, Email: ${user.email}`);
+        if (user.role === 'doctor' || user.role === 'nurse' || user.role === 'clinician') {
             const doctor = await this.appointmentsRepository.manager
                 .getRepository(doctor_entity_1.Doctor)
                 .findOne({ where: { email: user.email } });
+            console.log(`[Appointments] Doctor match attempt for ${user.email}:`, doctor ? `Found ID ${doctor.id}` : 'Not Found');
             if (!doctor) {
-                console.warn(`[Appointments] Doctor not found for email: ${user.email}`);
+                console.warn(`[Appointments] Provider (Dr/Nurse/Clinician) not found for email: ${user.email}`);
                 return [];
             }
             const appointments = await this.appointmentsRepository.find({
