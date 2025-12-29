@@ -204,48 +204,54 @@ let AppointmentsService = class AppointmentsService {
             return this.findAll();
         }
         console.log(`[Appointments] findAllForUser called. Role: ${user.role}, Email: ${user.email}`);
-        let doctor = await this.appointmentsRepository.manager
-            .getRepository(doctor_entity_1.Doctor)
-            .findOne({ where: { user_id: user.sub || user.id } });
-        if (!doctor) {
-            doctor = await this.appointmentsRepository.manager
+        if (user.role === 'medic' || user.role === 'doctor' || user.role === 'nurse') {
+            let doctor = await this.appointmentsRepository.manager
                 .getRepository(doctor_entity_1.Doctor)
-                .findOne({ where: { email: user.email } });
-        }
-        if (doctor) {
-            console.log(`[Appointments] Found Medic Profile for ${user.email} (ID: ${doctor.id}). Fetching provider schedule.`);
-            const appointments = await this.appointmentsRepository.find({
-                where: { doctorId: doctor.id },
-                relations: ['patient', 'doctor', 'service'],
-                order: { appointment_date: 'DESC' },
-            });
-            const userIds = appointments.map((a) => a.patient?.id).filter(Boolean);
-            if (userIds.length > 0) {
-                try {
-                    const profiles = await this.appointmentsRepository.manager
-                        .getRepository(patient_entity_1.Patient)
-                        .createQueryBuilder('patient')
-                        .where('patient.user_id IN (:...ids)', { ids: userIds })
-                        .getMany();
-                    appointments.forEach((a) => {
-                        if (a.patient) {
-                            const profile = profiles.find((p) => p.user_id === a.patient.id);
-                            if (profile) {
-                                a.patient.blood_group = profile.blood_group;
-                                a.patient.sex = profile.sex || a.patient.sex;
-                                a.patient.genotype = profile.genotype;
-                                a.patient.allergies = profile.allergies;
-                                a.patient.conditions = profile.medical_history;
-                                a.patient.emergency_contact = profile.emergency_contact_name;
-                            }
-                        }
-                    });
-                }
-                catch (e) {
-                    console.warn('[Appointments] Failed to enrich patient data', e);
-                }
+                .findOne({ where: { user_id: user.sub || user.id } });
+            if (!doctor) {
+                doctor = await this.appointmentsRepository.manager
+                    .getRepository(doctor_entity_1.Doctor)
+                    .findOne({ where: { email: user.email } });
             }
-            return appointments;
+            if (doctor) {
+                console.log(`[Appointments] Found Medic Profile for ${user.email} (ID: ${doctor.id}). Fetching provider schedule.`);
+                const appointments = await this.appointmentsRepository.find({
+                    where: { doctorId: doctor.id },
+                    relations: ['patient', 'doctor', 'service'],
+                    order: { appointment_date: 'DESC' },
+                });
+                const userIds = appointments.map((a) => a.patient?.id).filter(Boolean);
+                if (userIds.length > 0) {
+                    try {
+                        const profiles = await this.appointmentsRepository.manager
+                            .getRepository(patient_entity_1.Patient)
+                            .createQueryBuilder('patient')
+                            .where('patient.user_id IN (:...ids)', { ids: userIds })
+                            .getMany();
+                        appointments.forEach((a) => {
+                            if (a.patient) {
+                                const profile = profiles.find((p) => p.user_id === a.patient.id);
+                                if (profile) {
+                                    a.patient.blood_group = profile.blood_group;
+                                    a.patient.sex = profile.sex || a.patient.sex;
+                                    a.patient.genotype = profile.genotype;
+                                    a.patient.allergies = profile.allergies;
+                                    a.patient.conditions = profile.medical_history;
+                                    a.patient.emergency_contact = profile.emergency_contact_name;
+                                }
+                            }
+                        });
+                    }
+                    catch (e) {
+                        console.warn('[Appointments] Failed to enrich patient data', e);
+                    }
+                }
+                return appointments;
+            }
+            else {
+                console.log(`[Appointments] No Medic Profile found for ${user.email} despite having Medic Role.`);
+                return [];
+            }
         }
         console.log(`[Appointments] No Medic Profile found for ${user.email}. Fetching as Patient.`);
         return this.appointmentsRepository.find({

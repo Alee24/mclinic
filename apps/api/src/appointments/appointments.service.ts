@@ -266,58 +266,67 @@ export class AppointmentsService {
 
     console.log(`[Appointments] findAllForUser called. Role: ${user.role}, Email: ${user.email}`);
 
-    // Generic Provider Check: Try to find a Doctor/Medic profile for this user
-    // Priority 1: Check by user_id
-    let doctor = await this.appointmentsRepository.manager
-      .getRepository(Doctor)
-      .findOne({ where: { user_id: user.sub || user.id } });
-
-    // Priority 2: Fallback to email if not found by ID (legacy support for non-backfilled data)
-    if (!doctor) {
-      doctor = await this.appointmentsRepository.manager
+    // Unified Medic Check: If the user is a 'Doctor'/'Medic' role, try to find their provider profile.
+    if (user.role === 'medic' || user.role === 'doctor' || user.role === 'nurse') { // Included legacy roles just in case migration hasn't run yet
+      // Generic Provider Check: Try to find a Doctor/Medic profile for this user
+      // Priority 1: Check by user_id
+      let doctor = await this.appointmentsRepository.manager
         .getRepository(Doctor)
-        .findOne({ where: { email: user.email } });
-    }
+        .findOne({ where: { user_id: user.sub || user.id } });
 
-    if (doctor) {
-      console.log(`[Appointments] Found Medic Profile for ${user.email} (ID: ${doctor.id}). Fetching provider schedule.`);
-
-      const appointments = await this.appointmentsRepository.find({
-        where: { doctorId: doctor.id },
-        relations: ['patient', 'doctor', 'service'],
-        order: { appointment_date: 'DESC' },
-      });
-
-      // Enrich with Patient Medical Data
-      const userIds = appointments.map((a) => a.patient?.id).filter(Boolean);
-      if (userIds.length > 0) {
-        try {
-          const profiles = await this.appointmentsRepository.manager
-            .getRepository(Patient)
-            .createQueryBuilder('patient')
-            .where('patient.user_id IN (:...ids)', { ids: userIds })
-            .getMany();
-
-          appointments.forEach((a) => {
-            if (a.patient) {
-              const profile = profiles.find((p) => p.user_id === a.patient.id);
-              if (profile) {
-                // Attach profile data
-                (a.patient as any).blood_group = profile.blood_group;
-                (a.patient as any).sex = profile.sex || a.patient.sex;
-                (a.patient as any).genotype = profile.genotype;
-                (a.patient as any).allergies = profile.allergies;
-                (a.patient as any).conditions = profile.medical_history;
-                (a.patient as any).emergency_contact = profile.emergency_contact_name;
-              }
-            }
-          });
-        } catch (e) {
-          console.warn('[Appointments] Failed to enrich patient data', e);
-        }
+      // Priority 2: Fallback to email if not found by ID (legacy support for non-backfilled data)
+      if (!doctor) {
+        doctor = await this.appointmentsRepository.manager
+          .getRepository(Doctor)
+          .findOne({ where: { email: user.email } });
       }
 
-      return appointments;
+      if (doctor) {
+        console.log(`[Appointments] Found Medic Profile for ${user.email} (ID: ${doctor.id}). Fetching provider schedule.`);
+
+        const appointments = await this.appointmentsRepository.find({
+          where: { doctorId: doctor.id },
+          relations: ['patient', 'doctor', 'service'],
+          order: { appointment_date: 'DESC' },
+        });
+
+        // Enrich with Patient Medical Data
+        const userIds = appointments.map((a) => a.patient?.id).filter(Boolean);
+        if (userIds.length > 0) {
+          try {
+            const profiles = await this.appointmentsRepository.manager
+              .getRepository(Patient)
+              .createQueryBuilder('patient')
+              .where('patient.user_id IN (:...ids)', { ids: userIds })
+              .getMany();
+
+            appointments.forEach((a) => {
+              if (a.patient) {
+                const profile = profiles.find((p) => p.user_id === a.patient.id);
+                if (profile) {
+                  // Attach profile data
+                  (a.patient as any).blood_group = profile.blood_group;
+                  (a.patient as any).sex = profile.sex || a.patient.sex;
+                  (a.patient as any).genotype = profile.genotype;
+                  (a.patient as any).allergies = profile.allergies;
+                  (a.patient as any).conditions = profile.medical_history;
+                  (a.patient as any).emergency_contact = profile.emergency_contact_name;
+                }
+              }
+            });
+          } catch (e) {
+            console.warn('[Appointments] Failed to enrich patient data', e);
+          }
+        }
+
+        return appointments;
+      } else {
+        console.log(`[Appointments] No Medic Profile found for ${user.email} despite having Medic Role.`);
+        // If they are a medic but have no profile, return empty or fallback? 
+        // Better to return empty provider schedule than patient schedule to avoid confusion, 
+        // but previously it fell back. Let's return empty if they are explicitly medic.
+        return [];
+      }
     }
 
     // Fallback: If no Medic profile found, assume Patient role

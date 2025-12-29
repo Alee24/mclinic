@@ -4,6 +4,9 @@ import { useAuth, UserRole } from '@/lib/auth';
 import AdminView from '@/components/dashboard/AdminView';
 import DoctorView from '@/components/dashboard/DoctorView';
 import PatientView from '@/components/dashboard/PatientView';
+import FinanceView from '@/components/dashboard/FinanceView';
+import PharmacyView from '@/components/dashboard/PharmacyView';
+import LabTechView from '@/components/dashboard/LabTechView';
 
 export default function DashboardPage() {
     const { user, loading } = useAuth();
@@ -20,8 +23,20 @@ export default function DashboardPage() {
         return <AdminView />;
     }
 
-    if (user?.role === UserRole.DOCTOR || user?.role === UserRole.NURSE || user?.role === UserRole.CLINICIAN) {
+    if (user?.role === UserRole.MEDIC) {
         return <DoctorView />;
+    }
+
+    if (user?.role === UserRole.FINANCE) {
+        return <FinanceView />;
+    }
+
+    if (user?.role === UserRole.PHARMACIST) {
+        return <PharmacyView />;
+    }
+
+    if (user?.role === UserRole.LAB_TECH) {
+        return <LabTechView />;
     }
 
     if (user?.role === UserRole.PATIENT) {

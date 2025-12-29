@@ -134,7 +134,7 @@ let AuthService = class AuthService {
             password: dto.password,
             fname: dto.fname,
             lname: dto.lname,
-            role: role,
+            role: 'medic',
             status: false,
         });
         const doctor = await this.doctorsService.create({

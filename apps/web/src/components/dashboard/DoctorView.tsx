@@ -141,7 +141,7 @@ export default function DoctorView() {
 
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
                 <div>
-                    <h1 className="text-3xl font-bold dark:text-white">Welcome back, {user?.role === 'doctor' ? 'Dr.' : user?.role === 'nurse' ? 'Nurse' : user?.role === 'clinician' ? 'Clinician' : ''} {user?.fname}</h1>
+                    <h1 className="text-3xl font-bold dark:text-white">Welcome back, {user?.role === 'medic' ? 'Dr./Medic' : ''} {user?.fname}</h1>
                     <p className="text-gray-500 font-medium tracking-tight">You have {stats.appointmentsToday} appointments scheduled for today.</p>
                 </div>
 
@@ -262,29 +262,52 @@ export default function DoctorView() {
                             </div>
                         </div>
 
-                        <div className="bg-donezo-dark rounded-3xl p-6 text-white flex flex-col justify-between shadow-xl shadow-donezo-dark/20 relative overflow-hidden group">
-                            <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-1000"></div>
-                            <div>
-                                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl mb-6">
-                                    <FiCheckCircle />
+                        {/* Quick Actions & Telemedicine */}
+                        <div className="space-y-6">
+                            {/* Telemedicine Card */}
+                            <div className="bg-donezo-dark rounded-3xl p-6 text-white flex flex-col justify-between shadow-xl shadow-donezo-dark/20 relative overflow-hidden group">
+                                <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-1000"></div>
+                                <div>
+                                    <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl mb-6">
+                                        <FiCheckCircle />
+                                    </div>
+                                    <h3 className="text-xl font-bold mb-2">Telemedicine Ready</h3>
+                                    <p className="text-sm text-green-100/70 mb-6 font-medium leading-relaxed">Your virtual room is active. Patients can join using the link in their portal.</p>
+                                    <div className="p-3 bg-white/10 rounded-xl border border-white/20 text-xs font-mono break-all mb-4">
+                                        {`virtual.mclinic.co.ke/Dr-${user?.fname}-${user?.id || 'me'}`}
+                                    </div>
                                 </div>
-                                <h3 className="text-xl font-bold mb-2">Telemedicine Ready</h3>
-                                <p className="text-sm text-green-100/70 mb-6 font-medium leading-relaxed">Your virtual room is active. Patients can join using the link in their portal.</p>
-                                <div className="p-3 bg-white/10 rounded-xl border border-white/20 text-xs font-mono break-all mb-4">
-                                    {`virtual.mclinic.co.ke/Dr-${user?.fname}-${user?.id || 'me'}`}
+                                <button
+                                    onClick={() => {
+                                        const roomName = `Dr-${user?.fname}-${user?.id}`;
+                                        const url = `https://virtual.mclinic.co.ke/${roomName}`;
+                                        window.open(url, '_blank');
+                                        if (!isOnline) handleToggleOnline();
+                                    }}
+                                    className="w-full py-3 bg-white text-donezo-dark font-black rounded-xl hover:bg-green-50 transition-colors"
+                                >
+                                    Go Live Now
+                                </button>
+                            </div>
+
+                            {/* Quick Workflows */}
+                            <div className="bg-white dark:bg-[#161616] rounded-3xl p-6 border border-gray-100 dark:border-gray-800">
+                                <h3 className="font-bold text-lg dark:text-white mb-4">Quick Actions</h3>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <Link href="/dashboard/pharmacy" className="p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/30 hover:scale-105 transition-transform text-center group">
+                                        <div className="w-10 h-10 mx-auto bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-2 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                            💊
+                                        </div>
+                                        <div className="text-xs font-bold text-blue-800 dark:text-blue-300">Pharmacy</div>
+                                    </Link>
+                                    <Link href="/dashboard/lab" className="p-4 bg-purple-50 dark:bg-purple-900/10 rounded-xl border border-purple-100 dark:border-purple-900/30 hover:scale-105 transition-transform text-center group">
+                                        <div className="w-10 h-10 mx-auto bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mb-2 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                                            🔬
+                                        </div>
+                                        <div className="text-xs font-bold text-purple-800 dark:text-purple-300">Lab Request</div>
+                                    </Link>
                                 </div>
                             </div>
-                            <button
-                                onClick={() => {
-                                    const roomName = `Dr-${user?.fname}-${user?.id}`;
-                                    const url = `https://virtual.mclinic.co.ke/${roomName}`;
-                                    window.open(url, '_blank');
-                                    if (!isOnline) handleToggleOnline();
-                                }}
-                                className="w-full py-3 bg-white text-donezo-dark font-black rounded-xl hover:bg-green-50 transition-colors"
-                            >
-                                Go Live Now
-                            </button>
                         </div>
                     </div>
                 </>

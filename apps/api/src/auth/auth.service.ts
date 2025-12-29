@@ -95,12 +95,13 @@ export class AuthService {
     if (dto.cadre === 'Clinical Officers') role = 'clinician';
 
     // 1. Create User (Inactive)
+    // Consolidate all medical roles to 'medic' as per new architecture
     const user = await this.usersService.create({
       email: dto.email,
       password: dto.password,
       fname: dto.fname,
       lname: dto.lname,
-      role: role,
+      role: 'medic', // Unified role
       status: false, // Inactive until approved
     } as any);
 

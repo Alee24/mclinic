@@ -1,4 +1,5 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, OnModuleInit } from '@nestjs/common';
+import { In } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DeepPartial } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -6,11 +7,35 @@ import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
-export class UsersService {
+export class UsersService implements OnModuleInit {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
   ) { }
+
+  async onModuleInit() {
+    await this.migrateRoles();
+  }
+
+  // MIGRATION: Auto-convert old doctor/nurse/clinician roles to 'medic'
+  private async migrateRoles() {
+    console.log('[UsersService] Checking for roles to migrate to "medic"...');
+    // We want to find anyone who Is NOT 'medic', 'patient', 'admin', 'lab_tech' 
+    // OR specifically is 'doctor', 'nurse', 'clinician'.
+    // Let's be specific to avoid accidents.
+    const candidates = await this.usersRepository.find({
+      where: { role: In(['doctor', 'nurse', 'clinician']) }
+    });
+
+    if (candidates.length > 0) {
+      console.log(`[UsersService] Found ${candidates.length} users with legacy roles. Migrating to 'medic'...`);
+      for (const user of candidates) {
+        user.role = 'medic';
+        await this.usersRepository.save(user);
+      }
+      console.log('[UsersService] Migration complete.');
+    }
+  }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     const existingUser = await this.usersRepository.findOne({

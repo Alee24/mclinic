@@ -47,14 +47,32 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersService = void 0;
 const common_1 = require("@nestjs/common");
-const typeorm_1 = require("@nestjs/typeorm");
-const typeorm_2 = require("typeorm");
+const typeorm_1 = require("typeorm");
+const typeorm_2 = require("@nestjs/typeorm");
+const typeorm_3 = require("typeorm");
 const user_entity_1 = require("./entities/user.entity");
 const bcrypt = __importStar(require("bcrypt"));
 let UsersService = class UsersService {
     usersRepository;
     constructor(usersRepository) {
         this.usersRepository = usersRepository;
+    }
+    async onModuleInit() {
+        await this.migrateRoles();
+    }
+    async migrateRoles() {
+        console.log('[UsersService] Checking for roles to migrate to "medic"...');
+        const candidates = await this.usersRepository.find({
+            where: { role: (0, typeorm_1.In)(['doctor', 'nurse', 'clinician']) }
+        });
+        if (candidates.length > 0) {
+            console.log(`[UsersService] Found ${candidates.length} users with legacy roles. Migrating to 'medic'...`);
+            for (const user of candidates) {
+                user.role = 'medic';
+                await this.usersRepository.save(user);
+            }
+            console.log('[UsersService] Migration complete.');
+        }
     }
     async create(createUserDto) {
         const existingUser = await this.usersRepository.findOne({
@@ -112,7 +130,7 @@ let UsersService = class UsersService {
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
-    __metadata("design:paramtypes", [typeorm_2.Repository])
+    __param(0, (0, typeorm_2.InjectRepository)(user_entity_1.User)),
+    __metadata("design:paramtypes", [typeorm_3.Repository])
 ], UsersService);
 //# sourceMappingURL=users.service.js.map

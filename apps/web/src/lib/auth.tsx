@@ -7,11 +7,11 @@ import { api } from './api';
 
 export enum UserRole {
     PATIENT = 'patient',
-    DOCTOR = 'doctor',
+    MEDIC = 'medic', // Consolidated role for Doctor, Nurse, Clinician
     ADMIN = 'admin',
     LAB_TECH = 'lab_tech',
-    NURSE = 'nurse',
-    CLINICIAN = 'clinician',
+    FINANCE = 'finance',
+    PHARMACIST = 'pharmacist',
 }
 
 interface User {
