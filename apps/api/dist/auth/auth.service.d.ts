@@ -2,14 +2,16 @@ import { UsersService } from '../users/users.service';
 import { DoctorsService } from '../doctors/doctors.service';
 import { MedicalProfilesService } from '../medical-profiles/medical-profiles.service';
 import { JwtService } from '@nestjs/jwt';
+import { EmailService } from '../email/email.service';
 export declare class AuthService {
     private usersService;
     private doctorsService;
     private medicalProfilesService;
     private jwtService;
-    constructor(usersService: UsersService, doctorsService: DoctorsService, medicalProfilesService: MedicalProfilesService, jwtService: JwtService);
+    private emailService;
+    constructor(usersService: UsersService, doctorsService: DoctorsService, medicalProfilesService: MedicalProfilesService, jwtService: JwtService, emailService: EmailService);
     validateUser(email: string, pass: string): Promise<any>;
-    login(user: any): Promise<{
+    login(user: any, ipAddress?: string, location?: string): Promise<{
         access_token: string;
         user: any;
     }>;

@@ -26,6 +26,8 @@ import { AmbulanceModule } from './ambulance/ambulance.module';
 import { PharmacyModule } from './pharmacy/pharmacy.module';
 import { LaboratoryModule } from './laboratory/laboratory.module';
 import { WalletsModule } from './wallets/wallets.module';
+import { EmailModule } from './email/email.module';
+import { MpesaModule } from './mpesa/mpesa.module';
 
 @Module({
   imports: [
@@ -64,6 +66,8 @@ import { WalletsModule } from './wallets/wallets.module';
 
     LaboratoryModule,
     WalletsModule,
+    EmailModule,
+    MpesaModule,
   ],
   controllers: [AppController],
   providers: [

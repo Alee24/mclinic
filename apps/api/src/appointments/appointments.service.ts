@@ -7,6 +7,7 @@ import { Patient } from '../patients/entities/patient.entity';
 import { Service } from '../services/entities/service.entity';
 import { Invoice, InvoiceStatus } from '../financial/entities/invoice.entity';
 import { FinancialService } from '../financial/financial.service';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class AppointmentsService {
@@ -18,6 +19,7 @@ export class AppointmentsService {
     @InjectRepository(Invoice)
     private invoiceRepository: Repository<Invoice>,
     private financialService: FinancialService,
+    private emailService: EmailService,
   ) { }
 
   async create(createAppointmentDto: any): Promise<Appointment> {
@@ -190,6 +192,24 @@ export class AppointmentsService {
           `[INVOICE] Created PAID invoice ${invoiceNumber}. Funds HELD for Doctor (Pending Completion).`,
         );
       }
+    }
+
+    // Send booking confirmation email
+    try {
+      const appointmentWithRelations = await this.appointmentsRepository.findOne({
+        where: { id: savedAppointment.id },
+        relations: ['patient', 'doctor'],
+      });
+
+      if (appointmentWithRelations?.patient && appointmentWithRelations?.doctor) {
+        await this.emailService.sendBookingConfirmationEmail(
+          appointmentWithRelations.patient,
+          appointmentWithRelations,
+          appointmentWithRelations.doctor,
+        );
+      }
+    } catch (error) {
+      console.error('Failed to send booking confirmation email:', error);
     }
 
     return savedAppointment;

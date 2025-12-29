@@ -35,6 +35,8 @@ const ambulance_module_1 = require("./ambulance/ambulance.module");
 const pharmacy_module_1 = require("./pharmacy/pharmacy.module");
 const laboratory_module_1 = require("./laboratory/laboratory.module");
 const wallets_module_1 = require("./wallets/wallets.module");
+const email_module_1 = require("./email/email.module");
+const mpesa_module_1 = require("./mpesa/mpesa.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -75,6 +77,8 @@ exports.AppModule = AppModule = __decorate([
             pharmacy_module_1.PharmacyModule,
             laboratory_module_1.LaboratoryModule,
             wallets_module_1.WalletsModule,
+            email_module_1.EmailModule,
+            mpesa_module_1.MpesaModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [

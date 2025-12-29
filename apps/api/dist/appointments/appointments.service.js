@@ -22,16 +22,19 @@ const patient_entity_1 = require("../patients/entities/patient.entity");
 const service_entity_1 = require("../services/entities/service.entity");
 const invoice_entity_1 = require("../financial/entities/invoice.entity");
 const financial_service_1 = require("../financial/financial.service");
+const email_service_1 = require("../email/email.service");
 let AppointmentsService = class AppointmentsService {
     appointmentsRepository;
     servicesRepository;
     invoiceRepository;
     financialService;
-    constructor(appointmentsRepository, servicesRepository, invoiceRepository, financialService) {
+    emailService;
+    constructor(appointmentsRepository, servicesRepository, invoiceRepository, financialService, emailService) {
         this.appointmentsRepository = appointmentsRepository;
         this.servicesRepository = servicesRepository;
         this.invoiceRepository = invoiceRepository;
         this.financialService = financialService;
+        this.emailService = emailService;
     }
     async create(createAppointmentDto) {
         const { appointmentDate, appointmentTime, isVirtual, serviceId, isForSelf, beneficiaryName, beneficiaryGender, beneficiaryAge, beneficiaryRelation, activeMedications, currentPrescriptions, homeAddress, ...rest } = createAppointmentDto;
@@ -144,6 +147,18 @@ let AppointmentsService = class AppointmentsService {
                 });
                 console.log(`[INVOICE] Created PAID invoice ${invoiceNumber}. Funds HELD for Doctor (Pending Completion).`);
             }
+        }
+        try {
+            const appointmentWithRelations = await this.appointmentsRepository.findOne({
+                where: { id: savedAppointment.id },
+                relations: ['patient', 'doctor'],
+            });
+            if (appointmentWithRelations?.patient && appointmentWithRelations?.doctor) {
+                await this.emailService.sendBookingConfirmationEmail(appointmentWithRelations.patient, appointmentWithRelations, appointmentWithRelations.doctor);
+            }
+        }
+        catch (error) {
+            console.error('Failed to send booking confirmation email:', error);
         }
         return savedAppointment;
     }
@@ -259,6 +274,7 @@ exports.AppointmentsService = AppointmentsService = __decorate([
     __metadata("design:paramtypes", [typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
-        financial_service_1.FinancialService])
+        financial_service_1.FinancialService,
+        email_service_1.EmailService])
 ], AppointmentsService);
 //# sourceMappingURL=appointments.service.js.map

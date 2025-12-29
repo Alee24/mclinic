@@ -3,6 +3,7 @@ import { UsersService } from '../users/users.service';
 import { DoctorsService } from '../doctors/doctors.service';
 import { MedicalProfilesService } from '../medical-profiles/medical-profiles.service';
 import { JwtService } from '@nestjs/jwt';
+import { EmailService } from '../email/email.service';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -12,6 +13,7 @@ export class AuthService {
     private doctorsService: DoctorsService,
     private medicalProfilesService: MedicalProfilesService,
     private jwtService: JwtService,
+    private emailService: EmailService,
   ) { }
 
   async validateUser(email: string, pass: string): Promise<any> {
@@ -23,7 +25,7 @@ export class AuthService {
     return null;
   }
 
-  async login(user: any) {
+  async login(user: any, ipAddress?: string, location?: string) {
     const validUser = await this.validateUser(user.email, user.password);
     if (!validUser) {
       throw new UnauthorizedException('Invalid credentials');
@@ -33,6 +35,18 @@ export class AuthService {
       sub: validUser.id,
       role: validUser.role,
     };
+
+    // Send login notification email
+    try {
+      await this.emailService.sendLoginAttemptEmail(
+        validUser,
+        ipAddress || 'Unknown',
+        location || 'Unknown'
+      );
+    } catch (error) {
+      console.error('Failed to send login email:', error);
+    }
+
     return {
       access_token: this.jwtService.sign(payload),
       user: validUser,
@@ -65,6 +79,13 @@ export class AuthService {
       }
     }
 
+    // 3. Send welcome email
+    try {
+      await this.emailService.sendAccountCreationEmail(user, user.role);
+    } catch (error) {
+      console.error('Failed to send welcome email:', error);
+    }
+
     return user;
   }
 
@@ -91,6 +112,13 @@ export class AuthService {
       },
       null,
     );
+
+    // 3. Send welcome email
+    try {
+      await this.emailService.sendAccountCreationEmail(user, role);
+    } catch (error) {
+      console.error('Failed to send welcome email:', error);
+    }
 
     return { user, doctor };
   }

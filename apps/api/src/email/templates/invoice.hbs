@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .content {
+            background: #f9f9f9;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .invoice-table {
+            width: 100%;
+            background: white;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .invoice-table th,
+        .invoice-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .invoice-table th {
+            background: #f0f0f0;
+        }
+
+        .total-row {
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📄 Invoice #{{invoiceNumber}}</h1>
+        </div>
+        <div class="content">
+            <p>Dear {{name}},</p>
+
+            <p>Please find your invoice details below:</p>
+
+            <table class="invoice-table">
+                <tr>
+                    <th>Invoice Number</th>
+                    <td>{{invoiceNumber}}</td>
+                </tr>
+                <tr>
+                    <th>Invoice Date</th>
+                    <td>{{invoiceDate}}</td>
+                </tr>
+                <tr>
+                    <th>Due Date</th>
+                    <td>{{dueDate}}</td>
+                </tr>
+                <tr>
+                    <th>Status</th>
+                    <td><strong>{{status}}</strong></td>
+                </tr>
+            </table>
+
+            <h3>Items</h3>
+            <table class="invoice-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each items}}
+                    <tr>
+                        <td>{{this.description}}</td>
+                        <td>KES {{this.amount}}</td>
+                    </tr>
+                    {{/each}}
+                    <tr class="total-row">
+                        <td>Total</td>
+                        <td>KES {{total}}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <a href="{{invoiceUrl}}" class="button">View Full Invoice</a>
+
+            <p>Thank you for choosing M-Clinic Health.</p>
+
+            <p>Best regards,<br>The M-Clinic Health Team</p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2025 M-Clinic Health. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+
+</html>

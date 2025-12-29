@@ -15,6 +15,7 @@ const appointment_entity_1 = require("./entities/appointment.entity");
 const service_entity_1 = require("../services/entities/service.entity");
 const invoice_entity_1 = require("../financial/entities/invoice.entity");
 const financial_module_1 = require("../financial/financial.module");
+const email_module_1 = require("../email/email.module");
 let AppointmentsModule = class AppointmentsModule {
 };
 exports.AppointmentsModule = AppointmentsModule;
@@ -23,6 +24,7 @@ exports.AppointmentsModule = AppointmentsModule = __decorate([
         imports: [
             typeorm_1.TypeOrmModule.forFeature([appointment_entity_1.Appointment, service_entity_1.Service, invoice_entity_1.Invoice]),
             financial_module_1.FinancialModule,
+            email_module_1.EmailModule,
         ],
         controllers: [appointments_controller_1.AppointmentsController],
         providers: [appointments_service_1.AppointmentsService],

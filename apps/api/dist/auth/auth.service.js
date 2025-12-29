@@ -48,17 +48,20 @@ const users_service_1 = require("../users/users.service");
 const doctors_service_1 = require("../doctors/doctors.service");
 const medical_profiles_service_1 = require("../medical-profiles/medical-profiles.service");
 const jwt_1 = require("@nestjs/jwt");
+const email_service_1 = require("../email/email.service");
 const bcrypt = __importStar(require("bcrypt"));
 let AuthService = class AuthService {
     usersService;
     doctorsService;
     medicalProfilesService;
     jwtService;
-    constructor(usersService, doctorsService, medicalProfilesService, jwtService) {
+    emailService;
+    constructor(usersService, doctorsService, medicalProfilesService, jwtService, emailService) {
         this.usersService = usersService;
         this.doctorsService = doctorsService;
         this.medicalProfilesService = medicalProfilesService;
         this.jwtService = jwtService;
+        this.emailService = emailService;
     }
     async validateUser(email, pass) {
         const user = await this.usersService.findOne(email);
@@ -68,7 +71,7 @@ let AuthService = class AuthService {
         }
         return null;
     }
-    async login(user) {
+    async login(user, ipAddress, location) {
         const validUser = await this.validateUser(user.email, user.password);
         if (!validUser) {
             throw new common_1.UnauthorizedException('Invalid credentials');
@@ -78,6 +81,12 @@ let AuthService = class AuthService {
             sub: validUser.id,
             role: validUser.role,
         };
+        try {
+            await this.emailService.sendLoginAttemptEmail(validUser, ipAddress || 'Unknown', location || 'Unknown');
+        }
+        catch (error) {
+            console.error('Failed to send login email:', error);
+        }
         return {
             access_token: this.jwtService.sign(payload),
             user: validUser,
@@ -106,6 +115,12 @@ let AuthService = class AuthService {
                 console.error('Failed to create medical profile during registration', err);
             }
         }
+        try {
+            await this.emailService.sendAccountCreationEmail(user, user.role);
+        }
+        catch (error) {
+            console.error('Failed to send welcome email:', error);
+        }
         return user;
     }
     async registerDoctor(dto) {
@@ -126,6 +141,12 @@ let AuthService = class AuthService {
             ...dto,
             Verified_status: 0,
         }, null);
+        try {
+            await this.emailService.sendAccountCreationEmail(user, role);
+        }
+        catch (error) {
+            console.error('Failed to send welcome email:', error);
+        }
         return { user, doctor };
     }
     async getProfile(userId) {
@@ -143,6 +164,7 @@ exports.AuthService = AuthService = __decorate([
     __metadata("design:paramtypes", [users_service_1.UsersService,
         doctors_service_1.DoctorsService,
         medical_profiles_service_1.MedicalProfilesService,
-        jwt_1.JwtService])
+        jwt_1.JwtService,
+        email_service_1.EmailService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map
