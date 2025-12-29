@@ -7,7 +7,7 @@ import { FiDollarSign, FiTrendingUp, FiDownload, FiCreditCard } from 'react-icon
 
 export default function TransactionsPage() {
     const { user } = useAuth();
-    const isDoctor = user?.role === UserRole.MEDIC;
+    const isDoctor = user?.role === UserRole.MEDIC || user?.role === UserRole.DOCTOR || user?.role === UserRole.NURSE || user?.role === UserRole.CLINICIAN;
     const [stats, setStats] = useState<any>(null);
     const [doctorBalance, setDoctorBalance] = useState(0);
     const [loading, setLoading] = useState(true);
@@ -23,7 +23,8 @@ export default function TransactionsPage() {
                 if (res && res.ok) {
                     const data = await res.json();
                     if (isDoctor) {
-                        setDoctorBalance(Number(data.balance));
+                        const val = Number(data.balance);
+                        setDoctorBalance(isNaN(val) ? 0 : val);
                         setStats(data);
                     } else {
                         setStats(data);

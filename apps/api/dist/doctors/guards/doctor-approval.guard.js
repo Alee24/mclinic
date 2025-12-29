@@ -20,7 +20,7 @@ let DoctorApprovalGuard = class DoctorApprovalGuard {
     async canActivate(context) {
         const request = context.switchToHttp().getRequest();
         const user = request.user;
-        if (user.role !== 'doctor') {
+        if (user.role !== 'doctor' && user.role !== 'medic') {
             return true;
         }
         const doctor = await this.doctorsService.findByEmail(user.email);

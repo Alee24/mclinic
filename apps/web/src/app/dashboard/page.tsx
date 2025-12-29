@@ -23,7 +23,8 @@ export default function DashboardPage() {
         return <AdminView />;
     }
 
-    if (user?.role === UserRole.MEDIC) {
+    // Unified Provider View
+    if (user?.role === UserRole.MEDIC || user?.role === UserRole.DOCTOR || user?.role === UserRole.NURSE || user?.role === UserRole.CLINICIAN) {
         return <DoctorView />;
     }
 

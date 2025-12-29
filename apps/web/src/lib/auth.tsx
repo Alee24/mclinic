@@ -12,6 +12,10 @@ export enum UserRole {
     LAB_TECH = 'lab_tech',
     FINANCE = 'finance',
     PHARMACIST = 'pharmacist',
+    // Legacy Roles (Keep for backward compatibility during migration)
+    DOCTOR = 'doctor',
+    NURSE = 'nurse',
+    CLINICIAN = 'clinician',
 }
 
 interface User {

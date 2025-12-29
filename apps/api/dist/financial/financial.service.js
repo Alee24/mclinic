@@ -119,7 +119,7 @@ let FinancialService = class FinancialService {
             query.where('invoice.customerEmail = :email', { email: user.email })
                 .orWhere('appointment.patientId = :userId', { userId: user.id });
         }
-        else if (user.role === 'doctor') {
+        else if (user.role === 'doctor' || user.role === 'medic') {
             const doctor = await this.doctorRepo.findOne({ where: { email: user.email } });
             if (doctor) {
                 query.where('invoice.doctorId = :doctorId', { doctorId: doctor.id });
@@ -166,8 +166,8 @@ let FinancialService = class FinancialService {
         await this.invoiceRepo.remove(invoice);
     }
     async getStats(user) {
-        console.log(`[FINANCIAL] getStats service called with role: '${user?.role}' (Comparison: ${user?.role === 'doctor'})`);
-        if (user && user.role?.toLowerCase() === 'doctor') {
+        console.log(`[FINANCIAL] getStats service called with role: '${user?.role}'`);
+        if (user && (user.role?.toLowerCase() === 'doctor' || user.role?.toLowerCase() === 'medic')) {
             return this.getDoctorStats(user);
         }
         const paidStats = await this.invoiceRepo
@@ -258,10 +258,14 @@ let FinancialService = class FinancialService {
         try {
             const wallet = await this.walletsService.getBalanceByEmail(doctor.email);
             balance = Number(wallet.balance);
+            if (isNaN(balance))
+                balance = 0;
         }
         catch (e) {
             console.warn(`[FINANCIAL] No wallet found for ${doctor.email}, using legacy balance.`);
             balance = Number(doctor.balance);
+            if (isNaN(balance))
+                balance = 0;
         }
         const pendingTransactions = await this.txRepo.createQueryBuilder('tx')
             .leftJoinAndSelect('tx.invoice', 'inv')

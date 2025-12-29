@@ -10,7 +10,7 @@ export class DoctorApprovalGuard implements CanActivate {
         const user = request.user;
 
         // Only apply to doctors
-        if (user.role !== 'doctor') {
+        if (user.role !== 'doctor' && user.role !== 'medic') {
             return true;
         }
 
