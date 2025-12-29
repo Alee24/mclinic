@@ -287,49 +287,52 @@ export default function DoctorView() {
                             </button>
                         </div>
                     </div>
+                </>
+            )}
 
-                    {showEditProfileModal && doctorProfile && (
-                        <EditDoctorProfileModal
-                            doctor={doctorProfile}
-                            onClose={() => setShowEditProfileModal(false)}
-                            onSuccess={() => {
-                                // Trigger re-fetch via dependency array if needed, but handled by useEffect based on showEditProfileModal possibly?
-                                // Actually I added showEditProfileModal as deep dependency so it should re-fetch when modal closes if I toggle it?
-                                // Wait, I toggled it to false. 
-                                // Let's rely on standard re-fetch or I can manually trigger.
-                                // For now reliance on setDoctorProfile might need manual update or re-fetch.
-                                // The dependency [user, showEditProfileModal] will trigger when modal closes?
-                                // Only if showEditProfileModal changes. It changes from true to false. So yes.
-                            }}
-                        />
-                    )}
+            {/* Modals */}
+            {showEditProfileModal && doctorProfile && (
+                <EditDoctorProfileModal
+                    doctor={doctorProfile}
+                    onClose={() => setShowEditProfileModal(false)}
+                    onSuccess={() => {
+                        // Trigger re-fetch via dependency array if needed, but handled by useEffect based on showEditProfileModal possibly?
+                        // Actually I added showEditProfileModal as deep dependency so it should re-fetch when modal closes if I toggle it?
+                        // Wait, I toggled it to false. 
+                        // Let's rely on standard re-fetch or I can manually trigger.
+                        // For now reliance on setDoctorProfile might need manual update or re-fetch.
+                        // The dependency [user, showEditProfileModal] will trigger when modal closes?
+                        // Only if showEditProfileModal changes. It changes from true to false. So yes.
+                    }}
+                />
+            )}
 
-                    {showDetailsModal && selectedAppointment && (
-                        <ViewAppointmentDetailsModal
-                            appointment={selectedAppointment}
-                            onClose={() => setShowDetailsModal(false)}
-                        />
-                    )}
-                </div>
-            );
+            {showDetailsModal && selectedAppointment && (
+                <ViewAppointmentDetailsModal
+                    appointment={selectedAppointment}
+                    onClose={() => setShowDetailsModal(false)}
+                />
+            )}
+        </div>
+    );
 }
 
-            function DrStatCard({label, value, icon, color}: any) {
+function DrStatCard({ label, value, icon, color }: any) {
     const colors: any = {
-                green: 'bg-green-50 text-green-600 dark:bg-green-900/20',
-            blue: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20',
-            purple: 'bg-purple-50 text-purple-600 dark:bg-purple-900/20',
-            orange: 'bg-orange-50 text-orange-600 dark:bg-orange-900/20',
+        green: 'bg-green-50 text-green-600 dark:bg-green-900/20',
+        blue: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20',
+        purple: 'bg-purple-50 text-purple-600 dark:bg-purple-900/20',
+        orange: 'bg-orange-50 text-orange-600 dark:bg-orange-900/20',
     };
-            return (
-            <div className="bg-white dark:bg-[#161616] p-6 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-4 group hover:border-primary/50 transition-all cursor-pointer h-full">
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl transition-transform group-hover:scale-110 duration-500 ${colors[color] || 'bg-gray-50'}`}>
-                    {icon}
-                </div>
-                <div>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{label}</p>
-                    <p className="text-2xl font-black text-gray-900 dark:text-white leading-tight">{value}</p>
-                </div>
+    return (
+        <div className="bg-white dark:bg-[#161616] p-6 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-4 group hover:border-primary/50 transition-all cursor-pointer h-full">
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl transition-transform group-hover:scale-110 duration-500 ${colors[color] || 'bg-gray-50'}`}>
+                {icon}
             </div>
-            );
+            <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{label}</p>
+                <p className="text-2xl font-black text-gray-900 dark:text-white leading-tight">{value}</p>
+            </div>
+        </div>
+    );
 }
