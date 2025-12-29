@@ -12,6 +12,7 @@ const typeorm_1 = require("@nestjs/typeorm");
 const schedule_1 = require("@nestjs/schedule");
 const doctors_service_1 = require("./doctors.service");
 const doctors_controller_1 = require("./doctors.controller");
+const id_card_controller_1 = require("./controllers/id-card.controller");
 const doctor_entity_1 = require("./entities/doctor.entity");
 const doctor_schedule_entity_1 = require("../doctor-schedules/entities/doctor-schedule.entity");
 const doctor_licence_entity_1 = require("../doctor-licences/entities/doctor-licence.entity");
@@ -35,7 +36,7 @@ exports.DoctorsModule = DoctorsModule = __decorate([
             email_module_1.EmailModule,
             schedule_1.ScheduleModule.forRoot(),
         ],
-        controllers: [doctors_controller_1.DoctorsController],
+        controllers: [doctors_controller_1.DoctorsController, id_card_controller_1.IdCardController],
         providers: [doctors_service_1.DoctorsService, license_check_service_1.LicenseCheckService],
         exports: [doctors_service_1.DoctorsService],
     })
