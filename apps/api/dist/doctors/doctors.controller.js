@@ -58,6 +58,18 @@ let DoctorsController = class DoctorsController {
         const filePath = `${process.env.API_URL || 'http://localhost:3001'}/uploads/stamps/${file.filename}`;
         return this.doctorsService.updateStamp(+id, filePath);
     }
+    findPending() {
+        return this.doctorsService.findPendingDoctors();
+    }
+    async approveDoctor(id, req) {
+        return this.doctorsService.approveDoctor(+id, req.user.id);
+    }
+    async rejectDoctor(id, reason, req) {
+        return this.doctorsService.rejectDoctor(+id, req.user.id, reason);
+    }
+    async renewLicense(id, expiryDate) {
+        return this.doctorsService.renewLicense(+id, new Date(expiryDate));
+    }
 };
 exports.DoctorsController = DoctorsController;
 __decorate([
@@ -175,6 +187,41 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], DoctorsController.prototype, "uploadStamp", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Get)('admin/pending'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], DoctorsController.prototype, "findPending", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Post)(':id/approve'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], DoctorsController.prototype, "approveDoctor", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Post)(':id/reject'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)('reason')),
+    __param(2, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:returntype", Promise)
+], DoctorsController.prototype, "rejectDoctor", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Patch)(':id/renew-license'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)('expiryDate')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", Promise)
+], DoctorsController.prototype, "renewLicense", null);
 exports.DoctorsController = DoctorsController = __decorate([
     (0, common_1.Controller)('doctors'),
     __metadata("design:paramtypes", [doctors_service_1.DoctorsService])

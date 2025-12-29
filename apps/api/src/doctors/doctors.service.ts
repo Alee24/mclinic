@@ -5,6 +5,7 @@ import { Doctor } from './entities/doctor.entity';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { Appointment } from '../appointments/entities/appointment.entity';
+import { EmailService } from '../email/email.service';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -15,6 +16,7 @@ export class DoctorsService {
         @InjectRepository(Appointment)
         private appointmentsRepository: Repository<Appointment>,
         private usersService: UsersService,
+        private emailService: EmailService,
     ) { }
 
     async create(createDoctorDto: any, user: User | null): Promise<Doctor> {
@@ -38,9 +40,10 @@ export class DoctorsService {
     }
 
     async findAllVerified(search?: string): Promise<any[]> {
-        // Step 1: Query Builder to handle search filters
+        // Query Builder to handle search filters - ONLY APPROVED DOCTORS
         const query = this.doctorsRepository.createQueryBuilder('doctor')
-            .where('doctor.Verified_status = :vStatus', { vStatus: 1 })
+            .where('doctor.approvalStatus = :approvalStatus', { approvalStatus: 'approved' })
+            .andWhere('doctor.licenseStatus = :licenseStatus', { licenseStatus: 'valid' })
             .andWhere('doctor.status = :status', { status: 1 })
             .andWhere('doctor.is_online = :isOnline', { isOnline: 1 });
 
@@ -222,5 +225,92 @@ export class DoctorsService {
     async updateStamp(id: number, filename: string): Promise<Doctor | null> {
         await this.doctorsRepository.update(id, { stampUrl: filename });
         return this.findOne(id);
+    }
+
+    // ==================== APPROVAL WORKFLOW ====================
+
+    async approveDoctor(id: number, adminId: number): Promise<Doctor> {
+        const doctor = await this.doctorsRepository.findOne({ where: { id } });
+        if (!doctor) throw new Error('Doctor not found');
+
+        doctor.approvalStatus = 'approved';
+        doctor.Verified_status = 1;
+        doctor.status = 1;
+        doctor.approvedAt = new Date();
+        doctor.approvedBy = adminId;
+
+        const savedDoctor = await this.doctorsRepository.save(doctor);
+
+        // Send approval email
+        try {
+            await this.emailService.sendDoctorApprovalEmail(savedDoctor, 'approved');
+        } catch (error) {
+            console.error('Failed to send approval email:', error);
+        }
+
+        return savedDoctor;
+    }
+
+    async rejectDoctor(id: number, adminId: number, reason: string): Promise<Doctor> {
+        const doctor = await this.doctorsRepository.findOne({ where: { id } });
+        if (!doctor) throw new Error('Doctor not found');
+
+        doctor.approvalStatus = 'rejected';
+        doctor.rejectionReason = reason;
+        doctor.status = 0;
+        doctor.approvedBy = adminId;
+
+        const savedDoctor = await this.doctorsRepository.save(doctor);
+
+        // Send rejection email
+        try {
+            await this.emailService.sendDoctorApprovalEmail(savedDoctor, 'rejected', reason);
+        } catch (error) {
+            console.error('Failed to send rejection email:', error);
+        }
+
+        return savedDoctor;
+    }
+
+    async findPendingDoctors(): Promise<Doctor[]> {
+        return await this.doctorsRepository.find({
+            where: { approvalStatus: 'pending' },
+            order: { created_at: 'DESC' },
+        });
+    }
+
+    async checkLicenseStatus(): Promise<void> {
+        const doctors = await this.doctorsRepository.find({ where: { approvalStatus: 'approved' } });
+        const now = new Date();
+        const sevenDaysFromNow = new Date();
+        sevenDaysFromNow.setDate(now.getDate() + 7);
+
+        for (const doctor of doctors) {
+            if (!doctor.licenseExpiryDate) continue;
+            const expiryDate = new Date(doctor.licenseExpiryDate);
+
+            if (expiryDate < now && doctor.licenseStatus !== 'expired') {
+                doctor.licenseStatus = 'expired';
+                doctor.status = 0;
+                doctor.lastLicenseCheck = new Date();
+                await this.doctorsRepository.save(doctor);
+            } else if (expiryDate <= sevenDaysFromNow && doctor.licenseStatus !== 'expiring_soon') {
+                doctor.licenseStatus = 'expiring_soon';
+                doctor.lastLicenseCheck = new Date();
+                await this.doctorsRepository.save(doctor);
+            }
+        }
+    }
+
+    async renewLicense(id: number, newExpiryDate: Date): Promise<Doctor> {
+        const doctor = await this.doctorsRepository.findOne({ where: { id } });
+        if (!doctor) throw new Error('Doctor not found');
+
+        doctor.licenseExpiryDate = newExpiryDate;
+        doctor.licenseStatus = 'valid';
+        doctor.status = 1;
+        doctor.lastLicenseCheck = new Date();
+
+        return await this.doctorsRepository.save(doctor);
     }
 }

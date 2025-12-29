@@ -8,6 +8,7 @@ import { DoctorLicence } from '../doctor-licences/entities/doctor-licence.entity
 
 import { Appointment } from '../appointments/entities/appointment.entity';
 import { UsersModule } from '../users/users.module';
+import { EmailModule } from '../email/email.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { UsersModule } from '../users/users.module';
       Appointment,
     ]),
     UsersModule,
+    EmailModule,
   ],
   controllers: [DoctorsController],
   providers: [DoctorsService],

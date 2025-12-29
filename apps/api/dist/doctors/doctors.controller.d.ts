@@ -17,4 +17,8 @@ export declare class DoctorsController {
     }): Promise<import("./entities/doctor.entity").Doctor | null>;
     uploadSignature(id: string, file: Express.Multer.File): Promise<import("./entities/doctor.entity").Doctor | null>;
     uploadStamp(id: string, file: Express.Multer.File): Promise<import("./entities/doctor.entity").Doctor | null>;
+    findPending(): Promise<import("./entities/doctor.entity").Doctor[]>;
+    approveDoctor(id: string, req: any): Promise<import("./entities/doctor.entity").Doctor>;
+    rejectDoctor(id: string, reason: string, req: any): Promise<import("./entities/doctor.entity").Doctor>;
+    renewLicense(id: string, expiryDate: string): Promise<import("./entities/doctor.entity").Doctor>;
 }

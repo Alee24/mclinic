@@ -3,11 +3,13 @@ import { Doctor } from './entities/doctor.entity';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { Appointment } from '../appointments/entities/appointment.entity';
+import { EmailService } from '../email/email.service';
 export declare class DoctorsService {
     private doctorsRepository;
     private appointmentsRepository;
     private usersService;
-    constructor(doctorsRepository: Repository<Doctor>, appointmentsRepository: Repository<Appointment>, usersService: UsersService);
+    private emailService;
+    constructor(doctorsRepository: Repository<Doctor>, appointmentsRepository: Repository<Appointment>, usersService: UsersService, emailService: EmailService);
     create(createDoctorDto: any, user: User | null): Promise<Doctor>;
     private createDoctorLogic;
     findAllVerified(search?: string): Promise<any[]>;
@@ -21,4 +23,9 @@ export declare class DoctorsService {
     findByEmail(email: string): Promise<Doctor | null>;
     updateSignature(id: number, filename: string): Promise<Doctor | null>;
     updateStamp(id: number, filename: string): Promise<Doctor | null>;
+    approveDoctor(id: number, adminId: number): Promise<Doctor>;
+    rejectDoctor(id: number, adminId: number, reason: string): Promise<Doctor>;
+    findPendingDoctors(): Promise<Doctor[]>;
+    checkLicenseStatus(): Promise<void>;
+    renewLicense(id: number, newExpiryDate: Date): Promise<Doctor>;
 }

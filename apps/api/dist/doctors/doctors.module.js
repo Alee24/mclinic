@@ -16,6 +16,7 @@ const doctor_schedule_entity_1 = require("../doctor-schedules/entities/doctor-sc
 const doctor_licence_entity_1 = require("../doctor-licences/entities/doctor-licence.entity");
 const appointment_entity_1 = require("../appointments/entities/appointment.entity");
 const users_module_1 = require("../users/users.module");
+const email_module_1 = require("../email/email.module");
 let DoctorsModule = class DoctorsModule {
 };
 exports.DoctorsModule = DoctorsModule;
@@ -29,6 +30,7 @@ exports.DoctorsModule = DoctorsModule = __decorate([
                 appointment_entity_1.Appointment,
             ]),
             users_module_1.UsersModule,
+            email_module_1.EmailModule,
         ],
         controllers: [doctors_controller_1.DoctorsController],
         providers: [doctors_service_1.DoctorsService],

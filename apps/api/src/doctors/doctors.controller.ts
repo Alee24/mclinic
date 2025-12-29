@@ -136,4 +136,40 @@ export class DoctorsController {
     const filePath = `${process.env.API_URL || 'http://localhost:3001'}/uploads/stamps/${file.filename}`;
     return this.doctorsService.updateStamp(+id, filePath);
   }
+
+  // ==================== APPROVAL ENDPOINTS ====================
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('admin/pending')
+  findPending() {
+    return this.doctorsService.findPendingDoctors();
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post(':id/approve')
+  async approveDoctor(
+    @Param('id') id: string,
+    @Request() req: any,
+  ) {
+    return this.doctorsService.approveDoctor(+id, req.user.id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post(':id/reject')
+  async rejectDoctor(
+    @Param('id') id: string,
+    @Body('reason') reason: string,
+    @Request() req: any,
+  ) {
+    return this.doctorsService.rejectDoctor(+id, req.user.id, reason);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch(':id/renew-license')
+  async renewLicense(
+    @Param('id') id: string,
+    @Body('expiryDate') expiryDate: string,
+  ) {
+    return this.doctorsService.renewLicense(+id, new Date(expiryDate));
+  }
 }
