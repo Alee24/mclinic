@@ -226,6 +226,39 @@ let DoctorsService = class DoctorsService {
         await this.doctorsRepository.update(id, { stampUrl: filename });
         return this.findOne(id);
     }
+    async remove(id) {
+        const doctor = await this.findOne(id);
+        if (!doctor)
+            return;
+        if (doctor.email) {
+            try {
+                await this.usersService.removeByEmail(doctor.email);
+            }
+            catch (e) {
+                console.error(`Failed to remove user associated with doctor ${id}`, e);
+            }
+        }
+        await this.doctorsRepository.delete(id);
+    }
+    async suspend(id, reason) {
+        const doctor = await this.findOne(id);
+        if (!doctor)
+            throw new Error('Doctor not found');
+        doctor.approvalStatus = 'suspended';
+        doctor.rejectionReason = reason;
+        doctor.status = 0;
+        return this.doctorsRepository.save(doctor);
+    }
+    async updateStatus(id, status) {
+        const doctor = await this.findOne(id);
+        if (!doctor)
+            throw new Error('Doctor not found');
+        doctor.status = status;
+        if (status === 1 && doctor.approvalStatus === 'suspended') {
+            doctor.approvalStatus = 'approved';
+        }
+        return this.doctorsRepository.save(doctor);
+    }
     async approveDoctor(id, adminId) {
         const doctor = await this.doctorsRepository.findOne({ where: { id } });
         if (!doctor)

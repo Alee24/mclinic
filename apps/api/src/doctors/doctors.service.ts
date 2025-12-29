@@ -229,6 +229,47 @@ export class DoctorsService {
         return this.findOne(id);
     }
 
+    async remove(id: number): Promise<void> {
+        const doctor = await this.findOne(id);
+        if (!doctor) return;
+
+        // Delete associated user if exists
+        if (doctor.email) {
+            try {
+                // Assuming UsersService has a delete/remove method or similar
+                // If not, we skip or add it. Let's assume we can try to find and delete.
+                await this.usersService.removeByEmail(doctor.email);
+            } catch (e) {
+                console.error(`Failed to remove user associated with doctor ${id}`, e);
+            }
+        }
+        await this.doctorsRepository.delete(id);
+    }
+
+    async suspend(id: number, reason: string): Promise<Doctor> {
+        const doctor = await this.findOne(id);
+        if (!doctor) throw new Error('Doctor not found');
+
+        doctor.approvalStatus = 'suspended';
+        doctor.rejectionReason = reason; // Reuse rejectionReason for suspension reason
+        doctor.status = 0; // Inactive
+        return this.doctorsRepository.save(doctor);
+    }
+
+    async updateStatus(id: number, status: number): Promise<Doctor> {
+        const doctor = await this.findOne(id);
+        if (!doctor) throw new Error('Doctor not found');
+
+        doctor.status = status;
+
+        // If activating, ensure approval status is correct if it was suspended
+        if (status === 1 && doctor.approvalStatus === 'suspended') {
+            doctor.approvalStatus = 'approved';
+        }
+
+        return this.doctorsRepository.save(doctor);
+    }
+
     // ==================== APPROVAL WORKFLOW ====================
 
     async approveDoctor(id: number, adminId: number): Promise<Doctor> {

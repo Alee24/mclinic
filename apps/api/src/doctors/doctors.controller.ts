@@ -10,6 +10,7 @@ import {
   Query,
   UseInterceptors,
   UploadedFile,
+  Delete,
 } from '@nestjs/common';
 import { DoctorsService } from './doctors.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -171,5 +172,29 @@ export class DoctorsController {
     @Body('expiryDate') expiryDate: string,
   ) {
     return this.doctorsService.renewLicense(+id, new Date(expiryDate));
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.doctorsService.remove(+id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch(':id/suspend')
+  suspend(@Param('id') id: string, @Body('reason') reason: string) {
+    return this.doctorsService.suspend(+id, reason);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch(':id/activate')
+  activate(@Param('id') id: string) {
+    return this.doctorsService.updateStatus(+id, 1);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch(':id/deactivate')
+  deactivate(@Param('id') id: string) {
+    return this.doctorsService.updateStatus(+id, 0);
   }
 }

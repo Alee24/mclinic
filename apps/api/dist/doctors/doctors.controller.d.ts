@@ -21,4 +21,8 @@ export declare class DoctorsController {
     approveDoctor(id: string, req: any): Promise<import("./entities/doctor.entity").Doctor>;
     rejectDoctor(id: string, reason: string, req: any): Promise<import("./entities/doctor.entity").Doctor>;
     renewLicense(id: string, expiryDate: string): Promise<import("./entities/doctor.entity").Doctor>;
+    remove(id: string): Promise<void>;
+    suspend(id: string, reason: string): Promise<import("./entities/doctor.entity").Doctor>;
+    activate(id: string): Promise<import("./entities/doctor.entity").Doctor>;
+    deactivate(id: string): Promise<import("./entities/doctor.entity").Doctor>;
 }

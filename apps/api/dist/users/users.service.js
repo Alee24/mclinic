@@ -101,6 +101,9 @@ let UsersService = class UsersService {
     async remove(id) {
         await this.usersRepository.delete(id);
     }
+    async removeByEmail(email) {
+        await this.usersRepository.delete({ email });
+    }
     async updateProfilePicture(id, filename) {
         await this.usersRepository.update(id, { profilePicture: filename });
         return this.usersRepository.findOne({ where: { id } });

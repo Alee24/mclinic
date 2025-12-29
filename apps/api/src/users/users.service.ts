@@ -69,6 +69,10 @@ export class UsersService {
     await this.usersRepository.delete(id);
   }
 
+  async removeByEmail(email: string): Promise<void> {
+    await this.usersRepository.delete({ email });
+  }
+
   async updateProfilePicture(id: number, filename: string): Promise<User> {
     await this.usersRepository.update(id, { profilePicture: filename });
     // @ts-ignore

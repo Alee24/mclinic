@@ -14,5 +14,6 @@ export declare class UsersService {
     update(id: number, updateUserDto: any): Promise<User>;
     updateByEmail(email: string, updateUserDto: any): Promise<User | null>;
     remove(id: number): Promise<void>;
+    removeByEmail(email: string): Promise<void>;
     updateProfilePicture(id: number, filename: string): Promise<User>;
 }

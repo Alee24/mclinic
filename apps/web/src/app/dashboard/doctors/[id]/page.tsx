@@ -91,6 +91,85 @@ export default function DoctorDetailsPage() {
                 </div>
             </div>
 
+            {/* Admin Actions */}
+            <div className="flex flex-wrap gap-3 p-4 bg-white dark:bg-[#161616] rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
+                <div className="text-sm font-bold uppercase text-gray-400 self-center mr-2">Actions:</div>
+
+                {doctor.approvalStatus === 'pending' && (
+                    <button
+                        onClick={async () => {
+                            if (!confirm('Approve this doctor?')) return;
+                            try {
+                                await api.post(`/doctors/${doctor.id}/approve`, {});
+                                window.location.reload();
+                            } catch (e) { alert('Failed to approve'); }
+                        }}
+                        className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-xs font-bold uppercase rounded-lg transition"
+                    >
+                        Approve
+                    </button>
+                )}
+
+                {doctor.status === 1 ? (
+                    <>
+                        <button
+                            onClick={async () => {
+                                if (!confirm('Deactivate this doctor? They will not be able to login.')) return;
+                                try {
+                                    await api.patch(`/doctors/${doctor.id}/deactivate`, {});
+                                    window.location.reload();
+                                } catch (e) { alert('Failed to deactivate'); }
+                            }}
+                            className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold uppercase rounded-lg transition"
+                        >
+                            Deactivate
+                        </button>
+                        <button
+                            onClick={async () => {
+                                const reason = prompt('Enter suspension reason:');
+                                if (!reason) return;
+                                try {
+                                    await api.patch(`/doctors/${doctor.id}/suspend`, { reason });
+                                    window.location.reload();
+                                } catch (e) { alert('Failed to suspend'); }
+                            }}
+                            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-bold uppercase rounded-lg transition"
+                        >
+                            Suspend
+                        </button>
+                    </>
+                ) : (
+                    <button
+                        onClick={async () => {
+                            if (!confirm('Activate this doctorAccount?')) return;
+                            try {
+                                await api.patch(`/doctors/${doctor.id}/activate`, {});
+                                window.location.reload();
+                            } catch (e) { alert('Failed to activate'); }
+                        }}
+                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold uppercase rounded-lg transition"
+                    >
+                        Activate
+                    </button>
+                )}
+
+                <button
+                    onClick={async () => {
+                        if (!confirm('PERMANENTLY DELETE doctor? This cannot be undone.')) return;
+                        const confirmation = prompt("Type 'DELETE' to confirm:");
+                        if (confirmation !== 'DELETE') return;
+
+                        try {
+                            await api.delete(`/doctors/${doctor.id}`);
+                            window.location.href = '/dashboard/admin/doctors';
+                        } catch (e) { alert('Failed to delete'); }
+                    }}
+                    className="px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold uppercase rounded-lg transition ml-auto"
+                >
+                    Delete Account
+                </button>
+            </div>
+
             {/* Tabs */}
             <div className="flex gap-6 border-b border-gray-200 dark:border-gray-800 overflow-x-auto">
                 {['profile', 'appointments', 'financials'].map((tab) => (

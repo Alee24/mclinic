@@ -23,6 +23,9 @@ export declare class DoctorsService {
     findByEmail(email: string): Promise<Doctor | null>;
     updateSignature(id: number, filename: string): Promise<Doctor | null>;
     updateStamp(id: number, filename: string): Promise<Doctor | null>;
+    remove(id: number): Promise<void>;
+    suspend(id: number, reason: string): Promise<Doctor>;
+    updateStatus(id: number, status: number): Promise<Doctor>;
     approveDoctor(id: number, adminId: number): Promise<Doctor>;
     rejectDoctor(id: number, adminId: number, reason: string): Promise<Doctor>;
     findPendingDoctors(): Promise<Doctor[]>;

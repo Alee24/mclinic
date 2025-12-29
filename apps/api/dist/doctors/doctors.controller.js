@@ -70,6 +70,18 @@ let DoctorsController = class DoctorsController {
     async renewLicense(id, expiryDate) {
         return this.doctorsService.renewLicense(+id, new Date(expiryDate));
     }
+    remove(id) {
+        return this.doctorsService.remove(+id);
+    }
+    suspend(id, reason) {
+        return this.doctorsService.suspend(+id, reason);
+    }
+    activate(id) {
+        return this.doctorsService.updateStatus(+id, 1);
+    }
+    deactivate(id) {
+        return this.doctorsService.updateStatus(+id, 0);
+    }
 };
 exports.DoctorsController = DoctorsController;
 __decorate([
@@ -222,6 +234,39 @@ __decorate([
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], DoctorsController.prototype, "renewLicense", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Delete)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], DoctorsController.prototype, "remove", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Patch)(':id/suspend'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)('reason')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], DoctorsController.prototype, "suspend", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Patch)(':id/activate'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], DoctorsController.prototype, "activate", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Patch)(':id/deactivate'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], DoctorsController.prototype, "deactivate", null);
 exports.DoctorsController = DoctorsController = __decorate([
     (0, common_1.Controller)('doctors'),
     __metadata("design:paramtypes", [doctors_service_1.DoctorsService])
