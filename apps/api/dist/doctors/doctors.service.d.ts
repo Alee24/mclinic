@@ -1,15 +1,18 @@
+import { OnModuleInit } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Doctor } from './entities/doctor.entity';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { Appointment } from '../appointments/entities/appointment.entity';
 import { EmailService } from '../email/email.service';
-export declare class DoctorsService {
+export declare class DoctorsService implements OnModuleInit {
     private doctorsRepository;
     private appointmentsRepository;
     private usersService;
     private emailService;
     constructor(doctorsRepository: Repository<Doctor>, appointmentsRepository: Repository<Appointment>, usersService: UsersService, emailService: EmailService);
+    onModuleInit(): Promise<void>;
+    private backfillUserIds;
     create(createDoctorDto: any, user: User | null): Promise<Doctor>;
     private createDoctorLogic;
     findAllVerified(search?: string): Promise<any[]>;

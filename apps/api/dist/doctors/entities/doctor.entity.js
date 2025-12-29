@@ -23,6 +23,7 @@ let Doctor = class Doctor {
     email;
     dob;
     reg_code;
+    user_id;
     Verified_status;
     approved_status;
     password;
@@ -106,6 +107,10 @@ __decorate([
     (0, typeorm_1.Column)({ length: 50 }),
     __metadata("design:type", String)
 ], Doctor.prototype, "reg_code", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'int', nullable: true }),
+    __metadata("design:type", Number)
+], Doctor.prototype, "user_id", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'tinyint', default: 0 }),
     __metadata("design:type", Number)

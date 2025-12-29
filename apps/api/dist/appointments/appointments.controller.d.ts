@@ -7,10 +7,12 @@ export declare class AppointmentsController {
     findAll(req: any): Promise<import("./entities/appointment.entity").Appointment[]>;
     diagnoseRole(req: any): Promise<{
         userContext: any;
+        lookupMethod: string;
         doctorMatch: {
             id: number;
             email: string;
             type: string;
+            doctor_user_id: number;
         } | null;
         appointmentsCount: number;
     }>;

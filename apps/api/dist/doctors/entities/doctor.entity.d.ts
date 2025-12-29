@@ -10,6 +10,7 @@ export declare class Doctor {
     email: string;
     dob: string;
     reg_code: string;
+    user_id: number;
     Verified_status: number;
     approved_status: string;
     password: string;

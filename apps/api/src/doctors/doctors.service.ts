@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DeepPartial } from 'typeorm';
 import { Doctor } from './entities/doctor.entity';
@@ -9,7 +9,7 @@ import { EmailService } from '../email/email.service';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
-export class DoctorsService {
+export class DoctorsService implements OnModuleInit {
     constructor(
         @InjectRepository(Doctor)
         private doctorsRepository: Repository<Doctor>,
@@ -18,6 +18,35 @@ export class DoctorsService {
         private usersService: UsersService,
         private emailService: EmailService,
     ) { }
+
+    async onModuleInit() {
+        console.log('[DoctorsService] Running startup checks...');
+        await this.backfillUserIds();
+    }
+
+    private async backfillUserIds() {
+        const doctorsWithoutUser = await this.doctorsRepository.find({
+            where: { user_id: undefined || null } // TypeORM might need explicit null check syntax depending on version but undefined often ignores
+        });
+
+        // Manual query to be sure
+        const candidates = await this.doctorsRepository.createQueryBuilder('doctor')
+            .where('doctor.user_id IS NULL')
+            .getMany();
+
+        if (candidates.length > 0) {
+            console.log(`[DoctorsService] Found ${candidates.length} doctors without user_id. Attempting backfill...`);
+            for (const doc of candidates) {
+                if (doc.email) {
+                    const user = await this.usersService.findOne(doc.email);
+                    if (user) {
+                        await this.doctorsRepository.update(doc.id, { user_id: user.id });
+                        console.log(`[DoctorsService] Linked Doctor ${doc.id} (${doc.email}) to User ${user.id}`);
+                    }
+                }
+            }
+        }
+    }
 
     async create(createDoctorDto: any, user: User | null): Promise<Doctor> {
         return this.createDoctorLogic(createDoctorDto, user);
@@ -33,6 +62,7 @@ export class DoctorsService {
         // unless we add it back. The production schema uses email/password directly.
         const doctor = this.doctorsRepository.create({
             ...dto,
+            user_id: user ? user.id : null, // Save user_id if provided
             status: 0, // Inactive until approved
             Verified_status: 0,
             approvalStatus: 'pending', // Default to pending

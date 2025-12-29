@@ -16,10 +16,12 @@ export declare class AppointmentsService {
     findByPatient(patientId: number): Promise<Appointment[]>;
     diagnoseUser(user: any): Promise<{
         userContext: any;
+        lookupMethod: string;
         doctorMatch: {
             id: number;
             email: string;
             type: string;
+            doctor_user_id: number;
         } | null;
         appointmentsCount: number;
     }>;

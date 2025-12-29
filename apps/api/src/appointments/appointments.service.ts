@@ -230,9 +230,15 @@ export class AppointmentsService {
   }
 
   async diagnoseUser(user: any) {
-    const doctor = await this.appointmentsRepository.manager
+    let doctor = await this.appointmentsRepository.manager
       .getRepository(Doctor)
-      .findOne({ where: { email: user.email } });
+      .findOne({ where: { user_id: user.sub || user.id } });
+
+    if (!doctor) {
+      doctor = await this.appointmentsRepository.manager
+        .getRepository(Doctor)
+        .findOne({ where: { email: user.email } });
+    }
 
     const appointments = doctor
       ? await this.appointmentsRepository.count({ where: { doctorId: doctor.id } })
@@ -240,7 +246,8 @@ export class AppointmentsService {
 
     return {
       userContext: user,
-      doctorMatch: doctor ? { id: doctor.id, email: doctor.email, type: doctor.dr_type } : null,
+      lookupMethod: doctor ? (doctor.user_id === (user.sub || user.id) ? 'USER_ID' : 'EMAIL') : 'FAILED',
+      doctorMatch: doctor ? { id: doctor.id, email: doctor.email, type: doctor.dr_type, doctor_user_id: doctor.user_id } : null,
       appointmentsCount: appointments
     };
   }
@@ -259,20 +266,21 @@ export class AppointmentsService {
 
     console.log(`[Appointments] findAllForUser called. Role: ${user.role}, Email: ${user.email}`);
 
-    if (user.role === 'doctor' || user.role === 'nurse' || user.role === 'clinician') {
-      // Find doctor ID by email
-      const doctor = await this.appointmentsRepository.manager
+    // Generic Provider Check: Try to find a Doctor/Medic profile for this user
+    // Priority 1: Check by user_id
+    let doctor = await this.appointmentsRepository.manager
+      .getRepository(Doctor)
+      .findOne({ where: { user_id: user.sub || user.id } });
+
+    // Priority 2: Fallback to email if not found by ID (legacy support for non-backfilled data)
+    if (!doctor) {
+      doctor = await this.appointmentsRepository.manager
         .getRepository(Doctor)
         .findOne({ where: { email: user.email } });
+    }
 
-      console.log(`[Appointments] Doctor match attempt for ${user.email}:`, doctor ? `Found ID ${doctor.id}` : 'Not Found');
-
-      if (!doctor) {
-        console.warn(
-          `[Appointments] Provider (Dr/Nurse/Clinician) not found for email: ${user.email}`,
-        );
-        return [];
-      }
+    if (doctor) {
+      console.log(`[Appointments] Found Medic Profile for ${user.email} (ID: ${doctor.id}). Fetching provider schedule.`);
 
       const appointments = await this.appointmentsRepository.find({
         where: { doctorId: doctor.id },
@@ -283,38 +291,39 @@ export class AppointmentsService {
       // Enrich with Patient Medical Data
       const userIds = appointments.map((a) => a.patient?.id).filter(Boolean);
       if (userIds.length > 0) {
-        // Use TypeORM 'In' operator (dynamically imported or assume available if valid)
-        // Since we can't easily add top-level imports without context, using manager query for simplicity or assuming In is available?
-        // Let's use manager.createQueryBuilder to be safe or just standard find if we can.
-        // Actually, let's just use query builder to avoid import issues with 'In'.
-        const profiles = await this.appointmentsRepository.manager
-          .getRepository(Patient)
-          .createQueryBuilder('patient')
-          .where('patient.user_id IN (:...ids)', { ids: userIds })
-          .getMany();
+        try {
+          const profiles = await this.appointmentsRepository.manager
+            .getRepository(Patient)
+            .createQueryBuilder('patient')
+            .where('patient.user_id IN (:...ids)', { ids: userIds })
+            .getMany();
 
-        appointments.forEach((a) => {
-          if (a.patient) {
-            const profile = profiles.find((p) => p.user_id === a.patient.id);
-            if (profile) {
-              // Attach profile data
-              (a.patient as any).blood_group = profile.blood_group;
-              (a.patient as any).sex = profile.sex || a.patient.sex;
-              (a.patient as any).genotype = profile.genotype;
-              (a.patient as any).allergies = profile.allergies;
-              (a.patient as any).conditions = profile.medical_history; // Mapping 'medical_history' to 'conditions' for UI
-              (a.patient as any).emergency_contact = profile.emergency_contact_name;
+          appointments.forEach((a) => {
+            if (a.patient) {
+              const profile = profiles.find((p) => p.user_id === a.patient.id);
+              if (profile) {
+                // Attach profile data
+                (a.patient as any).blood_group = profile.blood_group;
+                (a.patient as any).sex = profile.sex || a.patient.sex;
+                (a.patient as any).genotype = profile.genotype;
+                (a.patient as any).allergies = profile.allergies;
+                (a.patient as any).conditions = profile.medical_history;
+                (a.patient as any).emergency_contact = profile.emergency_contact_name;
+              }
             }
-          }
-        });
+          });
+        } catch (e) {
+          console.warn('[Appointments] Failed to enrich patient data', e);
+        }
       }
 
       return appointments;
     }
 
-    // Default: Patient
+    // Fallback: If no Medic profile found, assume Patient role
+    console.log(`[Appointments] No Medic Profile found for ${user.email}. Fetching as Patient.`);
     return this.appointmentsRepository.find({
-      where: { patientId: user.sub || user.id }, // sub is often used for ID in JWT
+      where: { patientId: user.sub || user.id },
       relations: ['doctor', 'service'],
       order: { appointment_date: 'DESC' },
     });

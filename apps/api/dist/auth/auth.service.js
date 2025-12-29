@@ -140,7 +140,7 @@ let AuthService = class AuthService {
         const doctor = await this.doctorsService.create({
             ...dto,
             Verified_status: 0,
-        }, null);
+        }, user);
         try {
             await this.emailService.sendAccountCreationEmail(user, role);
         }

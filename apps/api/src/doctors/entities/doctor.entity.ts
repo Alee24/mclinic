@@ -38,6 +38,9 @@ export class Doctor {
   @Column({ length: 50 })
   reg_code: string;
 
+  @Column({ type: 'int', nullable: true })
+  user_id: number;
+
   @Column({ type: 'tinyint', default: 0 })
   Verified_status: number;
 

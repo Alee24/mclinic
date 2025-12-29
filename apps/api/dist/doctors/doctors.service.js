@@ -65,6 +65,30 @@ let DoctorsService = class DoctorsService {
         this.usersService = usersService;
         this.emailService = emailService;
     }
+    async onModuleInit() {
+        console.log('[DoctorsService] Running startup checks...');
+        await this.backfillUserIds();
+    }
+    async backfillUserIds() {
+        const doctorsWithoutUser = await this.doctorsRepository.find({
+            where: { user_id: undefined || null }
+        });
+        const candidates = await this.doctorsRepository.createQueryBuilder('doctor')
+            .where('doctor.user_id IS NULL')
+            .getMany();
+        if (candidates.length > 0) {
+            console.log(`[DoctorsService] Found ${candidates.length} doctors without user_id. Attempting backfill...`);
+            for (const doc of candidates) {
+                if (doc.email) {
+                    const user = await this.usersService.findOne(doc.email);
+                    if (user) {
+                        await this.doctorsRepository.update(doc.id, { user_id: user.id });
+                        console.log(`[DoctorsService] Linked Doctor ${doc.id} (${doc.email}) to User ${user.id}`);
+                    }
+                }
+            }
+        }
+    }
     async create(createDoctorDto, user) {
         return this.createDoctorLogic(createDoctorDto, user);
     }
@@ -74,6 +98,7 @@ let DoctorsService = class DoctorsService {
         }
         const doctor = this.doctorsRepository.create({
             ...dto,
+            user_id: user ? user.id : null,
             status: 0,
             Verified_status: 0,
             approvalStatus: 'pending',

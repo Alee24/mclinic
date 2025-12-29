@@ -110,7 +110,7 @@ export class AuthService {
         ...dto,
         Verified_status: 0,
       },
-      null,
+      user, // Pass the created user object which contains the ID
     );
 
     // 3. Send welcome email
