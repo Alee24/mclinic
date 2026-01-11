@@ -117,15 +117,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                         items={[
                                             { href: '/dashboard/finance/transactions', label: 'Overview' },
                                             { href: '/dashboard/invoices', label: 'Invoices' },
-                                            { href: '/dashboard/finance/settings', label: 'Settings' }
+                                            { href: '/dashboard/finance/settings', label: 'Settings' },
+                                            { href: '/dashboard/admin/settings/mpesa', label: 'M-Pesa Config' }
                                         ]}
                                         pathname={pathname}
                                     />
                                 </div>
                             )}
 
-                            {/* PROVIDER MENU (Doctor, Nurse, Clinician) */}
-                            {(user.role === UserRole.DOCTOR || user.role === UserRole.NURSE || user.role === UserRole.CLINICIAN) && (
+                            {/* PROVIDER MENU (Doctor, Nurse, Clinician, Medic) */}
+                            {(user.role === UserRole.DOCTOR || user.role === UserRole.NURSE || user.role === UserRole.CLINICIAN || user.role === UserRole.MEDIC) && (
                                 <>
                                     <div className="mt-4">
                                         <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">Practice</div>
@@ -146,6 +147,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                 <>
                                     <div className="mt-4">
                                         <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">My Care</div>
+                                        <NavItem href="/dashboard/services-hub" icon={<FiGrid />} label="Services Hub" active={pathname === '/dashboard/services-hub'} />
                                         <NavItem href="/dashboard/appointments" icon={<FiCalendar />} label="Appointments" active={pathname === '/dashboard/appointments'} />
                                         <NavItem href="/dashboard/records" icon={<FiPlusCircle />} label="Medical Records" active={pathname === '/dashboard/records'} />
                                         <NavItem href="/dashboard/pharmacy" icon={<FiPackage />} label="My Pharmacy" active={pathname === '/dashboard/pharmacy'} />

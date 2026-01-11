@@ -1,4 +1,6 @@
-import { Controller, Get, Post, Body, Param, Patch, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, UseGuards, Request, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
 import { LaboratoryService } from './laboratory.service';
 import { AuthGuard } from '@nestjs/passport';
 import { UserRole } from '../users/entities/user.entity';
@@ -18,16 +20,16 @@ export class LaboratoryController {
         return this.labService.createTest(body);
     }
 
+    @Get('seed')
+    seed() {
+        return this.labService.seedTests();
+    }
+
     @Post('orders')
     @UseGuards(AuthGuard('jwt'))
-    createOrder(@Request() req: any, @Body() body: { testId: number; patientId?: number }) {
-        // Patient creates order for themselves
-        // Or Admin creates for patient?
-        // Assuming Patient self-order flow for now or Admin passing patientId
-
-        // Example: Only Patient for self
+    createOrder(@Request() req: any, @Body() body: any) {
         const patientId = req.user.role === UserRole.PATIENT ? req.user.id : body['patientId'];
-        return this.labService.createOrder(patientId, body.testId);
+        return this.labService.createOrder(patientId, body.testId, body);
     }
 
     @Get('orders')
@@ -52,5 +54,27 @@ export class LaboratoryController {
     @UseGuards(AuthGuard('jwt'))
     addResults(@Param('id') id: string, @Body() body: { results: any[] }) {
         return this.labService.addResults(id, body.results);
+    }
+
+    @Post('orders/:id/upload-report')
+    @UseGuards(AuthGuard('jwt'))
+    @UseInterceptors(
+        FileInterceptor('file', {
+            storage: diskStorage({
+                destination: './uploads/reports',
+                filename: (req, file, cb) => {
+                    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+                    const ext = file.originalname.split('.').pop();
+                    cb(null, `report-${uniqueSuffix}.${ext}`);
+                },
+            }),
+        }),
+    )
+    async uploadReport(
+        @Param('id') id: string,
+        @UploadedFile() file: Express.Multer.File,
+        @Body('notes') notes: string,
+    ) {
+        return this.labService.uploadReport(id, file.filename, notes);
     }
 }

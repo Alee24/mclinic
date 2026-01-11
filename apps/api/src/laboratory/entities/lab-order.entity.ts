@@ -37,14 +37,32 @@ export class LabOrder {
     })
     status: OrderStatus; // pending, sample_received, processing, completed, cancelled
 
+    @Column({ type: 'datetime', nullable: true })
+    sample_collection_date: Date | null;
+
+    @Column({ default: true })
+    isForSelf: boolean;
+
     @Column({ nullable: true })
-    sample_collection_date: Date;
+    beneficiaryName: string;
+
+    @Column({ nullable: true })
+    beneficiaryAge: string;
+
+    @Column({ nullable: true })
+    beneficiaryGender: string;
+
+    @Column({ nullable: true })
+    beneficiaryRelation: string;
 
     @OneToMany(() => LabResult, result => result.order)
     results: LabResult[];
 
     @Column({ nullable: true })
     report_url: string; // Path to generated PDF
+
+    @Column({ type: 'text', nullable: true })
+    technicianNotes: string; // Explanation from Lab Tech
 
     @CreateDateColumn()
     createdAt: Date;

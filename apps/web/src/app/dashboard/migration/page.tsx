@@ -59,7 +59,8 @@ export default function DataMigrationPage() {
             formData.append('file', selectedFile);
             formData.append('dataType', dataType);
 
-            const response = await fetch('http://localhost:3001/migration/preview', {
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434';
+            const response = await fetch(`${API_URL}/migration/preview`, {
                 method: 'POST',
                 body: formData,
             });
@@ -88,7 +89,8 @@ export default function DataMigrationPage() {
             formData.append('file', selectedFile);
             formData.append('dataType', dataType);
 
-            const response = await fetch('http://localhost:3001/migration/execute', {
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434';
+            const response = await fetch(`${API_URL}/migration/execute`, {
                 method: 'POST',
                 body: formData,
             });

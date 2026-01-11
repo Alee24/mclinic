@@ -11,6 +11,7 @@ import { InvoiceItem } from './entities/invoice-item.entity';
 import { Wallet } from '../wallets/entities/wallet.entity';
 import { Doctor } from '../doctors/entities/doctor.entity';
 import { WalletsModule } from '../wallets/wallets.module';
+import { MpesaModule } from '../mpesa/mpesa.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { WalletsModule } from '../wallets/wallets.module';
       Doctor,
     ]),
     WalletsModule,
+    MpesaModule,
   ],
   controllers: [FinancialController],
   providers: [FinancialService],

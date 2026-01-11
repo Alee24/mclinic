@@ -4,41 +4,48 @@ import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { MpesaTransaction } from './entities/mpesa-transaction.entity';
+import { SystemSettingsService } from '../system-settings/system-settings.service';
 
 @Injectable()
 export class MpesaService {
-    private readonly consumerKey: string;
-    private readonly consumerSecret: string;
-    private readonly passkey: string;
-    private readonly shortcode: string;
-    private readonly callbackUrl: string;
-    private readonly environment: string;
 
     constructor(
         @InjectRepository(MpesaTransaction)
         private mpesaTransactionRepository: Repository<MpesaTransaction>,
         private configService: ConfigService,
-    ) {
-        this.consumerKey = this.configService.get('MPESA_CONSUMER_KEY') || '';
-        this.consumerSecret = this.configService.get('MPESA_CONSUMER_SECRET') || '';
-        this.passkey = this.configService.get('MPESA_PASSKEY') || '';
-        this.shortcode = this.configService.get('MPESA_SHORTCODE') || '';
-        this.callbackUrl = this.configService.get('MPESA_CALLBACK_URL') || '';
-        this.environment = this.configService.get('MPESA_ENV') || 'sandbox';
+        private settingsService: SystemSettingsService,
+    ) { }
+
+    private async getCredential(key: string): Promise<string> {
+        // Try DB first
+        const dbValue = await this.settingsService.get(key);
+        if (dbValue && dbValue.trim() !== '') return dbValue;
+
+        // Fallback to Env
+        return this.configService.get(key) || '';
     }
 
-    private get baseUrl(): string {
-        return this.environment === 'production'
+    private async getBaseUrl(): Promise<string> {
+        const env = await this.getCredential('MPESA_ENV');
+        return env === 'production'
             ? 'https://api.safaricom.co.ke'
             : 'https://sandbox.safaricom.co.ke';
     }
 
     async getAccessToken(): Promise<string> {
         try {
-            const auth = Buffer.from(`${this.consumerKey}:${this.consumerSecret}`).toString('base64');
+            const consumerKey = await this.getCredential('MPESA_CONSUMER_KEY');
+            const consumerSecret = await this.getCredential('MPESA_CONSUMER_SECRET');
+            const baseUrl = await this.getBaseUrl();
+
+            if (!consumerKey || !consumerSecret) {
+                throw new Error('M-Pesa Consumer Key or Secret not configured');
+            }
+
+            const auth = Buffer.from(`${consumerKey}:${consumerSecret}`).toString('base64');
 
             const response = await axios.get(
-                `${this.baseUrl}/oauth/v1/generate?grant_type=client_credentials`,
+                `${baseUrl}/oauth/v1/generate?grant_type=client_credentials`,
                 {
                     headers: {
                         Authorization: `Basic ${auth}`,
@@ -66,12 +73,21 @@ export class MpesaService {
     ): Promise<MpesaTransaction> {
         try {
             const accessToken = await this.getAccessToken();
+            const shortcode = await this.getCredential('MPESA_SHORTCODE');
+            const passkey = await this.getCredential('MPESA_PASSKEY');
+            const callbackUrl = await this.getCredential('MPESA_CALLBACK_URL');
+            const baseUrl = await this.getBaseUrl();
+
+            if (!shortcode || !passkey || !callbackUrl) {
+                throw new Error('M-Pesa Shortcode, Passkey, or Callback URL not configured');
+            }
+
             const timestamp = new Date()
                 .toISOString()
                 .replace(/[^0-9]/g, '')
                 .slice(0, 14);
             const password = Buffer.from(
-                `${this.shortcode}${this.passkey}${timestamp}`,
+                `${shortcode}${passkey}${timestamp}`,
             ).toString('base64');
 
             // Format phone number (remove leading 0 or +254, add 254)
@@ -85,15 +101,15 @@ export class MpesaService {
             }
 
             const payload = {
-                BusinessShortCode: this.shortcode,
+                BusinessShortCode: shortcode,
                 Password: password,
                 Timestamp: timestamp,
                 TransactionType: 'CustomerPayBillOnline',
                 Amount: Math.round(amount),
                 PartyA: formattedPhone,
-                PartyB: this.shortcode,
+                PartyB: shortcode,
                 PhoneNumber: formattedPhone,
-                CallBackURL: this.callbackUrl,
+                CallBackURL: callbackUrl,
                 AccountReference: accountReference,
                 TransactionDesc: transactionDesc,
             };
@@ -101,7 +117,7 @@ export class MpesaService {
             console.log('Initiating STK Push:', { phoneNumber: formattedPhone, amount, accountReference });
 
             const response = await axios.post(
-                `${this.baseUrl}/mpesa/stkpush/v1/processrequest`,
+                `${baseUrl}/mpesa/stkpush/v1/processrequest`,
                 payload,
                 {
                     headers: {
@@ -137,23 +153,27 @@ export class MpesaService {
     async stkPushQuery(checkoutRequestId: string): Promise<any> {
         try {
             const accessToken = await this.getAccessToken();
+            const shortcode = await this.getCredential('MPESA_SHORTCODE');
+            const passkey = await this.getCredential('MPESA_PASSKEY');
+            const baseUrl = await this.getBaseUrl();
+
             const timestamp = new Date()
                 .toISOString()
                 .replace(/[^0-9]/g, '')
                 .slice(0, 14);
             const password = Buffer.from(
-                `${this.shortcode}${this.passkey}${timestamp}`,
+                `${shortcode}${passkey}${timestamp}`,
             ).toString('base64');
 
             const payload = {
-                BusinessShortCode: this.shortcode,
+                BusinessShortCode: shortcode,
                 Password: password,
                 Timestamp: timestamp,
                 CheckoutRequestID: checkoutRequestId,
             };
 
             const response = await axios.post(
-                `${this.baseUrl}/mpesa/stkpushquery/v1/query`,
+                `${baseUrl}/mpesa/stkpushquery/v1/query`,
                 payload,
                 {
                     headers: {
@@ -173,7 +193,7 @@ export class MpesaService {
         }
     }
 
-    async handleCallback(callbackData: any): Promise<MpesaTransaction> {
+    async handleCallback(callbackData: any): Promise<MpesaTransaction | null> {
         try {
             const { Body } = callbackData;
             const { stkCallback } = Body;
@@ -190,7 +210,8 @@ export class MpesaService {
 
             if (!transaction) {
                 console.error('Transaction not found:', checkoutRequestId);
-                throw new HttpException('Transaction not found', HttpStatus.NOT_FOUND);
+                // Return success to Safaricom anyway to stop retries, but log error
+                return null;
             }
 
             // Update transaction status

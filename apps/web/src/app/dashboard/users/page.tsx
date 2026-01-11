@@ -144,6 +144,10 @@ export default function UsersPage() {
                         <option value="all">All Roles</option>
                         <option value="patient">Patients</option>
                         <option value="doctor">Doctors</option>
+                        <option value="medic">Medics / Nurses</option>
+                        <option value="pharmacist">Pharmacists</option>
+                        <option value="lab_tech">Lab Techs</option>
+                        <option value="receptionist">Receptionists</option>
                         <option value="admin">Admins</option>
                     </select>
 
@@ -196,7 +200,7 @@ export default function UsersPage() {
                                                 <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-700">
                                                     {user.profilePicture ? (
                                                         <img
-                                                            src={`http://localhost:3001/uploads/profiles/${user.profilePicture}`}
+                                                            src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434'}/uploads/profiles/${user.profilePicture}`}
                                                             alt="Profile"
                                                             className="w-full h-full object-cover"
                                                         />
@@ -215,7 +219,11 @@ export default function UsersPage() {
                                         <td className="p-4">
                                             <span className={`px-2 py-1 rounded-lg text-xs font-bold uppercase ${user.role === 'admin' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' :
                                                 user.role === 'doctor' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' :
-                                                    'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+                                                    user.role === 'medic' || user.role === 'nurse' ? 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300' :
+                                                        user.role === 'pharmacist' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' :
+                                                            user.role === 'lab_tech' ? 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300' :
+                                                                user.role === 'receptionist' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' :
+                                                                    'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
                                                 }`}>
                                                 {user.role}
                                             </span>
@@ -275,7 +283,7 @@ export default function UsersPage() {
                                     <div className="w-24 h-24 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden border-4 border-white dark:border-[#1A1A1A] shadow-lg">
                                         {(editForm.profilePicture || editingUser.profilePicture) ? (
                                             <img
-                                                src={editForm.profilePicture ? URL.createObjectURL(editForm.profilePicture) : `http://localhost:3001/uploads/profiles/${editingUser.profilePicture}`}
+                                                src={editForm.profilePicture ? URL.createObjectURL(editForm.profilePicture) : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434'}/uploads/profiles/${editingUser.profilePicture}`}
                                                 alt="Profile"
                                                 className="w-full h-full object-cover"
                                             />
@@ -338,6 +346,10 @@ export default function UsersPage() {
                                 >
                                     <option value="patient">Patient</option>
                                     <option value="doctor">Doctor</option>
+                                    <option value="medic">Medic / Nurse</option>
+                                    <option value="pharmacist">Pharmacist</option>
+                                    <option value="lab_tech">Lab Technician</option>
+                                    <option value="receptionist">Receptionist</option>
                                     <option value="admin">Admin</option>
                                 </select>
                             </div>

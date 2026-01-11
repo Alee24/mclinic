@@ -60,7 +60,7 @@ interface BookAppointmentModalProps {
     onSuccess: () => void;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434';
 
 const DoctorAvatar = ({ doctor }: { doctor: Doctor }) => {
     const [error, setError] = useState(false);
@@ -506,7 +506,7 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                                     <DoctorAvatar doctor={selectedDoctor} />
                                 </div>
                                 <div>
-                                    <h3 className="font-black text-xl text-gray-900 dark:text-white">Dr. {selectedDoctor.fname} {selectedDoctor.lname}</h3>
+                                    <h3 className="font-black text-xl text-gray-900 dark:text-white">{selectedDoctor.fname} {selectedDoctor.lname}</h3>
                                     <p className="text-gray-600 dark:text-gray-400 font-medium">{selectedDoctor.speciality} • {selectedDoctor.address}</p>
                                     <div className="mt-2 text-sm font-bold text-primary">
                                         Consulation Fee: KES {selectedService ? selectedService.price : getDisplayFee(selectedDoctor)}
@@ -671,15 +671,47 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                                         </div>
 
                                         <label className="block text-xs font-bold text-gray-500 mb-1">Confirm Specific Address</label>
-                                        <div className="relative">
-                                            <FiMapPin className="absolute left-3 top-3 text-gray-400" />
-                                            <input
-                                                type="text"
-                                                placeholder="Enter house no, street, or landmark..."
-                                                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white outline-none focus:ring-2 focus:ring-primary"
-                                                value={customHomeAddress}
-                                                onChange={(e) => setCustomHomeAddress(e.target.value)}
-                                            />
+                                        <div className="flex gap-2">
+                                            <div className="relative flex-1">
+                                                <FiMapPin className="absolute left-3 top-3 text-gray-400" />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Enter house no, street, or landmark..."
+                                                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white outline-none focus:ring-2 focus:ring-primary"
+                                                    value={customHomeAddress}
+                                                    onChange={(e) => setCustomHomeAddress(e.target.value)}
+                                                />
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={async () => {
+                                                    if (!customHomeAddress) return;
+                                                    // Simple Search Indicator
+                                                    const btn = document.getElementById('search-btn');
+                                                    if (btn) btn.innerText = 'Searching...';
+
+                                                    try {
+                                                        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(customHomeAddress + ', Kenya')}`, {
+                                                            headers: { 'User-Agent': 'Mclinic-App/1.0' }
+                                                        });
+                                                        const data = await res.json();
+                                                        if (data && data.length > 0) {
+                                                            const { lat, lon } = data[0];
+                                                            setUserLocation({ lat: Number(lat), lng: Number(lon) });
+                                                        } else {
+                                                            alert('Location not found. Try adding a city name.');
+                                                        }
+                                                    } catch (e) {
+                                                        console.error(e);
+                                                    } finally {
+                                                        if (btn) btn.innerText = 'Find on Map';
+                                                    }
+                                                }}
+                                                id="search-btn"
+                                                className="bg-gray-900 dark:bg-white text-white dark:text-black px-6 rounded-xl font-bold text-sm whitespace-nowrap hover:opacity-80 transition shadow-lg"
+                                            >
+                                                Find on Map
+                                            </button>
                                         </div>
                                         <p className="text-xs text-gray-500 mt-1 ml-1">Click on the map to set location, then edit the address above if needed.</p>
                                     </div>
@@ -778,9 +810,10 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                                 </button>
                             </div>
                         </form>
-                    </div>
-                )}
-            </div>
-        </div>
+                    </div >
+                )
+                }
+            </div >
+        </div >
     );
 }

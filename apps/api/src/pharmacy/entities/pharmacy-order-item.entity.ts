@@ -24,6 +24,19 @@ export class PharmacyOrderItem {
     @Column()
     medicationName: string;
 
+    // Snapshot Fields
+    @Column({ nullable: true })
+    brandName: string;
+
+    @Column({ nullable: true })
+    genericName: string;
+
+    @Column({ nullable: true })
+    strength: string;
+
+    @Column({ nullable: true })
+    formulation: string;
+
     @Column('int')
     quantity: number;
 

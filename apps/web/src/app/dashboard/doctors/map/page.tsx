@@ -19,7 +19,8 @@ export default function DoctorsMapPage() {
     useEffect(() => {
         const fetchDoctors = async () => {
             try {
-                const res = await fetch('http://localhost:3001/doctors');
+                const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434';
+                const res = await fetch(`${API_URL}/doctors`);
                 if (!res.ok) throw new Error('Failed to fetch');
                 const data = await res.json();
                 setDoctors(data);

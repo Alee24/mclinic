@@ -23,6 +23,19 @@ export class Medication {
     @Column({ nullable: true })
     image_url: string;
 
+    // Enhanced Med Fields
+    @Column({ nullable: true })
+    brandName: string;
+
+    @Column({ nullable: true })
+    genericName: string;
+
+    @Column({ nullable: true })
+    strength: string; // e.g., '500mg'
+
+    @Column({ nullable: true })
+    formulation: string; // e.g., 'Tablet', 'Syrup'
+
     @Column({ default: true })
     requiresPrescription: boolean;
 

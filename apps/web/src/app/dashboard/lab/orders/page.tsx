@@ -2,96 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
-import { FiClock, FiCheck, FiPlay, FiFileText, FiUser, FiCalendar, FiFilter, FiRefreshCw } from 'react-icons/fi';
+import { FiClock, FiCheck, FiPlay, FiFileText, FiUser, FiCalendar, FiFilter, FiRefreshCw, FiDownload, FiEye, FiAlertCircle } from 'react-icons/fi';
 import toast from 'react-hot-toast';
-
-// Simple Modal for Result Entry (Inline for now)
-const ResultEntryModal = ({ order, onClose, onSuccess }: { order: any; onClose: () => void; onSuccess: () => void }) => {
-    const [results, setResults] = useState([{ parameter_name: '', value: '', unit: '', reference_range: '' }]);
-    const [submitting, setSubmitting] = useState(false);
-
-    const addField = () => {
-        setResults([...results, { parameter_name: '', value: '', unit: '', reference_range: '' }]);
-    };
-
-    const handleChange = (index: number, field: string, val: string) => {
-        const newResults = [...results];
-        // @ts-ignore
-        newResults[index][field] = val;
-        setResults(newResults);
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setSubmitting(true);
-        try {
-            const res = await api.post(`/laboratory/orders/${order.id}/results`, { results });
-            if (res && res.ok) {
-                // Also update status to completed
-                await api.patch(`/laboratory/orders/${order.id}/status`, { status: 'completed' });
-                toast.success('Results saved & Order Completed');
-                onSuccess();
-            } else {
-                toast.error('Failed to save results');
-            }
-        } catch (err) {
-            console.error(err);
-            toast.error('Error saving results');
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 text-left">
-            <div className="bg-white dark:bg-[#1E1E1E] w-full max-w-2xl rounded-2xl shadow-xl flex flex-col max-h-[90vh]">
-                <div className="p-6 border-b dark:border-gray-700">
-                    <h2 className="text-xl font-bold dark:text-white">Enter Results: {order?.test?.name}</h2>
-                    <p className="text-sm text-gray-500">Patient: {order?.patient?.fname} {order?.patient?.lname}</p>
-                </div>
-
-                <div className="p-6 overflow-y-auto">
-                    <form id="resultForm" onSubmit={handleSubmit} className="space-y-4">
-                        {results.map((row, i) => (
-                            <div key={i} className="grid grid-cols-12 gap-2 items-end bg-gray-50 dark:bg-white/5 p-3 rounded-lg">
-                                <div className="col-span-4">
-                                    <label className="text-xs font-bold text-gray-500">Parameter</label>
-                                    <input required placeholder="e.g. Hemoglobin" className="w-full p-2 text-sm rounded border dark:bg-black dark:border-gray-700 dark:text-white" value={row.parameter_name} onChange={e => handleChange(i, 'parameter_name', e.target.value)} />
-                                </div>
-                                <div className="col-span-3">
-                                    <label className="text-xs font-bold text-gray-500">Value</label>
-                                    <input required placeholder="e.g. 14.5" className="w-full p-2 text-sm rounded border dark:bg-black dark:border-gray-700 dark:text-white" value={row.value} onChange={e => handleChange(i, 'value', e.target.value)} />
-                                </div>
-                                <div className="col-span-2">
-                                    <label className="text-xs font-bold text-gray-500">Unit</label>
-                                    <input placeholder="g/dL" className="w-full p-2 text-sm rounded border dark:bg-black dark:border-gray-700 dark:text-white" value={row.unit} onChange={e => handleChange(i, 'unit', e.target.value)} />
-                                </div>
-                                <div className="col-span-3">
-                                    <label className="text-xs font-bold text-gray-500">Ref Range</label>
-                                    <input placeholder="13-17" className="w-full p-2 text-sm rounded border dark:bg-black dark:border-gray-700 dark:text-white" value={row.reference_range} onChange={e => handleChange(i, 'reference_range', e.target.value)} />
-                                </div>
-                            </div>
-                        ))}
-                        <button type="button" onClick={addField} className="text-sm text-blue-600 hover:underline">+ Add Another Parameter</button>
-                    </form>
-                </div>
-
-                <div className="p-6 border-t dark:border-gray-700 flex justify-end gap-3">
-                    <button onClick={onClose} className="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg">Cancel</button>
-                    <button form="resultForm" type="submit" disabled={submitting} className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-bold">
-                        {submitting ? 'Saving...' : 'Save & Complete'}
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-};
+import UploadLabResultModal from '@/components/dashboard/lab/UploadLabResultModal';
+import { useAuth, UserRole } from '@/lib/auth';
 
 export default function LabOrdersPage() {
+    const { user } = useAuth();
     const [orders, setOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
     const [selectedOrder, setSelectedOrder] = useState<any>(null);
+    const [viewNotesOrder, setViewNotesOrder] = useState<any>(null);
 
     const fetchOrders = async () => {
         setLoading(true);
@@ -131,14 +53,21 @@ export default function LabOrdersPage() {
         }
     };
 
+    const handleDownloadReport = (filename: string) => {
+        // Construct URL - assuming backend serves static files from /uploads
+        const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434'}/uploads/reports/${filename}`;
+        window.open(url, '_blank');
+    };
+
     const filteredOrders = filter === 'all' ? orders : orders.filter(o => o.status === filter);
+    const isPatient = user?.role === UserRole.PATIENT;
 
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Lab Orders</h1>
-                    <p className="text-gray-500">Track and process test requests</p>
+                    <p className="text-gray-500">{isPatient ? 'View your test results and reports' : 'Track and process test requests'}</p>
                 </div>
                 <div className="flex gap-2">
                     <select
@@ -169,7 +98,7 @@ export default function LabOrdersPage() {
                         <thead className="bg-gray-50 dark:bg-white/5 border-b border-gray-100 dark:border-gray-800">
                             <tr>
                                 <th className="p-4 text-xs font-bold text-gray-500 uppercase">Order ID</th>
-                                <th className="p-4 text-xs font-bold text-gray-500 uppercase">Patient</th>
+                                {!isPatient && <th className="p-4 text-xs font-bold text-gray-500 uppercase">Patient</th>}
                                 <th className="p-4 text-xs font-bold text-gray-500 uppercase">Test</th>
                                 <th className="p-4 text-xs font-bold text-gray-500 uppercase">Date</th>
                                 <th className="p-4 text-xs font-bold text-gray-500 uppercase">Status</th>
@@ -180,17 +109,19 @@ export default function LabOrdersPage() {
                             {filteredOrders.map((order) => (
                                 <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-white/5 transition">
                                     <td className="p-4 font-mono text-xs text-gray-500">#{order.id.slice(0, 8)}</td>
-                                    <td className="p-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">
-                                                {order.patient?.fname?.[0] || 'U'}
+                                    {!isPatient && (
+                                        <td className="p-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">
+                                                    {order.patient?.fname?.[0] || 'U'}
+                                                </div>
+                                                <div>
+                                                    <div className="font-bold text-sm dark:text-gray-200">{order.patient?.fname} {order.patient?.lname}</div>
+                                                    <div className="text-xs text-gray-400">{order.patient?.email}</div>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <div className="font-bold text-sm dark:text-gray-200">{order.patient?.fname} {order.patient?.lname}</div>
-                                                <div className="text-xs text-gray-400">{order.patient?.email}</div>
-                                            </div>
-                                        </div>
-                                    </td>
+                                        </td>
+                                    )}
                                     <td className="p-4">
                                         <div className="font-medium text-gray-700 dark:text-gray-300">{order.test?.name}</div>
                                         <div className="text-xs text-gray-400">{order.test?.category}</div>
@@ -204,33 +135,40 @@ export default function LabOrdersPage() {
                                         </span>
                                     </td>
                                     <td className="p-4 text-right">
-                                        {order.status === 'pending' && (
-                                            <button
-                                                onClick={() => updateStatus(order.id, 'sample_received')}
-                                                className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg font-bold hover:bg-blue-100"
-                                            >
-                                                Receive Sample
-                                            </button>
-                                        )}
-                                        {order.status === 'sample_received' && (
-                                            <button
-                                                onClick={() => updateStatus(order.id, 'processing')}
-                                                className="text-xs bg-purple-50 text-purple-600 px-3 py-1.5 rounded-lg font-bold hover:bg-purple-100"
-                                            >
-                                                Start Processing
-                                            </button>
-                                        )}
-                                        {order.status === 'processing' && (
-                                            <button
-                                                onClick={() => setSelectedOrder(order)}
-                                                className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded-lg font-bold hover:bg-green-100"
-                                            >
-                                                Enter Results
-                                            </button>
-                                        )}
-                                        {order.status === 'completed' && (
-                                            <button className="text-gray-400 hover:text-blue-500"><FiFileText size={18} /></button>
-                                        )}
+                                        <div className="flex justify-end gap-2">
+                                            {/* Standard Actions (Tech Only) */}
+                                            {!isPatient && order.status === 'pending' && (
+                                                <button onClick={() => updateStatus(order.id, 'sample_received')} className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg font-bold hover:bg-blue-100">Receive Sample</button>
+                                            )}
+                                            {!isPatient && order.status === 'sample_received' && (
+                                                <button onClick={() => updateStatus(order.id, 'processing')} className="text-xs bg-purple-50 text-purple-600 px-3 py-1.5 rounded-lg font-bold hover:bg-purple-100">Start Processing</button>
+                                            )}
+                                            {!isPatient && order.status === 'processing' && (
+                                                <button onClick={() => setSelectedOrder(order)} className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded-lg font-bold hover:bg-green-100">Enter Results</button>
+                                            )}
+
+                                            {/* Report Actions (Everyone if completed) */}
+                                            {order.status === 'completed' && order.report_url && (
+                                                <button
+                                                    onClick={() => handleDownloadReport(order.report_url)}
+                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg flex items-center gap-1 text-xs font-bold"
+                                                    title="Download Report"
+                                                >
+                                                    <FiDownload /> Report
+                                                </button>
+                                            )}
+
+                                            {/* Notes (Everyone if exists) */}
+                                            {order.technicianNotes && (
+                                                <button
+                                                    onClick={() => setViewNotesOrder(order)}
+                                                    className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg flex items-center gap-1 text-xs"
+                                                    title="View Technician Notes"
+                                                >
+                                                    <FiEye /> Notes
+                                                </button>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -240,7 +178,7 @@ export default function LabOrdersPage() {
             )}
 
             {selectedOrder && (
-                <ResultEntryModal
+                <UploadLabResultModal
                     order={selectedOrder}
                     onClose={() => setSelectedOrder(null)}
                     onSuccess={() => {
@@ -248,6 +186,27 @@ export default function LabOrdersPage() {
                         fetchOrders();
                     }}
                 />
+            )}
+
+            {/* View Notes Modal */}
+            {viewNotesOrder && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <div className="bg-white dark:bg-[#1E1E1E] w-full max-w-md rounded-2xl shadow-xl p-6">
+                        <div className="flex items-center gap-3 mb-4">
+                            <FiAlertCircle className="text-blue-500 text-2xl" />
+                            <h3 className="text-lg font-bold dark:text-white">Technician Notes</h3>
+                        </div>
+                        <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-xl text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap max-h-60 overflow-y-auto">
+                            {viewNotesOrder.technicianNotes}
+                        </div>
+                        <button
+                            onClick={() => setViewNotesOrder(null)}
+                            className="mt-6 w-full py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg font-bold transition-colors"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
             )}
         </div>
     );

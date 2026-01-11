@@ -30,6 +30,7 @@ interface User {
     address?: string;
     city?: string;
     national_id?: string;
+    doctorId?: number;
 }
 
 interface AuthContextType {

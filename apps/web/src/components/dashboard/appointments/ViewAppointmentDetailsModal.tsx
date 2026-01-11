@@ -5,13 +5,14 @@ import { FiX, FiUser, FiActivity, FiFileText, FiClock, FiPhone, FiMail, FiMapPin
 import AddMedicalRecordModal from '@/components/dashboard/medical-records/AddMedicalRecordModal';
 import PrescribeMedicationModal from '@/components/dashboard/pharmacy/PrescribeMedicationModal';
 import PharmacyCheckoutModal from '@/components/dashboard/pharmacy/PharmacyCheckoutModal';
+import MedicRecommendationsCard from '@/components/dashboard/appointments/MedicRecommendationsCard';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434';
 
 // Fix Leaflet Icons
 const fixLeafletIcons = () => {
@@ -37,7 +38,7 @@ interface ViewAppointmentDetailsModalProps {
 
 export default function ViewAppointmentDetailsModal({ appointment, onClose }: ViewAppointmentDetailsModalProps) {
     const { user } = useAuth();
-    const isDoctor = user?.role === 'doctor';
+    const isDoctor = user?.role === 'doctor' || user?.role === 'medic' || user?.role === 'nurse' || user?.role === 'clinician';
     const isPatient = user?.role === 'patient';
     const isAdmin = user?.role === 'admin';
 
@@ -51,6 +52,7 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
     const [medicalProfile, setMedicalProfile] = useState<any>(null);
     const [prescriptions, setPrescriptions] = useState<any[]>([]);
     const [medicalRecords, setMedicalRecords] = useState<any[]>([]);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     const [loadingData, setLoadingData] = useState(true);
 
@@ -59,17 +61,7 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
     const patientUserId = patient.id;
 
     // Debug doctor data
-    useEffect(() => {
-        if (doctor && !isDoctor && !isAdmin) {
-            console.log('=== DOCTOR DATA DEBUG ===');
-            console.log('Doctor object:', doctor);
-            console.log('Doctor fname:', doctor.fname);
-            console.log('Doctor lname:', doctor.lname);
-            console.log('Doctor profile_image:', doctor.profile_image);
-            console.log('Doctor email:', doctor.email);
-            console.log('Full image path:', `${API_URL}/uploads/${doctor.profile_image}`);
-        }
-    }, [doctor, isDoctor, isAdmin]);
+    // Debug doctor data removed
 
     useEffect(() => {
         fixLeafletIcons();
@@ -104,7 +96,7 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
         };
 
         if (appointment) fetchData();
-    }, [appointment, patientUserId]);
+    }, [appointment, patientUserId, refreshTrigger]);
 
     if (!appointment) return null;
 
@@ -160,7 +152,7 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
                             ) : (!isDoctor && !isAdmin) && doctor.profile_image ? (
                                 <img
                                     src={doctor.profile_image.startsWith('http') ? doctor.profile_image : `${API_URL}/uploads/profiles/${doctor.profile_image}`}
-                                    alt={`Dr. ${doctor.fname} ${doctor.lname}`}
+                                    alt={`${doctor.fname} ${doctor.lname}`}
                                     className="w-24 h-24 rounded-2xl object-cover shadow-lg"
                                     onLoad={() => {
                                         console.log('Doctor image loaded successfully:', doctor.profile_image);
@@ -191,7 +183,7 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
                                 {isDoctor || isAdmin ? (
                                     `${patient.fname} ${patient.lname}`
                                 ) : (
-                                    `Dr. ${doctor.fname} ${doctor.lname}`
+                                    `${doctor.fname} ${doctor.lname}`
                                 )}
                             </h2>
                             <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
@@ -286,6 +278,21 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
                                                 {appointment.appointment_date ? new Date(appointment.appointment_date).toLocaleDateString() : 'Not set'}
                                                 {appointment.appointment_time && ` at ${appointment.appointment_time}`}
                                             </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                                            <FiActivity className="text-orange-600" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-gray-500">Appointment Status</p>
+                                            <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${appointment.status === 'confirmed' ? 'bg-green-100 text-green-700' :
+                                                appointment.status === 'completed' ? 'bg-blue-100 text-blue-700' :
+                                                    appointment.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                                                        'bg-yellow-100 text-yellow-700'
+                                                }`}>
+                                                {appointment.status}
+                                            </span>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
@@ -441,6 +448,98 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
 
                         {/* Middle Column - Map or Doctor Info */}
                         <div className="lg:col-span-2 space-y-6">
+
+                            {/* Admin Specific: Medic & Financials */}
+                            {isAdmin && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {/* Assigned Medic Details */}
+                                    <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
+                                        <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <FiBriefcase className="text-primary" />
+                                            Assigned Medic
+                                        </h3>
+                                        <div className="space-y-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 font-bold">
+                                                    {doctor.fname?.[0] || 'D'}
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold dark:text-white">{doctor.fname} {doctor.lname}</p>
+                                                    <p className="text-xs text-gray-500">{doctor.speciality || 'General Practitioner'}</p>
+                                                </div>
+                                            </div>
+                                            <div className="pt-3 border-t border-gray-100 dark:border-gray-800 space-y-2">
+                                                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                                    <FiPhone size={14} />
+                                                    <span>{doctor.mobile || 'No Phone'}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                                    <FiMail size={14} />
+                                                    <span>{doctor.email || 'No Email'}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                                    <FiShield size={14} />
+                                                    <span>License: {doctor.licenceNo || 'N/A'}</span>
+                                                </div>
+                                                {doctor.hospital_attachment && (
+                                                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                                        <FiMapPin size={14} />
+                                                        <span>{doctor.hospital_attachment}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Financial Details */}
+                                    <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
+                                        <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <FiDollarSign className="text-primary" />
+                                            Financials
+                                        </h3>
+                                        <div className="space-y-4">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-sm text-gray-500">Status</span>
+                                                <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${(appointment.invoice?.status === 'paid' || (!appointment.invoice && (appointment.status === 'confirmed' || appointment.status === 'completed'))) ? 'bg-green-100 text-green-700' :
+                                                    (appointment.invoice?.status === 'pending' || appointment.status === 'pending') ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-500'
+                                                    }`}>
+                                                    {appointment.invoice?.status || (appointment.status === 'confirmed' || appointment.status === 'completed' ? 'paid' : 'pending')}
+                                                </span>
+                                            </div>
+                                            <div className="pt-3 border-t border-gray-100 dark:border-gray-800 space-y-2">
+                                                <div className="flex justify-between items-center text-sm text-gray-500">
+                                                    <span>Consultation Fee</span>
+                                                    <span className="dark:text-gray-300">KES {Number(appointment.fee || 0).toLocaleString()}</span>
+                                                </div>
+                                                {appointment.transportFee > 0 && (
+                                                    <div className="flex justify-between items-center text-sm text-gray-500">
+                                                        <span>Transport Cost</span>
+                                                        <span className="dark:text-gray-300">KES {Number(appointment.transportFee).toLocaleString()}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-gray-800">
+                                                <span className="text-sm text-gray-500">Total Amount</span>
+                                                <span className="font-bold text-lg dark:text-white">
+                                                    KES {Number(appointment.invoice?.totalAmount || (Number(appointment.fee || 0) + Number(appointment.transportFee || 0))).toLocaleString()}
+                                                </span>
+                                            </div>
+                                            {appointment.invoice && (
+                                                <div className="pt-3 border-t border-gray-100 dark:border-gray-800">
+                                                    <div className="flex justify-between items-center text-sm mb-1">
+                                                        <span className="text-gray-500">Invoice #</span>
+                                                        <span className="font-mono dark:text-gray-300">{appointment.invoice.invoiceNumber}</span>
+                                                    </div>
+                                                    <div className="flex justify-between items-center text-sm">
+                                                        <span className="text-gray-500">Date</span>
+                                                        <span className="dark:text-gray-300">{new Date(appointment.invoice.createdAt).toLocaleDateString()}</span>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                             {/* Map (Doctor/Admin View) */}
                             {(isDoctor || isAdmin) && (
                                 <div className="bg-white dark:bg-white/5 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-800">
@@ -530,7 +629,6 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
                                 )}
                             </div>
 
-                            {/* Diagnosis & Records */}
                             <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
                                 <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
                                     <FiFileText className="text-primary" />
@@ -558,6 +656,13 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
                                     </div>
                                 )}
                             </div>
+
+                            {/* Medic Recommendations */}
+                            <MedicRecommendationsCard
+                                appointmentId={appointment.id}
+                                isMedic={isDoctor || isAdmin}
+                                isPatient={isPatient}
+                            />
                         </div>
                     </div>
                 </div>
@@ -571,7 +676,9 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
                     onClose={() => setShowAddRecordModal(false)}
                     onSuccess={() => {
                         setShowAddRecordModal(false);
+                        setShowAddRecordModal(false);
                         // Refresh data
+                        setRefreshTrigger(prev => prev + 1);
                     }}
                 />
             )}
@@ -582,7 +689,9 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
                     onClose={() => setShowPrescribeModal(false)}
                     onSuccess={() => {
                         setShowPrescribeModal(false);
+                        setShowPrescribeModal(false);
                         // trigger refresh
+                        setRefreshTrigger(prev => prev + 1);
                     }}
                 />
             )}

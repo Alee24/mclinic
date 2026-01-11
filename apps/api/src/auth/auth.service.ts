@@ -47,9 +47,19 @@ export class AuthService {
       console.error('Failed to send login email:', error);
     }
 
+    // Attach doctorId if medical user
+    let finalUser = { ...validUser };
+    if (['doctor', 'medic', 'nurse', 'clinician'].includes(validUser.role)) {
+      const doctor = await this.doctorsService.findByEmail(validUser.email);
+      if (doctor) {
+        // @ts-ignore
+        finalUser.doctorId = doctor.id;
+      }
+    }
+
     return {
       access_token: this.jwtService.sign(payload),
-      user: validUser,
+      user: finalUser,
     };
   }
 
@@ -90,18 +100,19 @@ export class AuthService {
   }
 
   async registerDoctor(dto: any) {
-    let role = 'doctor';
-    if (dto.cadre === 'Nursing') role = 'nurse';
-    if (dto.cadre === 'Clinical Officers') role = 'clinician';
+    let role = 'medic'; // Default consolidated role for Doctors, Clinical Officers, etc.
+    if (dto.cadre === 'Nursing') role = 'medic'; // Nurses are also Medics/Providers
+    if (dto.cadre === 'Pharmacy') role = 'pharmacist';
+    if (dto.cadre === 'Laboratory') role = 'lab_tech';
+    if (dto.cadre === 'Finance') role = 'finance';
 
     // 1. Create User (Inactive)
-    // Consolidate all medical roles to 'medic' as per new architecture
     const user = await this.usersService.create({
       email: dto.email,
       password: dto.password,
       fname: dto.fname,
       lname: dto.lname,
-      role: 'medic', // Unified role
+      role: role,
       status: false, // Inactive until approved
     } as any);
 
@@ -128,6 +139,16 @@ export class AuthService {
     const user = await this.usersService.findById(userId);
     if (user) {
       const { password, ...result } = user;
+
+      // Attach doctorId if medical user
+      if (['doctor', 'medic', 'nurse', 'clinician'].includes(user.role)) {
+        const doctor = await this.doctorsService.findByEmail(user.email);
+        if (doctor) {
+          // @ts-ignore
+          return { ...result, doctorId: doctor.id };
+        }
+      }
+
       return result;
     }
     return null;

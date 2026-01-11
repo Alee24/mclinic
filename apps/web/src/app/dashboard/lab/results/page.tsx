@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
-import { FiFileText, FiActivity, FiClock, FiCheckCircle, FiDownload } from 'react-icons/fi';
+import { FiFileText, FiActivity, FiClock, FiCheckCircle, FiDownload, FiEye } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -28,6 +28,7 @@ const getDataUrl = (url: string): Promise<string> => {
 export default function PatientLabResultsPage() {
     const [orders, setOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [viewNotesOrder, setViewNotesOrder] = useState<any>(null);
 
     const fetchOrders = async () => {
         try {
@@ -46,6 +47,18 @@ export default function PatientLabResultsPage() {
     useEffect(() => {
         fetchOrders();
     }, []);
+
+    const handleDownloadReport = async (order: any) => {
+        // 1. Prefer Uploaded Report by Technician
+        if (order.report_url) {
+            const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434'}/uploads/reports/${order.report_url}`;
+            window.open(url, '_blank');
+            return;
+        }
+
+        // 2. Fallback: Generate PDF on Client
+        generateLabReport(order);
+    };
 
     const generateLabReport = async (order: any) => {
         const toastId = toast.loading('Generating Lab Report...');
@@ -220,12 +233,22 @@ export default function PatientLabResultsPage() {
 
                                 <div className="flex flex-col gap-2 min-w-[140px]">
                                     {order.status === 'completed' ? (
-                                        <button
-                                            onClick={() => generateLabReport(order)}
-                                            className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium text-sm"
-                                        >
-                                            <FiDownload /> Download Report
-                                        </button>
+                                        <>
+                                            <button
+                                                onClick={() => handleDownloadReport(order)}
+                                                className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium text-sm"
+                                            >
+                                                <FiDownload /> {order.report_url ? 'Download Report' : 'Generate Report'}
+                                            </button>
+                                            {order.technicianNotes && (
+                                                <button
+                                                    onClick={() => setViewNotesOrder(order)}
+                                                    className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 transition font-medium text-sm"
+                                                >
+                                                    <FiEye /> View Comments
+                                                </button>
+                                            )}
+                                        </>
                                     ) : (
                                         <div className="text-center text-xs text-gray-400 italic">
                                             Results pending...
@@ -235,6 +258,27 @@ export default function PatientLabResultsPage() {
                             </div>
                         </div>
                     ))}
+                </div>
+            )}
+
+            {/* View Notes Modal */}
+            {viewNotesOrder && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <div className="bg-white dark:bg-[#1E1E1E] w-full max-w-md rounded-2xl shadow-xl p-6">
+                        <div className="flex items-center gap-3 mb-4">
+                            <FiActivity className="text-blue-500 text-2xl" />
+                            <h3 className="text-lg font-bold dark:text-white">Technician Comments</h3>
+                        </div>
+                        <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-xl text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap max-h-60 overflow-y-auto">
+                            {viewNotesOrder.technicianNotes}
+                        </div>
+                        <button
+                            onClick={() => setViewNotesOrder(null)}
+                            className="mt-6 w-full py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg font-bold transition-colors"
+                        >
+                            Close
+                        </button>
+                    </div>
                 </div>
             )}
         </div>

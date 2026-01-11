@@ -8,7 +8,9 @@ import { Transaction, TransactionStatus } from './entities/transaction.entity';
 import { Invoice, InvoiceStatus } from './entities/invoice.entity';
 import { InvoiceItem } from './entities/invoice-item.entity';
 import { Doctor } from '../doctors/entities/doctor.entity';
+import { Patient } from '../patients/entities/patient.entity';
 import { WalletsService } from '../wallets/wallets.service';
+import { MpesaService } from '../mpesa/mpesa.service';
 
 @Injectable()
 export class FinancialService {
@@ -26,6 +28,7 @@ export class FinancialService {
         @InjectRepository(Doctor)
         private doctorRepo: Repository<Doctor>,
         private walletsService: WalletsService,
+        private mpesaService: MpesaService,
     ) { }
 
     // --- Config Management ---
@@ -188,55 +191,70 @@ export class FinancialService {
         }
 
         // Admin/Global Stats
-        // Calculate Total Revenue (Sum of PAID Invoices) - This is more accurate than transactions if seeding was done via SQL
-        const paidStats = await this.invoiceRepo
-            .createQueryBuilder('inv')
-            .select('SUM(inv.totalAmount)', 'total')
-            .where('inv.status = :status', { status: InvoiceStatus.PAID })
-            .getRawOne();
-        const paidAmount = parseFloat(paidStats?.total || '0');
-
-        // Calculate Pending Amount
-        const pendingStats = await this.invoiceRepo
-            .createQueryBuilder('inv')
-            .select('SUM(inv.totalAmount)', 'total')
-            .where('inv.status = :status', { status: InvoiceStatus.PENDING })
-            .getRawOne();
-        const pendingAmount = parseFloat(pendingStats?.total || '0');
-
-        // Calculate Overdue Amount
-        const overdueStats = await this.invoiceRepo
-            .createQueryBuilder('inv')
-            .select('SUM(inv.totalAmount)', 'total')
-            .where('inv.status = :status', { status: InvoiceStatus.OVERDUE })
-            .getRawOne();
-        const overdueAmount = parseFloat(overdueStats?.total || '0');
-
-
-        const totalRevenue = paidAmount; // Revenue is what we have collected
-
-        const totalTransactions = await this.txRepo.count();
-        const recentTransactions = await this.txRepo.find({
-            order: { createdAt: 'DESC' },
-            take: 5,
-            relations: ['user', 'invoice', 'invoice.appointment', 'invoice.appointment.patient', 'invoice.appointment.doctor']
+        const paidInvoices = await this.invoiceRepo.find({
+            where: { status: InvoiceStatus.PAID },
+            order: { createdAt: 'DESC' } // Newest first
         });
 
-        // Invoice Counts
-        const pendingInvoicesCount = await this.invoiceRepo.count({ where: { status: InvoiceStatus.PENDING } });
-        const paidInvoicesCount = await this.invoiceRepo.count({ where: { status: InvoiceStatus.PAID } });
-        const overdueInvoicesCount = await this.invoiceRepo.count({ where: { status: InvoiceStatus.OVERDUE } });
+        // 1. Calculate Totals
+        let totalRevenue = 0;
+        let pharmacyRevenue = 0;
+        let labRevenue = 0;
+        let serviceRevenue = 0; // Appointments, etc.
 
-        // Payment Method Stats
+        // 2. Daily Trends (Last 7 Days)
+        const dailyRevenueMap = new Map<string, number>();
+        const today = new Date();
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date(today);
+            d.setDate(today.getDate() - i);
+            dailyRevenueMap.set(d.toISOString().slice(0, 10), 0);
+        }
+
+        paidInvoices.forEach(inv => {
+            const amount = Number(inv.totalAmount);
+            totalRevenue += amount;
+
+            // Breakdown Logic
+            // PH-*: Pharmacy
+            // LB-*: Lab
+            // INV-*: Appointment/Service (Standard)
+            // AMB-*: Ambulance
+            const prefix = inv.invoiceNumber ? inv.invoiceNumber.split('-')[0] : 'INV';
+
+            if (prefix === 'PH') {
+                pharmacyRevenue += amount;
+            } else if (prefix === 'LB') {
+                labRevenue += amount;
+            } else {
+                serviceRevenue += amount;
+            }
+
+            // Daily Trend
+            const dateKey = inv.createdAt.toISOString().slice(0, 10);
+            if (dailyRevenueMap.has(dateKey)) {
+                dailyRevenueMap.set(dateKey, (dailyRevenueMap.get(dateKey) || 0) + amount);
+            }
+        });
+
+        const dailyRevenue = Array.from(dailyRevenueMap.entries()).map(([date, amount]) => ({
+            date: new Date(date).toLocaleDateString('en-US', { weekday: 'short' }), // Mon, Tue
+            fullDate: date,
+            amount
+        }));
+
+        // Pending & Overdue
+        const pendingCount = await this.invoiceRepo.count({ where: { status: InvoiceStatus.PENDING } });
+        const overdueCount = await this.invoiceRepo.count({ where: { status: InvoiceStatus.OVERDUE } });
+
+        // Payment Method Stats (Existing logic reused/simplified)
         const sourceStats = await this.txRepo
             .createQueryBuilder('tx')
             .select('tx.source', 'source')
-            .addSelect('COUNT(tx.id)', 'count')
             .addSelect('SUM(tx.amount)', 'total')
             .groupBy('tx.source')
             .getRawMany();
 
-        // Format source stats
         const paymentStats = {
             mpesa: 0,
             visa: 0,
@@ -255,27 +273,29 @@ export class FinancialService {
             else paymentStats.others += total;
         });
 
-        // Calculate Net Revenue (Commission / 40%)
-        // Simplified Logic: The user expects this to reflect 40% of the Gross Revenue shown
         const netRevenue = totalRevenue * 0.40;
 
         return {
             totalRevenue,
             netRevenue,
-            totalTransactions,
-            recentTransactions,
+            revenueByDepartment: {
+                pharmacy: pharmacyRevenue,
+                lab: labRevenue,
+                appointments: serviceRevenue,
+                total: totalRevenue
+            },
+            dailyRevenue,
+            totalTransactions: await this.txRepo.count(),
+            recentTransactions: await this.txRepo.find({
+                order: { createdAt: 'DESC' },
+                take: 5,
+                relations: ['user', 'invoice']
+            }),
             invoices: {
-                pending: pendingInvoicesCount,
-                paid: paidInvoicesCount,
-                overdue: overdueInvoicesCount,
-                total: pendingInvoicesCount + paidInvoicesCount + overdueInvoicesCount,
-                // Add amounts for frontend
-                mk_pendingAmount: pendingAmount,
-                mk_paidAmount: paidAmount,
-                mk_overdueAmount: overdueAmount,
-                // Standard keys that might be expected
-                pendingAmount,
-                paidAmount
+                pending: pendingCount,
+                paid: paidInvoices.length,
+                overdue: overdueCount,
+                total: pendingCount + paidInvoices.length + overdueCount
             },
             paymentStats
         };
@@ -330,7 +350,7 @@ export class FinancialService {
             .leftJoinAndSelect('inv.appointment', 'appt')
             .leftJoinAndSelect('appt.patient', 'patient')
             .where('tx.userId = :userId', { userId: user.id }) // Withdrawals via User ID
-            .orWhere('inv.doctorId = :doctorId', { doctorId: doctor.id }) // Earnings via Doctor Profile ID
+            .orWhere('(inv.doctorId = :doctorId AND (inv.invoiceNumber LIKE \'INV-%\' OR inv.appointmentId IS NOT NULL))', { doctorId: doctor.id }) // Strict Earnings Check
             .orderBy('tx.createdAt', 'DESC')
             .take(10)
             .getMany();
@@ -342,44 +362,29 @@ export class FinancialService {
         };
     }
 
-    // M-Pesa STK Push (Simulated for demo - replace with actual Safaricom API)
+    // M-Pesa STK Push Integration
     async initiateMpesaPayment(phoneNumber: string, amount: number, invoiceId: number) {
         const invoice = await this.invoiceRepo.findOne({ where: { id: invoiceId } });
         if (!invoice) {
             throw new NotFoundException('Invoice not found');
         }
 
-        // In production, integrate with Safaricom Daraja API
-        // For now, simulate the STK push
-        const checkoutRequestId = `MCL${Date.now()}`;
+        console.log(`[FINANCIAL] Initiating M-Pesa STK Push for Invoice #${invoice.invoiceNumber} to ${phoneNumber}`);
 
-        console.log(`[MPESA] Initiating STK Push to ${phoneNumber} for KES ${amount}`);
-        console.log(`[MPESA] CheckoutRequestID: ${checkoutRequestId}`);
-
-        // Simulate successful payment after 5 seconds (in production, wait for callback)
-        setTimeout(async () => {
-            await this.handleMpesaCallback({
-                Body: {
-                    stkCallback: {
-                        ResultCode: 0,
-                        ResultDesc: 'The service request is processed successfully.',
-                        CheckoutRequestID: checkoutRequestId,
-                        CallbackMetadata: {
-                            Item: [
-                                { Name: 'Amount', Value: amount },
-                                { Name: 'MpesaReceiptNumber', Value: `MPE${Date.now()}` },
-                                { Name: 'PhoneNumber', Value: phoneNumber }
-                            ]
-                        }
-                    }
-                }
-            });
-        }, 5000);
+        const transaction = await this.mpesaService.initiateSTKPush(
+            phoneNumber,
+            amount,
+            invoice.invoiceNumber,
+            `Payment for Invoice #${invoice.invoiceNumber}`,
+            'invoice',
+            invoice.id
+        );
 
         return {
             success: true,
-            message: 'STK Push sent. Please check your phone.',
-            checkoutRequestId
+            message: 'STK Push initiated. Please check your phone.',
+            checkoutRequestId: transaction.checkoutRequestId,
+            transactionId: transaction.id
         };
     }
 
@@ -424,78 +429,53 @@ export class FinancialService {
                         }
                     }
 
-                    // Commission Logic: 40% to Platform on Service Fee ONLY. 100% Transport to Doctor.
                     if (invoice.doctorId) {
-                        // We need to fetch the appointment to separate Fee vs Transport Fee
-                        // But Invoice currently only holds totalAmount. 
-                        // We can either fetch the appointment linked to this invoice (via ID parsing or relation?)
-                        // OR we store fee breakdown in Invoice. 
-                        // Current Service Implementation stored breakdown in logs but not explicitly in invoice columns (except items if used).
-                        // Let's rely on Appointment lookup since invoiceNumber contains appointment ID "INV-{date}-{appId}"
+                        // Strict Check: ONLY credit for Bookings/Appointments
+                        const isAppointmentInvoice = invoice.invoiceNumber?.startsWith('INV-') || invoice.appointmentId;
 
-                        let doctorShare = 0;
-                        let commission = 0;
+                        if (isAppointmentInvoice) {
+                            // Try to parse app ID
+                            const parts = invoice.invoiceNumber.split('-');
+                            const appId = parts.length > 2 ? parseInt(parts[2]) : null;
 
-                        // Try to parse app ID
-                        const parts = invoice.invoiceNumber.split('-');
-                        const appId = parts.length > 2 ? parseInt(parts[2]) : null;
+                            let doctorShare = 0;
+                            let commission = 0;
 
-                        if (appId) {
-                            // Fetch Appointment to get breakdown
-                            // We need to import Appointment entity here or use query builder
-                            // Assuming 'invoice' doesn't have direct relation yet.
-                            // Let's use raw query or assume standard fee if fails.
+                            if (appId) {
+                                // Hack for now: We will fetch the appointment using the doctorRepo manager (since it's connected)
+                                const app = await this.doctorRepo.manager.createQueryBuilder('appointment', 'a')
+                                    .where('a.id = :id', { id: appId })
+                                    .getOne();
 
-                            // For this implementation, let's assume we can fetch appointment via a repository if injected, 
-                            // OR we can calculate backwards if we know the transport logic, but that's risky.
-                            // BEST APPROACH: Fetch Appointment.
-                            // Since we don't have AppointmentRepo injected in this service (it was not in constructor),
-                            // We should inject it. OR we can use the 'users' relation if linked.
-                            // Let's assume for now we use a simpler logic for the demo or fix dependency inj.
+                                if (app) {
+                                    // @ts-ignore
+                                    const fee = Number(app.fee || 0);
+                                    // @ts-ignore
+                                    const transport = Number(app.transportFee || 0);
 
-                            // actually, let's just use the Total Amount and assume 100% transport if it matches? No.
-                            // Let's Update the Service to inject Appointments Repository or handle it.
-                            // TO KEEP IT SIMPLE AND WORKING NOW WITHOUT MASSIVE REFACTOR:
-                            // We will assume the invoice items were created correctly? No, recreateInvoice didn't allow items.
-
-                            // Let's just Apply 40% to EVERYTHING for now as fallback, BUT user specifically asked for Transport 100%.
-                            // I MUST FIX THIS. 
-
-                            // Let's add Appointment Repository to constructor in next step if needed, 
-                            // but for now let's implement the logic assuming we have access or can act on invoice.
-
-                            // Hack for now: We will fetch the appointment using the doctorRepo manager (since it's connected)
-                            const app = await this.doctorRepo.manager.createQueryBuilder('appointment', 'a')
-                                .where('a.id = :id', { id: appId })
-                                .getOne();
-
-                            if (app) {
-                                // @ts-ignore
-                                const fee = Number(app.fee || 0);
-                                // @ts-ignore
-                                const transport = Number(app.transportFee || 0);
-
-                                commission = fee * 0.40;
-                                doctorShare = (fee * 0.60) + transport;
+                                    commission = fee * 0.40;
+                                    doctorShare = (fee * 0.60) + transport;
+                                } else {
+                                    // Fallback
+                                    const total = Number(invoice.totalAmount);
+                                    commission = total * 0.40;
+                                    doctorShare = total * 0.60;
+                                }
                             } else {
-                                // Fallback
                                 const total = Number(invoice.totalAmount);
                                 commission = total * 0.40;
                                 doctorShare = total * 0.60;
                             }
-                        } else {
-                            const total = Number(invoice.totalAmount);
-                            commission = total * 0.40;
-                            doctorShare = total * 0.60;
-                        }
 
-                        invoice.commissionAmount = commission;
-                        invoice.commissionAmount = commission;
-                        // DEPRECATED: await this.doctorRepo.increment({ id: invoice.doctorId }, 'balance', doctorShare);
-                        // NEW WALLET CREDIT
-                        const doctor = await this.doctorRepo.findOne({ where: { id: invoice.doctorId } });
-                        if (doctor && doctor.email) {
-                            await this.walletsService.creditByEmail(doctor.email, doctorShare, `Credit for Invoice #${invoice.invoiceNumber}`);
+                            invoice.commissionAmount = commission;
+
+                            // NEW WALLET CREDIT
+                            const doctor = await this.doctorRepo.findOne({ where: { id: invoice.doctorId } });
+                            if (doctor && doctor.email) {
+                                await this.walletsService.creditByEmail(doctor.email, doctorShare, `Credit for Invoice #${invoice.invoiceNumber}`);
+                            }
+                        } else {
+                            console.log(`[FINANCIAL] Skipped Wallet Credit for Non-Appointment Invoice #${invoice.invoiceNumber}`);
                         }
                     }
 
@@ -538,17 +518,24 @@ export class FinancialService {
 
         // Credit Doctor Balance Immediately
         if (invoice.doctorId) {
-            // Logic: 60% to Doctor (Standard)
-            const doctorShare = amount * 0.60;
-            const commission = amount * 0.40;
+            // Strict Check: ONLY credit for Bookings/Appointments
+            const isAppointmentInvoice = invoice.invoiceNumber?.startsWith('INV-') || invoice.appointmentId;
 
-            invoice.commissionAmount = commission;
-            await this.invoiceRepo.save(invoice);
+            if (isAppointmentInvoice) {
+                // Logic: 60% to Doctor (Standard)
+                // Note: For processPayment (direct), we might want to do the same robust check as above, 
+                // but usually direct payment is only for appointments via that endpoint.
+                const doctorShare = amount * 0.60;
+                const commission = amount * 0.40;
 
-            // DEPRECATED: await this.doctorRepo.increment({ id: invoice.doctorId }, 'balance', doctorShare);
-            const doctor = await this.doctorRepo.findOne({ where: { id: invoice.doctorId } });
-            if (doctor && doctor.email) {
-                await this.walletsService.creditByEmail(doctor.email, doctorShare, `Payment for Appointment #${appointmentId}`);
+                invoice.commissionAmount = commission;
+                await this.invoiceRepo.save(invoice);
+
+                // DEPRECATED: await this.doctorRepo.increment({ id: invoice.doctorId }, 'balance', doctorShare);
+                const doctor = await this.doctorRepo.findOne({ where: { id: invoice.doctorId } });
+                if (doctor && doctor.email) {
+                    await this.walletsService.creditByEmail(doctor.email, doctorShare, `Payment for Appointment #${appointmentId}`);
+                }
             }
         }
 
@@ -580,17 +567,24 @@ export class FinancialService {
 
         // Credit Doctor Balance Immediately
         if (invoice.doctorId) {
-            const total = Number(invoice.totalAmount);
-            const doctorShare = total * 0.60;
-            const commission = total * 0.40;
+            // Strict Check: ONLY credit for Bookings/Appointments
+            const isAppointmentInvoice = invoice.invoiceNumber?.startsWith('INV-') || invoice.appointmentId;
 
-            invoice.commissionAmount = commission;
-            await this.invoiceRepo.save(invoice);
+            if (isAppointmentInvoice) {
+                const total = Number(invoice.totalAmount);
+                const doctorShare = total * 0.60;
+                const commission = total * 0.40;
 
-            // DEPRECATED: await this.doctorRepo.increment({ id: invoice.doctorId }, 'balance', doctorShare);
-            const doctor = await this.doctorRepo.findOne({ where: { id: invoice.doctorId } });
-            if (doctor && doctor.email) {
-                await this.walletsService.creditByEmail(doctor.email, doctorShare, `Manual Payment for Invoice #${invoiceId}`);
+                invoice.commissionAmount = commission;
+                await this.invoiceRepo.save(invoice);
+
+                // DEPRECATED: await this.doctorRepo.increment({ id: invoice.doctorId }, 'balance', doctorShare);
+                const doctor = await this.doctorRepo.findOne({ where: { id: invoice.doctorId } });
+                if (doctor && doctor.email) {
+                    await this.walletsService.creditByEmail(doctor.email, doctorShare, `Manual Payment for Invoice #${invoiceId}`);
+                }
+            } else {
+                console.log(`[FINANCIAL] Skipped Wallet Credit for Non-Appointment Manual Payment Invoice #${invoice.invoiceNumber}`);
             }
         }
 
@@ -634,6 +628,7 @@ export class FinancialService {
         const transaction = await this.txRepo.createQueryBuilder('tx')
             .leftJoinAndSelect('tx.invoice', 'inv')
             .where('inv.invoiceNumber LIKE :suffix', { suffix: `%-${appointmentId}` })
+            .andWhere('inv.invoiceNumber LIKE :prefix', { prefix: 'INV-%' }) // Strict Prefix Check
             .andWhere('tx.status = :status', { status: TransactionStatus.PENDING })
             .getOne();
 
@@ -794,5 +789,152 @@ export class FinancialService {
             }
         }
         return { success: true, migratedCount, details: results };
+    }
+    // --- Revenue Reporting ---
+    async getRevenueReport() {
+        // Fetch ALL invoices (Pending, Paid, Overdue)
+        const invoices = await this.invoiceRepo.createQueryBuilder('invoice')
+            .leftJoinAndSelect('invoice.items', 'items')
+            .leftJoinAndSelect('invoice.appointment', 'appt')
+            // Join Patient User (Standard User)
+            .leftJoinAndSelect('appt.patient', 'patientUser')
+            // Join Doctor
+            .leftJoinAndSelect('appt.doctor', 'doctor')
+            // Join Patient Profile (for Insurance) manually
+            .leftJoinAndMapOne('appt.patientDetails', Patient, 'patientDetails', 'patientDetails.user_id = appt.patientId')
+            .orderBy('invoice.createdAt', 'DESC')
+            .getMany();
+
+        return invoices.map(inv => {
+            const appt = inv.appointment;
+            // Get patient from Appointment OR look for manual fallback (if we added it, but for now appt is main link)
+            // Note: Pharmacy orders might not link to appointment directly but link to Customer Email/Name
+            // If it's a pharmacy order (PH-), we might need to fetch user separately if not linked to appointment.
+
+            const patientUser = appt?.patient;
+            // @ts-ignore
+            const patientDetails = appt?.patientDetails as Patient;
+
+            let serviceName = 'General Service';
+            if (inv.items?.length > 0) {
+                serviceName = inv.items.map(i => i.description).join(', ');
+            }
+
+            // Detect Type
+            let type = 'Service';
+            if (inv.invoiceNumber?.startsWith('PH-')) type = 'Pharmacy';
+            else if (inv.invoiceNumber?.startsWith('LB-')) type = 'Laboratory';
+            else if (inv.invoiceNumber?.startsWith('AMB-')) type = 'Ambulance';
+
+            return {
+                invoiceId: inv.id,
+                invoiceNumber: inv.invoiceNumber,
+                date: inv.createdAt,
+                amount: Number(inv.totalAmount),
+                status: inv.status, // PENDING, PAID, OVERDUE
+                type: type,
+                serviceDetails: serviceName,
+                doctor: appt?.doctor ? `${appt.doctor.fname} ${appt.doctor.lname}` : 'N/A',
+                patient: patientUser ? `${patientUser.fname} ${patientUser.lname}` : (inv.customerName || 'Guest'),
+                insurance: patientDetails?.insurance_provider ? `${patientDetails.insurance_provider} - ${patientDetails.insurance_policy_no}` : 'None',
+                paymentMethod: inv.paymentMethod || 'N/A',
+                commission: Number(inv.commissionAmount || 0)
+            };
+        });
+    }
+
+    async generateReceipt(transactionId: number) {
+        const tx = await this.txRepo.createQueryBuilder('tx')
+            .leftJoinAndSelect('tx.invoice', 'invoice')
+            .leftJoinAndSelect('invoice.items', 'items')
+            .leftJoinAndSelect('invoice.appointment', 'appt')
+            .leftJoinAndSelect('appt.patient', 'patientUser')
+            .leftJoinAndSelect('appt.doctor', 'doctor')
+            .leftJoinAndMapOne('appt.patientDetails', Patient, 'patientDetails', 'patientDetails.user_id = appt.patientId')
+            .where('tx.id = :id', { id: transactionId })
+            .getOne();
+
+        if (!tx) throw new NotFoundException('Transaction not found');
+
+        const invoice = tx.invoice;
+        const appt = invoice?.appointment;
+        // @ts-ignore
+        const patientDetails = appt?.patientDetails as Patient;
+        const patientName = appt?.patient ? `${appt.patient.fname} ${appt.patient.lname}` : (invoice?.customerName || 'Guest');
+
+        const receiptData = {
+            clinicName: "M-Clinic Services",
+            clinicAddress: "Nairobi, Kenya",
+            receiptNumber: tx.reference || `REC-${tx.id}`,
+            date: tx.createdAt,
+            patientName: patientName,
+            insurance: patientDetails?.insurance_provider || 'N/A',
+            doctor: appt?.doctor ? `${appt.doctor.fname} ${appt.doctor.lname}` : null,
+            items: invoice?.items || [],
+            totalAmount: tx.amount,
+            paymentMethod: tx.source,
+            status: tx.status
+        };
+
+        const rows = receiptData.items.map(item => `
+            <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.description}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">${item.quantity}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">${item.unitPrice}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">${item.amount}</td>
+            </tr>
+        `).join('');
+
+        const html = `
+            <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; border: 1px solid #eee;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h1 style="color: #2c3e50;">${receiptData.clinicName}</h1>
+                    <p style="color: #7f8c8d;">${receiptData.clinicAddress}</p>
+                    <h2 style="margin-top: 10px;">OFFICIAL RECEIPT</h2>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                    <div>
+                        <p><strong>Receipt #:</strong> ${receiptData.receiptNumber}</p>
+                        <p><strong>Date:</strong> ${new Date(receiptData.date).toLocaleString()}</p>
+                        <p><strong>Payment Method:</strong> ${receiptData.paymentMethod}</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p><strong>Patient:</strong> ${receiptData.patientName}</p>
+                        ${receiptData.insurance !== 'N/A' ? `<p><strong>Insurance:</strong> ${receiptData.insurance}</p>` : ''}
+                        ${receiptData.doctor ? `<p><strong>Doctor:</strong> ${receiptData.doctor}</p>` : ''}
+                    </div>
+                </div>
+                
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <thead>
+                        <tr style="background-color: #f8f9fa;">
+                            <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Description</th>
+                            <th style="padding: 12px; text-align: right; border-bottom: 2px solid #ddd;">Qty</th>
+                            <th style="padding: 12px; text-align: right; border-bottom: 2px solid #ddd;">Unit Price</th>
+                            <th style="padding: 12px; text-align: right; border-bottom: 2px solid #ddd;">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" style="padding: 12px; text-align: right; font-weight: bold;">TOTAL</td>
+                            <td style="padding: 12px; text-align: right; font-weight: bold; font-size: 1.1em;">${receiptData.totalAmount}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+                
+                <div style="text-align: center; margin-top: 40px; color: #95a5a6; font-size: 0.9em;">
+                    <p>Thank you for choosing M-Clinic.</p>
+                </div>
+            </div>
+        `;
+
+        return {
+            ...receiptData,
+            html
+        };
     }
 }

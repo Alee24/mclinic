@@ -1,4 +1,6 @@
-import { Controller, Get, Post, Body, Param, Patch, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, UseGuards, Res, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Response as ExpressResponse } from 'express';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { PharmacyService } from './pharmacy.service';
 import { PrescriptionStatus } from './entities/prescription.entity';
 
@@ -17,6 +19,20 @@ export class PharmacyController {
     @Post('medications')
     createMedication(@Body() body: any) {
         return this.pharmacyService.createMedication(body);
+    }
+
+    @Post('medications/upload')
+    @UseInterceptors(FileInterceptor('file'))
+    uploadMedications(@UploadedFile() file: Express.Multer.File) {
+        return this.pharmacyService.uploadMedications(file);
+    }
+
+    @Get('medications/template')
+    getMedicationTemplate(@Res() res: any) {
+        const csv = this.pharmacyService.getMedicationTemplate();
+        res.header('Content-Type', 'text/csv');
+        res.header('Content-Disposition', 'attachment; filename=medication_template.csv');
+        res.send(csv);
     }
 
     // --- Prescriptions ---

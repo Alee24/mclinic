@@ -28,6 +28,8 @@ import { LaboratoryModule } from './laboratory/laboratory.module';
 import { WalletsModule } from './wallets/wallets.module';
 import { EmailModule } from './email/email.module';
 import { MpesaModule } from './mpesa/mpesa.module';
+import { RecommendationsModule } from './recommendations/recommendations.module';
+import { SystemSettingsModule } from './system-settings/system-settings.module';
 
 @Module({
   imports: [
@@ -68,6 +70,8 @@ import { MpesaModule } from './mpesa/mpesa.module';
     WalletsModule,
     EmailModule,
     MpesaModule,
+    RecommendationsModule,
+    SystemSettingsModule,
   ],
   controllers: [AppController],
   providers: [

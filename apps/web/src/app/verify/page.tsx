@@ -122,7 +122,16 @@ export default function VerifyPrescriptionPage() {
                                         {result.doctor?.fname ? `Dr. ${result.doctor.fname} ${result.doctor.lname}` :
                                             result.doctor?.user?.fname ? `Dr. ${result.doctor.user.fname} ${result.doctor.user.lname}` : 'Medical Practitioner'}
                                     </p>
-                                    <p className="text-sm text-gray-500 italic">Licensed M-Clinic Provider</p>
+                                    <p className="text-sm text-gray-500 italic mb-2">Licensed M-Clinic Provider</p>
+
+                                    {result.doctor?.licenceNo && (
+                                        <div className="mt-2 text-sm">
+                                            <p className="text-gray-600"><span className="font-semibold">License No:</span> {result.doctor.licenceNo}</p>
+                                            {result.doctor.licenceExpiry && (
+                                                <p className="text-gray-600"><span className="font-semibold">Expiry:</span> {new Date(result.doctor.licenceExpiry).toLocaleDateString()}</p>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="md:text-right">
                                     <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Date Issued</h4>

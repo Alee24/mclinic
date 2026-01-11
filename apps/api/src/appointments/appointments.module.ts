@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppointmentsService } from './appointments.service';
 import { AppointmentsController } from './appointments.controller';
 import { Appointment } from './entities/appointment.entity';
+import { DoctorsModule } from '../doctors/doctors.module';
 import { Service } from '../services/entities/service.entity';
 import { Invoice } from '../financial/entities/invoice.entity';
 import { FinancialModule } from '../financial/financial.module';

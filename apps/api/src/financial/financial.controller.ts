@@ -62,6 +62,17 @@ export class FinancialController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Get('revenue')
+  getRevenue() {
+    return this.financialService.getRevenueReport();
+  }
+
+  @Get('receipt/:transactionId')
+  getReceipt(@Param('transactionId') transactionId: string) {
+    return this.financialService.generateReceipt(Number(transactionId));
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Post('invoices')
   createInvoice(@Body() body: any) {
     return this.financialService.createInvoice(body);

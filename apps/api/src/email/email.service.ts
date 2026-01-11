@@ -22,6 +22,7 @@ export class EmailService {
                 context: {
                     name: `${user.fname} ${user.lname}`,
                     role: role,
+                    isMedic: ['doctor', 'medic', 'nurse', 'clinician', 'pharmacy', 'lab_tech'].includes(role.toLowerCase()),
                     loginUrl: `${this.frontendUrl}/login`,
                     dashboardUrl: `${this.frontendUrl}/dashboard`,
                 },
@@ -66,12 +67,35 @@ export class EmailService {
                     appointmentTime: appointment.appointment_time,
                     service: appointment.service?.name || 'Consultation',
                     fee: appointment.fee,
+                    reason: appointment.reason || null,
                     appointmentUrl: `${this.frontendUrl}/dashboard/appointments`,
                 },
             });
             console.log(`Booking confirmation email sent to ${user.email}`);
         } catch (error) {
             console.error('Failed to send booking confirmation email:', error);
+        }
+    }
+
+    async sendAppointmentNotificationToDoctor(doctor: any, appointment: any, patient: any) {
+        try {
+            await this.mailerService.sendMail({
+                to: doctor.email,
+                subject: 'New Appointment Scheduled - M-Clinic Health',
+                template: './booking-notification-medic',
+                context: {
+                    doctorName: `${doctor.fname} ${doctor.lname}`,
+                    patientName: `${patient.fname} ${patient.lname}`,
+                    appointmentDate: new Date(appointment.appointment_date).toLocaleDateString(),
+                    appointmentTime: appointment.appointment_time,
+                    service: appointment.service?.name || 'Consultation',
+                    reason: appointment.reason || null,
+                    dashboardUrl: `${this.frontendUrl}/dashboard/appointments`,
+                },
+            });
+            console.log(`Appointment notification email sent to doctor ${doctor.email}`);
+        } catch (error) {
+            console.error('Failed to send appointment notification to doctor:', error);
         }
     }
 
@@ -297,6 +321,26 @@ export class EmailService {
             console.log(`Account reactivated email sent to ${doctor.email}`);
         } catch (error) {
             console.error('Failed to send account reactivated email:', error);
+        }
+    }
+    async sendLabResultsReadyEmail(user: any, order: any, testName: string) {
+        try {
+            await this.mailerService.sendMail({
+                to: user.email,
+                subject: 'Lab Results Ready - M-Clinic Health',
+                template: './lab-results-ready',
+                context: {
+                    name: user.role === 'patient' ? user.fname : (order.beneficiaryName || user.fname), // Use beneficiary name if set, else user fname
+                    testName: testName,
+                    resultsUrl: `${this.frontendUrl}/dashboard/lab`,
+                    reportUrl: order.report_url ? `${process.env.API_URL || 'http://localhost:3434'}/uploads/reports/${order.report_url}` : null,
+                    notes: order.technicianNotes,
+                    year: new Date().getFullYear(),
+                },
+            });
+            console.log(`Lab results ready email sent to ${user.email}`);
+        } catch (error) {
+            console.error('Failed to send lab results email:', error);
         }
     }
 }

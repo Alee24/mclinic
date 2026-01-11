@@ -1,12 +1,13 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DeepPartial } from 'typeorm';
+import { Repository, DeepPartial, IsNull } from 'typeorm';
 import { Doctor } from './entities/doctor.entity';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { Appointment } from '../appointments/entities/appointment.entity';
 import { EmailService } from '../email/email.service';
 import * as bcrypt from 'bcrypt';
+import * as QRCode from 'qrcode';
 
 @Injectable()
 export class DoctorsService implements OnModuleInit {
@@ -22,11 +23,12 @@ export class DoctorsService implements OnModuleInit {
     async onModuleInit() {
         console.log('[DoctorsService] Running startup checks...');
         await this.backfillUserIds();
+        await this.syncDoctorsWithUsers();
     }
 
     private async backfillUserIds() {
         const doctorsWithoutUser = await this.doctorsRepository.find({
-            where: { user_id: undefined || null } // TypeORM might need explicit null check syntax depending on version but undefined often ignores
+            where: { user_id: IsNull() }
         });
 
         // Manual query to be sure
@@ -46,6 +48,38 @@ export class DoctorsService implements OnModuleInit {
                 }
             }
         }
+    }
+
+    async syncDoctorsWithUsers() {
+        console.log('[DoctorsService] Syncing Doctors from Users table...');
+        const allUsers = await this.usersService.findAll();
+        const doctorUsers = allUsers.filter(u =>
+            u.role === 'doctor' || u.role === 'medic' || u.role === 'nurse' || u.role === 'clinician'
+        );
+
+        let createdCount = 0;
+        for (const user of doctorUsers) {
+            const existingDoc = await this.doctorsRepository.findOne({ where: { email: user.email } });
+            if (!existingDoc) {
+                console.log(`[DoctorsService] Creating missing Doctor profile for ${user.email}`);
+                // Create minimal doctor profile
+                const newDoc = this.doctorsRepository.create({
+                    user_id: user.id,
+                    fname: user.fname,
+                    lname: user.lname,
+                    email: user.email,
+                    mobile: user.mobile,
+                    status: 1, // Active by default if syncing from active user? Or pending? User said "all are active".
+                    Verified_status: 1, // Assume verified if they are already in the system as a doctor user
+                    approvalStatus: 'approved',
+                    dr_type: user.role === 'nurse' ? 'Nurse' : 'Specialist', // Basic mapping
+                    fee: 1500, // Default
+                } as unknown as DeepPartial<Doctor>);
+                await this.doctorsRepository.save(newDoc);
+                createdCount++;
+            }
+        }
+        return { success: true, message: `Synced ${doctorUsers.length} doctor users. Created ${createdCount} new profiles.` };
     }
 
     async create(createDoctorDto: any, user: User | null): Promise<Doctor> {
@@ -400,5 +434,53 @@ export class DoctorsService implements OnModuleInit {
         }
 
         return savedDoctor;
+    }
+
+    async generateIdCard(id: number) {
+        const doctor = await this.doctorsRepository.findOne({
+            where: { id },
+            // relations: ['user'] -- Removed: Doctor entity has no 'user' relation defined
+        });
+
+        if (!doctor) throw new Error('Doctor not found');
+
+        // STRICT VALIDATION
+        const missingFields = [];
+        if (!doctor.profile_image) missingFields.push('Profile Photo');
+        if (!doctor.licenceNo) missingFields.push('License Number');
+        if (!doctor.licenseExpiryDate) missingFields.push('License Expiry Date');
+
+        if (missingFields.length > 0) {
+            throw new Error(`Cannot generate ID Card. Missing: ${missingFields.join(', ')}. Please update your profile.`);
+        }
+
+        // Generate Serial Number: MCK-{YEAR}-{ID}
+        // Pad ID with zeros to 3 digits (e.g. 005)
+        const paddedId = id.toString().padStart(3, '0');
+        const serialNumber = `MCK-${new Date().getFullYear()}-${paddedId}`;
+
+        // Verification URL
+        const verificationUrl = `https://mclinic.co.ke/verify/doctor/${doctor.id}`;
+
+        // Generate QR Code
+        const qrCodeDataUrl = await QRCode.toDataURL(verificationUrl);
+
+        return {
+            doctor: {
+                id: doctor.id,
+                name: `${doctor.fname} ${doctor.lname}`,
+                email: doctor.email,
+                mobile: doctor.mobile,
+                speciality: doctor.speciality,
+                drType: doctor.dr_type,
+                licenseNumber: doctor.licenceNo,
+                licenseExpiry: doctor.licenseExpiryDate,
+                profileImage: doctor.profile_image ? `http://localhost:3434/uploads/profiles/${doctor.profile_image}` : null
+            },
+            serialNumber,
+            qrCode: qrCodeDataUrl,
+            verificationUrl,
+            issuedDate: new Date()
+        };
     }
 }

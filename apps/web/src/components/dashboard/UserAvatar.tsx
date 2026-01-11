@@ -18,7 +18,7 @@ export default function UserAvatar({ user, className = "w-full h-full object-cov
             if (user.profilePicture.startsWith('http')) {
                 setImageUrl(user.profilePicture);
             } else {
-                setImageUrl(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/uploads/profiles/${user.profilePicture}`);
+                setImageUrl(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434'}/uploads/profiles/${user.profilePicture}`);
             }
             setImageError(false);
         } else {

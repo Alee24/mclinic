@@ -207,6 +207,13 @@ export class AppointmentsService {
           appointmentWithRelations,
           appointmentWithRelations.doctor,
         );
+
+        // Notify Doctor
+        await this.emailService.sendAppointmentNotificationToDoctor(
+          appointmentWithRelations.doctor,
+          appointmentWithRelations,
+          appointmentWithRelations.patient,
+        );
       }
     } catch (error) {
       console.error('Failed to send booking confirmation email:', error);
@@ -217,7 +224,7 @@ export class AppointmentsService {
 
   async findAll(): Promise<Appointment[]> {
     return this.appointmentsRepository.find({
-      relations: ['patient', 'doctor', 'service'],
+      relations: ['patient', 'doctor', 'service', 'invoice'],
       order: { appointment_date: 'DESC' },
     });
   }

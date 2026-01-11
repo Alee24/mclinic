@@ -53,7 +53,7 @@ export default function AppointmentsPage() {
     }, [user]);
 
     const isAdmin = user?.role === UserRole.ADMIN;
-    const isDoctor = user?.role === UserRole.DOCTOR;
+    const isDoctor = user?.role === UserRole.DOCTOR || user?.role === UserRole.MEDIC || user?.role === UserRole.NURSE || user?.role === UserRole.CLINICIAN;
     const isPatient = user?.role === UserRole.PATIENT;
 
     return (
@@ -108,7 +108,7 @@ export default function AppointmentsPage() {
                                         }
                                     </td>
                                     <td className="px-6 py-4 text-gray-500">
-                                        <div className="text-sm font-medium">{apt.notes || 'General Consultation'}</div>
+                                        <div className="text-sm font-medium">{apt.service?.name || 'General Consultation'}</div>
                                     </td>
                                     <td className="px-6 py-4 text-gray-500">
                                         {apt.appointment_date ? (

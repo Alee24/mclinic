@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
-import { FiCalendar, FiPlusSquare, FiFileText, FiActivity, FiMapPin, FiClock, FiVideo, FiAlertCircle } from 'react-icons/fi';
+import { FiCalendar, FiPlusSquare, FiFileText, FiActivity, FiMapPin, FiClock, FiVideo, FiAlertCircle, FiGrid } from 'react-icons/fi';
 import { useAuth } from '@/lib/auth';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -74,7 +74,44 @@ export default function PatientView() {
     };
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-1000">
+        <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-1000">
+            {/* Top Bar - Quick Actions */}
+            <div className="bg-white dark:bg-[#161616] rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm border border-gray-100 dark:border-gray-800">
+                <div className="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+                    <button
+                        onClick={() => setShowBookingModal(true)}
+                        className="flex items-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm transition whitespace-nowrap"
+                    >
+                        <FiPlusSquare className="text-lg" />
+                        Book Appointment
+                    </button>
+                    <Link
+                        href="/dashboard/pharmacy"
+                        className="flex items-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold text-sm transition whitespace-nowrap"
+                    >
+                        <FiPlusSquare className="text-lg" />
+                        Pharmacy
+                    </Link>
+                    <Link
+                        href="/dashboard/lab"
+                        className="flex items-center gap-2 px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-sm transition whitespace-nowrap"
+                    >
+                        <FiActivity className="text-lg" />
+                        Laboratory
+                    </Link>
+                </div>
+
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                    <Link
+                        href="/dashboard/services-hub"
+                        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-bold text-sm transition whitespace-nowrap"
+                    >
+                        <FiGrid />
+                        All Services
+                    </Link>
+                </div>
+            </div>
+
             {/* Hero Welcome */}
             <div className="relative bg-gradient-to-r from-donezo-dark to-green-600 rounded-[32px] p-8 md:p-12 text-white overflow-hidden shadow-2xl shadow-green-900/20">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl animate-pulse"></div>

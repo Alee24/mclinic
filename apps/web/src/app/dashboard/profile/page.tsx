@@ -8,7 +8,7 @@ import { FiActivity, FiShield, FiEdit2, FiCamera, FiBriefcase } from 'react-icon
 import EditMedicalProfileModal from '@/components/dashboard/patients/EditMedicalProfileModal';
 import EditPersonalDetailsModal from '@/components/dashboard/patients/EditPersonalDetailsModal';
 import ChangePasswordModal from '@/components/dashboard/patients/ChangePasswordModal';
-import EditDoctorProfileModal from '@/components/dashboard/doctors/EditDoctorProfileModal';
+import EditMedicProfileModal from '@/components/dashboard/doctors/EditMedicProfileModal';
 import UserAvatar from '@/components/dashboard/UserAvatar';
 
 export default function ProfilePage() {
@@ -39,6 +39,9 @@ export default function ProfilePage() {
 
     // Profile Picture Ref
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Helper to identify any medic role
+    const isMedic = ['doctor', 'nurse', 'clinician', 'medic'].includes(user.role);
 
     useEffect(() => {
         const fetchMedicalProfile = async () => {
@@ -87,7 +90,7 @@ export default function ProfilePage() {
         if (user.role === 'patient') {
             fetchMedicalProfile();
             fetchMedicalRecords();
-        } else if (user.role === 'doctor') {
+        } else if (isMedic) {
             fetchDoctorProfile();
         }
     }, [showEditMedModal, showEditDocModal, user?.id, user?.role]);
@@ -104,10 +107,10 @@ export default function ProfilePage() {
         const formData = new FormData();
         formData.append('file', file);
 
-        let uploadUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/users/${user.id}/upload-profile`;
-        // If doctor, maybe use doctor endpoint, but user endpoint often handles profile pic sync or uses same storage
-        if (user.role === 'doctor' && docProfile?.id) {
-            uploadUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/doctors/${docProfile.id}/upload-profile`;
+        let uploadUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434'}/users/${user.id}/upload-profile`;
+        // If doctor/medic, use doctor endpoint to sync with doctor entity if needed
+        if (isMedic && docProfile?.id) {
+            uploadUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434'}/doctors/${docProfile.id}/upload-profile`;
         }
 
         try {
@@ -123,7 +126,7 @@ export default function ProfilePage() {
             if (res.ok) {
                 alert('Profile picture updated!');
                 reloadUser();
-                if (user.role === 'doctor') {
+                if (isMedic) {
                     // trigger refetch doc profile
                     setShowEditDocModal(prev => !prev); // tiny hack to re-trigger effect or just manually call fetch
                 }
@@ -379,8 +382,8 @@ export default function ProfilePage() {
                     </div>
                 )}
 
-                {/* Right Column: Doctor Professional Profile (Only for Doctors) */}
-                {user.role === 'doctor' && (
+                {/* Right Column: Doctor Professional Profile (Only for Medics) */}
+                {isMedic && (
                     <div className="lg:col-span-2 space-y-6">
                         <div className="bg-white dark:bg-[#121212] rounded-xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm relative">
                             <div className="flex justify-between items-start mb-6">
@@ -463,7 +466,7 @@ export default function ProfilePage() {
             )}
 
             {showEditDocModal && (
-                <EditDoctorProfileModal
+                <EditMedicProfileModal
                     doctor={docProfile}
                     onClose={() => setShowEditDocModal(false)}
                     onSuccess={() => {

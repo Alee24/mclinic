@@ -43,6 +43,12 @@ export class DoctorsController {
     return this.doctorsService.findAll();
   }
 
+  @Post('admin/sync')
+  @UseGuards(AuthGuard('jwt')) // Admin guard ideally
+  syncDoctors() {
+    return this.doctorsService.syncDoctorsWithUsers();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.doctorsService.findOne(+id);
@@ -113,7 +119,7 @@ export class DoctorsController {
     // In production, you would construct a full URL or relative path handled by static file serving
     // For now, mirroring how profile_image is likely handled (just filename or relative path)
     // Assuming static serve at /uploads/signatures
-    const filePath = `${process.env.API_URL || 'http://localhost:3001'}/uploads/signatures/${file.filename}`;
+    const filePath = `${process.env.API_URL || 'http://localhost:3434'}/uploads/signatures/${file.filename}`;
     return this.doctorsService.updateSignature(+id, filePath);
   }
 
@@ -134,7 +140,7 @@ export class DoctorsController {
     @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    const filePath = `${process.env.API_URL || 'http://localhost:3001'}/uploads/stamps/${file.filename}`;
+    const filePath = `${process.env.API_URL || 'http://localhost:3434'}/uploads/stamps/${file.filename}`;
     return this.doctorsService.updateStamp(+id, filePath);
   }
 
@@ -196,5 +202,15 @@ export class DoctorsController {
   @Patch(':id/deactivate')
   deactivate(@Param('id') id: string) {
     return this.doctorsService.updateStatus(+id, 0);
+  }
+  @UseGuards(AuthGuard('jwt'))
+  @Get(':id/id-card')
+  async generateIdCard(@Param('id') id: string) {
+    try {
+      return await this.doctorsService.generateIdCard(+id);
+    } catch (error) {
+      console.error('Error generating ID card:', error);
+      throw error;
+    }
   }
 }

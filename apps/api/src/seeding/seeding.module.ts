@@ -11,6 +11,7 @@ import { Transaction } from '../financial/entities/transaction.entity';
 import { ServicePrice } from '../financial/entities/service-price.entity';
 import { Invoice } from '../financial/entities/invoice.entity';
 import { InvoiceItem } from '../financial/entities/invoice-item.entity';
+import { SystemSetting } from '../system-settings/entities/system-setting.entity';
 
 @Module({
   imports: [
@@ -24,9 +25,10 @@ import { InvoiceItem } from '../financial/entities/invoice-item.entity';
       ServicePrice,
       Invoice,
       InvoiceItem,
+      SystemSetting,
     ]),
   ],
   controllers: [SeedingController],
   providers: [SeedingService],
 })
-export class SeedingModule {}
+export class SeedingModule { }

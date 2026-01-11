@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .content {
+            background: #f9f9f9;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #16a34a;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 12px;
+        }
+
+        .warning-box {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            color: #856404;
+        }
+
+        .info-box {
+            background-color: #e2e3e5;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>New Appointment Scheduled</h1>
+        </div>
+        <div class="content">
+            <p>Dear {{doctorName}},</p>
+
+            <p>You have a new appointment scheduled with <strong>{{patientName}}</strong>.</p>
+
+            <div class="info-box">
+                <p><strong>Date:</strong> {{appointmentDate}}</p>
+                <p><strong>Time:</strong> {{appointmentTime}}</p>
+                <p><strong>Service:</strong> {{service}}</p>
+                {{#if reason}}
+                <p><strong>Patient Reason/Notes:</strong> {{reason}}</p>
+                {{/if}}
+            </div>
+
+            <p>Please ensure you are prepared for this session.</p>
+
+            <div class="warning-box">
+                <h3 style="margin-top: 0; color: #856404;">⚠️ Medic Guidelines & Warnings</h3>
+                <ul style="padding-left: 20px;">
+                    <li><strong>Equipment & Pharmaceuticals:</strong> Please prepare early enough and carry essential
+                        pharmaceuticals and equipment for this service type.</li>
+                    <li><strong>Professional Attire:</strong> You MUST wear professional work clothing and a Lab Coat.
+                    </li>
+                    <li><strong>High Standards:</strong> Enforce and maintain high standards of professionalism at all
+                        times.</li>
+                    <li style="margin-top: 10px;"><strong>Financial Policy:</strong> <span
+                            style="text-decoration: underline; font-weight: bold; color: #721c24;">DO NOT ASK FOR
+                            FINANCIAL MONEY</span> from the patient. All payments must strictly adhere to the MClinic
+                        Kenya code of conduct.</li>
+                    <li><strong>Code of Conduct:</strong> You must strictly adhere to the MClinic Kenya Code of Conduct.
+                    </li>
+                </ul>
+            </div>
+
+            <a href="{{dashboardUrl}}" class="button">View Appointment Details</a>
+            <p style="text-align: center; font-size: 12px;">
+                <a href="{{dashboardUrl}}/legal/terms" style="color: #16a34a;">View Terms and Conditions</a>
+            </p>
+
+            <p>Best regards,<br>The M-Clinic Kenya Team</p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2026 M-Clinic Kenya. All rights reserved.</p>
+            <p>
+                <strong>Contact Us:</strong><br>
+                Phone: 0700448448 | Email: info@mclinic.co.ke | Web: www.mclinic.co.ke
+            </p>
+            <p style="font-size: 10px; color: #999; margin-top: 10px;">This is an automated email, please do not reply.
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -10,14 +10,18 @@ import {
     FiTrash2,
     FiX,
     FiCheck,
-    FiAlertCircle
+    FiAlertCircle,
+    FiUpload,
+    FiDownload
 } from 'react-icons/fi';
+import UploadMedicationsModal from '@/components/dashboard/admin/inventory/UploadMedicationsModal';
 
 export default function AdminPharmacyPage() {
     const [medications, setMedications] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [showModal, setShowModal] = useState(false);
+    const [showUploadModal, setShowUploadModal] = useState(false);
     const [editingMed, setEditingMed] = useState<any>(null);
 
     // Form State
@@ -123,16 +127,32 @@ export default function AdminPharmacyPage() {
                     </h1>
                     <p className="text-gray-500 font-medium">Manage stock, prices, and medication details.</p>
                 </div>
-                <button
-                    onClick={() => {
-                        setEditingMed(null);
-                        setFormData({ name: '', category: '', price: '', stock: '', description: '', requiresPrescription: true });
-                        setShowModal(true);
-                    }}
-                    className="bg-primary text-black px-6 py-3 rounded-xl font-bold shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity flex items-center gap-2"
-                >
-                    <FiPlus /> Add Medication
-                </button>
+                <div className="flex gap-3">
+                    <a
+                        href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434'}/pharmacy/medications/template`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="bg-white dark:bg-[#1A1A1A] text-gray-700 dark:text-gray-300 px-4 py-3 rounded-xl font-bold border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors flex items-center gap-2"
+                    >
+                        <FiDownload /> Template
+                    </a>
+                    <button
+                        onClick={() => setShowUploadModal(true)}
+                        className="bg-white dark:bg-[#1A1A1A] text-gray-700 dark:text-gray-300 px-4 py-3 rounded-xl font-bold border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors flex items-center gap-2"
+                    >
+                        <FiUpload /> Upload CSV
+                    </button>
+                    <button
+                        onClick={() => {
+                            setEditingMed(null);
+                            setFormData({ name: '', category: '', price: '', stock: '', description: '', requiresPrescription: true });
+                            setShowModal(true);
+                        }}
+                        className="bg-primary text-black px-6 py-3 rounded-xl font-bold shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity flex items-center gap-2"
+                    >
+                        <FiPlus /> Add Medication
+                    </button>
+                </div>
             </div>
 
             {/* Stats Cards */}

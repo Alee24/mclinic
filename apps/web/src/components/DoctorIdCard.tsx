@@ -19,6 +19,8 @@ export default function DoctorIdCard({ doctorId }: IdCardProps) {
             if (res && res.ok) {
                 const data = await res.json();
                 setIdCardData(data);
+            } else {
+                alert(`Failed to generate ID card. Server returned ${res?.status} ${res?.statusText}`);
             }
         } catch (error: any) {
             console.error('Failed to generate ID card:', error);
@@ -66,79 +68,78 @@ export default function DoctorIdCard({ doctorId }: IdCardProps) {
             {/* ID Card Design */}
             <div className="bg-white p-8 rounded-xl shadow-2xl max-w-2xl mx-auto print:shadow-none">
                 {/* Front Side */}
-                <div className="border-4 border-primary rounded-xl p-6 bg-gradient-to-br from-white to-gray-50">
+                <div className="border-4 border-primary rounded-xl p-6 bg-gradient-to-br from-white to-gray-50 relative overflow-hidden">
+                    {/* Watermark/Background Decoration */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-5 pointer-events-none">
+                        <img src="/mclinic-logo-full.png" alt="Watermark" className="w-64 grayscale" />
+                    </div>
+
                     {/* Header */}
-                    <div className="text-center mb-6 border-b-2 border-primary pb-4">
-                        <h1 className="text-2xl font-bold text-primary">M-CLINIC HEALTH</h1>
-                        <p className="text-sm text-gray-600">Medical Professional ID Card</p>
+                    <div className="flex items-center justify-between border-b-2 border-primary pb-4 mb-6 relative z-10">
+                        <img src="/mclinic-logo-full.png" alt="M-Clinic Kenya" className="h-12 object-contain" />
+                        <div className="text-right">
+                            <h1 className="text-xl font-bold text-primary">MEDICAL ID</h1>
+                            <p className="text-xs text-gray-600 font-mono">{idCardData.serialNumber}</p>
+                        </div>
                     </div>
 
                     {/* Content */}
-                    <div className="flex gap-6">
-                        {/* Photo */}
-                        <div className="flex-shrink-0">
-                            {idCardData.doctor.profileImage ? (
-                                <img
-                                    src={idCardData.doctor.profileImage}
-                                    alt={idCardData.doctor.name}
-                                    className="w-32 h-32 rounded-lg object-cover border-2 border-gray-300"
-                                />
-                            ) : (
-                                <div className="w-32 h-32 rounded-lg bg-gray-200 flex items-center justify-center border-2 border-gray-300">
-                                    <span className="text-4xl text-gray-400">👨‍⚕️</span>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Details */}
-                        <div className="flex-1">
-                            <h2 className="text-xl font-bold text-gray-800 mb-3">{idCardData.doctor.name}</h2>
-
-                            <div className="space-y-2 text-sm">
-                                <div>
-                                    <span className="font-semibold text-gray-600">Speciality:</span>
-                                    <p className="text-gray-800">{idCardData.doctor.speciality}</p>
-                                </div>
-
-                                <div>
-                                    <span className="font-semibold text-gray-600">Type:</span>
-                                    <p className="text-gray-800">{idCardData.doctor.drType}</p>
-                                </div>
-
-                                <div>
-                                    <span className="font-semibold text-gray-600">License No:</span>
-                                    <p className="text-gray-800 font-mono">{idCardData.doctor.licenseNumber}</p>
-                                </div>
-
-                                <div>
-                                    <span className="font-semibold text-gray-600">Valid Until:</span>
-                                    <p className="text-gray-800">
-                                        {idCardData.doctor.licenseExpiry
-                                            ? new Date(idCardData.doctor.licenseExpiry).toLocaleDateString()
-                                            : 'N/A'}
-                                    </p>
-                                </div>
+                    <div className="flex gap-6 relative z-10">
+                        {/* Left: Photo & QR */}
+                        <div className="flex flex-col gap-4 w-1/3">
+                            <div className="aspect-square bg-gray-200 rounded-lg overflow-hidden border-2 border-primary shadow-md">
+                                {idCardData.doctor.profileImage ? (
+                                    <img
+                                        src={idCardData.doctor.profileImage}
+                                        alt={idCardData.doctor.name}
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                        No Photo
+                                    </div>
+                                )}
+                            </div>
+                            <div className="bg-white p-2 rounded-lg border border-gray-200 shadow-sm text-center">
+                                <img src={idCardData.qrCode} alt="Verification QR" className="w-full h-auto mb-1" />
+                                <p className="text-[10px] text-gray-500">Scan to Verify</p>
                             </div>
                         </div>
 
-                        {/* QR Code */}
-                        <div className="flex-shrink-0 text-center">
-                            <img
-                                src={idCardData.qrCode}
-                                alt="QR Code"
-                                className="w-24 h-24 border-2 border-gray-300 rounded"
-                            />
-                            <p className="text-xs text-gray-500 mt-2">Scan to Verify</p>
+                        {/* Right: Details */}
+                        <div className="flex-1 space-y-3">
+                            <div>
+                                <h2 className="text-xl font-bold text-gray-900">{idCardData.doctor.name}</h2>
+                                <p className="text-primary font-medium uppercase tracking-wide text-sm">{idCardData.doctor.speciality || 'General Practitioner'}</p>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-x-2 gap-y-3 text-sm mt-4">
+                                <div>
+                                    <p className="text-xs text-gray-500 uppercase">License No</p>
+                                    <p className="font-semibold">{idCardData.doctor.licenseNumber || 'N/A'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-500 uppercase">Expires</p>
+                                    <p className="font-semibold text-red-600">
+                                        {idCardData.doctor.licenseExpiry ? new Date(idCardData.doctor.licenseExpiry).toLocaleDateString() : 'N/A'}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-500 uppercase">Designation</p>
+                                    <p className="font-medium">{idCardData.doctor.drType}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-500 uppercase">Issued</p>
+                                    <p className="font-medium">{new Date(idCardData.issuedDate).toLocaleDateString()}</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     {/* Footer */}
-                    <div className="mt-6 pt-4 border-t border-gray-300 text-center">
-                        <p className="text-xs text-gray-500">
-                            Issued: {new Date(idCardData.issuedDate).toLocaleDateString()}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                            ID: {idCardData.doctor.id} • www.mclinic.co.ke
+                    <div className="mt-6 pt-2 border-t border-primary/20 text-center relative z-10">
+                        <p className="text-[10px] text-gray-500">
+                            Property of M-Clinic Kenya. If found, please return to P.O Box 12345 Nairobi or info@mclinic.co.ke
                         </p>
                     </div>
                 </div>
@@ -160,7 +161,7 @@ export default function DoctorIdCard({ doctorId }: IdCardProps) {
 
                     <div className="mt-6 pt-4 border-t border-gray-300 text-center">
                         <p className="text-xs text-gray-500">
-                            This card is property of M-Clinic Health and must be returned upon request.
+                            This card is property of M-Clinic Kenya and must be returned upon request.
                         </p>
                     </div>
                 </div>

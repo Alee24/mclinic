@@ -8,7 +8,7 @@ interface EditDoctorModalProps {
     onSuccess: () => void;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434';
 
 export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDoctorModalProps) {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);

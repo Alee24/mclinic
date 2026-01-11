@@ -144,6 +144,16 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Verification Section */}
+      <section className="py-16 bg-white border-b border-gray-100">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <h2 className="text-2xl font-bold text-[#1D2B36] mb-6">Verify a Medical Professional</h2>
+          <p className="text-gray-600 mb-8">Enter the Serial Number (e.g., MCK-2025-001) found on the doctor's ID card to verify their status.</p>
+
+          <VerificationWidget />
+        </div>
+      </section>
+
       {/* Services Section */}
       <section id="services" className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6">
@@ -240,6 +250,88 @@ export default function Home() {
           &copy; {new Date().getFullYear()} M-Clinic Kenya. All rights reserved.
         </div>
       </footer>
+    </div>
+  );
+}
+
+function VerificationWidget() {
+  const [serial, setSerial] = useState('');
+  const [result, setResult] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleVerify = async (e: any) => {
+    e.preventDefault();
+    if (!serial) return;
+
+    setLoading(true);
+    setError('');
+    setResult(null);
+
+    try {
+      // Using fetch directly as we might not be authenticated on landing page
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434';
+      const res = await fetch(`${API_URL}/doctors/verify-serial/${serial}`);
+      const data = await res.json();
+
+      if (data.valid) {
+        setResult(data.doctor);
+      } else {
+        setError(data.message || 'Invalid Serial Number');
+      }
+    } catch (err) {
+      setError('Verification failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="max-w-md mx-auto">
+      <form onSubmit={handleVerify} className="flex gap-2 mb-6">
+        <input
+          type="text"
+          placeholder="MCK-2025-XXX"
+          value={serial}
+          onChange={(e) => setSerial(e.target.value.toUpperCase())}
+          className="flex-1 border border-gray-300 rounded-lg px-4 py-3 font-mono uppercase focus:ring-2 focus:ring-[#C2003F] outline-none"
+        />
+        <button
+          type="submit"
+          disabled={loading}
+          className="bg-[#1D2B36] text-white px-6 py-3 rounded-lg font-bold hover:bg-black transition disabled:opacity-50"
+        >
+          {loading ? '...' : 'Verify'}
+        </button>
+      </form>
+
+      {error && (
+        <div className="p-4 bg-red-50 text-red-700 rounded-lg border border-red-100 flex items-center justify-center gap-2">
+          <FiX /> {error}
+        </div>
+      )}
+
+      {result && (
+        <div className="p-6 bg-green-50 rounded-xl border border-green-200 animate-in fade-in slide-in-from-bottom-2">
+          <div className="flex items-center gap-4 text-left">
+            <div className="w-16 h-16 bg-white rounded-full border-2 border-green-500 overflow-hidden flex-shrink-0">
+              {result.profileImage ? (
+                <img src={result.profileImage} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-green-500 font-bold text-2xl">✓</div>
+              )}
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="font-bold text-[#1D2B36] text-lg">{result.name}</h3>
+                <FiCheckCircle className="text-green-500 text-xl" />
+              </div>
+              <p className="text-sm text-gray-600">{result.speciality}</p>
+              <p className="text-xs text-green-700 mt-1 font-mono">Licence: {result.licenceNo}</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

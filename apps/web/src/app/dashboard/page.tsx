@@ -2,7 +2,7 @@
 
 import { useAuth, UserRole } from '@/lib/auth';
 import AdminView from '@/components/dashboard/AdminView';
-import DoctorView from '@/components/dashboard/DoctorView';
+import MedicView from '@/components/dashboard/MedicView';
 import PatientView from '@/components/dashboard/PatientView';
 import FinanceView from '@/components/dashboard/FinanceView';
 import PharmacyView from '@/components/dashboard/PharmacyView';
@@ -25,7 +25,7 @@ export default function DashboardPage() {
 
     // Unified Provider View
     if (user?.role === UserRole.MEDIC || user?.role === UserRole.DOCTOR || user?.role === UserRole.NURSE || user?.role === UserRole.CLINICIAN) {
-        return <DoctorView />;
+        return <MedicView />;
     }
 
     if (user?.role === UserRole.FINANCE) {

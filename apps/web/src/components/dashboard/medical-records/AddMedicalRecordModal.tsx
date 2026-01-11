@@ -36,12 +36,15 @@ export default function AddMedicalRecordModal({ patientId, appointmentId, onClos
                 return;
             }
 
-            const res = await api.post('/medical-records', {
+            const payload = {
                 ...formData,
-                patientId,
-                appointmentId,
-                doctorId: user?.doctorId || user?.id, // Use doctorId if available, otherwise user ID
-            });
+                patientId: Number(patientId),
+                appointmentId: Number(appointmentId),
+                doctorId: user?.doctorId ? Number(user.doctorId) : Number(user?.id),
+            };
+            console.log('Submitting Medical Record:', payload);
+
+            const res = await api.post('/medical-records', payload);
 
             if (res && res.ok) {
                 toast.success('Medical record added successfully');

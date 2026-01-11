@@ -166,7 +166,7 @@ export default function DoctorMap({ doctors }: { doctors: Doctor[] }) {
                                 {specialtyConfig[doctor.dr_type]?.icon || '👨‍⚕️'}
                             </div>
                             <div className="text-left flex-1 min-w-0">
-                                <div className="text-sm font-bold text-gray-900 dark:text-white truncate">Dr. {doctor.fname}</div>
+                                <div className="text-sm font-bold text-gray-900 dark:text-white truncate">{doctor.fname}</div>
                                 <div className="text-[10px] text-gray-500 uppercase font-bold truncate">{doctor.dr_type}</div>
                             </div>
                             <div className={`w-2 h-2 rounded-full ${doctor.isWorking ? 'bg-green-500' : 'bg-gray-300'}`}></div>
@@ -204,7 +204,7 @@ export default function DoctorMap({ doctors }: { doctors: Doctor[] }) {
                             >
                                 <Popup>
                                     <div className="p-1">
-                                        <div className="font-bold">Dr. {doctor.fname} {doctor.lname}</div>
+                                        <div className="font-bold">{doctor.fname} {doctor.lname}</div>
                                         <div className="text-xs text-gray-500">{doctor.dr_type}</div>
                                     </div>
                                 </Popup>
@@ -228,7 +228,7 @@ export default function DoctorMap({ doctors }: { doctors: Doctor[] }) {
                                 {specialtyConfig[activeDoctor.dr_type]?.icon || '👨‍⚕️'}
                             </div>
                             <div>
-                                <h3 className="text-lg font-black text-gray-900 dark:text-white">Dr. {activeDoctor.fname} {activeDoctor.lname}</h3>
+                                <h3 className="text-lg font-black text-gray-900 dark:text-white">{activeDoctor.fname} {activeDoctor.lname}</h3>
                                 <div className="flex items-center gap-2">
                                     <span className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full text-gray-600 dark:text-gray-400 font-bold uppercase tracking-tighter">
                                         {activeDoctor.dr_type}

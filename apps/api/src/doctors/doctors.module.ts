@@ -3,7 +3,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 import { DoctorsService } from './doctors.service';
 import { DoctorsController } from './doctors.controller';
-import { IdCardController } from './controllers/id-card.controller';
 import { Doctor } from './entities/doctor.entity';
 import { DoctorSchedule } from '../doctor-schedules/entities/doctor-schedule.entity';
 import { DoctorLicence } from '../doctor-licences/entities/doctor-licence.entity';
@@ -25,7 +24,7 @@ import { LicenseCheckService } from './services/license-check.service';
     EmailModule,
     ScheduleModule.forRoot(),
   ],
-  controllers: [DoctorsController, IdCardController],
+  controllers: [DoctorsController],
   providers: [DoctorsService, LicenseCheckService],
   exports: [DoctorsService],
 })

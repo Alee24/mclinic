@@ -2,7 +2,7 @@ import { Injectable, ConflictException, OnModuleInit } from '@nestjs/common';
 import { In } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DeepPartial } from 'typeorm';
-import { User } from './entities/user.entity';
+import { User, UserRole } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 
@@ -24,13 +24,13 @@ export class UsersService implements OnModuleInit {
     // OR specifically is 'doctor', 'nurse', 'clinician'.
     // Let's be specific to avoid accidents.
     const candidates = await this.usersRepository.find({
-      where: { role: In(['doctor', 'nurse', 'clinician']) }
+      where: { role: In([UserRole.DOCTOR, UserRole.NURSE, UserRole.CLINICIAN]) }
     });
 
     if (candidates.length > 0) {
       console.log(`[UsersService] Found ${candidates.length} users with legacy roles. Migrating to 'medic'...`);
       for (const user of candidates) {
-        user.role = 'medic';
+        user.role = UserRole.MEDIC;
         await this.usersRepository.save(user);
       }
       console.log('[UsersService] Migration complete.');

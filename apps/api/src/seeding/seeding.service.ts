@@ -18,6 +18,7 @@ import {
 import { ServicePrice } from '../financial/entities/service-price.entity';
 import { Invoice } from '../financial/entities/invoice.entity';
 import { InvoiceItem } from '../financial/entities/invoice-item.entity';
+import { SystemSetting } from '../system-settings/entities/system-setting.entity';
 
 @Injectable()
 export class SeedingService {
@@ -33,7 +34,26 @@ export class SeedingService {
     @InjectRepository(ServicePrice) private priceRepo: Repository<ServicePrice>,
     @InjectRepository(Invoice) private invoiceRepo: Repository<Invoice>,
     @InjectRepository(InvoiceItem) private itemRepo: Repository<InvoiceItem>,
-  ) {}
+    @InjectRepository(SystemSetting) private settingRepo: Repository<SystemSetting>,
+  ) { }
+
+  async seedSettings() {
+    const defaultSettings = [
+      { key: 'MPESA_ENV', value: 'sandbox', description: 'M-Pesa Environment (sandbox/production)', isSecure: false },
+      { key: 'MPESA_CONSUMER_KEY', value: '', description: 'M-Pesa Consumer Key', isSecure: true },
+      { key: 'MPESA_CONSUMER_SECRET', value: '', description: 'M-Pesa Consumer Secret', isSecure: true },
+      { key: 'MPESA_SHORTCODE', value: '', description: 'M-Pesa Shortcode', isSecure: false },
+      { key: 'MPESA_PASSKEY', value: '', description: 'M-Pesa Passkey', isSecure: true },
+      { key: 'MPESA_CALLBACK_URL', value: '', description: 'M-Pesa Callback URL', isSecure: false },
+    ];
+
+    for (const s of defaultSettings) {
+      const exists = await this.settingRepo.findOne({ where: { key: s.key } });
+      if (!exists) {
+        await this.settingRepo.save(this.settingRepo.create(s));
+      }
+    }
+  }
 
   async clearAll() {
     await this.itemRepo.delete({ id: MoreThanOrEqual(0) });
@@ -52,8 +72,9 @@ export class SeedingService {
     try {
       // 0. CLEAR DATA
       await this.clearAll();
+      await this.seedSettings();
 
-      console.log('Cleared all data');
+      console.log('Cleared all data and seeded system settings');
 
       // Create Test Doctor
       const docPassword = await bcrypt.hash('Digital2025', 10);

@@ -16,10 +16,10 @@ export default function RegisterSelectionPage() {
                         <p className="text-gray-500 text-sm">Find top doctors, book appointments, and manage your health records.</p>
                     </Link>
 
-                    <Link href="/register/doctor" className="group rounded-3xl p-8 bg-white dark:bg-[#121212] border border-gray-100 dark:border-gray-800 shadow-xl hover:-translate-y-2 transition-all">
+                    <Link href="/register/medic" className="group rounded-3xl p-8 bg-white dark:bg-[#121212] border border-gray-100 dark:border-gray-800 shadow-xl hover:-translate-y-2 transition-all">
                         <div className="text-6xl mb-6 group-hover:scale-110 transition-transform">🩺</div>
-                        <h2 className="text-2xl font-bold dark:text-white mb-2">I am a Doctor</h2>
-                        <p className="text-gray-500 text-sm">Join our network of specialists, manage patients, and grow your practice.</p>
+                        <h2 className="text-2xl font-bold dark:text-white mb-2">I am a Medical Professional</h2>
+                        <p className="text-gray-500 text-sm">Join our network of specialists (Doctors, Nurses, Pharmacists, etc.), manage patients, and grow your practice.</p>
                     </Link>
                 </div>
 

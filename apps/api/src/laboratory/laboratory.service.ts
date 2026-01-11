@@ -5,6 +5,7 @@ import { LabTest } from './entities/lab-test.entity';
 import { LabOrder, OrderStatus } from './entities/lab-order.entity';
 import { LabResult } from './entities/lab-result.entity';
 import { User, UserRole } from '../users/entities/user.entity';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class LaboratoryService {
@@ -12,7 +13,24 @@ export class LaboratoryService {
         @InjectRepository(LabTest) private testRepo: Repository<LabTest>,
         @InjectRepository(LabOrder) private orderRepo: Repository<LabOrder>,
         @InjectRepository(LabResult) private resultRepo: Repository<LabResult>,
+        private emailService: EmailService,
     ) { }
+
+    async uploadReport(orderId: string, filename: string, notes?: string) {
+        await this.orderRepo.update(orderId, {
+            report_url: filename,
+            technicianNotes: notes,
+            status: OrderStatus.COMPLETED
+        });
+
+        const order = await this.getOrderById(orderId);
+
+        if (order && order.patient) {
+            await this.emailService.sendLabResultsReadyEmail(order.patient, order, order.test?.name);
+        }
+
+        return order;
+    }
 
     // --- Tests Catalog ---
     async getTests() {
@@ -25,14 +43,45 @@ export class LaboratoryService {
     }
 
     // --- Orders ---
-    async createOrder(patientId: number, testId: number) {
-        // Here you might check if patient exists, or just rely on FK
+    async createOrder(patientId: number, testId: number, beneficiaryData?: any) {
         const order = this.orderRepo.create({
             patient_id: patientId,
             test_id: testId,
-            status: OrderStatus.PENDING
+            status: OrderStatus.PENDING,
+            isForSelf: beneficiaryData?.isForSelf ?? true,
+            beneficiaryName: beneficiaryData?.beneficiaryName,
+            beneficiaryAge: beneficiaryData?.beneficiaryAge,
+            beneficiaryGender: beneficiaryData?.beneficiaryGender,
+            beneficiaryRelation: beneficiaryData?.beneficiaryRelation,
+            sample_collection_date: beneficiaryData?.sampleDate ? new Date(beneficiaryData.sampleDate) : undefined
         });
         return this.orderRepo.save(order);
+    }
+
+    async seedTests() {
+        // Only seed if empty
+        const count = await this.testRepo.count();
+        if (count > 0) return;
+
+        const commonTests = [
+            { name: 'Full Hemogram', category: 'Hematology', price: 800, description: 'Complete Blood Count (CBC) including HB, WBC, Platelets' },
+            { name: 'Malaria Parasite (BS)', category: 'Microbiology', price: 300, description: 'Blood smear for Malaria Parasite detection' },
+            { name: 'Urinalysis', category: 'Microbiology', price: 400, description: 'Physical, Chemical and Microscopic examination of urine' },
+            { name: 'UECs', category: 'Biochemistry', price: 2500, description: 'Urea, Electrolytes and Creatinine - Kidney Function Test' },
+            { name: 'Liver Function Test', category: 'Biochemistry', price: 3000, description: 'AST, ALT, ALP, GGT, Total Protein, Albumin, Bilirubin' },
+            { name: 'Lipid Profile', category: 'Biochemistry', price: 2800, description: 'Cholesterol (Total, HDL, LDL), Triglycerides' },
+            { name: 'Blood Sugar (Random)', category: 'Biochemistry', price: 200, description: 'Random Blood Glucose test' },
+            { name: 'Blood Sugar (Fasting)', category: 'Biochemistry', price: 200, description: 'Fasting Blood Glucose test' },
+            { name: 'H. Pylori Antigen', category: 'Microbiology', price: 1200, description: 'Stool antigen test for H. Pylori' },
+            { name: 'Thyroid Profile', category: 'Immunology', price: 4500, description: 'T3, T4, TSH levels' },
+            { name: 'Vitamin D', category: 'Biochemistry', price: 3500, description: '25-Hydroxy Vitamin D level' },
+            { name: 'Pregnancy Test (Urine)', category: 'Other', price: 500, description: 'Urine hCG test' },
+        ];
+
+        for (const t of commonTests) {
+            // @ts-ignore
+            await this.testRepo.save(this.testRepo.create(t));
+        }
     }
 
     async getOrders(user: User) {

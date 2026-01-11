@@ -40,6 +40,20 @@ export class PharmacyService {
         return this.medicationRepo.save(med);
     }
 
+    getMedicationTemplate(): string {
+        const headers = [
+            'Category',
+            'Brand Name',
+            'Generic Name',
+            'Strength',
+            'Formulation',
+            'Price',
+            'Description',
+            'Stock'
+        ];
+        return headers.join(',') + '\n' + 'Antibiotics,Amoxil,Amoxicillin,500mg,Capsule,500,For infections,100'; // Example row
+    }
+
     // --- Prescriptions ---
 
     async createPrescription(data: {
@@ -265,5 +279,70 @@ export class PharmacyService {
 
     async updateOrderStatus(id: string, status: OrderStatus) {
         return this.pharmacyOrderRepo.update(id, { status });
+    }
+
+    async uploadMedications(file: Express.Multer.File) {
+        const csv = file.buffer.toString();
+        const lines = csv.split('\n');
+        // Skip header
+        const rows = lines.slice(1);
+        let updatedCount = 0;
+        let createdCount = 0;
+
+        for (const row of rows) {
+            if (!row.trim()) continue;
+            // Headers: Category,Brand Name,Generic Name,Strength,Formulation,Price,Description,Stock
+            // Note: Handle potential comma in description later if needed (simple split for MVP)
+            const cols = row.split(',');
+            if (cols.length < 8) continue;
+
+            const category = cols[0]?.trim();
+            const brandName = cols[1]?.trim();
+            const genericName = cols[2]?.trim();
+            const strength = cols[3]?.trim();
+            const formulation = cols[4]?.trim();
+            const price = parseFloat(cols[5]?.trim() || '0');
+            const description = cols[6]?.trim();
+            const stock = parseInt(cols[7]?.trim() || '0');
+
+            // Strategy: Match by Brand Name AND Generic Name AND Strength AND Formulation to be precise, 
+            // OR just Brand Name if unique. Let's use Brand Name for now as primary identifier if provided.
+            let med: Medication | null = null;
+            if (brandName) {
+                med = await this.medicationRepo.findOne({ where: { brandName } });
+            }
+
+            // Fallback: Check 'name' column for legacy compatibility if brandName was empty in CSV but maybe user meant 'Name'
+            // We are using 'name' in DB as primary display, let's map Brand Name to Name as well.
+            const displayName = brandName || genericName || 'Unknown';
+
+            if (med) {
+                med.category = category;
+                med.genericName = genericName;
+                med.strength = strength;
+                med.formulation = formulation;
+                med.price = price;
+                med.description = description;
+                med.stock = stock; // Optional: Add to stock instead of overwrite? Requirements say "upload", usually implies sync or add. Let's overwrite for consistency with "Update".
+                await this.medicationRepo.save(med);
+                updatedCount++;
+            } else {
+                const newMed = this.medicationRepo.create({
+                    name: displayName,
+                    brandName,
+                    genericName,
+                    category,
+                    strength,
+                    formulation,
+                    price,
+                    description,
+                    stock,
+                    requiresPrescription: true // Default
+                });
+                await this.medicationRepo.save(newMed);
+                createdCount++;
+            }
+        }
+        return { success: true, message: `Processed ${rows.length} rows. Created: ${createdCount}, Updated: ${updatedCount}` };
     }
 }

@@ -110,7 +110,7 @@ export default function AdminView() {
                     <h3 className="font-bold text-gray-900 dark:text-white mb-6">System Performance</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div>
-                            <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Doctor Activity</div>
+                            <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Medic Activity</div>
                             <div className="flex items-end gap-2 mb-2">
                                 <span className="text-3xl font-bold">{stats.activeDoctors}</span>
                                 <span className="text-sm text-green-500 mb-1 font-bold">Online</span>
@@ -165,7 +165,7 @@ export default function AdminView() {
             <div className="bg-white dark:bg-[#161616] rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="font-bold text-gray-900 dark:text-white">Action Items & Verifications</h3>
-                    <Link href="/dashboard/doctors" className="text-sm font-bold text-donezo-dark hover:underline">View All Doctors</Link>
+                    <Link href="/dashboard/doctors" className="text-sm font-bold text-donezo-dark hover:underline">View All Medics</Link>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {/* Shortcuts Group */}
@@ -213,7 +213,7 @@ export default function AdminView() {
                             </div>
                             <div className="flex-1 min-w-0">
                                 <h4 className="font-bold text-sm text-yellow-900 dark:text-yellow-100">Pending Approvals</h4>
-                                <p className="text-xs text-yellow-600/70 truncate">Review Doctor Applications</p>
+                                <p className="text-xs text-yellow-600/70 truncate">Review Medic Applications</p>
                             </div>
                             <Link href="/dashboard/admin/doctors/pending" className="px-3 py-1 bg-white dark:bg-black text-yellow-600 text-[10px] font-bold rounded-lg border border-yellow-100 shadow-sm flex items-center">Review</Link>
                         </div>
@@ -225,7 +225,7 @@ export default function AdminView() {
                                 😴
                             </div>
                             <p className="text-gray-500 font-medium">All caught up!</p>
-                            <p className="text-gray-400 text-sm">No pending doctor verifications at the moment.</p>
+                            <p className="text-gray-400 text-sm">No pending medic verifications at the moment.</p>
                         </div>
                     ) : stats.pendingDoctors.map(doc => (
                         <div key={doc.id} className="flex items-center gap-4 p-4 rounded-2xl border border-gray-50 dark:border-gray-800 bg-gray-50/50 dark:bg-black/20">

@@ -19,7 +19,8 @@ export default function LoginPage() {
         const password = formData.get('password');
 
         try {
-            const res = await fetch('http://localhost:3001/auth/login', {
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434';
+            const res = await fetch(`${API_URL}/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
@@ -32,7 +33,7 @@ export default function LoginPage() {
                 alert('Login failed');
             }
         } catch (err) {
-            alert('Connection error. Is API running on port 3001?');
+            alert('Connection error. Is API running on port 3434?');
         } finally {
             setLoading(false);
         }

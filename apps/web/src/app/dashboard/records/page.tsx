@@ -213,7 +213,8 @@ export default function MedicalRecordsPage() {
                 }
                 if (prescription.doctorStampUrl) {
                     const stampData = await getDataUrl(prescription.doctorStampUrl);
-                    doc.addImage(stampData, 'PNG', 50, finalY + 20, 35, 35);
+                    // Moved stamp to the right to avoid overlapping with signature
+                    doc.addImage(stampData, 'PNG', 80, finalY + 15, 35, 35);
                 }
             } catch (e) { console.error(e); }
 
@@ -288,7 +289,7 @@ export default function MedicalRecordsPage() {
                 <div>
                     <h1 className="text-3xl font-black dark:text-white tracking-tight">Patient Records</h1>
                     <p className="text-gray-500 mt-1 max-w-lg">
-                        A unified timeline of your visits, diagnoses, and prescriptions.
+                        Access comprehensive patient history properly from M-Clinic Kenya archives.
                     </p>
                 </div>
                 {!loading && (
@@ -332,21 +333,37 @@ export default function MedicalRecordsPage() {
                         <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-6 bg-white dark:bg-white/5 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl transition-all duration-300">
 
                             {/* Header: Date & Type */}
-                            <div className="flex justify-between items-start mb-4">
+                            {/* Header: Date & Type & Status */}
+                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 border-b border-gray-100 dark:border-gray-800 pb-4">
                                 <div>
-                                    <time className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                                        {item.date.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                                    </time>
-                                    <h3 className="font-bold text-lg dark:text-white mt-1">
-                                        {item.medicalRecord?.diagnosis
-                                            ? item.medicalRecord.diagnosis
-                                            : item.appointment?.service
-                                                ? `Appointment: ${item.appointment.service}`
-                                                : 'Consultation'}
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <time className="text-xs font-bold uppercase tracking-wider text-gray-500 flex items-center gap-1">
+                                            <FiCalendar />
+                                            {item.date.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                                        </time>
+                                        {item.appointment?.appointment_time && (
+                                            <>
+                                                <span className="text-gray-300">•</span>
+                                                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{item.appointment.appointment_time}</span>
+                                            </>
+                                        )}
+                                    </div>
+                                    <h3 className="font-bold text-lg dark:text-white">
+                                        {item.medicalRecord?.diagnosis || item.appointment?.service?.name || item.appointment?.service || 'General Consultation'}
                                     </h3>
                                 </div>
-                                <div className={`px-3 py-1 text-xs font-bold rounded-full border ${getStatusColor(item.type)}`}>
-                                    {item.type.replace('_', ' ')}
+                                <div className="flex items-center gap-2">
+                                    {item.appointment?.status && (
+                                        <span className={`px-3 py-1 text-xs font-bold rounded-full uppercase border ${item.appointment.status === 'completed' ? 'bg-green-100 text-green-700 border-green-200' :
+                                            item.appointment.status === 'confirmed' ? 'bg-blue-100 text-blue-700 border-blue-200' :
+                                                'bg-gray-100 text-gray-700 border-gray-200'
+                                            }`}>
+                                            {item.appointment.status}
+                                        </span>
+                                    )}
+                                    <div className={`px-3 py-1 text-xs font-bold rounded-full border ${getStatusColor(item.type)}`}>
+                                        {item.type === 'FULL_RECORD' ? 'Record' : item.type === 'PRESCRIPTION_ONLY' ? 'Prescription' : 'Appointment'}
+                                    </div>
                                 </div>
                             </div>
 

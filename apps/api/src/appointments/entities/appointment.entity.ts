@@ -11,6 +11,7 @@ import { User } from '../../users/entities/user.entity';
 import { Doctor } from '../../doctors/entities/doctor.entity';
 import { Service } from '../../services/entities/service.entity';
 import { Review } from '../../reviews/entities/review.entity';
+import { Invoice } from '../../financial/entities/invoice.entity';
 
 export enum AppointmentStatus {
   PENDING = 'pending',
@@ -105,6 +106,9 @@ export class Appointment {
 
   @OneToOne(() => Review, (review) => review.appointment)
   review: Review;
+
+  @OneToOne(() => Invoice, (invoice) => invoice.appointment)
+  invoice: Invoice;
 
   @CreateDateColumn()
   createdAt: Date;
