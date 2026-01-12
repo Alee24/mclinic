@@ -52,12 +52,12 @@ export default function PendingDoctorsPage() {
         try {
             const res = await api.post(`/doctors/${doctorId}/approve`, {});
             if (res && res.ok) {
-                alert('Doctor approved successfully! Approval email sent.');
+                alert('Medic approved successfully! Approval email sent.');
                 fetchPendingDoctors();
                 setShowApproveModal(false);
                 setSelectedDoctor(null);
             } else {
-                alert('Failed to approve doctor');
+                alert('Failed to approve medic');
             }
         } catch (error) {
             console.error('Error approving doctor:', error);
@@ -79,13 +79,13 @@ export default function PendingDoctorsPage() {
                 reason: rejectionReason,
             });
             if (res && res.ok) {
-                alert('Doctor rejected. Rejection email sent.');
+                alert('Medic rejected. Rejection email sent.');
                 fetchPendingDoctors();
                 setShowRejectModal(false);
                 setSelectedDoctor(null);
                 setRejectionReason('');
             } else {
-                alert('Failed to reject doctor');
+                alert('Failed to reject medic');
             }
         } catch (error) {
             console.error('Error rejecting doctor:', error);
@@ -107,8 +107,8 @@ export default function PendingDoctorsPage() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold dark:text-white">Pending Doctor Approvals</h1>
-                    <p className="text-gray-500 mt-1">Review and approve doctor applications</p>
+                    <h1 className="text-3xl font-bold dark:text-white">Pending Medic Approvals</h1>
+                    <p className="text-gray-500 mt-1">Review and approve medic applications</p>
                 </div>
                 <div className="bg-yellow-100 dark:bg-yellow-900/30 px-4 py-2 rounded-lg">
                     <span className="text-yellow-800 dark:text-yellow-200 font-bold">
@@ -121,7 +121,7 @@ export default function PendingDoctorsPage() {
                 <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center">
                     <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
                     <h3 className="text-xl font-bold dark:text-white mb-2">All Caught Up!</h3>
-                    <p className="text-gray-500">No pending doctor approvals at the moment.</p>
+                    <p className="text-gray-500">No pending medic approvals at the moment.</p>
                 </div>
             ) : (
                 <div className="grid gap-6">
@@ -212,7 +212,7 @@ export default function PendingDoctorsPage() {
             {showApproveModal && selectedDoctor && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full">
-                        <h3 className="text-xl font-bold dark:text-white mb-4">Approve Doctor</h3>
+                        <h3 className="text-xl font-bold dark:text-white mb-4">Approve Medic</h3>
                         <p className="text-gray-600 dark:text-gray-400 mb-6">
                             Are you sure you want to approve Dr. {selectedDoctor.fname} {selectedDoctor.lname}?
                             An approval email will be sent automatically.
@@ -244,7 +244,7 @@ export default function PendingDoctorsPage() {
             {showRejectModal && selectedDoctor && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full">
-                        <h3 className="text-xl font-bold dark:text-white mb-4">Reject Doctor</h3>
+                        <h3 className="text-xl font-bold dark:text-white mb-4">Reject Medic</h3>
                         <p className="text-gray-600 dark:text-gray-400 mb-4">
                             Rejecting Dr. {selectedDoctor.fname} {selectedDoctor.lname}. Please provide a reason:
                         </p>

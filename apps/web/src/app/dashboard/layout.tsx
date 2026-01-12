@@ -76,7 +76,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                             active={['/dashboard/users', '/dashboard/doctors', '/dashboard/patients'].some(p => pathname === p || pathname?.startsWith(p))}
                                             items={[
                                                 { href: '/dashboard/users', label: 'All Users' },
-                                                { href: '/dashboard/doctors', label: 'Doctors' },
+                                                { href: '/dashboard/doctors', label: 'Medics' },
                                                 { href: '/dashboard/patients', label: 'Patients' },
                                                 { href: '/dashboard/admin/doctors/pending', label: 'Approvals' }
                                             ]}

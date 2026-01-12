@@ -61,7 +61,7 @@ export default function DoctorsPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold dark:text-white flex items-center gap-3">
-                        <span className="text-primary"><FiShield size={24} /></span> Doctor Management
+                        <span className="text-primary"><FiShield size={24} /></span> Medic Management
                     </h1>
                     <p className="text-gray-500 text-sm mt-1">Manage professional degrees, licenses and active status.</p>
                 </div>
@@ -69,7 +69,7 @@ export default function DoctorsPage() {
                     onClick={() => setShowModal(true)}
                     className="flex items-center gap-2 bg-primary text-black font-bold px-4 py-2 rounded-lg hover:opacity-90 transition"
                 >
-                    <FiPlus /> Add Doctor
+                    <FiPlus /> Add Medic
                 </button>
             </div>
 
@@ -77,7 +77,7 @@ export default function DoctorsPage() {
                 <table className="w-full text-left text-sm">
                     <thead className="bg-gray-50 dark:bg-gray-800/50 text-xs uppercase text-gray-500 font-medium">
                         <tr>
-                            <th className="px-6 py-4">Doctor</th>
+                            <th className="px-6 py-4">Medic</th>
                             <th className="px-6 py-4">Contact Info</th>
                             <th className="px-6 py-4">Professional</th>
                             <th className="px-6 py-4">Financial</th>
@@ -151,10 +151,10 @@ export default function DoctorsPage() {
                             )
                         })}
                         {doctors.length === 0 && !loading && (
-                            <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-500">No doctors found. Add one to get started.</td></tr>
+                            <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-500">No medics found. Add one to get started.</td></tr>
                         )}
                         {loading && (
-                            <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-500">Loading doctors compliance data...</td></tr>
+                            <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-500">Loading medics compliance data...</td></tr>
                         )}
                     </tbody>
                 </table>

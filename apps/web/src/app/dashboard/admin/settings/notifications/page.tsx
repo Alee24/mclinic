@@ -5,7 +5,8 @@ import { api } from '@/lib/api';
 import { toast } from 'react-hot-toast';
 import {
     FiMail, FiSave, FiRefreshCw, FiBell, FiCheckCircle, FiAlertCircle,
-    FiCalendar, FiDollarSign, FiActivity, FiFileText, FiUser, FiShield
+    FiCalendar, FiDollarSign, FiActivity, FiFileText, FiUser, FiShield,
+    FiServer, FiLock, FiAtSign
 } from 'react-icons/fi';
 
 interface Setting {
@@ -39,6 +40,19 @@ export default function NotificationSettingsPage() {
             if (!res) return;
             const data = await res.json();
             setSettings(data.filter((s: any) => s.key.startsWith('EMAIL_')));
+
+            // Initialize SMTP defaults if missing in DB (avoid UI glitches)
+            const requiredKeys = ['EMAIL_SMTP_HOST', 'EMAIL_SMTP_PORT', 'EMAIL_SMTP_USER', 'EMAIL_SMTP_PASS', 'EMAIL_SMTP_FROM_EMAIL', 'EMAIL_SMTP_FROM_NAME'];
+            setSettings(prev => {
+                const newSettings = [...prev];
+                requiredKeys.forEach(key => {
+                    if (!newSettings.find(s => s.key === key)) {
+                        newSettings.push({ key, value: '', description: 'SMTP Config', isSecure: key.includes('PASS') });
+                    }
+                });
+                return newSettings;
+            });
+
         } catch (error) {
             console.error('Failed to fetch settings:', error);
             toast.error('Failed to load notification settings');
@@ -53,7 +67,7 @@ export default function NotificationSettingsPage() {
             if (exists) {
                 return prev.map(s => s.key === key ? { ...s, value } : s);
             } else {
-                return [...prev, { key, value, description: '', isSecure: false }];
+                return [...prev, { key, value, description: '', isSecure: key.includes('PASS') }];
             }
         });
     };
@@ -63,7 +77,7 @@ export default function NotificationSettingsPage() {
             setSaving(true);
             const res = await api.post('/settings', { settings });
             if (res && res.ok) {
-                toast.success('Notification settings updated successfully');
+                toast.success('Settings updated successfully');
             } else {
                 throw new Error('Failed to update');
             }
@@ -75,68 +89,20 @@ export default function NotificationSettingsPage() {
     };
 
     const getSetting = (key: string) => settings.find(s => s.key === key);
-    const getSettingValue = (key: string) => getSetting(key)?.value ?? 'true';
-    const isEnabled = (key: string) => getSettingValue(key) === 'true';
+    const getSettingValue = (key: string) => getSetting(key)?.value ?? '';
+    const isEnabled = (key: string) => getSetting(key)?.value === 'true'; // Strict check for boolean toggles
 
-    const masterEnabled = isEnabled('EMAIL_NOTIFICATIONS_ENABLED');
+    const masterEnabled = getSettingValue('EMAIL_NOTIFICATIONS_ENABLED') !== 'false'; // Default to true if not set
 
     const notificationToggles: NotificationToggle[] = [
-        {
-            key: 'EMAIL_BOOKING_CONFIRMATION',
-            label: 'Appointment Confirmation',
-            description: 'Send confirmation emails to patients when they book an appointment',
-            icon: <FiCalendar />,
-            color: 'blue'
-        },
-        {
-            key: 'EMAIL_BOOKING_NOTIFICATION_MEDIC',
-            label: 'Medic Appointment Notification',
-            description: 'Notify healthcare providers about new appointments',
-            icon: <FiUser />,
-            color: 'purple'
-        },
-        {
-            key: 'EMAIL_PAYMENT_CONFIRMATION',
-            label: 'Payment Confirmation',
-            description: 'Send payment receipts after successful transactions',
-            icon: <FiDollarSign />,
-            color: 'green'
-        },
-        {
-            key: 'EMAIL_LAB_RESULTS_READY',
-            label: 'Lab Results Ready',
-            description: 'Notify patients when their lab results are available',
-            icon: <FiActivity />,
-            color: 'red'
-        },
-        {
-            key: 'EMAIL_PRESCRIPTION_READY',
-            label: 'Prescription Ready',
-            description: 'Notify patients when their prescription is ready for collection',
-            icon: <FiFileText />,
-            color: 'orange'
-        },
-        {
-            key: 'EMAIL_ACCOUNT_CREATION',
-            label: 'Welcome Emails',
-            description: 'Send welcome emails when new accounts are created',
-            icon: <FiMail />,
-            color: 'indigo'
-        },
-        {
-            key: 'EMAIL_INVOICE_GENERATED',
-            label: 'Invoice Notifications',
-            description: 'Send invoices and billing statements to patients',
-            icon: <FiFileText />,
-            color: 'yellow'
-        },
-        {
-            key: 'EMAIL_LICENSE_EXPIRY_WARNING',
-            label: 'License Expiry Warnings',
-            description: 'Warn healthcare providers about expiring licenses',
-            icon: <FiShield />,
-            color: 'pink'
-        }
+        { key: 'EMAIL_BOOKING_CONFIRMATION', label: 'Appointment Confirmation', description: 'Confirm booking to patient', icon: <FiCalendar />, color: 'blue' },
+        { key: 'EMAIL_BOOKING_NOTIFICATION_MEDIC', label: 'Medic Notification', description: 'Notify doctor of new booking', icon: <FiUser />, color: 'purple' },
+        { key: 'EMAIL_PAYMENT_CONFIRMATION', label: 'Payment Confirmation', description: 'Receipts for payments', icon: <FiDollarSign />, color: 'green' },
+        { key: 'EMAIL_LAB_RESULTS_READY', label: 'Lab Results Ready', description: 'Notify patient of results', icon: <FiActivity />, color: 'red' },
+        { key: 'EMAIL_PRESCRIPTION_READY', label: 'Prescription Ready', description: 'Pharmacy collection notice', icon: <FiFileText />, color: 'orange' },
+        { key: 'EMAIL_ACCOUNT_CREATION', label: 'Welcome Emails', description: 'New account welcome', icon: <FiMail />, color: 'indigo' },
+        { key: 'EMAIL_INVOICE_GENERATED', label: 'Invoices', description: 'Billing statements', icon: <FiFileText />, color: 'yellow' },
+        { key: 'EMAIL_LICENSE_EXPIRY_WARNING', label: 'License Compliance', description: 'Expiry warnings for doctors', icon: <FiShield />, color: 'pink' }
     ];
 
     if (loading) {
@@ -148,14 +114,14 @@ export default function NotificationSettingsPage() {
     }
 
     return (
-        <div className="p-6 max-w-5xl mx-auto">
-            <div className="flex items-center justify-between mb-8">
+        <div className="p-6 max-w-5xl mx-auto space-y-8">
+            <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
                         <FiBell className="text-blue-600" />
-                        Email Notification Settings
+                        Email Settings
                     </h1>
-                    <p className="text-gray-500 mt-1">Control which emails are sent to patients and staff</p>
+                    <p className="text-gray-500 mt-1">Configure SMTP server and notification preferences</p>
                 </div>
                 <button
                     onClick={handleSave}
@@ -167,40 +133,124 @@ export default function NotificationSettingsPage() {
                 </button>
             </div>
 
-            {/* Master Toggle */}
-            <div className={`mb-8 p-6 rounded-2xl border-2 ${masterEnabled ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'}`}>
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h2 className="text-xl font-bold flex items-center gap-3 mb-2">
-                            {masterEnabled ? <FiCheckCircle className="text-green-600" /> : <FiAlertCircle className="text-red-600" />}
-                            Email Notifications: {masterEnabled ? 'Enabled' : 'Disabled'}
-                        </h2>
-                        <p className="text-sm text-gray-600">
-                            {masterEnabled
-                                ? 'All email notifications are currently active. You can fine-tune individual types below.'
-                                : '⚠️ All email notifications are disabled. Toggle this on to enable emails.'}
-                        </p>
+            {/* SMTP Configuration Section */}
+            <div className="bg-white rounded-2xl shadow-sm border p-6">
+                <h2 className="text-lg font-bold flex items-center gap-2 mb-6 text-gray-800 border-b pb-4">
+                    <FiServer className="text-blue-500" /> SMTP Server Configuration
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">SMTP Host</label>
+                            <input
+                                type="text"
+                                value={getSettingValue('EMAIL_SMTP_HOST')}
+                                onChange={e => handleUpdateValue('EMAIL_SMTP_HOST', e.target.value)}
+                                placeholder="smtp.gmail.com"
+                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">SMTP Port</label>
+                            <input
+                                type="text"
+                                value={getSettingValue('EMAIL_SMTP_PORT')}
+                                onChange={e => handleUpdateValue('EMAIL_SMTP_PORT', e.target.value)}
+                                placeholder="587"
+                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition"
+                            />
+                        </div>
+                        <div className="flex items-center gap-3 pt-4">
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={getSettingValue('EMAIL_SMTP_SECURE') === 'true'}
+                                    onChange={(e) => handleUpdateValue('EMAIL_SMTP_SECURE', e.target.checked ? 'true' : 'false')}
+                                    className="sr-only peer"
+                                />
+                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                            <span className="text-sm font-medium text-gray-700 flex items-center gap-1"><FiLock className="text-xs" /> Use Secure Connection (SSL/TLS)</span>
+                        </div>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                            type="checkbox"
-                            checked={masterEnabled}
-                            onChange={(e) => handleUpdateValue('EMAIL_NOTIFICATIONS_ENABLED', e.target.checked ? 'true' : 'false')}
-                            className="sr-only peer"
-                        />
-                        <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-green-600"></div>
-                    </label>
+
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">SMTP Username / Email</label>
+                            <input
+                                type="text"
+                                value={getSettingValue('EMAIL_SMTP_USER')}
+                                onChange={e => handleUpdateValue('EMAIL_SMTP_USER', e.target.value)}
+                                placeholder="notifications@mclinic.co.ke"
+                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">SMTP Password</label>
+                            <input
+                                type="password"
+                                value={getSettingValue('EMAIL_SMTP_PASS')}
+                                onChange={e => handleUpdateValue('EMAIL_SMTP_PASS', e.target.value)}
+                                placeholder="••••••••••••"
+                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">Sender Name ("From" Name)</label>
+                            <input
+                                type="text"
+                                value={getSettingValue('EMAIL_SMTP_FROM_NAME')}
+                                onChange={e => handleUpdateValue('EMAIL_SMTP_FROM_NAME', e.target.value)}
+                                placeholder="M-Clinic Alerts"
+                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">Sender Email ("From" Email)</label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-3 text-gray-400"><FiAtSign /></span>
+                                <input
+                                    type="text"
+                                    value={getSettingValue('EMAIL_SMTP_FROM_EMAIL')}
+                                    onChange={e => handleUpdateValue('EMAIL_SMTP_FROM_EMAIL', e.target.value)}
+                                    placeholder="noreply@mclinic.co.ke"
+                                    className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition"
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            {/* Individual Notification Toggles */}
-            <div className="bg-white rounded-2xl shadow-xl border overflow-hidden">
-                <div className="p-6 border-b bg-gray-50">
-                    <h2 className="text-lg font-bold flex items-center gap-2">
-                        <FiMail /> Individual Notification Types
-                    </h2>
-                    <p className="text-sm text-gray-500 mt-1">Enable or disable specific types of email notifications</p>
+            {/* Notification Toggles */}
+            <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
+                <div className="p-6 border-b bg-gray-50 flex items-center justify-between">
+                    <div>
+                        <h2 className="text-lg font-bold flex items-center gap-2">
+                            <FiMail /> Notification Preferences
+                        </h2>
+                        <p className="text-sm text-gray-500 mt-1">Enable or disable specific email types</p>
+                    </div>
+
+                    <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-lg border">
+                        <span className={`text-sm font-bold ${masterEnabled ? 'text-green-600' : 'text-red-500'}`}>
+                            {masterEnabled ? 'System Enabled' : 'System Disabled'}
+                        </span>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={masterEnabled}
+                                onChange={(e) => handleUpdateValue('EMAIL_NOTIFICATIONS_ENABLED', e.target.checked ? 'true' : 'false')}
+                                className="sr-only peer"
+                            />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
                 </div>
+
                 <div className="p-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {notificationToggles.map((toggle) => {
@@ -219,7 +269,7 @@ export default function NotificationSettingsPage() {
                             return (
                                 <div
                                     key={toggle.key}
-                                    className={`p-5 rounded-xl border-2 transition-all ${enabled ? colorClasses : 'bg-gray-50 border-gray-200'}`}
+                                    className={`p-5 rounded-xl border transition-all ${enabled ? colorClasses : 'bg-gray-50 border-gray-200 opacity-70'}`}
                                 >
                                     <div className="flex items-start justify-between mb-3">
                                         <div className="flex items-center gap-3">
@@ -227,15 +277,10 @@ export default function NotificationSettingsPage() {
                                                 {toggle.icon}
                                             </div>
                                             <div>
-                                                <h3 className="font-bold text-lg">{toggle.label}</h3>
-                                                <p className="text-xs text-gray-600 mt-1">{toggle.description}</p>
+                                                <h3 className="font-bold text-base">{toggle.label}</h3>
+                                                <p className="text-xs opacity-80 mt-1">{toggle.description}</p>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                                        <span className="text-sm font-medium">
-                                            {enabled ? '✅ Enabled' : '❌ Disabled'}
-                                        </span>
                                         <label className="relative inline-flex items-center cursor-pointer">
                                             <input
                                                 type="checkbox"
@@ -244,7 +289,7 @@ export default function NotificationSettingsPage() {
                                                 disabled={!masterEnabled}
                                                 className="sr-only peer"
                                             />
-                                            <div className={`w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all ${enabled ? `peer-checked:bg-${toggle.color}-600` : 'peer-checked:bg-blue-600'} ${!masterEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}></div>
+                                            <div className={`w-9 h-5 bg-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all ${enabled ? `peer-checked:bg-${toggle.color}-600` : 'peer-checked:bg-blue-600'} ${!masterEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}></div>
                                         </label>
                                     </div>
                                 </div>
@@ -254,20 +299,8 @@ export default function NotificationSettingsPage() {
                 </div>
             </div>
 
-            {/* Info Box */}
-            <div className="mt-8 p-6 bg-blue-50 rounded-2xl border border-blue-200">
-                <div className="flex items-start gap-4">
-                    <FiAlertCircle className="text-blue-600 text-2xl shrink-0 mt-1" />
-                    <div>
-                        <h3 className="font-bold text-blue-900 mb-2">How This Works</h3>
-                        <ul className="text-sm text-blue-800 space-y-2">
-                            <li>• <strong>Master Toggle</strong>: Disabling this will stop ALL emails from being sent</li>
-                            <li>• <strong>Individual Toggles</strong>: Fine-tune which specific email types to send</li>
-                            <li>• <strong>Real-time</strong>: Changes take effect immediately after saving</li>
-                            <li>• <strong>Database-backed</strong>: Settings are stored in the database and persist across server restarts</li>
-                        </ul>
-                    </div>
-                </div>
+            <div className="p-4 bg-gray-50 rounded-lg text-sm text-gray-500 border text-center">
+                Settings are stored securely. Sending emails relies on correct SMTP details.
             </div>
         </div>
     );

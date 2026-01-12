@@ -50,10 +50,10 @@ export default function CreateDoctorModal({ onClose, onSuccess }: CreateDoctorMo
             });
 
             if (res && res.ok) {
-                alert('Doctor created successfully');
+                alert('Medic created successfully');
                 onSuccess();
             } else {
-                alert('Failed to create doctor');
+                alert('Failed to create medic');
             }
         } catch (err) {
             console.error(err);
@@ -67,7 +67,7 @@ export default function CreateDoctorModal({ onClose, onSuccess }: CreateDoctorMo
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
             <div className="bg-white dark:bg-[#1A1A1A] w-full max-w-2xl rounded-xl shadow-2xl flex flex-col max-h-[90vh]">
                 <div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-gray-800">
-                    <h2 className="text-xl font-bold dark:text-white">Add New Doctor</h2>
+                    <h2 className="text-xl font-bold dark:text-white">Add New Medic</h2>
                     <button onClick={onClose} className="text-gray-500 hover:text-black dark:hover:text-white transition"><FiX size={24} /></button>
                 </div>
 
@@ -136,7 +136,7 @@ export default function CreateDoctorModal({ onClose, onSuccess }: CreateDoctorMo
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Doctor Type</label>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Medic Type</label>
                             <select name="dr_type" className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.dr_type} onChange={handleChange}>
                                 <option value="Specialist">Specialist</option>
                                 <option value="General Practitioner">General Practitioner</option>
@@ -188,7 +188,7 @@ export default function CreateDoctorModal({ onClose, onSuccess }: CreateDoctorMo
                     <div className="pt-6 flex justify-end gap-3 border-t border-gray-100 dark:border-gray-800 mt-6">
                         <button type="button" onClick={onClose} className="px-6 py-2 text-gray-600 dark:text-gray-300 font-medium hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">Cancel</button>
                         <button type="submit" disabled={loading} className="px-6 py-2 bg-primary text-black font-bold rounded-lg hover:opacity-90 disabled:opacity-50">
-                            {loading ? 'Creating...' : 'Create Doctor'}
+                            {loading ? 'Creating...' : 'Create Medic'}
                         </button>
                     </div>
                 </form>

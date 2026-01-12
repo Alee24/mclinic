@@ -116,7 +116,7 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
                 // Replaced alert with callback or toast logic if avail, for now just call success
                 onSuccess();
             } else {
-                alert('Failed to update doctor profile text');
+                alert('Failed to update medic profile text');
             }
         } catch (err) {
             console.error(err);
@@ -132,7 +132,7 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
             <div className="bg-white dark:bg-[#1A1A1A] w-full max-w-2xl rounded-xl shadow-2xl flex flex-col max-h-[90vh]">
                 <div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-gray-800">
-                    <h2 className="text-xl font-bold dark:text-white">Edit Doctor Profile</h2>
+                    <h2 className="text-xl font-bold dark:text-white">Edit Medic Profile</h2>
                     <button onClick={onClose} className="text-gray-500 hover:text-black dark:hover:text-white transition">
                         <FiX size={24} />
                     </button>
@@ -225,7 +225,7 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Doctor Type</label>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Medic Type</label>
                             <select name="dr_type" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.dr_type} onChange={handleChange}>
                                 <option value="Specialist">Specialist</option>
                                 <option value="General Doctor">General Practitioner</option>
