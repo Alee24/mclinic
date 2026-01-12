@@ -10,21 +10,17 @@ async function resetDatabase() {
     });
 
     try {
-        console.log('⚠️  DROPPING ALL TABLES...');
+        console.log('⚠️  DROPPING DATABASE mclinic...');
 
-        await connection.query('SET FOREIGN_KEY_CHECKS = 0');
+        // 1. Drop Database
+        await connection.query('DROP DATABASE IF EXISTS mclinic');
 
-        const [tables] = await connection.query('SHOW TABLES');
-        const tableNames = tables.map(row => Object.values(row)[0]);
+        // 2. Recreate Database
+        console.log('✨  Recreating Database...');
+        await connection.query('CREATE DATABASE mclinic');
 
-        if (tableNames.length > 0) {
-            console.log(`Found ${tableNames.length} tables. Dropping...`);
-            await connection.query(`DROP TABLE IF EXISTS ${tableNames.join(', ')}`);
-        } else {
-            console.log('No tables found.');
-        }
-
-        await connection.query('SET FOREIGN_KEY_CHECKS = 1');
+        // 3. Select Database
+        await connection.changeUser({ database: 'mclinic' });
 
         console.log('✅ Database reset successfully! Now start the API in DEV mode to recreate tables.');
 
