@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { FiSearch, FiCheckCircle, FiXCircle, FiInfo } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
-export default function VerifyPrescriptionPage() {
+function VerifyContent() {
     const searchParams = useSearchParams();
     const initialId = searchParams.get('id');
 
@@ -180,5 +180,13 @@ export default function VerifyPrescriptionPage() {
                 )}
             </main>
         </div>
+    );
+}
+
+export default function VerifyPrescriptionPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+            <VerifyContent />
+        </Suspense>
     );
 }
