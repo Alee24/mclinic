@@ -5,7 +5,7 @@ Complete guide to deploy M-Clinic to your production server.
 ## 📋 Pre-requisites
 
 - Ubuntu/Debian Linux server (20.04 or later)
-- Domain name pointed to your server (e.g., mclinic.co.ke)
+- Domain name pointed to your server (e.g., portal.mclinic.co.ke)
 - Root or sudo access
 - At least 2GB RAM, 20GB disk space
 
@@ -103,7 +103,7 @@ sudo nano /var/www/mclinic/apps/web/.env.production.local
 ```
 Add:
 ```
-NEXT_PUBLIC_API_URL=https://mclinic.co.ke/api
+NEXT_PUBLIC_API_URL=https://portal.mclinic.co.ke/api
 ```
 
 ### Step 5: Run Database Migrations
@@ -152,7 +152,7 @@ sudo systemctl restart nginx
 sudo apt install -y certbot python3-certbot-nginx
 
 # Get SSL certificate
-sudo certbot --nginx -d mclinic.co.ke -d www.mclinic.co.ke
+sudo certbot --nginx -d portal.mclinic.co.ke -d www.portal.mclinic.co.ke
 
 # Auto-renewal (already set up by certbot)
 sudo certbot renew --dry-run
@@ -232,14 +232,14 @@ mysql -u mclinic_user -p mclinic < backup_20260112.sql
 Point your domain to your server's IP:
 
 ```
-A Record:  mclinic.co.ke → YOUR_SERVER_IP
-A Record:  www.mclinic.co.ke → YOUR_SERVER_IP
+A Record:  portal.mclinic.co.ke → YOUR_SERVER_IP
+A Record:  www.portal.mclinic.co.ke → YOUR_SERVER_IP
 ```
 
 ## 📱 Post-Deployment
 
-1. **Test Login:** https://mclinic.co.ke/login
-2. **Test API:** https://mclinic.co.ke/api/health
+1. **Test Login:** https://portal.mclinic.co.ke/login
+2. **Test API:** https://portal.mclinic.co.ke/api/health
 3. **Configure Payment Gateways:** Admin Panel > Payment Gateways
 4. **Set Email Notifications:** Admin Panel > Notifications
 5. **Test M-Pesa:** Admin Panel > M-Pesa Config > Test Connection
@@ -277,16 +277,16 @@ sudo tail -f /var/log/nginx/error.log
 
 ## 📞 Support
 
-- Email: info@mclinic.co.ke
+- Email: info@portal.mclinic.co.ke
 - Phone: 0700448448
 - Documentation: See README files
 
 ---
 
 **Production URLs:**
-- Frontend: https://mclinic.co.ke
-- API: https://mclinic.co.ke/api
-- Admin Panel: https://mclinic.co.ke/dashboard
+- Frontend: https://portal.mclinic.co.ke
+- API: https://portal.mclinic.co.ke/api
+- Admin Panel: https://portal.mclinic.co.ke/dashboard
 
 **Default Admin Credentials:**
 - Email: mettoalex@gmail.com

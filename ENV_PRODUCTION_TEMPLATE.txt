@@ -25,7 +25,7 @@ MAIL_PASSWORD=your-app-password
 MAIL_FROM="M-Clinic <noreply@mclinic.co.ke>"
 
 # Frontend URL (for emails)
-FRONTEND_URL=https://mclinic.co.ke
+FRONTEND_URL=https://portal.mclinic.co.ke
 
 # M-Pesa (Will be managed via admin panel, these are fallbacks)
 MPESA_ENV=production
@@ -33,7 +33,7 @@ MPESA_PROD_CONSUMER_KEY=
 MPESA_PROD_CONSUMER_SECRET=
 MPESA_PROD_SHORTCODE=
 MPESA_PROD_PASSKEY=
-MPESA_PROD_CALLBACK_URL=https://mclinic.co.ke/api/mpesa/callback
+MPESA_PROD_CALLBACK_URL=https://portal.mclinic.co.ke/api/mpesa/callback
 
 # PayPal (Optional - configure via admin panel)
 PAYPAL_ENV=live
