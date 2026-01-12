@@ -3,10 +3,10 @@
 # Navigate to API root
 cd /var/www/mclinicportal/apps/api
 
-# Install Prisma dependencies
-echo "Installing Prisma..."
-npm install -D prisma
-npm install @prisma/client
+# Install Prisma dependencies (Stable v5)
+echo "Installing Prisma v5..."
+npm install -D prisma@5.22.0
+npm install @prisma/client@5.22.0
 
 # Create .env for Prisma if not exists (Append URL)
 if ! grep -q "DATABASE_URL" .env; then
