@@ -48,7 +48,7 @@ import { SystemSettingsModule } from './system-settings/system-settings.module';
         password: configService.get('DB_PASSWORD', ''),
         database: configService.get('DB_NAME', 'mclinic'),
         autoLoadEntities: true,
-        synchronize: false, // Using Prisma for schema management
+        synchronize: true, // AUTO-FIX SCHEMA MISMATCH
       }),
       inject: [ConfigService],
     }),
