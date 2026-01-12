@@ -387,7 +387,7 @@ export default function MedicRegisterPage() {
                 </div>
             </div>
 
-            <style jsx>{`
+            <style>{`
                 .label {
                     display: block;
                     font-size: 0.75rem;
