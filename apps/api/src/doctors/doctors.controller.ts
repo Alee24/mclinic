@@ -119,7 +119,7 @@ export class DoctorsController {
     // In production, you would construct a full URL or relative path handled by static file serving
     // For now, mirroring how profile_image is likely handled (just filename or relative path)
     // Assuming static serve at /uploads/signatures
-    const filePath = `${process.env.API_URL || 'http://localhost:3434'}/uploads/signatures/${file.filename}`;
+    const filePath = `${process.env.API_URL || 'https://portal.mclinic.co.ke/api'}/uploads/signatures/${file.filename}`;
     return this.doctorsService.updateSignature(+id, filePath);
   }
 
@@ -140,7 +140,7 @@ export class DoctorsController {
     @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    const filePath = `${process.env.API_URL || 'http://localhost:3434'}/uploads/stamps/${file.filename}`;
+    const filePath = `${process.env.API_URL || 'https://portal.mclinic.co.ke/api'}/uploads/stamps/${file.filename}`;
     return this.doctorsService.updateStamp(+id, filePath);
   }
 

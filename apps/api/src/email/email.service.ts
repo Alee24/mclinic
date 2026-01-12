@@ -10,7 +10,7 @@ export class EmailService {
     ) { }
 
     private get frontendUrl(): string {
-        return this.configService.get('FRONTEND_URL') || 'http://localhost:3000';
+        return this.configService.get('FRONTEND_URL') || 'https://portal.mclinic.co.ke';
     }
 
     async sendAccountCreationEmail(user: any, role: string) {
@@ -333,7 +333,7 @@ export class EmailService {
                     name: user.role === 'patient' ? user.fname : (order.beneficiaryName || user.fname), // Use beneficiary name if set, else user fname
                     testName: testName,
                     resultsUrl: `${this.frontendUrl}/dashboard/lab`,
-                    reportUrl: order.report_url ? `${process.env.API_URL || 'http://localhost:3434'}/uploads/reports/${order.report_url}` : null,
+                    reportUrl: order.report_url ? `${process.env.API_URL || 'https://portal.mclinic.co.ke/api'}/uploads/reports/${order.report_url}` : null,
                     notes: order.technicianNotes,
                     year: new Date().getFullYear(),
                 },

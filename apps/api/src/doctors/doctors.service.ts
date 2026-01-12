@@ -475,7 +475,7 @@ export class DoctorsService implements OnModuleInit {
                 drType: doctor.dr_type,
                 licenseNumber: doctor.licenceNo,
                 licenseExpiry: doctor.licenseExpiryDate,
-                profileImage: doctor.profile_image ? `http://localhost:3434/uploads/profiles/${doctor.profile_image}` : null
+                profileImage: doctor.profile_image ? `${process.env.API_URL || 'https://portal.mclinic.co.ke/api'}/uploads/profiles/${doctor.profile_image}` : null
             },
             serialNumber,
             qrCode: qrCodeDataUrl,
