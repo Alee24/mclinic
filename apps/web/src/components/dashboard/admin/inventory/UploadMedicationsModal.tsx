@@ -30,12 +30,8 @@ export default function UploadMedicationsModal({ isOpen, onClose }: UploadMedica
         formData.append('file', file);
 
         try {
-            const res = await api.post('/pharmacy/medications/upload', formData, {
-                headers: {
-                    // Content-Type is auto-set by FormData
-                }
-            });
-            const data = await res.json();
+            const res = await api.post('/pharmacy/medications/upload', formData);
+            const data = res ? await res.json() : { message: 'Network error' };
             if (res && res.ok) {
                 setResult(data.message);
                 setTimeout(() => {
