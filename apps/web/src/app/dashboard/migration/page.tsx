@@ -123,7 +123,7 @@ export default function DataMigrationPage() {
                 return;
             }
 
-            if (res.ok) {
+            if (res && res.ok) {
                 alert('Database cleared successfully!');
                 window.location.reload();
             } else {

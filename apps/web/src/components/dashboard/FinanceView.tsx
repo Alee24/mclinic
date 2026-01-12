@@ -14,11 +14,11 @@ export default function FinanceView() {
             try {
                 // Fetch Stats
                 const statsRes = await api.get('/financial/stats');
-                if (statsRes.ok) setStats(await statsRes.json());
+                if (statsRes && statsRes.ok) setStats(await statsRes.json());
 
                 // Fetch Recent Invoices
                 const invRes = await api.get('/financial/invoices');
-                if (invRes.ok) setInvoices(await invRes.json());
+                if (invRes && invRes.ok) setInvoices(await invRes.json());
 
             } catch (err) {
                 console.error(err);
