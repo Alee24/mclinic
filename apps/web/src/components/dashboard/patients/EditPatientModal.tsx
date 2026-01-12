@@ -86,19 +86,19 @@ export default function EditPatientModal({ patientId, onClose, onSuccess }: Edit
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">First Name</label>
-                            <input name="fname" required className="w-full form-input" value={formData.fname} onChange={handleChange} />
+                            <input name="fname" required className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.fname} onChange={handleChange} />
                         </div>
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Last Name</label>
-                            <input name="lname" required className="w-full form-input" value={formData.lname} onChange={handleChange} />
+                            <input name="lname" required className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.lname} onChange={handleChange} />
                         </div>
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Date of Birth</label>
-                            <input type="date" name="dob" className="w-full form-input" value={formData.dob} onChange={handleChange} />
+                            <input type="date" name="dob" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.dob} onChange={handleChange} />
                         </div>
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Gender</label>
-                            <select name="sex" className="w-full form-input" value={formData.sex} onChange={handleChange}>
+                            <select name="sex" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.sex} onChange={handleChange}>
                                 <option value="">Select Gender</option>
                                 <option value="male">Male</option>
                                 <option value="female">Female</option>
@@ -107,11 +107,11 @@ export default function EditPatientModal({ patientId, onClose, onSuccess }: Edit
                         </div>
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Phone Number</label>
-                            <input name="mobile" className="w-full form-input" value={formData.mobile} onChange={handleChange} />
+                            <input name="mobile" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.mobile} onChange={handleChange} />
                         </div>
                         <div className="md:col-span-2">
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Address</label>
-                            <input name="address" className="w-full form-input" value={formData.address} onChange={handleChange} />
+                            <input name="address" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.address} onChange={handleChange} />
                         </div>
                     </div>
 
@@ -126,11 +126,7 @@ export default function EditPatientModal({ patientId, onClose, onSuccess }: Edit
                 </form>
             </div>
 
-            <style jsx global>{`
-                .form-input {
-                    @apply px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none;
-                }
-            `}</style>
+
         </div>
     );
 }
