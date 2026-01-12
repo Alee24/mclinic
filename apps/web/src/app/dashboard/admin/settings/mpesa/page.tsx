@@ -58,7 +58,7 @@ export default function MpesaSettingsPage() {
         try {
             setSaving(true);
             const res = await api.post('/settings', { settings });
-            if (res.ok) {
+            if (res && res.ok) {
                 toast.success('Settings updated successfully');
             } else {
                 throw new Error('Failed to update');
@@ -85,6 +85,7 @@ export default function MpesaSettingsPage() {
                 transactionDesc: 'System Test'
             });
 
+            if (!res) return;
             const data = await res.json();
             if (res.ok) {
                 toast.success('Test STK Push initiated successfully! Check your phone.');

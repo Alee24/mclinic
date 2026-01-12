@@ -48,7 +48,7 @@ import { SystemSettingsModule } from './system-settings/system-settings.module';
         password: configService.get('DB_PASSWORD', ''),
         database: configService.get('DB_NAME', 'mclinic'),
         autoLoadEntities: true,
-        synchronize: true, // DEV only
+        synchronize: configService.get('NODE_ENV') !== 'production', // Only sync in development
       }),
       inject: [ConfigService],
     }),
