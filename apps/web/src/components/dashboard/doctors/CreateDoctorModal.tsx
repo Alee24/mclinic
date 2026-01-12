@@ -81,12 +81,12 @@ export default function CreateDoctorModal({ onClose, onSuccess }: CreateDoctorMo
 
                         <div className="md:col-span-2">
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Full Name *</label>
-                            <input name="name" required className="w-full form-input" value={formData.name} onChange={handleChange} placeholder="e.g. John Doe" />
+                            <input name="name" required className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.name} onChange={handleChange} placeholder="e.g. John Doe" />
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Gender *</label>
-                            <select name="sex" className="w-full form-input" value={formData.sex} onChange={handleChange}>
+                            <select name="sex" className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.sex} onChange={handleChange}>
                                 <option value="Male">Male</option>
                                 <option value="Female">Female</option>
                             </select>
@@ -94,7 +94,7 @@ export default function CreateDoctorModal({ onClose, onSuccess }: CreateDoctorMo
 
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Date of Birth</label>
-                            <input type="date" name="dob" className="w-full form-input" value={formData.dob} onChange={handleChange} />
+                            <input type="date" name="dob" className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.dob} onChange={handleChange} />
                         </div>
 
                         {/* Section: Contact Info */}
@@ -104,17 +104,17 @@ export default function CreateDoctorModal({ onClose, onSuccess }: CreateDoctorMo
 
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Email Address *</label>
-                            <input type="email" name="email" required className="w-full form-input" value={formData.email} onChange={handleChange} placeholder="doctor@example.com" />
+                            <input type="email" name="email" required className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.email} onChange={handleChange} placeholder="doctor@example.com" />
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Mobile Number *</label>
-                            <input name="mobile" required className="w-full form-input" value={formData.mobile} onChange={handleChange} placeholder="+254..." />
+                            <input name="mobile" required className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.mobile} onChange={handleChange} placeholder="+254..." />
                         </div>
 
                         <div className="md:col-span-2">
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Physical Address</label>
-                            <input name="address" className="w-full form-input" value={formData.address} onChange={handleChange} placeholder="Building, Street, City" />
+                            <input name="address" className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.address} onChange={handleChange} placeholder="Building, Street, City" />
                         </div>
 
                         {/* Section: Professional Info */}
@@ -124,7 +124,7 @@ export default function CreateDoctorModal({ onClose, onSuccess }: CreateDoctorMo
 
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Specialty *</label>
-                            <select name="specialty" required className="w-full form-input" value={formData.specialty} onChange={handleChange}>
+                            <select name="specialty" required className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.specialty} onChange={handleChange}>
                                 <option value="">Select Specialty</option>
                                 {[
                                     'Cardiology', 'Dermatology', 'Neurology', 'Pediatrics',
@@ -137,7 +137,7 @@ export default function CreateDoctorModal({ onClose, onSuccess }: CreateDoctorMo
 
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Doctor Type</label>
-                            <select name="dr_type" className="w-full form-input" value={formData.dr_type} onChange={handleChange}>
+                            <select name="dr_type" className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.dr_type} onChange={handleChange}>
                                 <option value="Specialist">Specialist</option>
                                 <option value="General Practitioner">General Practitioner</option>
                                 <option value="Consultant">Consultant</option>
@@ -146,27 +146,27 @@ export default function CreateDoctorModal({ onClose, onSuccess }: CreateDoctorMo
 
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">License Number *</label>
-                            <input name="licenseNumber" required className="w-full form-input font-mono" value={formData.licenseNumber} onChange={handleChange} />
+                            <input name="licenseNumber" required className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none font-mono" value={formData.licenseNumber} onChange={handleChange} />
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Reg. Code (KMPDC)</label>
-                            <input name="reg_code" className="w-full form-input font-mono" value={formData.reg_code} onChange={handleChange} />
+                            <input name="reg_code" className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none font-mono" value={formData.reg_code} onChange={handleChange} />
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">License Expiry *</label>
-                            <input type="date" name="licenseExpiryDate" required className="w-full form-input" value={formData.licenseExpiryDate} onChange={handleChange} />
+                            <input type="date" name="licenseExpiryDate" required className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.licenseExpiryDate} onChange={handleChange} />
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Hospital Affiliation</label>
-                            <input name="hospitalAffiliation" className="w-full form-input" value={formData.hospitalAffiliation} onChange={handleChange} />
+                            <input name="hospitalAffiliation" className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.hospitalAffiliation} onChange={handleChange} />
                         </div>
 
                         <div className="md:col-span-2">
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Qualifications</label>
-                            <input name="qualifications" className="w-full form-input" value={formData.qualifications} onChange={handleChange} placeholder="MBBS, MD, PhD..." />
+                            <input name="qualifications" className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.qualifications} onChange={handleChange} placeholder="MBBS, MD, PhD..." />
                         </div>
 
                         {/* Section: Financial & Bio */}
@@ -176,12 +176,12 @@ export default function CreateDoctorModal({ onClose, onSuccess }: CreateDoctorMo
 
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Consultation Fee (KES)</label>
-                            <input type="number" name="fee" required className="w-full form-input" value={formData.fee} onChange={handleChange} min="0" />
+                            <input type="number" name="fee" required className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.fee} onChange={handleChange} min="0" />
                         </div>
 
                         <div className="md:col-span-2">
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Bio</label>
-                            <textarea name="bio" className="w-full form-input" rows={2} value={formData.bio} onChange={handleChange} />
+                            <textarea name="bio" className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" rows={2} value={formData.bio} onChange={handleChange} />
                         </div>
                     </div>
 
@@ -193,11 +193,7 @@ export default function CreateDoctorModal({ onClose, onSuccess }: CreateDoctorMo
                     </div>
                 </form>
             </div>
-            <style global>{`
-                .form-input {
-                    @apply px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none;
-                }
-            `}</style>
+
         </div>
     );
 }
