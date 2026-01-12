@@ -459,14 +459,14 @@ model AmbulanceSubscription {
   id                     Int      @id @default(autoincrement())
   user_id                BigInt?  @db.UnsignedBigInt
   primary_subscriber_name String
-  dob                    String?  @db.Date // Mapped as date in Entity, check format
-  gender                 String?  @db.VarChar(20)
-  identification_number  String?  @db.VarChar(50)
-  nationality            String?  @db.VarChar(50)
-  language_spoken        String?  @db.VarChar(50)
+  dob                    DateTime? @db.Date
+  gender                 String?   @db.VarChar(20)
+  identification_number  String?   @db.VarChar(50)
+  nationality            String?   @db.VarChar(50)
+  language_spoken        String?   @db.VarChar(50)
   photo_url              String?
-  primary_phone          String   @db.VarChar(20)
-  secondary_phone        String?  @db.VarChar(20)
+  primary_phone          String    @db.VarChar(20)
+  secondary_phone        String?   @db.VarChar(20)
   email                  String?
   residential_address    String?
   county                 String?
@@ -474,21 +474,21 @@ model AmbulanceSubscription {
   street                 String?
   house_details          String?
   landmark               String?
-  gps_coordinates        String?  @db.Text
+  gps_coordinates        String?   @db.Text
   work_address           String?
-  blood_type             String?  @db.VarChar(10)
-  allergies              String?  @db.Text
-  chronic_conditions     String?  @db.Text
-  current_medications    String?  @db.Text
-  surgical_history       String?  @db.Text
-  disabilities           String?  @db.Text
+  blood_type             String?   @db.VarChar(10)
+  allergies              String?   @db.Text
+  chronic_conditions     String?   @db.Text
+  current_medications    String?   @db.Text
+  surgical_history       String?   @db.Text
+  disabilities           String?   @db.Text
   pregnancy_status       String?
   preferred_hospital     String?
   insurance_details      String?
   package_type           String
-  status                 String   @default("active")
-  start_date             String?  @db.Date
-  end_date               String?  @db.Date
+  status                 String    @default("active")
+  start_date             DateTime? @db.Date
+  end_date               DateTime? @db.Date
   family_members         Json?
   emergency_contacts     Json?
   created_at             DateTime @default(now()) @db.DateTime(6)
