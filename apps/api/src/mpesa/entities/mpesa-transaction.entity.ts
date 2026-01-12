@@ -6,7 +6,7 @@ import {
     UpdateDateColumn,
 } from 'typeorm';
 
-@Entity()
+@Entity('mpesa_transaction')
 export class MpesaTransaction {
     @PrimaryGeneratedColumn()
     id: number;

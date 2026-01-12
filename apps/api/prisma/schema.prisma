@@ -36,12 +36,8 @@ model User {
   patient               Patient?
   wallets               Wallet[]
   ambulanceSubscriptions AmbulanceSubscription[]
-  // One-to-many relations often needed for reverse lookups in Prisma
-  // appointments Appointment[] 
-  // prescriptions Prescription[]
-  // labOrders LabOrder[]
-  // pharmacyOrders PharmacyOrder[]
-
+  medicalProfile        MedicalProfile?
+  
   @@map("users")
 }
 
@@ -76,6 +72,35 @@ model Patient {
   user User? @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("patients")
+}
+
+model MedicalProfile {
+  id                          Int      @id @default(autoincrement())
+  user_id                     BigInt   @unique @db.UnsignedBigInt
+  blood_group                 String?  @db.VarChar(10)
+  genotype                    String?  @db.VarChar(10)
+  height                      Float?   @db.Float
+  weight                      Float?   @db.Float
+  allergies                   String?  @db.Text
+  medical_history             String?  @db.Text
+  social_history              String?  @db.Text
+  family_history              String?  @db.Text
+  emergency_contact_name      String?  @db.VarChar(100)
+  emergency_contact_phone     String?  @db.VarChar(40)
+  emergency_contact_relation  String?  @db.VarChar(40)
+  insurance_provider          String?  @db.VarChar(100)
+  insurance_policy_no         String?  @db.VarChar(50)
+  shif_number                 String?  @db.VarChar(50)
+  subscription_plan           String   @default("Pay-As-You-Go") @db.VarChar(50)
+  current_medications         String?  @db.Text
+  surgical_history            String?  @db.Text
+  disability_status           String?  @db.Text 
+  created_at                  DateTime @default(now()) @db.DateTime(6)
+  updated_at                  DateTime @default(now()) @updatedAt @db.DateTime(6)
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("medical_profiles")
 }
 
 model Doctor {
@@ -115,6 +140,7 @@ model Doctor {
   updated_at          DateTime @default(now()) @updatedAt @db.DateTime(6)
 
   schedules           DoctorSchedule[]
+  licences            DoctorLicence[]
 
   @@map("doctors")
 }
@@ -134,6 +160,19 @@ model DoctorSchedule {
   @@map("doctor_schedules")
 }
 
+model DoctorLicence {
+  id          BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  doctor_id   BigInt   @db.UnsignedBigInt
+  licence_no  String?  @db.VarChar(20)
+  expiry_date DateTime? @db.Timestamp(0)
+  document    String?  @db.VarChar(255)
+  verified    Boolean  @default(false)
+
+  doctor      Doctor   @relation(fields: [doctor_id], references: [id], onDelete: Cascade)
+
+  @@map("doctor_licences")
+}
+
 // -----------------------------------------------------------------------------
 // CORE MEDICAL
 // -----------------------------------------------------------------------------
@@ -147,7 +186,7 @@ model Appointment {
   appointment_time   String?           @db.VarChar(40)
   fee                Int               @default(0)
   transportFee       Decimal           @default(0) @db.Decimal(10, 2)
-  status             String            @default("pending") // Using String to verify enum mapping first
+  status             String            @default("pending")
   notes              String?
   meetingLink        String?
   meetingId          String?
@@ -162,6 +201,8 @@ model Appointment {
   homeAddress        String?
   createdAt          DateTime          @default(now()) @db.DateTime(6)
   updatedAt          DateTime          @default(now()) @updatedAt @db.DateTime(6)
+
+  review             Review?
 
   @@map("appointment")
 }
@@ -201,7 +242,7 @@ model Transaction {
   id        Int      @id @default(autoincrement())
   reference String?
   amount    Decimal  @db.Decimal(28, 2)
-  type      String   @default("debit") // credit, debit
+  type      String   @default("debit")
   source    String   @default("MPESA")
   status    String   @default("pending")
   userId    BigInt?  @db.UnsignedBigInt
@@ -211,9 +252,30 @@ model Transaction {
   @@map("transaction")
 }
 
+model MpesaTransaction {
+  id                 Int       @id @default(autoincrement())
+  merchantRequestId  String
+  checkoutRequestId  String
+  phoneNumber        String
+  amount             Decimal   @db.Decimal(10, 2)
+  accountReference   String?
+  transactionDesc    String?
+  status             String    @default("PENDING")
+  resultCode         String?
+  resultDesc         String?
+  mpesaReceiptNumber String?
+  transactionDate    DateTime? @db.DateTime
+  relatedEntity      String?
+  relatedEntityId    Int?
+  createdAt          DateTime  @default(now()) @db.DateTime(6)
+  updatedAt          DateTime  @default(now()) @updatedAt @db.DateTime(6)
+
+  @@map("mpesa_transaction")
+}
+
 model PaymentConfig {
   id          Int      @id @default(autoincrement())
-  provider    String   @unique // mpesa, visa, etc
+  provider    String   @unique
   credentials String   @db.Text
   isActive    Boolean  @default(true)
   currency    String   @default("KES")
@@ -298,6 +360,7 @@ model Department {
   name        String   @db.VarChar(100)
   description String?  @db.Text
   image       String?  @db.VarChar(255)
+  status      Boolean  @default(true)
   createdAt   DateTime @default(now()) @db.DateTime(6)
   updatedAt   DateTime @default(now()) @updatedAt @db.DateTime(6)
 
@@ -350,7 +413,7 @@ model PrescriptionItem {
   prescriptionId Int
   medicationId   Int
   medicationName String
-  dosage         String // e.g. "1-0-1"
+  dosage         String
   frequency      String?
   duration       String?
   quantity       Int
@@ -500,15 +563,29 @@ model AmbulanceSubscription {
 }
 
 // -----------------------------------------------------------------------------
-// REVIEWS
+// SETTINGS
 // -----------------------------------------------------------------------------
+
+model SystemSetting {
+  key         String  @id
+  value       String  @db.Text
+  description String?
+  isSecure    Boolean @default(false)
+
+  @@map("system_setting")
+}
 
 model Review {
    id          Int      @id @default(autoincrement())
    rating      Int
    comment     String?
    appointmentId Int? @unique
-   
+   patientId   BigInt   @db.UnsignedBigInt
+   doctorId    BigInt   @db.UnsignedBigInt
+   createdAt   DateTime @default(now()) @db.DateTime(6)
+
+   appointment Appointment? @relation(fields: [appointmentId], references: [id])
+
    @@map("reviews")
 }
 

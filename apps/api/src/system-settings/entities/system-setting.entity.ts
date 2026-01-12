@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryColumn } from 'typeorm';
 
-@Entity()
+@Entity('system_setting')
 export class SystemSetting {
     @PrimaryColumn()
     key: string;
