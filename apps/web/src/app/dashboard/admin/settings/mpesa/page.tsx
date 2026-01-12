@@ -31,6 +31,7 @@ export default function MpesaSettingsPage() {
         try {
             setLoading(true);
             const res = await api.get('/settings');
+            if (!res) return;
             const data = await res.json();
             setSettings(data.filter((s: any) => s.key.startsWith('MPESA_')));
         } catch (error) {
