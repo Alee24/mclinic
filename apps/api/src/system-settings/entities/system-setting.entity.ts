@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryColumn } from 'typeorm';
 
-@Entity('system_settings')
+@Entity()
 export class SystemSetting {
     @PrimaryColumn()
     key: string;
@@ -11,6 +11,6 @@ export class SystemSetting {
     @Column({ nullable: true })
     description: string;
 
-    @Column({ default: false }) // sensitive data like secrets shouldn't be sent in plain text to everyone, though for admin it's okay
+    @Column({ default: false })
     isSecure: boolean;
 }

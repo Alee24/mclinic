@@ -1,0 +1,50 @@
+# Production Environment Variables
+# Copy this to .env.production and update with your values
+
+# API Configuration
+NODE_ENV=production
+PORT=3434
+
+# Database (MySQL)
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=mclinic_user
+DB_PASS=CHANGE_THIS_STRONG_PASSWORD
+DB_NAME=mclinic
+
+# Security
+JWT_SECRET=CHANGE_THIS_TO_RANDOM_64_CHAR_STRING
+JWT_EXPIRES_IN=7d
+
+# Email (SMTP)
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_SECURE=false
+MAIL_USER=your-email@gmail.com
+MAIL_PASSWORD=your-app-password
+MAIL_FROM="M-Clinic <noreply@mclinic.co.ke>"
+
+# Frontend URL (for emails)
+FRONTEND_URL=https://mclinic.co.ke
+
+# M-Pesa (Will be managed via admin panel, these are fallbacks)
+MPESA_ENV=production
+MPESA_PROD_CONSUMER_KEY=
+MPESA_PROD_CONSUMER_SECRET=
+MPESA_PROD_SHORTCODE=
+MPESA_PROD_PASSKEY=
+MPESA_PROD_CALLBACK_URL=https://mclinic.co.ke/api/mpesa/callback
+
+# PayPal (Optional - configure via admin panel)
+PAYPAL_ENV=live
+PAYPAL_LIVE_CLIENT_ID=
+PAYPAL_LIVE_CLIENT_SECRET=
+
+# Stripe (Optional - configure via admin panel)
+STRIPE_ENV=live
+STRIPE_LIVE_PUBLISHABLE_KEY=
+STRIPE_LIVE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+
+# Logging
+LOG_LEVEL=error

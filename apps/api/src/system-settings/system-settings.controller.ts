@@ -1,12 +1,10 @@
 import { Controller, Get, Post, Body, UseGuards, Param } from '@nestjs/common';
-import { SystemSettingsService } from './system-settings.service';
 import { AuthGuard } from '@nestjs/passport';
-// import { RolesGuard } from '../auth/guards/roles.guard'; // Assuming you have roles
-// import { Roles } from '../auth/decorators/roles.decorator';
+import { SystemSettingsService } from './system-settings.service';
 
 @Controller('settings')
 export class SystemSettingsController {
-    constructor(private readonly settingsService: SystemSettingsService) { }
+    constructor(private settingsService: SystemSettingsService) { }
 
     @UseGuards(AuthGuard('jwt'))
     @Get()

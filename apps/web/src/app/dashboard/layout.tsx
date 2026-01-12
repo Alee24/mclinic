@@ -118,6 +118,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                             { href: '/dashboard/finance/transactions', label: 'Overview' },
                                             { href: '/dashboard/invoices', label: 'Invoices' },
                                             { href: '/dashboard/finance/settings', label: 'Settings' },
+                                            { href: '/dashboard/admin/settings/notifications', label: 'Notifications' },
+                                            { href: '/dashboard/admin/settings/payments', label: 'Payment Gateways' },
                                             { href: '/dashboard/admin/settings/mpesa', label: 'M-Pesa Config' }
                                         ]}
                                         pathname={pathname}
@@ -255,6 +257,67 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         </div>
                     </div >
                 </header >
+
+                {/* Horizontal Quick Navigation */}
+                <div className="bg-white dark:bg-[#0D0D0D] border-b border-gray-100 dark:border-gray-800 px-4 py-2">
+                    <div className="flex items-center gap-2 overflow-x-auto">
+                        <Link
+                            href="/dashboard"
+                            className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 ${pathname === '/dashboard' ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                        >
+                            <FiGrid /> Dashboard
+                        </Link>
+                        <Link
+                            href="/dashboard/appointments"
+                            className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 ${pathname?.startsWith('/dashboard/appointments') ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                        >
+                            <FiCalendar /> Appointments
+                        </Link>
+                        {user.role === UserRole.ADMIN && (
+                            <>
+                                <Link
+                                    href="/dashboard/patients"
+                                    className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 ${pathname === '/dashboard/patients' ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                                >
+                                    <FiUsers /> Patients
+                                </Link>
+                                <Link
+                                    href="/dashboard/lab/orders"
+                                    className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 ${pathname?.startsWith('/dashboard/lab') ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                                >
+                                    <FiActivity /> Laboratory
+                                </Link>
+                                <Link
+                                    href="/dashboard/admin/pharmacy"
+                                    className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 ${pathname?.startsWith('/dashboard/admin/pharmacy') || pathname === '/dashboard/pharmacy' ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                                >
+                                    <FiPackage /> Pharmacy
+                                </Link>
+                                <Link
+                                    href="/dashboard/finance/transactions"
+                                    className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 ${pathname?.startsWith('/dashboard/finance') ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                                >
+                                    <FiBarChart2 /> Finance
+                                </Link>
+                                <Link
+                                    href="/dashboard/admin/settings/mpesa"
+                                    className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 ${pathname === '/dashboard/admin/settings/mpesa' ? 'bg-green-600 text-white shadow-md' : 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30 border border-green-200 dark:border-green-800'}`}
+                                >
+                                    <FiCheckCircle /> M-Pesa Config
+                                </Link>
+                            </>
+                        )}
+                        {(user.role === UserRole.PHARMACY) && (
+                            <Link
+                                href="/dashboard/pharmacy"
+                                className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 ${pathname === '/dashboard/pharmacy' ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                            >
+                                <FiPackage /> Pharmacy
+                            </Link>
+                        )}
+                    </div>
+                </div>
+
 
                 {/* Dashboard Content */}
                 < div className="flex-1 overflow-auto p-8 pt-2" >

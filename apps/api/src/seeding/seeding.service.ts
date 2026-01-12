@@ -39,12 +39,51 @@ export class SeedingService {
 
   async seedSettings() {
     const defaultSettings = [
-      { key: 'MPESA_ENV', value: 'sandbox', description: 'M-Pesa Environment (sandbox/production)', isSecure: false },
-      { key: 'MPESA_CONSUMER_KEY', value: '', description: 'M-Pesa Consumer Key', isSecure: true },
-      { key: 'MPESA_CONSUMER_SECRET', value: '', description: 'M-Pesa Consumer Secret', isSecure: true },
-      { key: 'MPESA_SHORTCODE', value: '', description: 'M-Pesa Shortcode', isSecure: false },
-      { key: 'MPESA_PASSKEY', value: '', description: 'M-Pesa Passkey', isSecure: true },
-      { key: 'MPESA_CALLBACK_URL', value: '', description: 'M-Pesa Callback URL', isSecure: false },
+      // Active Payment Methods
+      { key: 'PAYMENT_MPESA_ENABLED', value: 'true', description: 'Enable M-Pesa payments', isSecure: false },
+      { key: 'PAYMENT_PAYPAL_ENABLED', value: 'false', description: 'Enable PayPal payments', isSecure: false },
+      { key: 'PAYMENT_STRIPE_ENABLED', value: 'false', description: 'Enable Stripe (Cards) payments', isSecure: false },
+
+      // M-Pesa Settings
+      { key: 'MPESA_ENV', value: 'sandbox', description: 'Active M-Pesa Environment (sandbox/production)', isSecure: false },
+      // Sandbox
+      { key: 'MPESA_SANDBOX_CONSUMER_KEY', value: '', description: 'M-Pesa Sandbox Consumer Key', isSecure: true },
+      { key: 'MPESA_SANDBOX_CONSUMER_SECRET', value: '', description: 'M-Pesa Sandbox Consumer Secret', isSecure: true },
+      { key: 'MPESA_SANDBOX_SHORTCODE', value: '', description: 'M-Pesa Sandbox Shortcode', isSecure: false },
+      { key: 'MPESA_SANDBOX_PASSKEY', value: '', description: 'M-Pesa Sandbox Passkey', isSecure: true },
+      { key: 'MPESA_SANDBOX_CALLBACK_URL', value: '', description: 'M-Pesa Sandbox Callback URL', isSecure: false },
+      // Production
+      { key: 'MPESA_PROD_CONSUMER_KEY', value: '', description: 'M-Pesa Production Consumer Key', isSecure: true },
+      { key: 'MPESA_PROD_CONSUMER_SECRET', value: '', description: 'M-Pesa Production Consumer Secret', isSecure: true },
+      { key: 'MPESA_PROD_SHORTCODE', value: '', description: 'M-Pesa Production Shortcode', isSecure: false },
+      { key: 'MPESA_PROD_PASSKEY', value: '', description: 'M-Pesa Production Passkey', isSecure: true },
+      { key: 'MPESA_PROD_CALLBACK_URL', value: '', description: 'M-Pesa Production Callback URL', isSecure: false },
+
+      // PayPal Settings
+      { key: 'PAYPAL_ENV', value: 'sandbox', description: 'PayPal Environment (sandbox/live)', isSecure: false },
+      { key: 'PAYPAL_SANDBOX_CLIENT_ID', value: '', description: 'PayPal Sandbox Client ID', isSecure: true },
+      { key: 'PAYPAL_SANDBOX_CLIENT_SECRET', value: '', description: 'PayPal Sandbox Client Secret', isSecure: true },
+      { key: 'PAYPAL_LIVE_CLIENT_ID', value: '', description: 'PayPal Live Client ID', isSecure: true },
+      { key: 'PAYPAL_LIVE_CLIENT_SECRET', value: '', description: 'PayPal Live Client Secret', isSecure: true },
+
+      // Stripe Settings
+      { key: 'STRIPE_ENV', value: 'test', description: 'Stripe Environment (test/live)', isSecure: false },
+      { key: 'STRIPE_TEST_PUBLISHABLE_KEY', value: '', description: 'Stripe Test Publishable Key', isSecure: false },
+      { key: 'STRIPE_TEST_SECRET_KEY', value: '', description: 'Stripe Test Secret Key', isSecure: true },
+      { key: 'STRIPE_LIVE_PUBLISHABLE_KEY', value: '', description: 'Stripe Live Publishable Key', isSecure: false },
+      { key: 'STRIPE_LIVE_SECRET_KEY', value: '', description: 'Stripe Live Secret Key', isSecure: true },
+      { key: 'STRIPE_WEBHOOK_SECRET', value: '', description: 'Stripe Webhook Secret', isSecure: true },
+
+      // Email Notification Settings
+      { key: 'EMAIL_NOTIFICATIONS_ENABLED', value: 'true', description: 'Master toggle for all email notifications', isSecure: false },
+      { key: 'EMAIL_BOOKING_CONFIRMATION', value: 'true', description: 'Send booking confirmation emails', isSecure: false },
+      { key: 'EMAIL_BOOKING_NOTIFICATION_MEDIC', value: 'true', description: 'Notify medic of new bookings', isSecure: false },
+      { key: 'EMAIL_PAYMENT_CONFIRMATION', value: 'true', description: 'Send payment confirmation emails', isSecure: false },
+      { key: 'EMAIL_LAB_RESULTS_READY', value: 'true', description: 'Notify when lab results are ready', isSecure: false },
+      { key: 'EMAIL_PRESCRIPTION_READY', value: 'true', description: 'Notify when prescription is ready', isSecure: false },
+      { key: 'EMAIL_ACCOUNT_CREATION', value: 'true', description: 'Send welcome email on account creation', isSecure: false },
+      { key: 'EMAIL_INVOICE_GENERATED', value: 'true', description: 'Send invoice emails', isSecure: false },
+      { key: 'EMAIL_LICENSE_EXPIRY_WARNING', value: 'true', description: 'Warn about license expiration', isSecure: false },
     ];
 
     for (const s of defaultSettings) {

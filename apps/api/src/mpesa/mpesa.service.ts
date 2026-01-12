@@ -17,17 +17,33 @@ export class MpesaService {
     ) { }
 
     private async getCredential(key: string): Promise<string> {
-        // Try DB first
-        const dbValue = await this.settingsService.get(key);
+        // First get the active environment
+        const env = await this.settingsService.get('MPESA_ENV') || this.configService.get('MPESA_ENV') || 'sandbox';
+
+        // If the key is one of the M-Pesa credentials, prefix it with the current environment
+        let dbKey = key;
+        const credKeys = ['MPESA_CONSUMER_KEY', 'MPESA_CONSUMER_SECRET', 'MPESA_SHORTCODE', 'MPESA_PASSKEY', 'MPESA_CALLBACK_URL'];
+
+        if (credKeys.includes(key)) {
+            const prefix = env.toLowerCase() === 'production' ? 'MPESA_PROD_' : 'MPESA_SANDBOX_';
+            dbKey = key.replace('MPESA_', prefix);
+        }
+
+        // Try DB first (with prefixed key)
+        const dbValue = await this.settingsService.get(dbKey);
         if (dbValue && dbValue.trim() !== '') return dbValue;
 
+        // Try DB with original key (fallback)
+        const dbValueFallback = await this.settingsService.get(key);
+        if (dbValueFallback && dbValueFallback.trim() !== '') return dbValueFallback;
+
         // Fallback to Env
-        return this.configService.get(key) || '';
+        return this.configService.get(dbKey) || this.configService.get(key) || '';
     }
 
     private async getBaseUrl(): Promise<string> {
-        const env = await this.getCredential('MPESA_ENV');
-        return env === 'production'
+        const env = await this.settingsService.get('MPESA_ENV') || this.configService.get('MPESA_ENV') || 'sandbox';
+        return env.toLowerCase() === 'production'
             ? 'https://api.safaricom.co.ke'
             : 'https://sandbox.safaricom.co.ke';
     }

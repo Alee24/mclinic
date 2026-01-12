@@ -4,11 +4,11 @@ import { SystemSetting } from './entities/system-setting.entity';
 import { SystemSettingsService } from './system-settings.service';
 import { SystemSettingsController } from './system-settings.controller';
 
-@Global() // Make it global so MpesaModule can use it easily
+@Global()
 @Module({
     imports: [TypeOrmModule.forFeature([SystemSetting])],
-    controllers: [SystemSettingsController],
     providers: [SystemSettingsService],
+    controllers: [SystemSettingsController],
     exports: [SystemSettingsService],
 })
 export class SystemSettingsModule { }

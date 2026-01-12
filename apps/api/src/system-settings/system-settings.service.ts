@@ -15,25 +15,26 @@ export class SystemSettingsService {
         return setting ? setting.value : null;
     }
 
-    async set(key: string, value: string, description?: string, isSecure = false): Promise<SystemSetting> {
-        const setting = this.settingsRepo.create({ key, value, description, isSecure });
-        return await this.settingsRepo.save(setting);
-    }
-
-    async getAll(): Promise<SystemSetting[]> {
-        return await this.settingsRepo.find();
-    }
-
-    async getAllPublic(): Promise<SystemSetting[]> {
-        return await this.settingsRepo.find({ where: { isSecure: false } });
-    }
-
-    // Helper for bulk updates
-    async updateSettings(settings: { key: string; value: string }[]) {
-        const results = [];
-        for (const s of settings) {
-            results.push(await this.set(s.key, s.value));
+    async set(key: string, value: string, description?: string, isSecure?: boolean) {
+        let setting = await this.settingsRepo.findOne({ where: { key } });
+        if (!setting) {
+            setting = this.settingsRepo.create({ key, value, description, isSecure });
+        } else {
+            setting.value = value;
+            if (description !== undefined) setting.description = description;
+            if (isSecure !== undefined) setting.isSecure = isSecure;
         }
-        return results;
+        return this.settingsRepo.save(setting);
+    }
+
+    async getAll() {
+        return this.settingsRepo.find();
+    }
+
+    async updateSettings(settings: { key: string; value: string }[]) {
+        for (const s of settings) {
+            await this.settingsRepo.update({ key: s.key }, { value: s.value });
+        }
+        return { success: true };
     }
 }
