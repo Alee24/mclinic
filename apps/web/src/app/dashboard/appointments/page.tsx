@@ -7,6 +7,7 @@ import { FiVideo } from 'react-icons/fi';
 import Link from 'next/link';
 import ViewAppointmentDetailsModal from '@/components/dashboard/appointments/ViewAppointmentDetailsModal';
 import RateDoctorModal from '@/components/dashboard/appointments/RateDoctorModal';
+import CreateAppointmentModal from '@/components/dashboard/appointments/CreateAppointmentModal';
 
 export default function AppointmentsPage() {
     const { user } = useAuth();
