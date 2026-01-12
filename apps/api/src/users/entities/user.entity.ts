@@ -7,6 +7,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Wallet } from '../../wallets/entities/wallet.entity';
+import { Encrypt } from '../../common/transformers/encryption.transformer';
 
 export enum UserRole {
   PATIENT = 'patient',
@@ -54,7 +55,7 @@ export class User {
   @Column({ length: 40, nullable: true })
   mobile: string;
 
-  @Column({ length: 20, nullable: true })
+  @Column({ length: 255, nullable: true, transformer: Encrypt })
   national_id: string;
 
   @Column({ length: 20, nullable: true })
@@ -63,7 +64,7 @@ export class User {
   @Column({ length: 20, nullable: true })
   sex: string;
 
-  @Column({ length: 255, nullable: true })
+  @Column({ type: 'text', nullable: true, transformer: Encrypt })
   address: string;
 
   @Column({ length: 100, nullable: true })

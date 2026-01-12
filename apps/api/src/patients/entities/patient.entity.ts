@@ -8,6 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
+import { Encrypt } from '../../common/transformers/encryption.transformer';
 
 @Entity('patients')
 export class Patient {
@@ -36,7 +37,7 @@ export class Patient {
   @Column({ length: 20, nullable: true })
   sex: string;
 
-  @Column({ length: 255, nullable: true })
+  @Column({ type: 'text', nullable: true, transformer: Encrypt })
   address: string;
 
   @Column({ length: 100, nullable: true })
@@ -52,7 +53,7 @@ export class Patient {
   @Column({ length: 10, nullable: true })
   blood_group: string;
 
-  @Column({ length: 10, nullable: true })
+  @Column({ type: 'text', nullable: true, transformer: Encrypt })
   genotype: string;
 
   @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
@@ -62,23 +63,23 @@ export class Patient {
   weight: number; // in kg
 
   // Medical Records
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, transformer: Encrypt })
   allergies: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, transformer: Encrypt })
   medical_history: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, transformer: Encrypt })
   family_history: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, transformer: Encrypt })
   social_history: string;
 
   // Emergency Contact
   @Column({ length: 100, nullable: true })
   emergency_contact_name: string;
 
-  @Column({ length: 40, nullable: true })
+  @Column({ length: 255, nullable: true, transformer: Encrypt })
   emergency_contact_phone: string;
 
   @Column({ length: 40, nullable: true })
@@ -88,7 +89,7 @@ export class Patient {
   @Column({ length: 100, nullable: true })
   insurance_provider: string;
 
-  @Column({ length: 100, nullable: true })
+  @Column({ length: 255, nullable: true, transformer: Encrypt })
   insurance_policy_no: string;
 
   @CreateDateColumn()

@@ -21,10 +21,10 @@ model User {
   fname           String?   @db.VarChar(40)
   lname           String?   @db.VarChar(50)
   mobile          String?   @db.VarChar(40)
-  national_id     String?   @db.VarChar(20)
+  national_id     String?   @db.VarChar(255)
   dob             String?   @db.VarChar(20) // Format: YYYY-MM-DD
   sex             String?   @db.VarChar(20)
-  address         String?   @db.VarChar(255)
+  address         String?   @db.Text
   city            String?   @db.VarChar(100)
   latitude        Decimal?  @db.Decimal(10, 8)
   longitude       Decimal?  @db.Decimal(10, 8)
@@ -62,10 +62,10 @@ model Patient {
   family_history           String?  @db.Text
   social_history           String?  @db.Text
   emergency_contact_name   String?  @db.VarChar(100)
-  emergency_contact_phone  String?  @db.VarChar(40)
+  emergency_contact_phone  String?  @db.VarChar(255)
   emergency_contact_relation String? @db.VarChar(40)
   insurance_provider       String?  @db.VarChar(100)
-  insurance_policy_no      String?  @db.VarChar(100)
+  insurance_policy_no      String?  @db.VarChar(255)
   createdAt                DateTime @default(now()) @db.DateTime(6)
   updatedAt                DateTime @default(now()) @updatedAt @db.DateTime(6)
 
@@ -86,11 +86,11 @@ model MedicalProfile {
   social_history              String?  @db.Text
   family_history              String?  @db.Text
   emergency_contact_name      String?  @db.VarChar(100)
-  emergency_contact_phone     String?  @db.VarChar(40)
+  emergency_contact_phone     String?  @db.VarChar(255)
   emergency_contact_relation  String?  @db.VarChar(40)
   insurance_provider          String?  @db.VarChar(100)
-  insurance_policy_no         String?  @db.VarChar(50)
-  shif_number                 String?  @db.VarChar(50)
+  insurance_policy_no         String?  @db.VarChar(255)
+  shif_number                 String?  @db.VarChar(255)
   subscription_plan           String   @default("Pay-As-You-Go") @db.VarChar(50)
   current_medications         String?  @db.Text
   surgical_history            String?  @db.Text
@@ -112,7 +112,7 @@ model Doctor {
   email               String?  @unique @db.VarChar(40)
   password            String?  @db.VarChar(255)
   mobile              String?  @db.VarChar(40)
-  national_id         String?  @db.VarChar(20)
+  national_id         String?  @db.VarChar(255)
   dob                 String?  @db.VarChar(20)
   sex                 String?  @db.VarChar(20)
   address             String?  @db.VarChar(255)
