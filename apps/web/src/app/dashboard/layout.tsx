@@ -307,7 +307,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                 </Link>
                             </>
                         )}
-                        {(user.role === UserRole.PHARMACY) && (
+                        {(user.role === UserRole.PHARMACIST) && (
                             <Link
                                 href="/dashboard/pharmacy"
                                 className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 ${pathname === '/dashboard/pharmacy' ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
