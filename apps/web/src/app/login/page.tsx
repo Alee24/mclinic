@@ -30,7 +30,9 @@ export default function LoginPage() {
                 const data = await res.json();
                 login(data.user, data.access_token);
             } else {
-                alert('Login failed');
+                const errorData = await res.json().catch(() => ({}));
+                const errorMessage = errorData.message || res.statusText || 'Login failed';
+                alert(`Login Failed: ${errorMessage} (Status: ${res.status})`);
             }
         } catch (err) {
             alert('Connection error. Is API running on port 3434?');
