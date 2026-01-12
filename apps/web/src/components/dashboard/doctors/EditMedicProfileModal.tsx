@@ -16,7 +16,7 @@ function classNames(...classes: string[]) {
     return classes.filter(Boolean).join(' ');
 }
 
-export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: EditDoctorProfileModalProps) {
+export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: EditMedicProfileModalProps) {
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         regulatory_body: '',
