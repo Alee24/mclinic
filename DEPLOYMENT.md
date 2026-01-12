@@ -47,8 +47,11 @@ sudo apt install -y nodejs
 # Install MySQL
 sudo apt install -y mysql-server
 
-# Install Nginx
-sudo apt install -y nginx
+# Install Apache
+sudo apt install -y apache2
+
+# Enable Apache modules
+sudo a2enmod proxy proxy_http proxy_wstunnel rewrite ssl headers deflate
 
 # Install PM2 (Process Manager)
 sudo npm install -g pm2
@@ -131,28 +134,29 @@ pm2 start npm --name mclinic-web -- start
 pm2 save
 ```
 
-### Step 7: Nginx Configuration
+### Step 7: Apache Configuration
 
 ```bash
-# Copy nginx config
-sudo cp /var/www/mclinic/nginx.conf /etc/nginx/sites-available/mclinic
-sudo ln -s /etc/nginx/sites-available/mclinic /etc/nginx/sites-enabled/
+# Copy Apache config
+sudo cp /var/www/mclinic/apache.conf /etc/apache2/sites-available/mclinic.conf
+sudo a2ensite mclinic.conf
+sudo a2dissite 000-default.conf
 
 # Test configuration
-sudo nginx -t
+sudo apache2ctl configtest
 
-# Restart Nginx
-sudo systemctl restart nginx
+# Restart Apache
+sudo systemctl restart apache2
 ```
 
 ### Step 8: SSL Certificate (Let's Encrypt)
 
 ```bash
 # Install Certbot
-sudo apt install -y certbot python3-certbot-nginx
+sudo apt install -y certbot python3-certbot-apache
 
 # Get SSL certificate
-sudo certbot --nginx -d portal.mclinic.co.ke -d www.portal.mclinic.co.ke
+sudo certbot --apache -d portal.mclinic.co.ke -d www.portal.mclinic.co.ke
 
 # Auto-renewal (already set up by certbot)
 sudo certbot renew --dry-run
@@ -194,10 +198,10 @@ pm2 logs mclinic-api
 pm2 logs mclinic-web
 ```
 
-**Check Nginx Status:**
+**Check Apache Status:**
 ```bash
-sudo systemctl status nginx
-sudo tail -f /var/log/nginx/error.log
+sudo systemctl status apache2
+sudo tail -f /var/log/apache2/mclinic-error.log
 ```
 
 **Check MySQL:**
