@@ -53,11 +53,11 @@ export default function PatientRegisterPage() {
 
         try {
             const res = await api.post('/auth/register', formData);
-            if (res.ok) {
+            if (res && res.ok) {
                 alert('Account created successfully! Welcome to M-Clinic.');
                 router.push('/login');
             } else {
-                const data = await res.json();
+                const data = res ? await res.json() : { message: 'Network error' };
                 alert(data.message || 'Registration failed. Email might be in use.');
             }
         } catch (error) {
@@ -287,7 +287,7 @@ export default function PatientRegisterPage() {
                 </div>
             </div>
 
-            <style jsx>{`
+            <style>{`
                 .label {
                     display: block;
                     font-size: 0.75rem;
