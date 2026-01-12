@@ -193,7 +193,7 @@ export default function CreateDoctorModal({ onClose, onSuccess }: CreateDoctorMo
                     </div>
                 </form>
             </div>
-            <style jsx global>{`
+            <style global>{`
                 .form-input {
                     @apply px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none;
                 }
