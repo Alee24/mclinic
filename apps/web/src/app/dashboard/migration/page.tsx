@@ -113,10 +113,12 @@ export default function DataMigrationPage() {
         if (!confirm('CRITICAL WARNING: This will delete ALL data (Users, Doctors, Appointments, etc.) from the database.\n\nAre you sure you want to proceed?')) return;
         if (!confirm('This action cannot be undone. Confirm clear database?')) return;
 
+
         setUploading(true);
         try {
             const res = await api.post('/migration/migrate-roles', {});
-            if (res && res.ok) {
+
+            if (!res) {
                 alert('No response from server');
                 return;
             }
