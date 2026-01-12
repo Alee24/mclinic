@@ -46,14 +46,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                             <NavItem href="/dashboard" icon={<FiGrid />} label="Dashboard" active={pathname === '/dashboard'} />
 
                             {/* ADMIN & LAB TECH: CLINICAL OPERATIONS */}
-                            {(user.role === UserRole.ADMIN || user.role === UserRole.LAB_TECH) && (
+                            {/* LAB TECH MENU */}
+                            {user.role === UserRole.LAB_TECH && (
                                 <div className="mt-4">
-                                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">Clinical Operations</div>
-                                    <NavItem href="/dashboard/appointments" icon={<FiCalendar />} label="All Appointments" active={pathname === '/dashboard/appointments'} />
-
-                                    {/* Laboratory Group */}
+                                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">Laboratory</div>
+                                    <NavItem href="/dashboard/appointments" icon={<FiCalendar />} label="Appointments" active={pathname === '/dashboard/appointments'} />
                                     <NavGroup
-                                        label="Laboratory"
+                                        label="Lab Management"
                                         icon={<FiActivity />}
                                         active={pathname?.startsWith('/dashboard/lab')}
                                         items={[
@@ -62,9 +61,40 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                         ]}
                                         pathname={pathname}
                                     />
+                                </div>
+                            )}
 
-                                    {/* Pharmacy Group (Admin Only) */}
-                                    {user.role === UserRole.ADMIN && (
+                            {/* ADMIN COMPLETE MENU */}
+                            {user.role === UserRole.ADMIN && (
+                                <>
+                                    {/* Management */}
+                                    <div className="mt-4">
+                                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">Management</div>
+                                        <NavGroup
+                                            label="Users & Staff"
+                                            icon={<FiUsers />}
+                                            active={['/dashboard/users', '/dashboard/doctors', '/dashboard/patients'].some(p => pathname === p || pathname?.startsWith(p))}
+                                            items={[
+                                                { href: '/dashboard/users', label: 'All Users' },
+                                                { href: '/dashboard/doctors', label: 'Doctors' },
+                                                { href: '/dashboard/patients', label: 'Patients' },
+                                                { href: '/dashboard/admin/doctors/pending', label: 'Approvals' }
+                                            ]}
+                                            pathname={pathname}
+                                        />
+                                    </div>
+
+                                    {/* Clinical Operations */}
+                                    <div className="mt-4">
+                                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">Operations</div>
+                                        <NavItem href="/dashboard/appointments" icon={<FiCalendar />} label="All Appointments" active={pathname === '/dashboard/appointments'} />
+                                        <NavItem href="/dashboard/doctors/map" icon={<FiMap />} label="Live Map" active={pathname === '/dashboard/doctors/map'} />
+                                        <NavItem href="/dashboard/admin/ambulance-packages" icon={<FiTruck />} label="Ambulance Plans" active={pathname === '/dashboard/admin/ambulance-packages'} />
+                                    </div>
+
+                                    {/* Services */}
+                                    <div className="mt-4">
+                                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">Services</div>
                                         <NavGroup
                                             label="Pharmacy"
                                             icon={<FiPackage />}
@@ -75,56 +105,44 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                             ]}
                                             pathname={pathname}
                                         />
-                                    )}
+                                        <NavGroup
+                                            label="Laboratory"
+                                            icon={<FiActivity />}
+                                            active={pathname?.startsWith('/dashboard/lab')}
+                                            items={[
+                                                { href: '/dashboard/lab/orders', label: 'Lab Orders' },
+                                                { href: '/dashboard/lab/tests', label: 'Test Catalog' }
+                                            ]}
+                                            pathname={pathname}
+                                        />
+                                        <NavItem href="/dashboard/services" icon={<FiList />} label="Service Catalog" active={pathname === '/dashboard/services'} />
+                                    </div>
 
-                                    {user.role === UserRole.ADMIN && (
-                                        <>
-                                            <NavItem href="/dashboard/services" icon={<FiList />} label="Service Catalog" active={pathname === '/dashboard/services'} />
-                                            <NavItem href="/dashboard/admin/ambulance-packages" icon={<FiTruck />} label="Ambulance Plans" active={pathname === '/dashboard/admin/ambulance-packages'} />
-                                        </>
-                                    )}
-                                </div>
-                            )}
+                                    {/* Finance */}
+                                    <div className="mt-4">
+                                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">Finance</div>
+                                        <NavGroup
+                                            label="Finance & Billing"
+                                            icon={<FiBarChart2 />}
+                                            active={pathname?.startsWith('/dashboard/finance') || pathname?.startsWith('/dashboard/invoices')}
+                                            items={[
+                                                { href: '/dashboard/finance/transactions', label: 'Overview & Wallet' },
+                                                { href: '/dashboard/invoices', label: 'Invoices' },
+                                                { href: '/dashboard/admin/settings/payments', label: 'Payment Gateways' },
+                                                { href: '/dashboard/admin/settings/mpesa', label: 'M-Pesa Config' }
+                                            ]}
+                                            pathname={pathname}
+                                        />
+                                    </div>
 
-                            {/* ADMIN: USER MANAGEMENT */}
-                            {user.role === UserRole.ADMIN && (
-                                <div className="mt-4">
-                                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">User Management</div>
-                                    <NavGroup
-                                        label="Users & Access"
-                                        icon={<FiUsers />}
-                                        active={['/dashboard/users', '/dashboard/doctors', '/dashboard/patients', '/dashboard/doctors/map', '/dashboard/admin/doctors/pending'].some(p => pathname?.startsWith(p))}
-                                        items={[
-                                            { href: '/dashboard/users', label: 'All Users' },
-                                            { href: '/dashboard/doctors', label: 'Doctors & Staff' },
-                                            { href: '/dashboard/patients', label: 'Patients' },
-                                            { href: '/dashboard/admin/doctors/pending', label: 'Medic Approvals' },
-                                            { href: '/dashboard/doctors/map', label: 'Live Map' }
-                                        ]}
-                                        pathname={pathname}
-                                    />
-                                </div>
-                            )}
-
-                            {/* ADMIN: FINANCE */}
-                            {user.role === UserRole.ADMIN && (
-                                <div className="mt-4">
-                                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">Financials</div>
-                                    <NavGroup
-                                        label="Finance & Billing"
-                                        icon={<FiBarChart2 />}
-                                        active={pathname?.startsWith('/dashboard/finance') || pathname?.startsWith('/dashboard/invoices')}
-                                        items={[
-                                            { href: '/dashboard/finance/transactions', label: 'Overview' },
-                                            { href: '/dashboard/invoices', label: 'Invoices' },
-                                            { href: '/dashboard/finance/settings', label: 'Settings' },
-                                            { href: '/dashboard/admin/settings/notifications', label: 'Notifications' },
-                                            { href: '/dashboard/admin/settings/payments', label: 'Payment Gateways' },
-                                            { href: '/dashboard/admin/settings/mpesa', label: 'M-Pesa Config' }
-                                        ]}
-                                        pathname={pathname}
-                                    />
-                                </div>
+                                    {/* System */}
+                                    <div className="mt-4">
+                                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">System</div>
+                                        <NavItem href="/dashboard/admin/settings/notifications" icon={<FiMail />} label="Email Settings" active={pathname?.startsWith('/dashboard/admin/settings/notifications')} />
+                                        <NavItem href="/dashboard/finance/settings" icon={<FiSettings />} label="General Settings" active={pathname === '/dashboard/finance/settings'} />
+                                        <NavItem href="/dashboard/migration" icon={<FiDatabase />} label="Data Migration" active={pathname === '/dashboard/migration'} />
+                                    </div>
+                                </>
                             )}
 
                             {/* PROVIDER MENU (Doctor, Nurse, Clinician, Medic) */}
@@ -178,12 +196,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     <div>
                         <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4 px-2">General</div>
                         <nav className="space-y-1">
-                            {user.role === UserRole.ADMIN && (
-                                <>
-                                    <NavItem href="/dashboard/migration" icon={<FiDatabase />} label="Data Migration" active={pathname === '/dashboard/migration'} />
-                                    <NavItem href="/dashboard/finance/settings" icon={<FiSettings />} label="Settings" active={pathname === '/dashboard/finance/settings'} />
-                                </>
-                            )}
+
                             <NavItem href="#" icon={<FiHelpCircle />} label="Help" active={false} />
                             <button
                                 onClick={logout}
