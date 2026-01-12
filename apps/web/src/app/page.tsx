@@ -270,7 +270,7 @@ function VerificationWidget() {
 
     try {
       // Using fetch directly as we might not be authenticated on landing page
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://portal.mclinic.co.ke/api';
       const res = await fetch(`${API_URL}/doctors/verify-serial/${serial}`);
       const data = await res.json();
 
