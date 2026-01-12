@@ -7,6 +7,10 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// -----------------------------------------------------------------------------
+// USER MANAGEMENT
+// -----------------------------------------------------------------------------
+
 model User {
   id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
   email           String    @unique @db.VarChar(255)
@@ -18,7 +22,7 @@ model User {
   lname           String?   @db.VarChar(50)
   mobile          String?   @db.VarChar(40)
   national_id     String?   @db.VarChar(20)
-  dob             String?   @db.VarChar(20)
+  dob             String?   @db.VarChar(20) // Format: YYYY-MM-DD
   sex             String?   @db.VarChar(20)
   address         String?   @db.VarChar(255)
   city            String?   @db.VarChar(100)
@@ -28,49 +32,17 @@ model User {
   createdAt       DateTime  @default(now()) @db.DateTime(6)
   updatedAt       DateTime  @default(now()) @updatedAt @db.DateTime(6)
 
-  patient Patient? 
+  // Relations
+  patient               Patient?
+  wallets               Wallet[]
+  ambulanceSubscriptions AmbulanceSubscription[]
+  // One-to-many relations often needed for reverse lookups in Prisma
   // appointments Appointment[] 
+  // prescriptions Prescription[]
+  // labOrders LabOrder[]
+  // pharmacyOrders PharmacyOrder[]
 
   @@map("users")
-}
-
-model Doctor {
-  id                  BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
-  user_id             Int?
-  fname               String?  @db.VarChar(40)
-  lname               String?  @db.VarChar(50)
-  username            String?  @db.VarChar(40)
-  email               String?  @unique @db.VarChar(40)
-  password            String?  @db.VarChar(255)
-  mobile              String?  @db.VarChar(40)
-  national_id         String?  @db.VarChar(20)
-  dob                 String?  @db.VarChar(20)
-  sex                 String?  @db.VarChar(20)
-  address             String?  @db.VarChar(255)
-  reg_code            String   @db.VarChar(50)
-  licenceNo           String?  @db.VarChar(20)
-  Verified_status     Int      @default(0) @db.TinyInt
-  approved_status     String   @default("Pending") @db.VarChar(50)
-  balance             Decimal  @default(0.00) @db.Decimal(28, 2)
-  dr_type             String   @default("Nurse") @db.VarChar(50)
-  qualification       String?  @db.VarChar(255)
-  speciality          String?  @db.VarChar(255)
-  about               String?  @db.Text
-  fee                 Int      @default(1500)
-  start_time          String?  @db.VarChar(40)
-  end_time            String?  @db.VarChar(40)
-  duration            Int      @default(0)
-  department_id       Int?
-  location_id         Int?
-  years_of_experience Int      @default(0)
-  hospital_attachment String?  @db.VarChar(150)
-  telemedicine        Int      @default(0) @db.TinyInt
-  on_call             Int      @default(0) @db.TinyInt
-  is_online           Int      @default(0) @db.TinyInt
-  created_at          DateTime @default(now()) @db.DateTime(6)
-  updated_at          DateTime @default(now()) @updatedAt @db.DateTime(6)
-
-  @@map("doctors")
 }
 
 model Patient {
@@ -106,6 +78,66 @@ model Patient {
   @@map("patients")
 }
 
+model Doctor {
+  id                  BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id             Int?
+  fname               String?  @db.VarChar(40)
+  lname               String?  @db.VarChar(50)
+  username            String?  @db.VarChar(40)
+  email               String?  @unique @db.VarChar(40)
+  password            String?  @db.VarChar(255)
+  mobile              String?  @db.VarChar(40)
+  national_id         String?  @db.VarChar(20)
+  dob                 String?  @db.VarChar(20)
+  sex                 String?  @db.VarChar(20)
+  address             String?  @db.VarChar(255)
+  reg_code            String?  @db.VarChar(50)
+  licenceNo           String?  @db.VarChar(20)
+  Verified_status     Int      @default(0) @db.TinyInt
+  approved_status     String   @default("Pending") @db.VarChar(50)
+  balance             Decimal  @default(0.00) @db.Decimal(28, 2)
+  dr_type             String   @default("Nurse") @db.VarChar(50)
+  qualification       String?  @db.VarChar(255)
+  speciality          String?  @db.VarChar(255)
+  about               String?  @db.Text
+  fee                 Int      @default(1500)
+  start_time          String?  @db.VarChar(40)
+  end_time            String?  @db.VarChar(40)
+  duration            Int      @default(0)
+  department_id       Int?
+  location_id         Int?
+  years_of_experience Int      @default(0)
+  hospital_attachment String?  @db.VarChar(150)
+  telemedicine        Int      @default(0) @db.TinyInt
+  on_call             Int      @default(0) @db.TinyInt
+  is_online           Int      @default(0) @db.TinyInt
+  created_at          DateTime @default(now()) @db.DateTime(6)
+  updated_at          DateTime @default(now()) @updatedAt @db.DateTime(6)
+
+  schedules           DoctorSchedule[]
+
+  @@map("doctors")
+}
+
+model DoctorSchedule {
+  id         BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  doctor_id  BigInt @db.UnsignedBigInt
+  slot_type  Int?   @db.TinyInt
+  start_time String? @db.VarChar(40)
+  end_time   String? @db.VarChar(40)
+  duration   Int     @default(0)
+  max_serial Int     @default(0)
+  serial_day Int     @default(0)
+
+  doctor Doctor @relation(fields: [doctor_id], references: [id], onDelete: Cascade)
+
+  @@map("doctor_schedules")
+}
+
+// -----------------------------------------------------------------------------
+// CORE MEDICAL
+// -----------------------------------------------------------------------------
+
 model Appointment {
   id                 Int               @id @default(autoincrement())
   patientId          BigInt            @db.UnsignedBigInt
@@ -115,7 +147,7 @@ model Appointment {
   appointment_time   String?           @db.VarChar(40)
   fee                Int               @default(0)
   transportFee       Decimal           @default(0) @db.Decimal(10, 2)
-  status             AppointmentStatus @default(pending)
+  status             String            @default("pending") // Using String to verify enum mapping first
   notes              String?
   meetingLink        String?
   meetingId          String?
@@ -131,12 +163,103 @@ model Appointment {
   createdAt          DateTime          @default(now()) @db.DateTime(6)
   updatedAt          DateTime          @default(now()) @updatedAt @db.DateTime(6)
 
-  // Relations not enforced in Prisma to verify schema first, allows partial usage
-  // user User @relation(fields: [patientId], references: [id])
-  // doctor Doctor @relation(fields: [doctorId], references: [id])
-  
-  @@map("appointment") 
+  @@map("appointment")
 }
+
+model MedicalRecord {
+  id             Int      @id @default(autoincrement())
+  patientId      BigInt   @db.UnsignedBigInt
+  doctorId       BigInt   @db.UnsignedBigInt
+  appointmentId  Int?
+  diagnosis      String
+  prescription   String?  @db.Text
+  notes          String?  @db.Text
+  createdAt      DateTime @default(now()) @db.DateTime(6)
+  updatedAt      DateTime @default(now()) @updatedAt @db.DateTime(6)
+
+  @@map("medical_record")
+}
+
+// -----------------------------------------------------------------------------
+// FINANCIALS
+// -----------------------------------------------------------------------------
+
+model Wallet {
+  id        BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id   BigInt   @db.UnsignedBigInt
+  balance   Decimal  @default(0.00) @db.Decimal(28, 2)
+  currency  String   @default("KES")
+  createdAt DateTime @default(now()) @db.DateTime(6)
+  updatedAt DateTime @default(now()) @updatedAt @db.DateTime(6)
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("wallets")
+}
+
+model Transaction {
+  id        Int      @id @default(autoincrement())
+  reference String?
+  amount    Decimal  @db.Decimal(28, 2)
+  type      String   @default("debit") // credit, debit
+  source    String   @default("MPESA")
+  status    String   @default("pending")
+  userId    BigInt?  @db.UnsignedBigInt
+  invoiceId Int?
+  createdAt DateTime @default(now()) @db.DateTime(6)
+
+  @@map("transaction")
+}
+
+model PaymentConfig {
+  id          Int      @id @default(autoincrement())
+  provider    String   @unique // mpesa, visa, etc
+  credentials String   @db.Text
+  isActive    Boolean  @default(true)
+  currency    String   @default("KES")
+  createdAt   DateTime @default(now()) @db.DateTime(6)
+  updatedAt   DateTime @default(now()) @updatedAt @db.DateTime(6)
+
+  @@map("payment_config")
+}
+
+model Invoice {
+  id               Int      @id @default(autoincrement())
+  invoiceNumber    String
+  customerName     String
+  customerEmail    String
+  totalAmount      Decimal  @db.Decimal(10, 2)
+  status           String   @default("pending")
+  dueDate          DateTime? @db.Date
+  customerMobile   String?
+  paymentMethod    String?
+  doctorId         BigInt?  @db.UnsignedBigInt
+  commissionAmount Decimal  @default(0.00) @db.Decimal(10, 2)
+  appointmentId    Int?
+  createdAt        DateTime @default(now()) @db.DateTime(6)
+  updatedAt        DateTime @default(now()) @updatedAt @db.DateTime(6)
+
+  items            InvoiceItem[]
+
+  @@map("invoice")
+}
+
+model InvoiceItem {
+  id          Int     @id @default(autoincrement())
+  description String
+  quantity    Int
+  unitPrice   Decimal @db.Decimal(10, 2)
+  amount      Decimal @db.Decimal(10, 2)
+  invoiceId   Int
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@map("invoice_item")
+}
+
+// -----------------------------------------------------------------------------
+// SERVICES & LOCATIONS
+// -----------------------------------------------------------------------------
 
 model Location {
   id        Int      @id @default(autoincrement())
@@ -157,24 +280,6 @@ model Service {
   updatedAt   DateTime @default(now()) @updatedAt @db.DateTime(6)
 
   @@map("services")
-}
-
-model Review {
-   id          Int      @id @default(autoincrement())
-   rating      Int
-   comment     String?
-   appointmentId Int? @unique
-   
-   @@map("reviews")
-}
-
-model Invoice {
-   id          Int      @id @default(autoincrement())
-   amount      Decimal  @db.Decimal(10, 2)
-   status      String
-   appointmentId Int? @unique
-   
-   @@map("invoices")
 }
 
 model Speciality {
@@ -199,6 +304,214 @@ model Department {
   @@map("departments")
 }
 
+// -----------------------------------------------------------------------------
+// PHARMACY
+// -----------------------------------------------------------------------------
+
+model Medication {
+  id                  Int      @id @default(autoincrement())
+  name                String
+  description         String?  @db.Text
+  category            String?
+  price               Decimal  @default(0.00) @db.Decimal(10, 2)
+  stock               Int      @default(0)
+  image_url           String?
+  brandName           String?
+  genericName         String?
+  strength            String?
+  formulation         String?
+  requiresPrescription Boolean @default(true)
+  createdAt           DateTime @default(now()) @db.DateTime(6)
+  updatedAt           DateTime @default(now()) @updatedAt @db.DateTime(6)
+
+  @@map("medication")
+}
+
+model Prescription {
+  id                 Int      @id @default(autoincrement())
+  appointmentId      Int?
+  doctorId           BigInt   @db.UnsignedBigInt
+  patientId          BigInt   @db.UnsignedBigInt
+  doctorSignatureUrl String?
+  doctorStampUrl     String?
+  status             String   @default("pending")
+  notes              String?  @db.Text
+  validUntil         DateTime?
+  createdAt          DateTime @default(now()) @db.DateTime(6)
+  updatedAt          DateTime @default(now()) @updatedAt @db.DateTime(6)
+
+  items              PrescriptionItem[]
+
+  @@map("prescription")
+}
+
+model PrescriptionItem {
+  id             Int      @id @default(autoincrement())
+  prescriptionId Int
+  medicationId   Int
+  medicationName String
+  dosage         String // e.g. "1-0-1"
+  frequency      String?
+  duration       String?
+  quantity       Int
+  instructions   String?  @db.Text
+  
+  prescription Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+
+  @@map("prescription_item")
+}
+
+model PharmacyOrder {
+  id              String   @id @default(uuid())
+  userId          BigInt   @db.UnsignedBigInt
+  status          String   @default("PENDING")
+  totalAmount     Decimal  @db.Decimal(10, 2)
+  deliveryAddress String?
+  deliveryCity    String?
+  contactPhone    String?
+  paymentMethod   String   @default("CASH")
+  paymentStatus   String   @default("PENDING")
+  transactionId   String?
+  prescriptionId  String?
+  invoiceId       Int?
+  createdAt       DateTime @default(now()) @db.DateTime(6)
+  updatedAt       DateTime @default(now()) @updatedAt @db.DateTime(6)
+
+  items           PharmacyOrderItem[]
+
+  @@map("pharmacy_order")
+}
+
+model PharmacyOrderItem {
+  id             Int      @id @default(autoincrement())
+  orderId        String
+  medicationId   Int
+  medicationName String
+  quantity       Int
+  price          Decimal  @db.Decimal(10, 2)
+  total          Decimal  @db.Decimal(10, 2)
+
+  order PharmacyOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("pharmacy_order_item")
+}
+
+// -----------------------------------------------------------------------------
+// LABORATORY
+// -----------------------------------------------------------------------------
+
+model LabTest {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?  @db.Text
+  price       Decimal  @db.Decimal(10, 2)
+  category    String   @default("Other")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now()) @db.DateTime(6)
+  updatedAt   DateTime @default(now()) @updatedAt @db.DateTime(6)
+
+  @@map("lab_test")
+}
+
+model LabOrder {
+  id                     String   @id @default(uuid())
+  patient_id             BigInt?  @db.UnsignedBigInt
+  test_id                Int
+  status                 String   @default("pending")
+  sample_collection_date DateTime? @db.DateTime(0)
+  isForSelf              Boolean  @default(true)
+  beneficiaryName        String?
+  beneficiaryAge         String?
+  beneficiaryGender      String?
+  beneficiaryRelation    String?
+  report_url             String?
+  technicianNotes        String?  @db.Text
+  createdAt              DateTime @default(now()) @db.DateTime(6)
+  updatedAt              DateTime @default(now()) @updatedAt @db.DateTime(6)
+
+  results                LabResult[]
+
+  @@map("lab_order")
+}
+
+model LabResult {
+  id              Int      @id @default(autoincrement())
+  order_id        String
+  parameter_name  String
+  value           String
+  unit            String?
+  reference_range String?
+  notes           String?  @db.Text
+  is_abnormal     Boolean?
+  createdAt       DateTime @default(now()) @db.DateTime(6)
+  updatedAt       DateTime @default(now()) @updatedAt @db.DateTime(6)
+
+  order LabOrder @relation(fields: [order_id], references: [id], onDelete: Cascade)
+
+  @@map("lab_result")
+}
+
+// -----------------------------------------------------------------------------
+// AMBULANCE
+// -----------------------------------------------------------------------------
+
+model AmbulanceSubscription {
+  id                     Int      @id @default(autoincrement())
+  user_id                BigInt?  @db.UnsignedBigInt
+  primary_subscriber_name String
+  dob                    String?  @db.Date // Mapped as date in Entity, check format
+  gender                 String?  @db.VarChar(20)
+  identification_number  String?  @db.VarChar(50)
+  nationality            String?  @db.VarChar(50)
+  language_spoken        String?  @db.VarChar(50)
+  photo_url              String?
+  primary_phone          String   @db.VarChar(20)
+  secondary_phone        String?  @db.VarChar(20)
+  email                  String?
+  residential_address    String?
+  county                 String?
+  estate                 String?
+  street                 String?
+  house_details          String?
+  landmark               String?
+  gps_coordinates        String?  @db.Text
+  work_address           String?
+  blood_type             String?  @db.VarChar(10)
+  allergies              String?  @db.Text
+  chronic_conditions     String?  @db.Text
+  current_medications    String?  @db.Text
+  surgical_history       String?  @db.Text
+  disabilities           String?  @db.Text
+  pregnancy_status       String?
+  preferred_hospital     String?
+  insurance_details      String?
+  package_type           String
+  status                 String   @default("active")
+  start_date             String?  @db.Date
+  end_date               String?  @db.Date
+  family_members         Json?
+  emergency_contacts     Json?
+  created_at             DateTime @default(now()) @db.DateTime(6)
+  updated_at             DateTime @default(now()) @updatedAt @db.DateTime(6)
+
+  user User? @relation(fields: [user_id], references: [id])
+
+  @@map("ambulance_subscriptions")
+}
+
+// -----------------------------------------------------------------------------
+// REVIEWS
+// -----------------------------------------------------------------------------
+
+model Review {
+   id          Int      @id @default(autoincrement())
+   rating      Int
+   comment     String?
+   appointmentId Int? @unique
+   
+   @@map("reviews")
+}
+
 enum UserRole {
   patient
   doctor
@@ -209,13 +522,4 @@ enum UserRole {
   medic
   finance
   pharmacist
-}
-
-enum AppointmentStatus {
-  pending
-  confirmed
-  completed
-  cancelled
-  missed
-  rescheduled
 }
