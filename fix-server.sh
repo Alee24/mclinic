@@ -11,12 +11,9 @@ pm2 update
 
 # 2. Fix MySQL Root Password (if needed)
 echo ">>> Checking MySQL..."
-# Try to login with empty password and set new password
-sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'Digital2025';" 2>/dev/null || echo "MySQL root password already set"
-
-# Create database if it doesn't exist
-sudo mysql -u root -pDigital2025 -e "CREATE DATABASE IF NOT EXISTS mclinic;"
-sudo mysql -u root -pDigital2025 -e "FLUSH PRIVILEGES;"
+# Create database with your credentials
+mysql -u m-cl-app -p'Mclinic@App2023?' -e "CREATE DATABASE IF NOT EXISTS mclinic;" 2>/dev/null || echo "Database may already exist"
+mysql -u m-cl-app -p'Mclinic@App2023?' -e "FLUSH PRIVILEGES;" 2>/dev/null || true
 
 # 3. Stop errored services
 echo ">>> Stopping errored services..."
