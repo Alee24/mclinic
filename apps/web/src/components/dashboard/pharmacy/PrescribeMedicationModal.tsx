@@ -91,8 +91,8 @@ export default function PrescribeMedicationModal({ appointment, onClose, onSucce
                 toast.success('Prescription sent successfully!');
                 onSuccess();
             } else {
-                const errorData = await res.json();
-                toast.error(errorData.message || 'Failed to send prescription.');
+                const errorData = res ? await res.json().catch(() => ({})) : {};
+                toast.error(errorData.message || (res ? res.statusText : 'Network Error') || 'Failed to send prescription.');
             }
         } catch (err) {
             console.error(err);
