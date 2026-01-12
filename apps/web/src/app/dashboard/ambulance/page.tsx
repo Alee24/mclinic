@@ -170,8 +170,8 @@ export default function AmbulanceSubscriptionPage() {
                             <h3 className="text-lg font-bold border-b pb-2 mb-4 dark:text-white flex items-center gap-2"><FiUsers /> Primary Subscriber</h3>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="label">Full Name</label>
-                                    <input name="primary_subscriber_name" value={formData.primary_subscriber_name} onChange={handleChange} className="input-field" required />
+                                    <label className="block text-[0.7rem] font-bold uppercase text-gray-600 dark:text-gray-400 mb-1">Full Name</label>
+                                    <input name="primary_subscriber_name" value={formData.primary_subscriber_name} onChange={handleChange} className="w-full p-2.5 rounded-lg border border-gray-200 bg-gray-50 dark:bg-black dark:border-gray-800 dark:text-white outline-none text-sm transition focus:border-red-500 focus:ring-2 focus:ring-red-500/10" required />
                                 </div>
                                 <div>
                                     <label className="label">ID / Passport</label>
@@ -282,39 +282,6 @@ export default function AmbulanceSubscriptionPage() {
                     }}
                 />
             )}
-
-            <style jsx>{`
-                .label {
-                    display: block;
-                    font-size: 0.7rem;
-                    font-weight: 700;
-                    text-transform: uppercase;
-                    color: #6b7280;
-                    margin-bottom: 0.25rem;
-                }
-                :global(.dark) .label {
-                    color: #9ca3af;
-                }
-                .input-field {
-                    width: 100%;
-                    padding: 0.6rem 0.8rem;
-                    border-radius: 0.5rem;
-                    border: 1px solid #e5e7eb;
-                    background-color: #f9fafb;
-                    outline: none;
-                    font-size: 0.875rem;
-                    transition: all 0.2s;
-                }
-                :global(.dark) .input-field {
-                    background-color: #050505;
-                    border-color: #333;
-                    color: white;
-                }
-                .input-field:focus {
-                    border-color: #ef4444;
-                    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
-                }
-            `}</style>
         </div>
     );
 }
