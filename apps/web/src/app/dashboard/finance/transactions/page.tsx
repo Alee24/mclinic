@@ -114,6 +114,47 @@ export default function TransactionsPage() {
         }
     };
 
+    const handleWithdraw = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!withdrawAmount || parseFloat(withdrawAmount) <= 0) {
+            alert('Please enter a valid amount');
+            return;
+        }
+
+        if (!withdrawDetails) {
+            alert(`Please enter your ${withdrawMethod === 'MPESA' ? 'M-Pesa phone number' : 'Bitcoin wallet address'}`);
+            return;
+        }
+
+        try {
+            const res = await api.post('/financial/withdraw', {
+                amount: parseFloat(withdrawAmount),
+                method: withdrawMethod,
+                details: withdrawDetails
+            });
+
+            if (res && res.ok) {
+                alert('Withdrawal request submitted successfully!');
+                setShowWithdraw(false);
+                setWithdrawAmount('');
+                setWithdrawDetails('');
+                // Refresh balance
+                const statsRes = await api.get('/financial/stats');
+                if (statsRes && statsRes.ok) {
+                    const data = await statsRes.json();
+                    setDoctorBalance(Number(data.balance) || 0);
+                }
+            } else {
+                const error = await res?.json();
+                alert(error?.message || 'Withdrawal failed');
+            }
+        } catch (error) {
+            console.error('Withdrawal error:', error);
+            alert('Withdrawal request failed');
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
