@@ -54,11 +54,13 @@ export default function CreatePatientModal({ onClose, onSuccess }: CreatePatient
                 alert('Patient created successfully');
                 onSuccess();
             } else {
-                alert('Failed to create patient');
+                const errorData = await res.json().catch(() => ({}));
+                const errorMessage = errorData.message || res.statusText || 'Failed to create patient';
+                alert(`Error: ${errorMessage}`);
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            alert('An error occurred');
+            alert(`An error occurred: ${err.message || 'Unknown error'}`);
         } finally {
             setLoading(false);
         }
