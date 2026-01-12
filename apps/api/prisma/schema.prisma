@@ -28,6 +28,9 @@ model User {
   createdAt       DateTime  @default(now()) @db.DateTime(6)
   updatedAt       DateTime  @default(now()) @updatedAt @db.DateTime(6)
 
+  patient Patient? 
+  // appointments Appointment[] 
+
   @@map("users")
 }
 
@@ -70,6 +73,71 @@ model Doctor {
   @@map("doctors")
 }
 
+model Patient {
+  id                       BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id                  BigInt?  @unique @db.UnsignedBigInt
+  fname                    String?  @db.VarChar(40)
+  lname                    String?  @db.VarChar(50)
+  mobile                   String?  @db.VarChar(40)
+  dob                      String?  @db.VarChar(20)
+  sex                      String?  @db.VarChar(20)
+  address                  String?  @db.VarChar(255)
+  city                     String?  @db.VarChar(100)
+  latitude                 Decimal? @db.Decimal(10, 8)
+  longitude                Decimal? @db.Decimal(10, 8)
+  blood_group              String?  @db.VarChar(10)
+  genotype                 String?  @db.VarChar(10)
+  height                   Decimal? @db.Decimal(5, 2)
+  weight                   Decimal? @db.Decimal(5, 2)
+  allergies                String?  @db.Text
+  medical_history          String?  @db.Text
+  family_history           String?  @db.Text
+  social_history           String?  @db.Text
+  emergency_contact_name   String?  @db.VarChar(100)
+  emergency_contact_phone  String?  @db.VarChar(40)
+  emergency_contact_relation String? @db.VarChar(40)
+  insurance_provider       String?  @db.VarChar(100)
+  insurance_policy_no      String?  @db.VarChar(100)
+  createdAt                DateTime @default(now()) @db.DateTime(6)
+  updatedAt                DateTime @default(now()) @updatedAt @db.DateTime(6)
+
+  user User? @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("patients")
+}
+
+model Appointment {
+  id                 Int               @id @default(autoincrement())
+  patientId          BigInt            @db.UnsignedBigInt
+  doctorId           BigInt            @db.UnsignedBigInt
+  serviceId          Int?
+  appointment_date   DateTime?         @db.Date
+  appointment_time   String?           @db.VarChar(40)
+  fee                Int               @default(0)
+  transportFee       Decimal           @default(0) @db.Decimal(10, 2)
+  status             AppointmentStatus @default(pending)
+  notes              String?
+  meetingLink        String?
+  meetingId          String?
+  reason             String?           @db.Text
+  isForSelf          Boolean           @default(true)
+  beneficiaryName    String?
+  beneficiaryGender  String?
+  beneficiaryAge     String?
+  beneficiaryRelation String?
+  activeMedications  String?           @db.Text
+  currentPrescriptions String?         @db.Text
+  homeAddress        String?
+  createdAt          DateTime          @default(now()) @db.DateTime(6)
+  updatedAt          DateTime          @default(now()) @updatedAt @db.DateTime(6)
+
+  // Relations not enforced in Prisma to verify schema first, allows partial usage
+  // user User @relation(fields: [patientId], references: [id])
+  // doctor Doctor @relation(fields: [doctorId], references: [id])
+  
+  @@map("appointment") 
+}
+
 model Location {
   id        Int      @id @default(autoincrement())
   name      String?  @db.VarChar(100)
@@ -78,6 +146,35 @@ model Location {
   longitude Decimal? @db.Decimal(10, 6)
 
   @@map("locations")
+}
+
+model Service {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(100)
+  description String?  @db.Text
+  price       Decimal  @db.Decimal(10, 2)
+  createdAt   DateTime @default(now()) @db.DateTime(6)
+  updatedAt   DateTime @default(now()) @updatedAt @db.DateTime(6)
+
+  @@map("services")
+}
+
+model Review {
+   id          Int      @id @default(autoincrement())
+   rating      Int
+   comment     String?
+   appointmentId Int? @unique
+   
+   @@map("reviews")
+}
+
+model Invoice {
+   id          Int      @id @default(autoincrement())
+   amount      Decimal  @db.Decimal(10, 2)
+   status      String
+   appointmentId Int? @unique
+   
+   @@map("invoices")
 }
 
 model Speciality {
@@ -112,4 +209,13 @@ enum UserRole {
   medic
   finance
   pharmacist
+}
+
+enum AppointmentStatus {
+  pending
+  confirmed
+  completed
+  cancelled
+  missed
+  rescheduled
 }
