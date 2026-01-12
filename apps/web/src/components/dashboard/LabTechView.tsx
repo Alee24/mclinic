@@ -15,7 +15,7 @@ export default function LabTechView() {
     const loadOrders = async () => {
         try {
             const res = await api.get('/laboratory/orders');
-            if (res.ok) setOrders(await res.json());
+            if (res && res.ok) setOrders(await res.json());
         } catch (err) {
             console.error(err);
         } finally {
@@ -78,8 +78,8 @@ export default function LabTechView() {
                                     <div className="flex items-center gap-2 mb-1">
                                         <h4 className="font-bold text-lg dark:text-white">{order.test?.name || 'Unknown Test'}</h4>
                                         <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${order.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
-                                                order.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-700' :
-                                                    'bg-orange-100 text-orange-700'
+                                            order.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-700' :
+                                                'bg-orange-100 text-orange-700'
                                             }`}>{order.status}</span>
                                     </div>
                                     <p className="text-sm text-gray-500">Patient: <span className="font-bold text-black dark:text-white">{order.patient?.fname || 'Unknown'} {order.patient?.lname}</span></p>

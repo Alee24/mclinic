@@ -38,7 +38,7 @@ export default function VerifyPrescriptionPage() {
 
         try {
             const res = await api.get(`/pharmacy/prescriptions/${prescriptionId}`);
-            if (res.ok) {
+            if (res && res.ok) {
                 const data = await res.json();
                 setResult(data);
                 toast.success('Prescription Verified!');

@@ -123,7 +123,7 @@ export default function ProfilePage() {
                 body: formData
             });
 
-            if (res.ok) {
+            if (res && res.ok) {
                 alert('Profile picture updated!');
                 reloadUser();
                 if (isMedic) {

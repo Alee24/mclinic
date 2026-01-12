@@ -36,7 +36,7 @@ export default function UploadMedicationsModal({ isOpen, onClose }: UploadMedica
                 }
             });
             const data = await res.json();
-            if (res.ok) {
+            if (res && res.ok) {
                 setResult(data.message);
                 setTimeout(() => {
                     onClose();

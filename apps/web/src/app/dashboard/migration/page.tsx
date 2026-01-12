@@ -115,9 +115,8 @@ export default function DataMigrationPage() {
 
         setUploading(true);
         try {
-            const res = await api.post('/migration/clear', {});
-
-            if (!res) {
+            const res = await api.post('/migration/migrate-roles', {});
+            if (res && res.ok) {
                 alert('No response from server');
                 return;
             }

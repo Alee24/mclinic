@@ -20,13 +20,14 @@ export default function LoginPage() {
 
         try {
             const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://portal.mclinic.co.ke/api';
-            const res = await fetch(`${API_URL}/auth/login`, {
+            const apiUrl = `${API_URL}/auth/login`; // Define apiUrl here
+            const res = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
             });
 
-            if (res.ok) {
+            if (res && res.ok) {
                 const data = await res.json();
                 login(data.user, data.access_token);
             } else {

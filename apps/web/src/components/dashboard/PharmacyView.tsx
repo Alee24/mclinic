@@ -16,7 +16,7 @@ export default function PharmacyView() {
     const loadPrescriptions = async () => {
         try {
             const res = await api.get('/pharmacy/prescriptions');
-            if (res.ok) setPrescriptions(await res.json());
+            if (res && res.ok) setPrescriptions(await res.json());
         } catch (err) {
             console.error(err);
         } finally {
