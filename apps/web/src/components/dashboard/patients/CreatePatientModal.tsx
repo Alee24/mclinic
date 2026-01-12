@@ -54,8 +54,8 @@ export default function CreatePatientModal({ onClose, onSuccess }: CreatePatient
                 alert('Patient created successfully');
                 onSuccess();
             } else {
-                const errorData = await res.json().catch(() => ({}));
-                const errorMessage = errorData.message || res.statusText || 'Failed to create patient';
+                const errorData = res ? await res.json().catch(() => ({})) : {};
+                const errorMessage = errorData.message || (res ? res.statusText : 'Network Error') || 'Failed to create patient';
                 alert(`Error: ${errorMessage}`);
             }
         } catch (err: any) {
@@ -84,19 +84,19 @@ export default function CreatePatientModal({ onClose, onSuccess }: CreatePatient
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium mb-1 dark:text-gray-300">First Name *</label>
-                                    <input name="firstName" required className="w-full form-input" value={formData.firstName} onChange={handleChange} />
+                                    <input name="firstName" required className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.firstName} onChange={handleChange} />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium mb-1 dark:text-gray-300">Last Name *</label>
-                                    <input name="lastName" required className="w-full form-input" value={formData.lastName} onChange={handleChange} />
+                                    <input name="lastName" required className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.lastName} onChange={handleChange} />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium mb-1 dark:text-gray-300">Date of Birth *</label>
-                                    <input type="date" name="dateOfBirth" required className="w-full form-input" value={formData.dateOfBirth} onChange={handleChange} />
+                                    <input type="date" name="dateOfBirth" required className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.dateOfBirth} onChange={handleChange} />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium mb-1 dark:text-gray-300">Gender</label>
-                                    <select name="gender" className="w-full form-input" value={formData.gender} onChange={handleChange}>
+                                    <select name="gender" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.gender} onChange={handleChange}>
                                         <option value="">Select Gender</option>
                                         <option value="male">Male</option>
                                         <option value="female">Female</option>
@@ -105,7 +105,7 @@ export default function CreatePatientModal({ onClose, onSuccess }: CreatePatient
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium mb-1 dark:text-gray-300">Marital Status</label>
-                                    <select name="maritalStatus" className="w-full form-input" value={formData.maritalStatus} onChange={handleChange}>
+                                    <select name="maritalStatus" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.maritalStatus} onChange={handleChange}>
                                         <option value="">Select Status</option>
                                         <option value="single">Single</option>
                                         <option value="married">Married</option>
@@ -115,7 +115,7 @@ export default function CreatePatientModal({ onClose, onSuccess }: CreatePatient
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium mb-1 dark:text-gray-300">Occupation</label>
-                                    <input name="occupation" className="w-full form-input" value={formData.occupation} onChange={handleChange} />
+                                    <input name="occupation" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.occupation} onChange={handleChange} />
                                 </div>
                             </div>
                         </div>
@@ -126,15 +126,15 @@ export default function CreatePatientModal({ onClose, onSuccess }: CreatePatient
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium mb-1 dark:text-gray-300">Phone Number</label>
-                                    <input name="phoneNumber" type="tel" className="w-full form-input" value={formData.phoneNumber} onChange={handleChange} />
+                                    <input name="phoneNumber" type="tel" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.phoneNumber} onChange={handleChange} />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium mb-1 dark:text-gray-300">City</label>
-                                    <input name="city" className="w-full form-input" value={formData.city} onChange={handleChange} />
+                                    <input name="city" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.city} onChange={handleChange} />
                                 </div>
                                 <div className="md:col-span-2">
                                     <label className="block text-sm font-medium mb-1 dark:text-gray-300">Address</label>
-                                    <input name="address" className="w-full form-input" value={formData.address} onChange={handleChange} />
+                                    <input name="address" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.address} onChange={handleChange} />
                                 </div>
                             </div>
                         </div>
@@ -145,7 +145,7 @@ export default function CreatePatientModal({ onClose, onSuccess }: CreatePatient
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium mb-1 dark:text-gray-300">Blood Type</label>
-                                    <select name="bloodType" className="w-full form-input" value={formData.bloodType} onChange={handleChange}>
+                                    <select name="bloodType" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.bloodType} onChange={handleChange}>
                                         <option value="">Select Type</option>
                                         <option value="A+">A+</option>
                                         <option value="A-">A-</option>
@@ -161,11 +161,11 @@ export default function CreatePatientModal({ onClose, onSuccess }: CreatePatient
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                 <div>
                                     <label className="block text-sm font-medium mb-1 dark:text-gray-300">Allergies</label>
-                                    <textarea name="allergies" rows={3} className="w-full form-input" placeholder="List any allergies..." value={formData.allergies} onChange={handleChange} />
+                                    <textarea name="allergies" rows={3} className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" placeholder="List any allergies..." value={formData.allergies} onChange={handleChange} />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium mb-1 dark:text-gray-300">Existing Conditions</label>
-                                    <textarea name="existingConditions" rows={3} className="w-full form-input" placeholder="Diabetes, Hypertension, etc." value={formData.existingConditions} onChange={handleChange} />
+                                    <textarea name="existingConditions" rows={3} className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" placeholder="Diabetes, Hypertension, etc." value={formData.existingConditions} onChange={handleChange} />
                                 </div>
                             </div>
                         </div>
@@ -176,15 +176,15 @@ export default function CreatePatientModal({ onClose, onSuccess }: CreatePatient
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium mb-1 dark:text-gray-300">Name</label>
-                                    <input name="emergencyContactName" className="w-full form-input" value={formData.emergencyContactName} onChange={handleChange} />
+                                    <input name="emergencyContactName" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.emergencyContactName} onChange={handleChange} />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium mb-1 dark:text-gray-300">Relation</label>
-                                    <input name="emergencyContactRelation" className="w-full form-input" value={formData.emergencyContactRelation} onChange={handleChange} />
+                                    <input name="emergencyContactRelation" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.emergencyContactRelation} onChange={handleChange} />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium mb-1 dark:text-gray-300">Phone</label>
-                                    <input name="emergencyContactPhone" className="w-full form-input" value={formData.emergencyContactPhone} onChange={handleChange} />
+                                    <input name="emergencyContactPhone" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.emergencyContactPhone} onChange={handleChange} />
                                 </div>
                             </div>
                         </div>
@@ -201,11 +201,7 @@ export default function CreatePatientModal({ onClose, onSuccess }: CreatePatient
                 </form>
             </div>
 
-            <style jsx global>{`
-                .form-input {
-                    @apply px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none;
-                }
-            `}</style>
+
         </div>
     );
 }
