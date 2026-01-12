@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { FiPhone, FiMail, FiClock, FiFacebook, FiTwitter, FiInstagram, FiLinkedin, FiMenu, FiX, FiCheckCircle } from 'react-icons/fi';
+import InstallPWA from '../components/InstallPWA';
 
 export default function Home() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -198,6 +199,87 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Mobile App Marketing Section */}
+      <section className="py-24 bg-[#1D2B36] relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#00C65E]/10 rounded-full blur-[100px] translate-x-1/2 -translate-y-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#C2003F]/10 rounded-full blur-[100px] -translate-x-1/2 translate-y-1/2"></div>
+
+        <div className="max-w-7xl mx-auto px-6 relative z-10 flex flex-col md:flex-row items-center gap-16">
+          <div className="flex-1 text-center md:text-left">
+            <span className="inline-block py-1 px-3 rounded-full bg-[#00C65E]/20 text-[#00C65E] font-bold text-xs uppercase tracking-wider mb-6 border border-[#00C65E]/20">
+              New Feature
+            </span>
+            <h2 className="text-4xl md:text-6xl font-black text-white mb-6 leading-tight">
+              Healthcare in <br />
+              <span className="bg-gradient-to-r from-[#00C65E] to-[#C2003F] text-transparent bg-clip-text">Your Pocket.</span>
+            </h2>
+            <p className="text-gray-400 mb-8 max-w-xl text-lg leading-relaxed">
+              Experience the future of medical care with the M-Clinic Progressive Web App.
+              Install it directly on your phone for faster booking, offline access, and real-time doctor tracking.
+              No app store limits—just instant access.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-5 justify-center md:justify-start">
+              <button className="px-8 py-4 bg-[#00C65E] text-[#1D2B36] rounded-full font-bold shadow-[0_0_20px_rgba(0,198,94,0.3)] hover:bg-[#00A850] hover:scale-105 transition-all flex items-center justify-center gap-3 group">
+                <FiCheckCircle className="text-xl" />
+                <span>Install Web App</span>
+              </button>
+              <button className="px-8 py-4 bg-white/5 border border-white/10 text-white rounded-full font-bold hover:bg-white/10 transition flex items-center justify-center gap-3 backdrop-blur-sm">
+                <span>Learn More</span>
+              </button>
+            </div>
+
+            <div className="mt-10 pt-10 border-t border-white/5 flex items-center justify-center md:justify-start gap-8 opacity-60">
+              <div className="flex flex-col">
+                <span className="text-2xl font-bold text-white">4.9/5</span>
+                <span className="text-xs uppercase tracking-wider text-gray-500">User Rating</span>
+              </div>
+              <div className="w-px h-10 bg-white/20"></div>
+              <div className="flex flex-col">
+                <span className="text-2xl font-bold text-white">10k+</span>
+                <span className="text-xs uppercase tracking-wider text-gray-500">Installs</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex-1 relative w-full flex justify-center md:justify-end">
+            <div className="relative z-10 w-full max-w-xs transform rotate-[-6deg] hover:rotate-0 transition-all duration-700">
+              {/* Phone Mockup Frame */}
+              <div className="bg-black rounded-[3rem] p-3 shadow-2xl border-4 border-[#333]">
+                <div className="absolute top-0 w-40 h-6 bg-black left-1/2 -translate-x-1/2 rounded-b-xl z-20"></div>
+                <div className="rounded-[2.5rem] overflow-hidden bg-white aspect-[9/19.5] relative">
+                  <div className="absolute inset-0 bg-gray-100 flex flex-col">
+                    {/* Mock UI Content */}
+                    <div className="h-40 bg-[#1D2B36] p-6 text-white flex flex-col justify-end pb-4">
+                      <div className="text-xs opacity-70 mb-1">Welcome back,</div>
+                      <div className="font-bold text-xl">Alex Metto</div>
+                    </div>
+                    <div className="p-4 grid grid-cols-2 gap-3">
+                      <div className="bg-white p-4 rounded-2xl shadow-sm h-32 flex flex-col justify-between">
+                        <div className="w-10 h-10 rounded-full bg-red-50 text-red-500 flex items-center justify-center"><FiClock /></div>
+                        <div className="font-bold text-sm">Appointments</div>
+                      </div>
+                      <div className="bg-white p-4 rounded-2xl shadow-sm h-32 flex flex-col justify-between">
+                        <div className="w-10 h-10 rounded-full bg-green-50 text-green-500 flex items-center justify-center"><FiCheckCircle /></div>
+                        <div className="font-bold text-sm">Prescriptions</div>
+                      </div>
+                    </div>
+                    <div className="mt-auto p-4 bg-white m-4 rounded-2xl shadow-lg border border-gray-100">
+                      <div className="text-center font-bold text-gray-800 mb-2">Install Now</div>
+                      <div className="w-full h-10 bg-[#00C65E] rounded-xl flex items-center justify-center text-white text-sm font-bold">Add to Home Screen</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Abstract Floating Elements */}
+            <div className="absolute top-20 -right-10 w-24 h-24 bg-[#C2003F] rounded-2xl rotate-12 blur-xl opacity-20 animate-pulse"></div>
+            <div className="absolute bottom-20 -left-10 w-32 h-32 bg-[#00C65E] rounded-full blur-xl opacity-20 animate-bounce"></div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="bg-[#15202B] text-gray-400 py-20 px-6 border-t border-gray-800">
         <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-12 mb-16">
@@ -250,6 +332,7 @@ export default function Home() {
           &copy; {new Date().getFullYear()} M-Clinic Kenya. All rights reserved.
         </div>
       </footer>
+      <InstallPWA />
     </div>
   );
 }
