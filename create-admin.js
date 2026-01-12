@@ -15,12 +15,12 @@ async function createAdminUser() {
 
         // Insert admin user
         const [result] = await connection.execute(`
-            INSERT INTO users (email, password, role, firstName, lastName, isActive, createdAt, updatedAt)
+            INSERT INTO users (email, password, role, fname, lname, status, createdAt, updatedAt)
             VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
             ON DUPLICATE KEY UPDATE 
                 password = VALUES(password),
                 role = VALUES(role),
-                isActive = VALUES(isActive)
+                status = VALUES(status)
         `, [
             'mettoalex@gmail.com',
             hashedPassword,
