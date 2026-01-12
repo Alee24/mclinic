@@ -20,7 +20,7 @@ export enum UserRole {
   PHARMACIST = 'pharmacist',
 }
 
-@Entity()
+@Entity('users')
 export class User {
   @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })
   id: number;

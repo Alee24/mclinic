@@ -10,7 +10,7 @@ import { User } from '../../users/entities/user.entity';
 import { Doctor } from '../../doctors/entities/doctor.entity';
 import { Appointment } from '../../appointments/entities/appointment.entity';
 
-@Entity()
+@Entity('medical_record')
 export class MedicalRecord {
   @PrimaryGeneratedColumn()
   id: number;

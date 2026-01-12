@@ -22,7 +22,7 @@ export enum AppointmentStatus {
   RESCHEDULED = 'rescheduled',
 }
 
-@Entity()
+@Entity('appointment')
 export class Appointment {
   @PrimaryGeneratedColumn()
   id: number;
