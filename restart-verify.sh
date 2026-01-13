@@ -13,8 +13,41 @@ echo "=================================================="
 
 # 1. Update Database & Client (Crucial Fix)
 echo "🔹 [Step 1/3] Updating Database Schema..."
+
 if [ -d "$APP_DIR/apps/api" ]; then
     cd "$APP_DIR/apps/api"
+    SCHEMA_FILE="prisma/schema.prisma"
+    
+    # --- AUTO-PATCH: Fix Missing resetToken ---
+    if ! grep -q "resetToken" "$SCHEMA_FILE"; then
+        echo "🔧 Patching Schema: Adding resetToken..."
+        # Insert resetToken fields after profile_image
+        sed -i '/profile_image.*String/a \  resetToken      String?   @db.VarChar(255)\n  resetTokenExpiry DateTime? @db.Timestamp(0)' "$SCHEMA_FILE"
+    fi
+
+    # --- AUTO-PATCH: Fix Missing AmbulancePackage ---
+    if ! grep -q "model AmbulancePackage" "$SCHEMA_FILE"; then
+         echo "🔧 Patching Schema: Adding AmbulancePackage..."
+         cat >> "$SCHEMA_FILE" <<EOF
+
+model AmbulancePackage {
+  id            Int      @id @default(autoincrement())
+  name          String   @unique
+  description   String?  @db.Text
+  price         Decimal  @db.Decimal(10, 2)
+  validity_days Int      @default(365)
+  features      Json?
+  max_adults    Int      @default(0)
+  max_children  Int      @default(0)
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now()) @db.DateTime(6)
+  updated_at    DateTime @default(now()) @updatedAt @db.DateTime(6)
+
+  @@map("ambulance_packages")
+}
+EOF
+    fi
+
     echo "   > Running Prisma DB Push..."
     npx prisma db push
     echo "   > Generating Prisma Client..."
