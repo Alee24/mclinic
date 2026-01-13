@@ -38,6 +38,9 @@ export class EmailService {
             defaults: {
                 from: `"${fromName}" <${fromEmail}>`,
             },
+            tls: {
+                rejectUnauthorized: false
+            }
         };
 
         // Use 'as any' to bypass potential type definition issues with addTransporter
@@ -48,11 +51,11 @@ export class EmailService {
     /**
      * Wrapper to send email using the correct transporter.
      */
-    private async sendMailWithContext(options: ISendMailOptions) {
+    private async sendMailWithContext(options: ISendMailOptions, throwError = false) {
         try {
             // Check if master toggle is enabled (default true)
             const enabled = await this.settingsService.get('EMAIL_NOTIFICATIONS_ENABLED');
-            if (enabled === 'false') {
+            if (enabled === 'false' && !throwError) { // Allow test emails to bypass master switch
                 console.log(`Email suppressed (Master Switch OFF): ${options.subject}`);
                 return;
             }
@@ -63,8 +66,11 @@ export class EmailService {
                 transporterName,
             });
             console.log(`Email sent: ${options.subject} to ${options.to} via ${transporterName || 'Default Env'}`);
+            return { success: true };
         } catch (error) {
             console.error(`Failed to send email (${options.subject}):`, error);
+            if (throwError) throw error;
+            return { success: false, error: error };
         }
     }
 
@@ -336,19 +342,23 @@ export class EmailService {
         });
     }
     async sendTestEmail(to: string) {
-        await this.sendMailWithContext({
-            to,
-            subject: 'Test Email - M-Clinic Configuration',
-            html: `
-                <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
-                    <h2 style="color: #00F090;">M-Clinic Email Configuration</h2>
-                    <p>Success! Your SMTP settings are working correctly.</p>
-                    <p>Time: ${new Date().toLocaleString()}</p>
-                    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
-                    <p style="font-size: 12px; color: #666;">If you received this email, the notification system is operational.</p>
-                </div>
-            `,
-        });
-        return { success: true };
+        try {
+            await this.sendMailWithContext({
+                to,
+                subject: 'Test Email - M-Clinic Configuration',
+                html: `
+                    <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                        <h2 style="color: #00F090;">M-Clinic Email Configuration</h2>
+                        <p>Success! Your SMTP settings are working correctly.</p>
+                        <p>Time: ${new Date().toLocaleString()}</p>
+                        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+                        <p style="font-size: 12px; color: #666;">If you received this email, the notification system is operational.</p>
+                    </div>
+                `,
+            }, true);
+            return { success: true };
+        } catch (error) {
+            return { success: false, error: error.message || 'Unknown connection error' };
+        }
     }
 }

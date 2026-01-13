@@ -99,10 +99,13 @@ export default function NotificationSettingsPage() {
             const payload = testEmail ? { to: testEmail } : {};
             const res = await api.post('/email/test', payload);
 
-            if (res && res.ok) {
-                toast.success(`Test email sent ${testEmail ? 'to ' + testEmail : 'successfully'}!`);
-            } else {
-                toast.error('Failed to send test email. Check SMTP settings.');
+            if (res) {
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    toast.success(`Test email sent ${testEmail ? 'to ' + testEmail : 'successfully'}!`);
+                } else {
+                    toast.error(`SMTP Error: ${data.error || 'Connection refused. Check settings.'}`);
+                }
             }
         } catch (error) {
             console.error(error);
