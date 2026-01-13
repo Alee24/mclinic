@@ -18,15 +18,12 @@ export default function AmbulanceSubscriptionPage() {
 
     // Form State
     const [formData, setFormData] = useState({
-        // 1. Primary Subscriber
         primary_subscriber_name: '',
         dob: '',
         gender: 'Male',
         identification_number: '',
         nationality: 'Kenyan',
         language_spoken: 'English',
-
-        // 2. Contact & Location
         primary_phone: '',
         secondary_phone: '',
         email: '',
@@ -36,25 +33,18 @@ export default function AmbulanceSubscriptionPage() {
         street: '',
         house_details: '',
         landmark: '',
-
-        // 3. Medical Bio-Data
         blood_type: '',
         allergies: '',
         chronic_conditions: '',
         current_medications: '',
         preferred_hospital: '',
         insurance_details: '',
-
-        // 4. Family Package
         package_type: 'individual',
         family_members: [] as any[],
-
-        // Emergency Contact
         emergency_contacts: [{ name: '', relationship: '', phone: '' }]
     });
 
     useEffect(() => {
-        // Fetch Packages
         api.get('/ambulance/packages').then(res => {
             if (res?.ok) return res.json();
             return [];
@@ -128,30 +118,28 @@ export default function AmbulanceSubscriptionPage() {
         }
     };
 
-    // Filter out unwanted features for display
     const getCleanFeatures = (pkg: any) => {
         const features = pkg.features || [];
         return features.filter((f: string) => !f.toLowerCase().includes('air evacuation'));
     };
 
     return (
-        <div className="max-w-6xl mx-auto p-4 md:p-8">
-            <div className="text-center mb-10">
-                <div className="inline-flex items-center justify-center p-4 bg-red-50 text-red-600 rounded-full mb-4 shadow-sm">
-                    <FiTruck className="text-3xl" />
+        <div className="max-w-7xl mx-auto p-4 md:p-8 font-sans">
+            <div className="mb-10">
+                <div className="flex items-center gap-4 mb-2">
+                    <div className="p-3 bg-red-100/50 text-red-500 rounded-xl">
+                        <FiTruck className="text-2xl" />
+                    </div>
+                    <h1 className="text-3xl font-black text-gray-900 dark:text-white">
+                        Ambulance Service Subscription
+                    </h1>
                 </div>
-                <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">
-                    Ambulance Service Subscription
-                </h1>
-                <p className="text-gray-500 dark:text-gray-400 mt-3 text-lg max-w-2xl mx-auto">
-                    Professional 24/7 ground ambulance response ensuring critical care for you and your loved ones.
-                </p>
+                <p className="text-gray-500 ml-16">Secure 24/7 emergency response for you and your family.</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                {/* Left Column: Plans */}
+                {/* LEFT COLUMN: PLANS */}
                 <div className="lg:col-span-4 space-y-4">
-                    <h3 className="text-sm font-bold uppercase text-gray-400 tracking-wider mb-2">Select a Plan</h3>
                     {packages.map(pkg => {
                         const isSelected = formData.package_type === pkg.name;
                         return (
@@ -159,275 +147,233 @@ export default function AmbulanceSubscriptionPage() {
                                 key={pkg.id}
                                 onClick={() => setFormData(p => ({ ...p, package_type: pkg.name }))}
                                 className={`
-                                    relative p-6 rounded-2xl border-2 cursor-pointer transition-all duration-200 group
-                                    ${isSelected
-                                        ? 'border-green-500 bg-green-50/50 dark:bg-green-900/10 ring-1 ring-green-500 shadow-md'
-                                        : 'border-gray-200 dark:border-gray-800 hover:border-green-200 dark:hover:border-gray-700 bg-white dark:bg-[#121212]'
-                                    }
+                                    relative p-6 rounded-2xl border-2 transition-all cursor-pointer group
+                                    ${isSelected ? 'border-green-500 bg-green-50/30' : 'border-gray-100 hover:border-gray-200 bg-white'}
                                 `}
                             >
-                                {isSelected && (
-                                    <div className="absolute top-4 right-4 text-green-600">
-                                        <FiCheckCircle className="text-xl" />
-                                    </div>
-                                )}
-                                <div className="flex items-center gap-3 mb-3">
-                                    <div className={`p-2 rounded-lg ${isSelected ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'}`}>
-                                        <FiShield className="text-xl" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-lg dark:text-white capitalize leading-tight">{pkg.name}</h3>
-                                        <span className="text-xs text-gray-500 font-medium">Auto-renewal available</span>
-                                    </div>
-                                </div>
-
-                                <div className="mt-4 mb-4">
-                                    <span className="text-2xl font-black text-gray-900 dark:text-white">
-                                        KES {Number(pkg.price).toLocaleString()}
-                                    </span>
-                                    <span className="text-sm text-gray-500 ml-1">/year</span>
-                                </div>
-
-                                <div className="space-y-2">
-                                    {getCleanFeatures(pkg).map((f: string, i: number) => (
-                                        <div key={i} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
-                                            <FiCheckCircle className="mt-0.5 text-green-500 flex-shrink-0" />
-                                            <span className="leading-snug">{f}</span>
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-gray-50 rounded-lg text-gray-600"><FiUsers /></div>
+                                        <div>
+                                            <div className="font-bold text-lg leading-none">{pkg.name}</div>
+                                            <div className="text-xs text-gray-400 mt-1">Full coverage</div>
                                         </div>
-                                    ))}
-                                    <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
-                                        <FiCheckCircle className="mt-0.5 text-green-500 flex-shrink-0" />
-                                        <span className="leading-snug">Advanced cardiac life support</span>
                                     </div>
+                                    <div className="text-right">
+                                        <div className="font-black text-lg">KES {Number(pkg.price).toLocaleString()}</div>
+                                        <div className="text-xs text-gray-400">/yr</div>
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-wrap gap-2 mt-4">
+                                    {getCleanFeatures(pkg).map((f: string, i: number) => (
+                                        <span key={i} className="text-[10px] uppercase font-bold px-2 py-1 bg-white border border-gray-100 rounded text-gray-500">
+                                            {f}
+                                        </span>
+                                    ))}
+                                    <span className="text-[10px] uppercase font-bold px-2 py-1 bg-white border border-gray-100 rounded text-gray-500">24/7 Support</span>
                                 </div>
                             </div>
-                        );
+                        )
                     })}
+                    {packages.length === 0 && <div className="text-center text-gray-400 py-4">Loading plans...</div>}
                 </div>
 
-                {/* Right Column: Form */}
+                {/* RIGHT COLUMN: FORM */}
                 <div className="lg:col-span-8">
-                    <form onSubmit={handleSubmit} className="bg-white dark:bg-[#121212] rounded-3xl border border-gray-200 dark:border-gray-800 shadow-xl overflow-hidden">
-                        <div className="p-6 md:p-8 space-y-10">
-
-                            {/* Section 1 */}
-                            <section>
-                                <div className="flex items-center gap-3 mb-6 pb-2 border-b border-gray-100 dark:border-gray-800">
-                                    <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm">1</div>
-                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">Primary Subscriber Details</h3>
+                    <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-8 shadow-2xl shadow-gray-100 border border-gray-100">
+                        {/* Section 1 */}
+                        <div className="mb-8">
+                            <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-4 pb-2 border-b border-gray-100">
+                                <FiUsers className="text-gray-400" /> Primary Subscriber
+                            </h3>
+                            <div className="grid grid-cols-2 gap-5">
+                                <div className="col-span-1">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">Full Name</label>
+                                    <input
+                                        name="primary_subscriber_name"
+                                        value={formData.primary_subscriber_name}
+                                        onChange={handleChange}
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-lg px-4 py-3 text-sm font-semibold text-gray-700 outline-none focus:border-green-500 transition"
+                                        required
+                                    />
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="form-group">
-                                        <label className="text-xs font-bold uppercase text-gray-500 mb-1 block">Full Name</label>
-                                        <input
-                                            name="primary_subscriber_name"
-                                            value={formData.primary_subscriber_name}
-                                            onChange={handleChange}
-                                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-black border-transparent focus:border-blue-500 focus:bg-white dark:focus:bg-gray-900 focus:ring-0 transition-all font-medium"
-                                            placeholder="Enter full legal name"
-                                            required
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="text-xs font-bold uppercase text-gray-500 mb-1 block">ID / Passport</label>
-                                        <input
-                                            name="identification_number"
-                                            value={formData.identification_number}
-                                            onChange={handleChange}
-                                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-black border-transparent focus:border-blue-500 focus:bg-white dark:focus:bg-gray-900 focus:ring-0 transition-all font-medium"
-                                            required
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="text-xs font-bold uppercase text-gray-500 mb-1 block">Date of Birth</label>
-                                        <input
-                                            type="date"
-                                            name="dob"
-                                            value={formData.dob}
-                                            onChange={handleChange}
-                                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-black border-transparent focus:border-blue-500 focus:bg-white dark:focus:bg-gray-900 focus:ring-0 transition-all font-medium"
-                                            required
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="text-xs font-bold uppercase text-gray-500 mb-1 block">Primary Phone</label>
-                                        <div className="relative">
-                                            <FiPhone className="absolute left-4 top-3.5 text-gray-400" />
-                                            <input
-                                                name="primary_phone"
-                                                value={formData.primary_phone}
-                                                onChange={handleChange}
-                                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-50 dark:bg-black border-transparent focus:border-blue-500 focus:bg-white dark:focus:bg-gray-900 focus:ring-0 transition-all font-medium"
-                                                placeholder="e.g. 0712 345 678"
-                                                required
-                                            />
-                                        </div>
-                                    </div>
+                                <div className="col-span-1">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">ID / Passport</label>
+                                    <input
+                                        name="identification_number"
+                                        value={formData.identification_number}
+                                        onChange={handleChange}
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-lg px-4 py-3 text-sm font-semibold text-gray-700 outline-none focus:border-green-500 transition"
+                                        required
+                                    />
                                 </div>
-                            </section>
-
-                            {/* Section 2 */}
-                            <section>
-                                <div className="flex items-center gap-3 mb-6 pb-2 border-b border-gray-100 dark:border-gray-800">
-                                    <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm">2</div>
-                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">Dispatch Location</h3>
+                                <div className="col-span-1">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">Date of Birth</label>
+                                    <input
+                                        type="date"
+                                        name="dob"
+                                        value={formData.dob}
+                                        onChange={handleChange}
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-lg px-4 py-3 text-sm font-semibold text-gray-700 outline-none focus:border-green-500 transition"
+                                        required
+                                    />
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="md:col-span-2">
-                                        <label className="text-xs font-bold uppercase text-gray-500 mb-1 block">Residential Address (County / Estate / House)</label>
-                                        <input
-                                            name="residential_address"
-                                            value={formData.residential_address}
-                                            onChange={handleChange}
-                                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-black border-transparent focus:border-blue-500 focus:bg-white dark:focus:bg-gray-900 focus:ring-0 transition-all font-medium"
-                                            placeholder="Detailed address helps us reach you faster"
-                                            required
-                                        />
-                                    </div>
-                                    <div className="md:col-span-2">
-                                        <label className="text-xs font-bold uppercase text-gray-500 mb-1 block">Nearest Landmark / Directions</label>
-                                        <input
-                                            name="landmark"
-                                            value={formData.landmark}
-                                            onChange={handleChange}
-                                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-black border-transparent focus:border-blue-500 focus:bg-white dark:focus:bg-gray-900 focus:ring-0 transition-all font-medium"
-                                            placeholder="e.g. Behind Total Station, Blue Gate"
-                                            required
-                                        />
-                                    </div>
+                                <div className="col-span-1">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">Primary Phone</label>
+                                    <input
+                                        name="primary_phone"
+                                        value={formData.primary_phone}
+                                        onChange={handleChange}
+                                        placeholder="Required for Dispatch"
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-lg px-4 py-3 text-sm font-semibold text-gray-700 outline-none focus:border-green-500 transition"
+                                        required
+                                    />
                                 </div>
-                            </section>
-
-                            {/* Section 3 */}
-                            <section>
-                                <div className="flex items-center gap-3 mb-6 pb-2 border-b border-gray-100 dark:border-gray-800">
-                                    <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm">3</div>
-                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">Critical Medical Info</h3>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="text-xs font-bold uppercase text-gray-500 mb-1 block">Blood Type</label>
-                                        <select
-                                            name="blood_type"
-                                            value={formData.blood_type}
-                                            onChange={handleChange}
-                                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-black border-transparent focus:border-blue-500 focus:bg-white dark:focus:bg-gray-900 focus:ring-0 transition-all font-medium"
-                                        >
-                                            <option value="">Unknown</option>
-                                            <option>A+</option><option>A-</option>
-                                            <option>B+</option><option>B-</option>
-                                            <option>AB+</option><option>AB-</option>
-                                            <option>O+</option><option>O-</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold uppercase text-gray-500 mb-1 block">Chronic Conditions</label>
-                                        <input
-                                            name="chronic_conditions"
-                                            value={formData.chronic_conditions}
-                                            onChange={handleChange}
-                                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-black border-transparent focus:border-blue-500 focus:bg-white dark:focus:bg-gray-900 focus:ring-0 transition-all font-medium"
-                                            placeholder="None"
-                                        />
-                                    </div>
-                                </div>
-                            </section>
-
-                            {/* Section 4: Family Members */}
-                            {formData.package_type === 'family' && (
-                                <section className="bg-blue-50 dark:bg-blue-900/10 p-6 rounded-2xl border border-blue-100 dark:border-blue-800">
-                                    <div className="flex justify-between items-center mb-6">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-sm">4</div>
-                                            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Family Members</h3>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            onClick={addFamilyMember}
-                                            className="text-sm bg-white dark:bg-gray-800 text-blue-600 border border-blue-200 shadow-sm px-4 py-2 rounded-lg font-bold hover:bg-blue-50 transition"
-                                        >
-                                            + Add Member
-                                        </button>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        {formData.family_members.map((member, idx) => (
-                                            <div key={idx} className="p-5 rounded-xl bg-white dark:bg-[#0a0a0a] shadow-sm border border-gray-100 dark:border-gray-800 relative">
-                                                <button type="button" onClick={() => removeFamilyMember(idx)} className="absolute top-3 right-3 text-gray-400 hover:text-red-500 transition">
-                                                    <span className="sr-only">Remove</span>
-                                                    &times;
-                                                </button>
-                                                <h4 className="text-xs font-bold uppercase text-gray-400 mb-3">Family Member {idx + 1}</h4>
-
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    <input
-                                                        placeholder="Full Name"
-                                                        value={member.name}
-                                                        onChange={e => updateFamilyMember(idx, 'name', e.target.value)}
-                                                        className="w-full px-3 py-2 rounded-lg bg-gray-50 dark:bg-black border-transparent focus:border-blue-500 focus:bg-white dark:focus:bg-gray-900 focus:ring-0 transition-all text-sm"
-                                                        required
-                                                    />
-                                                    <select
-                                                        value={member.relationship}
-                                                        onChange={e => updateFamilyMember(idx, 'relationship', e.target.value)}
-                                                        className="w-full px-3 py-2 rounded-lg bg-gray-50 dark:bg-black border-transparent focus:border-blue-500 focus:bg-white dark:focus:bg-gray-900 focus:ring-0 transition-all text-sm"
-                                                        required
-                                                    >
-                                                        <option value="">Relationship</option>
-                                                        <option>Spouse</option><option>Child</option><option>Parent</option><option>House Help</option>
-                                                    </select>
-                                                    <input
-                                                        type="date"
-                                                        value={member.dob}
-                                                        onChange={e => updateFamilyMember(idx, 'dob', e.target.value)}
-                                                        className="w-full px-3 py-2 rounded-lg bg-gray-50 dark:bg-black border-transparent focus:border-blue-500 focus:bg-white dark:focus:bg-gray-900 focus:ring-0 transition-all text-sm"
-                                                        required
-                                                    />
-                                                    <input
-                                                        placeholder="Medical Conditions / Allergies"
-                                                        value={member.medical_conditions}
-                                                        onChange={e => updateFamilyMember(idx, 'medical_conditions', e.target.value)}
-                                                        className="w-full px-3 py-2 rounded-lg bg-gray-50 dark:bg-black border-transparent focus:border-blue-500 focus:bg-white dark:focus:bg-gray-900 focus:ring-0 transition-all text-sm"
-                                                    />
-                                                </div>
-                                            </div>
-                                        ))}
-                                        {formData.family_members.length === 0 && (
-                                            <div className="text-center py-6 text-gray-400 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
-                                                <p>No family members added yet.</p>
-                                                <p className="text-xs mt-1">Click "Add Member" to include dependents.</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                </section>
-                            )}
-
+                            </div>
                         </div>
 
-                        {/* Footer Action */}
-                        <div className="p-6 md:p-8 bg-gray-50 dark:bg-black/20 border-t border-gray-100 dark:border-gray-800">
-                            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                                <div className="text-sm text-gray-500 leading-relaxed md:max-w-md">
-                                    <FiCheckCircle className="inline mr-1 text-green-500" />
-                                    Review your details carefully. By continuing, you agree to the <span className="underline cursor-pointer">Terms of Service</span>.
+                        {/* Section 2 */}
+                        <div className="mb-8">
+                            <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-4 pb-2 border-b border-gray-100">
+                                <FiMapPin className="text-gray-400" /> Dispatch Location
+                            </h3>
+                            <div className="grid grid-cols-2 gap-5">
+                                <div className="col-span-1">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">County</label>
+                                    <input
+                                        name="county"
+                                        value={formData.county}
+                                        onChange={handleChange}
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-lg px-4 py-3 text-sm font-semibold text-gray-700 outline-none focus:border-green-500 transition"
+                                        required
+                                    />
                                 </div>
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="w-full md:w-auto px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-green-500/20 transition flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
-                                >
-                                    {loading ? (
-                                        <>Processing...</>
-                                    ) : (
-                                        <>
-                                            <span>Subscribe & Pay</span>
-                                            <span className="bg-white/20 px-2 py-0.5 rounded text-sm">
-                                                KES {Number(packages.find(p => p.name === formData.package_type)?.price || 0).toLocaleString()}
-                                            </span>
-                                        </>
-                                    )}
-                                </button>
+                                <div className="col-span-1">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">Estate / Area</label>
+                                    <input
+                                        name="estate"
+                                        value={formData.estate}
+                                        onChange={handleChange}
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-lg px-4 py-3 text-sm font-semibold text-gray-700 outline-none focus:border-green-500 transition"
+                                        required
+                                    />
+                                </div>
+                                <div className="col-span-2">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">Street / Landmark</label>
+                                    <input
+                                        name="landmark"
+                                        value={formData.landmark}
+                                        onChange={handleChange}
+                                        placeholder="e.g. Behind Total Station"
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-lg px-4 py-3 text-sm font-semibold text-gray-700 outline-none focus:border-green-500 transition"
+                                        required
+                                    />
+                                </div>
                             </div>
+                        </div>
+
+                        {/* Section 3 */}
+                        <div className="mb-8">
+                            <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-4 pb-2 border-b border-gray-100">
+                                <FiAlertCircle className="text-gray-400" /> Critical Medical Data
+                            </h3>
+                            <div className="grid grid-cols-2 gap-5">
+                                <div className="col-span-1">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">Blood Type</label>
+                                    <select
+                                        name="blood_type"
+                                        value={formData.blood_type}
+                                        onChange={handleChange}
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-lg px-4 py-3 text-sm font-semibold text-gray-700 outline-none focus:border-green-500 transition"
+                                    >
+                                        <option value="">Unknown</option>
+                                        <option>A+</option><option>O+</option><option>B+</option><option>AB+</option>
+                                    </select>
+                                </div>
+                                <div className="col-span-1">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">Chronic Conditions</label>
+                                    <input
+                                        name="chronic_conditions"
+                                        value={formData.chronic_conditions}
+                                        onChange={handleChange}
+                                        placeholder="e.g. Diabetes, Asthma"
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-lg px-4 py-3 text-sm font-semibold text-gray-700 outline-none focus:border-green-500 transition"
+                                    />
+                                </div>
+                                <div className="col-span-2">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">Pre-existing Insurance Details</label>
+                                    <input
+                                        name="insurance_details"
+                                        value={formData.insurance_details}
+                                        onChange={handleChange}
+                                        placeholder="Provider & Member No. (For Hospital Handover)"
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-lg px-4 py-3 text-sm font-semibold text-gray-700 outline-none focus:border-green-500 transition"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Family Section */}
+                        {formData.package_type === 'family' && (
+                            <div className="mb-8 bg-green-50 p-6 rounded-2xl border border-green-100">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-lg font-bold text-green-800 flex items-center gap-2">
+                                        <FiUsers /> Family Members
+                                    </h3>
+                                    <button onClick={addFamilyMember} type="button" className="text-xs bg-white border border-green-200 text-green-600 px-3 py-1 rounded font-bold hover:bg-green-100">+ Add</button>
+                                </div>
+
+                                <div className="space-y-3">
+                                    {formData.family_members.map((member, idx) => (
+                                        <div key={idx} className="bg-white p-4 rounded-xl shadow-sm border border-green-100 relative">
+                                            <button type="button" onClick={() => removeFamilyMember(idx)} className="absolute top-2 right-2 text-gray-300 hover:text-red-500">&times;</button>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <input
+                                                    placeholder="Name"
+                                                    value={member.name}
+                                                    onChange={e => updateFamilyMember(idx, 'name', e.target.value)}
+                                                    className="bg-gray-50 border border-gray-100 rounded px-2 py-1 text-sm outline-none focus:border-green-500"
+                                                />
+                                                <select
+                                                    value={member.relationship}
+                                                    onChange={e => updateFamilyMember(idx, 'relationship', e.target.value)}
+                                                    className="bg-gray-50 border border-gray-100 rounded px-2 py-1 text-sm outline-none focus:border-green-500"
+                                                >
+                                                    <option value="">Relation</option>
+                                                    <option>Spouse</option><option>Child</option><option>Parent</option>
+                                                </select>
+                                                <input
+                                                    type="date"
+                                                    value={member.dob}
+                                                    onChange={e => updateFamilyMember(idx, 'dob', e.target.value)}
+                                                    className="bg-gray-50 border border-gray-100 rounded px-2 py-1 text-sm outline-none focus:border-green-500"
+                                                />
+                                                <input
+                                                    placeholder="Conditions"
+                                                    value={member.medical_conditions}
+                                                    onChange={e => updateFamilyMember(idx, 'medical_conditions', e.target.value)}
+                                                    className="bg-gray-50 border border-gray-100 rounded px-2 py-1 text-sm outline-none focus:border-green-500"
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {formData.family_members.length === 0 && <p className="text-xs text-green-700 opacity-60 italic text-center">Add family members to cover them.</p>}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="mt-8">
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full bg-[#00A859] hover:bg-[#008f4c] text-white font-bold py-4 rounded-xl shadow-lg shadow-green-200 transition text-lg"
+                            >
+                                {loading ? 'Processing...' : 'Subscribe & Pay'}
+                            </button>
+                            <p className="text-center text-[10px] text-gray-400 mt-4 leading-relaxed max-w-lg mx-auto">
+                                By subscribing, you verify that all information provided is accurate and consent to emergency medical treatment.
+                            </p>
                         </div>
                     </form>
                 </div>
@@ -440,7 +386,7 @@ export default function AmbulanceSubscriptionPage() {
                     onSuccess={() => {
                         setCreatedInvoice(null);
                         router.push('/dashboard');
-                        toast.success('Payment successfully processed!');
+                        toast.success('Payment successful');
                     }}
                 />
             )}
