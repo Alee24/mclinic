@@ -114,8 +114,8 @@ export default function EmailDebugPage() {
                 {/* Header */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                     <div className="flex items-center gap-3 mb-2">
-                        <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
-                            <FiMail className="w-6 h-6 text-white" />
+                        <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white">
+                            <FiMail className="w-6 h-6" />
                         </div>
                         <div>
                             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Email System Debugger</h1>
@@ -194,8 +194,8 @@ export default function EmailDebugPage() {
                     {/* Result */}
                     {result && (
                         <div className={`mt-4 p-4 rounded-lg border ${result.success
-                                ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-                                : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                            ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                            : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
                             }`}>
                             <div className="flex items-start gap-3">
                                 {result.success ? (
@@ -205,14 +205,14 @@ export default function EmailDebugPage() {
                                 )}
                                 <div className="flex-1">
                                     <h3 className={`font-semibold ${result.success
-                                            ? 'text-green-800 dark:text-green-200'
-                                            : 'text-red-800 dark:text-red-200'
+                                        ? 'text-green-800 dark:text-green-200'
+                                        : 'text-red-800 dark:text-red-200'
                                         }`}>
                                         {result.success ? 'Success!' : 'Failed'}
                                     </h3>
                                     <p className={`text-sm mt-1 ${result.success
-                                            ? 'text-green-700 dark:text-green-300'
-                                            : 'text-red-700 dark:text-red-300'
+                                        ? 'text-green-700 dark:text-green-300'
+                                        : 'text-red-700 dark:text-red-300'
                                         }`}>
                                         {result.message || result.error}
                                     </p>
@@ -245,24 +245,24 @@ export default function EmailDebugPage() {
                                 <div className="text-sm text-blue-700 dark:text-blue-300">Emails in Queue</div>
                             </div>
                             <div className={`p-4 rounded-lg border ${queueStatus.isProcessing
-                                    ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-                                    : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
+                                ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                                : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
                                 }`}>
                                 <div className={`text-2xl font-bold ${queueStatus.isProcessing
-                                        ? 'text-green-600 dark:text-green-400'
-                                        : 'text-gray-600 dark:text-gray-400'
+                                    ? 'text-green-600 dark:text-green-400'
+                                    : 'text-gray-600 dark:text-gray-400'
                                     }`}>
                                     {queueStatus.isProcessing ? 'Active' : 'Idle'}
                                 </div>
                                 <div className="text-sm text-gray-700 dark:text-gray-300">Processing Status</div>
                             </div>
                             <div className={`p-4 rounded-lg border ${queueStatus.hasCustomTransporter
-                                    ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-                                    : 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
+                                ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                                : 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
                                 }`}>
                                 <div className={`text-2xl font-bold ${queueStatus.hasCustomTransporter
-                                        ? 'text-green-600 dark:text-green-400'
-                                        : 'text-yellow-600 dark:text-yellow-400'
+                                    ? 'text-green-600 dark:text-green-400'
+                                    : 'text-yellow-600 dark:text-yellow-400'
                                     }`}>
                                     {queueStatus.hasCustomTransporter ? 'Active' : 'Fallback'}
                                 </div>
