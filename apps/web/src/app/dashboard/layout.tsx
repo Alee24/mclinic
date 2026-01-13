@@ -279,6 +279,49 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         <div className="absolute -top-5 -left-5 w-20 h-20 bg-white/5 rounded-full blur-lg"></div>
                     </div>
                 )}
+
+                {/* Social Media Links */}
+                <div className="mt-auto pt-6 border-t border-gray-100 dark:border-gray-800">
+                    <h6 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-2">Follow Us</h6>
+                    <div className="flex items-center gap-2 px-2">
+                        <a
+                            href="https://www.facebook.com/Mclinickenya/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-[#1877F2] hover:text-white transition-all duration-300"
+                            aria-label="Facebook"
+                        >
+                            <FiFacebook className="w-4 h-4" />
+                        </a>
+                        <a
+                            href="https://x.com/mclinickenya"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-[#1DA1F2] hover:text-white transition-all duration-300"
+                            aria-label="Twitter"
+                        >
+                            <FiTwitter className="w-4 h-4" />
+                        </a>
+                        <a
+                            href="https://www.linkedin.com/company/m-clinic-kenya"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-[#0A66C2] hover:text-white transition-all duration-300"
+                            aria-label="LinkedIn"
+                        >
+                            <FiLinkedin className="w-4 h-4" />
+                        </a>
+                        <a
+                            href="https://www.instagram.com/mclinickenya/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-gradient-to-br hover:from-[#833AB4] hover:via-[#FD1D1D] hover:to-[#F77737] hover:text-white transition-all duration-300"
+                            aria-label="Instagram"
+                        >
+                            <FiInstagram className="w-4 h-4" />
+                        </a>
+                    </div>
+                </div>
             </aside >
 
             {/* Main Content */}

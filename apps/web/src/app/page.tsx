@@ -313,11 +313,45 @@ export default function Home() {
               We are redefining healthcare accessibility in Kenya. By leveraging technology and a vast network of professionals,
               we ensure quality care is available to everyone, everywhere.
             </p>
-            <div className="flex gap-4">
-              {/* Socials */}
-              <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-[#C2003F] hover:text-white transition cursor-pointer"><FiFacebook /></div>
-              <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-[#C2003F] hover:text-white transition cursor-pointer"><FiTwitter /></div>
-              <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-[#C2003F] hover:text-white transition cursor-pointer"><FiInstagram /></div>
+            <h4 className="text-white font-bold mb-6">Follow Us</h4>
+            <p className="text-sm mb-4">Stay connected with M-Clinic on social media</p>
+            <div className="flex gap-3">
+              <a
+                href="https://www.facebook.com/Mclinickenya/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-[#1877F2] hover:text-white transition cursor-pointer"
+                aria-label="Facebook"
+              >
+                <FiFacebook />
+              </a>
+              <a
+                href="https://x.com/mclinickenya"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-[#1DA1F2] hover:text-white transition cursor-pointer"
+                aria-label="Twitter"
+              >
+                <FiTwitter />
+              </a>
+              <a
+                href="https://www.linkedin.com/company/m-clinic-kenya"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-[#0A66C2] hover:text-white transition cursor-pointer"
+                aria-label="LinkedIn"
+              >
+                <FiLinkedin />
+              </a>
+              <a
+                href="https://www.instagram.com/mclinickenya/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-gradient-to-br hover:from-[#833AB4] hover:via-[#FD1D1D] hover:to-[#F77737] hover:text-white transition cursor-pointer"
+                aria-label="Instagram"
+              >
+                <FiInstagram />
+              </a>
             </div>
           </div>
 
