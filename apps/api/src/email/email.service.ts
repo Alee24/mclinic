@@ -1,369 +1,409 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { MailerService, ISendMailOptions } from '@nestjs-modules/mailer';
 import { ConfigService } from '@nestjs/config';
 import { SystemSettingsService } from '../system-settings/system-settings.service';
+import * as nodemailer from 'nodemailer';
+
+interface EmailQueueItem {
+    options: ISendMailOptions;
+    retries: number;
+    timestamp: Date;
+}
 
 @Injectable()
 export class EmailService {
+    private readonly logger = new Logger(EmailService.name);
+    private emailQueue: EmailQueueItem[] = [];
+    private isProcessingQueue = false;
+    private customTransporter: nodemailer.Transporter | null = null;
+    private readonly MAX_RETRIES = 3;
+    private readonly RETRY_DELAY = 5000; // 5 seconds
+
     constructor(
         private mailerService: MailerService,
         private configService: ConfigService,
         private settingsService: SystemSettingsService,
-    ) { }
+    ) {
+        // Start queue processor
+        this.startQueueProcessor();
+    }
 
     private get frontendUrl(): string {
         return this.configService.get('FRONTEND_URL') || 'https://portal.mclinic.co.ke';
     }
 
     /**
-     * Dynamically configures a transporter based on SystemSettings.
-     * Returns 'custom' if settings exist, otherwise returns undefined (default).
+     * Create a custom transporter with dynamic settings
      */
-    private async getTransporterName(): Promise<string | undefined> {
-        let host = await this.settingsService.get('EMAIL_SMTP_HOST');
-        if (!host) return undefined; // Use default env config
-        host = host.trim();
-
-        const port = await this.settingsService.get('EMAIL_SMTP_PORT');
-        let user = await this.settingsService.get('EMAIL_SMTP_USER');
-        if (user) user = user.trim();
-
-        let pass = await this.settingsService.get('EMAIL_SMTP_PASS');
-        if (pass) pass = pass.trim();
-
-        const secure = (await this.settingsService.get('EMAIL_SMTP_SECURE')) === 'true';
-        const fromName = await this.settingsService.get('EMAIL_SMTP_FROM_NAME') || 'M-Clinic Notifications';
-        const fromEmail = (await this.settingsService.get('EMAIL_SMTP_FROM_EMAIL'))?.trim() || user;
-
-        const config = {
-            host,
-            port: port ? parseInt(port, 10) : 587,
-            secure,
-            auth: { user, pass },
-            defaults: {
-                from: `"${fromName}" <${fromEmail}>`,
-            },
-            tls: {
-                rejectUnauthorized: false
-            }
-        };
-
-        // Use 'as any' to bypass potential type definition issues with addTransporter
-        (this.mailerService as any).addTransporter('custom', config);
-        return 'custom';
-    }
-
-    /**
-     * Wrapper to send email using the correct transporter.
-     */
-    private async sendMailWithContext(options: ISendMailOptions, throwError = false) {
+    private async createCustomTransporter(): Promise<nodemailer.Transporter | null> {
         try {
-            // Check if master toggle is enabled (default true)
-            const enabled = await this.settingsService.get('EMAIL_NOTIFICATIONS_ENABLED');
-            if (enabled === 'false' && !throwError) { // Allow test emails to bypass master switch
-                console.log(`Email suppressed (Master Switch OFF): ${options.subject}`);
-                return;
+            const host = (await this.settingsService.get('EMAIL_SMTP_HOST'))?.trim();
+            if (!host) return null;
+
+            const port = parseInt(await this.settingsService.get('EMAIL_SMTP_PORT') || '587', 10);
+            const user = (await this.settingsService.get('EMAIL_SMTP_USER'))?.trim();
+            const pass = (await this.settingsService.get('EMAIL_SMTP_PASS'))?.trim();
+            const secure = (await this.settingsService.get('EMAIL_SMTP_SECURE')) === 'true';
+            const fromName = await this.settingsService.get('EMAIL_SMTP_FROM_NAME') || 'M-Clinic';
+            const fromEmail = (await this.settingsService.get('EMAIL_SMTP_FROM_EMAIL'))?.trim() || user;
+
+            if (!user || !pass) {
+                this.logger.warn('SMTP credentials not configured in system settings');
+                return null;
             }
 
-            const transporterName = await this.getTransporterName();
-            await this.mailerService.sendMail({
-                ...options,
-                transporterName,
+            const transporter = nodemailer.createTransporter({
+                host,
+                port,
+                secure,
+                auth: { user, pass },
+                defaults: {
+                    from: `"${fromName}" <${fromEmail}>`,
+                },
+                tls: {
+                    rejectUnauthorized: false, // For self-signed certificates
+                },
+                pool: true, // Use connection pooling
+                maxConnections: 5,
+                maxMessages: 100,
             });
-            console.log(`Email sent: ${options.subject} to ${options.to} via ${transporterName || 'Default Env'}`);
-            return { success: true };
+
+            // Verify connection
+            await transporter.verify();
+            this.logger.log(`Custom SMTP transporter created successfully: ${host}:${port}`);
+
+            return transporter;
         } catch (error) {
-            console.error(`Failed to send email (${options.subject}):`, error);
-            if (throwError) throw error;
-            return { success: false, error: error };
+            this.logger.error(`Failed to create custom transporter: ${error.message}`);
+            return null;
         }
     }
 
-    async sendAccountCreationEmail(user: any, role: string) {
-        await this.sendMailWithContext({
-            to: user.email,
-            subject: 'Welcome to M-Clinic Health',
-            template: './account-creation',
+    /**
+     * Get or create transporter
+     */
+    private async getTransporter(): Promise<nodemailer.Transporter> {
+        // Try to use custom transporter from settings
+        if (!this.customTransporter) {
+            this.customTransporter = await this.createCustomTransporter();
+        }
+
+        // If custom transporter exists and is valid, use it
+        if (this.customTransporter) {
+            try {
+                await this.customTransporter.verify();
+                return this.customTransporter;
+            } catch (error) {
+                this.logger.warn('Custom transporter verification failed, recreating...');
+                this.customTransporter = await this.createCustomTransporter();
+                if (this.customTransporter) {
+                    return this.customTransporter;
+                }
+            }
+        }
+
+        // Fallback to default mailer service transporter
+        this.logger.log('Using default environment SMTP configuration');
+        return (this.mailerService as any).transporter;
+    }
+
+    /**
+     * Check if email notifications are enabled
+     */
+    private async isEmailEnabled(): Promise<boolean> {
+        const enabled = await this.settingsService.get('EMAIL_NOTIFICATIONS_ENABLED');
+        return enabled !== 'false';
+    }
+
+    /**
+     * Queue processor - processes emails with retry logic
+     */
+    private async startQueueProcessor() {
+        setInterval(async () => {
+            if (this.isProcessingQueue || this.emailQueue.length === 0) {
+                return;
+            }
+
+            this.isProcessingQueue = true;
+
+            while (this.emailQueue.length > 0) {
+                const item = this.emailQueue.shift();
+                if (!item) continue;
+
+                try {
+                    await this.sendEmailDirect(item.options);
+                    this.logger.log(`✓ Email sent successfully: ${item.options.subject}`);
+                } catch (error) {
+                    if (item.retries < this.MAX_RETRIES) {
+                        // Retry
+                        item.retries++;
+                        this.emailQueue.push(item);
+                        this.logger.warn(`Retrying email (${item.retries}/${this.MAX_RETRIES}): ${item.options.subject}`);
+                    } else {
+                        this.logger.error(`✗ Failed to send email after ${this.MAX_RETRIES} retries: ${item.options.subject}`, error.stack);
+                    }
+                }
+
+                // Small delay between emails
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+
+            this.isProcessingQueue = false;
+        }, this.RETRY_DELAY);
+    }
+
+    /**
+     * Send email directly (internal use)
+     */
+    private async sendEmailDirect(options: ISendMailOptions): Promise<void> {
+        const transporter = await this.getTransporter();
+
+        // Ensure 'from' is set
+        if (!options.from) {
+            const fromName = await this.settingsService.get('EMAIL_SMTP_FROM_NAME') || 'M-Clinic';
+            const fromEmail = (await this.settingsService.get('EMAIL_SMTP_FROM_EMAIL'))?.trim() ||
+                this.configService.get('SMTP_FROM_EMAIL') ||
+                'noreply@mclinic.co.ke';
+            options.from = `"${fromName}" <${fromEmail}>`;
+        }
+
+        await transporter.sendMail(options);
+    }
+
+    /**
+     * Main method to send email (with queueing)
+     */
+    private async sendMail(options: ISendMailOptions, priority: boolean = false): Promise<{ success: boolean; error?: any }> {
+        try {
+            // Check if emails are enabled
+            if (!await this.isEmailEnabled() && !priority) {
+                this.logger.log(`Email suppressed (disabled): ${options.subject}`);
+                return { success: false, error: 'Email notifications disabled' };
+            }
+
+            // Validate recipient
+            if (!options.to) {
+                throw new Error('No recipient specified');
+            }
+
+            // Add to queue
+            this.emailQueue.push({
+                options,
+                retries: 0,
+                timestamp: new Date(),
+            });
+
+            this.logger.log(`Email queued: ${options.subject} → ${options.to}`);
+            return { success: true };
+        } catch (error) {
+            this.logger.error(`Failed to queue email: ${error.message}`, error.stack);
+            return { success: false, error };
+        }
+    }
+
+    /**
+     * Send email with template
+     */
+    private async sendTemplateEmail(
+        to: string,
+        subject: string,
+        template: string,
+        context: any,
+        priority: boolean = false
+    ): Promise<{ success: boolean; error?: any }> {
+        return this.sendMail({
+            to,
+            subject,
+            template: `./${template}`,
             context: {
+                ...context,
+                frontendUrl: this.frontendUrl,
+                currentYear: new Date().getFullYear(),
+                supportEmail: 'support@mclinic.co.ke',
+                supportPhone: '+254 700 448 448',
+            },
+        }, priority);
+    }
+
+    // ==================== PUBLIC EMAIL METHODS ====================
+
+    async sendAccountCreationEmail(user: any, role: string) {
+        return this.sendTemplateEmail(
+            user.email,
+            'Welcome to M-Clinic Health',
+            'account-creation',
+            {
                 name: `${user.fname} ${user.lname}`,
                 role: role,
                 isMedic: ['doctor', 'medic', 'nurse', 'clinician', 'pharmacy', 'lab_tech'].includes(role.toLowerCase()),
                 loginUrl: `${this.frontendUrl}/login`,
                 dashboardUrl: `${this.frontendUrl}/dashboard`,
-            },
-        });
+            }
+        );
     }
 
     async sendLoginAttemptEmail(user: any, ipAddress: string, location: string) {
-        await this.sendMailWithContext({
-            to: user.email,
-            subject: 'New Login to Your M-Clinic Account',
-            template: './login-attempt',
-            context: {
+        return this.sendTemplateEmail(
+            user.email,
+            'New Login to Your M-Clinic Account',
+            'login-attempt',
+            {
                 name: `${user.fname} ${user.lname}`,
                 ipAddress,
                 location,
-                time: new Date().toLocaleString(),
+                timestamp: new Date().toLocaleString(),
                 dashboardUrl: `${this.frontendUrl}/dashboard`,
-            },
-        });
-    }
-
-    async sendBookingConfirmationEmail(user: any, appointment: any, doctor: any) {
-        if ((await this.settingsService.get('EMAIL_BOOKING_CONFIRMATION')) === 'false') return;
-
-        await this.sendMailWithContext({
-            to: user.email,
-            subject: 'Appointment Confirmation - M-Clinic Health',
-            template: './booking-confirmation',
-            context: {
-                patientName: `${user.fname} ${user.lname}`,
-                doctorName: `Dr. ${doctor.fname} ${doctor.lname}`,
-                doctorSpecialty: doctor.speciality,
-                appointmentDate: new Date(appointment.appointment_date).toLocaleDateString(),
-                appointmentTime: appointment.appointment_time,
-                service: appointment.service?.name || 'Consultation',
-                fee: appointment.fee,
-                reason: appointment.reason || null,
-                appointmentUrl: `${this.frontendUrl}/dashboard/appointments`,
-            },
-        });
-    }
-
-    async sendAppointmentNotificationToDoctor(doctor: any, appointment: any, patient: any) {
-        if ((await this.settingsService.get('EMAIL_BOOKING_NOTIFICATION_MEDIC')) === 'false') return;
-
-        await this.sendMailWithContext({
-            to: doctor.email,
-            subject: 'New Appointment Scheduled - M-Clinic Health',
-            template: './booking-notification-medic',
-            context: {
-                doctorName: `${doctor.fname} ${doctor.lname}`,
-                patientName: `${patient.fname} ${patient.lname}`,
-                appointmentDate: new Date(appointment.appointment_date).toLocaleDateString(),
-                appointmentTime: appointment.appointment_time,
-                service: appointment.service?.name || 'Consultation',
-                reason: appointment.reason || null,
-                dashboardUrl: `${this.frontendUrl}/dashboard/appointments`,
-            },
-        });
-    }
-
-    async sendBookingReminderEmail(user: any, appointment: any, doctor: any) {
-        await this.sendMailWithContext({
-            to: user.email,
-            subject: 'Appointment Reminder - Tomorrow',
-            template: './appointment-reminder',
-            context: {
-                patientName: `${user.fname} ${user.lname}`,
-                doctorName: `Dr. ${doctor.fname} ${doctor.lname}`,
-                appointmentDate: new Date(appointment.appointment_date).toLocaleDateString(),
-                appointmentTime: appointment.appointment_time,
-                service: appointment.service?.name || 'Consultation',
-                appointmentUrl: `${this.frontendUrl}/dashboard/appointments`,
-            },
-        });
-    }
-
-    async sendInvoiceEmail(user: any, invoice: any, items: any[]) {
-        if ((await this.settingsService.get('EMAIL_INVOICE_GENERATED')) === 'false') return;
-
-        await this.sendMailWithContext({
-            to: user.email,
-            subject: `Invoice #${invoice.invoiceNumber} - M-Clinic Health`,
-            template: './invoice',
-            context: {
-                name: `${user.fname} ${user.lname}`,
-                invoiceNumber: invoice.invoiceNumber,
-                invoiceDate: new Date(invoice.createdAt).toLocaleDateString(),
-                dueDate: new Date(invoice.dueDate).toLocaleDateString(),
-                items: items,
-                subtotal: invoice.amount,
-                total: invoice.amount,
-                status: invoice.status,
-                invoiceUrl: `${this.frontendUrl}/dashboard/invoices`,
-            },
-        });
-    }
-
-    async sendPaymentConfirmationEmail(user: any, payment: any, invoice: any) {
-        if ((await this.settingsService.get('EMAIL_PAYMENT_CONFIRMATION')) === 'false') return;
-
-        await this.sendMailWithContext({
-            to: user.email,
-            subject: 'Payment Confirmation - M-Clinic Health',
-            template: './payment-confirmation',
-            context: {
-                name: `${user.fname} ${user.lname}`,
-                amount: payment.amount,
-                paymentMethod: payment.paymentMethod,
-                transactionRef: payment.transactionRef || payment.mpesaReceiptNumber,
-                invoiceNumber: invoice.invoiceNumber,
-                paymentDate: new Date(payment.createdAt).toLocaleDateString(),
-                invoiceUrl: `${this.frontendUrl}/dashboard/invoices`,
-            },
-        });
-    }
-
-    async sendDoctorApprovalEmail(doctor: any, status: 'approved' | 'rejected', reason?: string) {
-        await this.sendMailWithContext({
-            to: doctor.email,
-            subject: status === 'approved' ? 'Account Approved - M-Clinic Health' : 'Account Application Update',
-            template: './doctor-approval',
-            context: {
-                name: `Dr. ${doctor.fname} ${doctor.lname}`,
-                status: status,
-                reason: reason || '',
-                dashboardUrl: `${this.frontendUrl}/dashboard`,
-                supportEmail: process.env.SMTP_FROM_EMAIL || 'support@mclinic.co.ke',
-            },
-        });
-    }
-
-    async sendPrescriptionReadyEmail(patient: any, prescription: any, doctor: any) {
-        if ((await this.settingsService.get('EMAIL_PRESCRIPTION_READY')) === 'false') return;
-
-        await this.sendMailWithContext({
-            to: patient.email,
-            subject: 'Prescription Ready - M-Clinic Health',
-            template: './prescription-ready',
-            context: {
-                patientName: `${patient.fname} ${patient.lname}`,
-                doctorName: `Dr. ${doctor.fname} ${doctor.lname}`,
-                prescriptionDate: new Date(prescription.createdAt).toLocaleDateString(),
-                medicationCount: prescription.items?.length || 0,
-                prescriptionUrl: `${this.frontendUrl}/dashboard/records`,
-                pharmacyUrl: `${this.frontendUrl}/dashboard/pharmacy`,
-            },
-        });
-    }
-
-    async sendOrderShippedEmail(user: any, order: any, trackingNumber: string) {
-        await this.sendMailWithContext({
-            to: user.email,
-            subject: 'Order Shipped - M-Clinic Health Pharmacy',
-            template: './order-shipped',
-            context: {
-                name: `${user.fname} ${user.lname}`,
-                orderNumber: order.id,
-                trackingNumber: trackingNumber,
-                estimatedDelivery: '2-3 business days',
-                orderUrl: `${this.frontendUrl}/dashboard/pharmacy`,
-                deliveryAddress: order.deliveryAddress,
-            },
-        });
+            }
+        );
     }
 
     async sendPasswordResetEmail(user: any, resetToken: string) {
-        await this.sendMailWithContext({
-            to: user.email,
-            subject: 'Password Reset Request - M-Clinic Health',
-            template: './password-reset',
-            context: {
+        const resetUrl = `${this.frontendUrl}/reset-password?token=${resetToken}`;
+        return this.sendTemplateEmail(
+            user.email,
+            'Reset Your M-Clinic Password',
+            'password-reset',
+            {
                 name: `${user.fname} ${user.lname}`,
-                resetUrl: `${this.frontendUrl}/reset-password?token=${resetToken}`,
-                expiryTime: '1 hour',
+                resetUrl,
+                expiryHours: 1,
             },
-        });
+            true // Priority email
+        );
     }
 
-    async sendAppointmentCancellationEmail(user: any, appointment: any, reason: string) {
-        await this.sendMailWithContext({
-            to: user.email,
-            subject: 'Appointment Cancelled - M-Clinic Health',
-            template: './appointment-cancellation',
-            context: {
-                name: `${user.fname} ${user.lname}`,
-                appointmentDate: new Date(appointment.appointment_date).toLocaleDateString(),
-                appointmentTime: appointment.appointment_time,
-                reason: reason,
-                bookNewUrl: `${this.frontendUrl}/dashboard/appointments`,
-            },
-        });
+    async sendAppointmentConfirmation(appointment: any) {
+        const patientEmail = appointment.patient?.email;
+        const doctorEmail = appointment.doctor?.email;
+
+        if (patientEmail) {
+            await this.sendTemplateEmail(
+                patientEmail,
+                'Appointment Confirmed - M-Clinic',
+                'appointment-confirmation',
+                {
+                    patientName: `${appointment.patient.fname} ${appointment.patient.lname}`,
+                    doctorName: `Dr. ${appointment.doctor?.fname || 'Provider'}`,
+                    appointmentDate: new Date(appointment.appointmentDate).toLocaleDateString(),
+                    appointmentTime: appointment.appointmentTime,
+                    serviceType: appointment.service?.name || 'Medical Consultation',
+                    appointmentId: appointment.id,
+                    dashboardUrl: `${this.frontendUrl}/dashboard/appointments`,
+                }
+            );
+        }
+
+        if (doctorEmail) {
+            await this.sendTemplateEmail(
+                doctorEmail,
+                'New Appointment Scheduled',
+                'appointment-notification-doctor',
+                {
+                    doctorName: `Dr. ${appointment.doctor.fname}`,
+                    patientName: `${appointment.patient.fname} ${appointment.patient.lname}`,
+                    appointmentDate: new Date(appointment.appointmentDate).toLocaleDateString(),
+                    appointmentTime: appointment.appointmentTime,
+                    serviceType: appointment.service?.name || 'Medical Consultation',
+                    dashboardUrl: `${this.frontendUrl}/dashboard/appointments`,
+                }
+            );
+        }
     }
 
-    async sendLicenseExpiryWarning(doctor: any, daysRemaining: number) {
-        if ((await this.settingsService.get('EMAIL_LICENSE_EXPIRY_WARNING')) === 'false') return;
-
-        await this.sendMailWithContext({
-            to: doctor.email,
-            subject: `License Expiry Warning - ${daysRemaining} Days Remaining`,
-            template: './license-expiry-warning',
-            context: {
-                name: `Dr. ${doctor.fname} ${doctor.lname}`,
-                daysRemaining: daysRemaining,
-                expiryDate: new Date(doctor.licenseExpiryDate).toLocaleDateString(),
-                licenseNumber: doctor.licenceNo || doctor.reg_code,
-                renewUrl: `${this.frontendUrl}/dashboard/profile`,
-            },
-        });
+    async sendAppointmentReminder(appointment: any) {
+        return this.sendTemplateEmail(
+            appointment.patient.email,
+            'Appointment Reminder - M-Clinic',
+            'appointment-reminder',
+            {
+                patientName: `${appointment.patient.fname} ${appointment.patient.lname}`,
+                doctorName: `Dr. ${appointment.doctor?.fname || 'Provider'}`,
+                appointmentDate: new Date(appointment.appointmentDate).toLocaleDateString(),
+                appointmentTime: appointment.appointmentTime,
+                dashboardUrl: `${this.frontendUrl}/dashboard/appointments`,
+            }
+        );
     }
 
-    async sendLicenseExpiredNotification(doctor: any) {
-        if ((await this.settingsService.get('EMAIL_LICENSE_EXPIRY_WARNING')) === 'false') return;
-
-        await this.sendMailWithContext({
-            to: doctor.email,
-            subject: 'Account Deactivated - License Expired',
-            template: './license-expired',
-            context: {
-                name: `Dr. ${doctor.fname} ${doctor.lname}`,
-                expiryDate: new Date(doctor.licenseExpiryDate).toLocaleDateString(),
-                licenseNumber: doctor.licenceNo || doctor.reg_code,
-                renewUrl: `${this.frontendUrl}/dashboard/profile`,
-                supportEmail: process.env.SMTP_FROM_EMAIL || 'support@mclinic.co.ke',
-            },
-        });
+    async sendInvoiceEmail(invoice: any, recipientEmail: string) {
+        return this.sendTemplateEmail(
+            recipientEmail,
+            `Invoice ${invoice.invoiceNumber} - M-Clinic`,
+            'invoice',
+            {
+                invoiceNumber: invoice.invoiceNumber,
+                customerName: invoice.customerName,
+                totalAmount: invoice.totalAmount,
+                dueDate: invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : 'Upon receipt',
+                items: invoice.items,
+                invoiceUrl: `${this.frontendUrl}/dashboard/invoices/${invoice.id}`,
+            }
+        );
     }
 
-    async sendAccountReactivatedEmail(doctor: any) {
-        await this.sendMailWithContext({
-            to: doctor.email,
-            subject: 'Account Reactivated - License Renewed',
-            template: './account-reactivated',
-            context: {
-                name: `Dr. ${doctor.fname} ${doctor.lname}`,
-                newExpiryDate: new Date(doctor.licenseExpiryDate).toLocaleDateString(),
-                dashboardUrl: `${this.frontendUrl}/dashboard`,
-            },
-        });
+    async sendPaymentConfirmation(payment: any, recipientEmail: string) {
+        return this.sendTemplateEmail(
+            recipientEmail,
+            'Payment Received - M-Clinic',
+            'payment-confirmation',
+            {
+                amount: payment.amount,
+                paymentMethod: payment.method || 'M-Pesa',
+                transactionId: payment.reference,
+                date: new Date().toLocaleDateString(),
+                dashboardUrl: `${this.frontendUrl}/dashboard/invoices`,
+            }
+        );
     }
 
-    async sendLabResultsReadyEmail(user: any, order: any, testName: string) {
-        if ((await this.settingsService.get('EMAIL_LAB_RESULTS_READY')) === 'false') return;
-
-        await this.sendMailWithContext({
-            to: user.email,
-            subject: 'Lab Results Ready - M-Clinic Health',
-            template: './lab-results-ready',
-            context: {
-                name: user.role === 'patient' ? user.fname : (order.beneficiaryName || user.fname),
-                testName: testName,
-                resultsUrl: `${this.frontendUrl}/dashboard/lab`,
-                reportUrl: order.report_url ? `${process.env.API_URL || 'https://portal.mclinic.co.ke/api'}/uploads/reports/${order.report_url}` : null,
-                notes: order.technicianNotes,
-                year: new Date().getFullYear(),
-            },
-        });
-    }
-    async sendTestEmail(to: string) {
+    async sendTestEmail(to: string): Promise<{ success: boolean; message?: string; error?: any }> {
         try {
-            await this.sendMailWithContext({
+            const result = await this.sendMail({
                 to,
-                subject: 'Test Email - M-Clinic Configuration',
+                subject: 'M-Clinic Email Test',
                 html: `
-                    <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
-                        <h2 style="color: #00F090;">M-Clinic Email Configuration</h2>
-                        <p>Success! Your SMTP settings are working correctly.</p>
-                        <p>Time: ${new Date().toLocaleString()}</p>
-                        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
-                        <p style="font-size: 12px; color: #666;">If you received this email, the notification system is operational.</p>
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                        <h2 style="color: #00C65E;">✓ Email Configuration Test Successful!</h2>
+                        <p>This is a test email from M-Clinic Health Platform.</p>
+                        <p><strong>Sent at:</strong> ${new Date().toLocaleString()}</p>
+                        <p style="color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 15px;">
+                            M-Clinic Health Platform<br>
+                            Email: support@mclinic.co.ke<br>
+                            Phone: +254 700 448 448
+                        </p>
                     </div>
                 `,
-            }, true);
-            return { success: true };
+            }, true); // Priority
+
+            if (result.success) {
+                return { success: true, message: 'Test email sent successfully' };
+            } else {
+                return { success: false, error: result.error };
+            }
         } catch (error) {
-            return { success: false, error: error.message || 'Unknown connection error' };
+            this.logger.error('Test email failed:', error);
+            return { success: false, error: error.message };
         }
+    }
+
+    /**
+     * Get email queue status
+     */
+    getQueueStatus() {
+        return {
+            queueLength: this.emailQueue.length,
+            isProcessing: this.isProcessingQueue,
+            hasCustomTransporter: !!this.customTransporter,
+        };
+    }
+
+    /**
+     * Clear email queue (admin only)
+     */
+    clearQueue() {
+        const count = this.emailQueue.length;
+        this.emailQueue = [];
+        this.logger.warn(`Email queue cleared: ${count} emails removed`);
+        return { cleared: count };
     }
 }

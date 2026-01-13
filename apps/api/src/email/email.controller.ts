@@ -1,16 +1,40 @@
-import { Controller, Post, Body, UseGuards, Req } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards } from '@nestjs/common';
 import { EmailService } from './email.service';
-import { AuthGuard } from '@nestjs/passport';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('email')
 export class EmailController {
     constructor(private readonly emailService: EmailService) { }
 
     @Post('test')
-    @UseGuards(AuthGuard('jwt'))
-    async sendTestEmail(@Req() req: any, @Body() body: { to?: string }) {
-        const email = body.to || req.user.email;
-        console.log(`[EMAIL] Test request from ${req.user.email}. Sending to ${email}`);
-        return this.emailService.sendTestEmail(email);
+    @UseGuards(JwtAuthGuard)
+    async sendTestEmail(@Body() body: { to?: string }) {
+        const recipient = body.to || 'test@example.com';
+        const result = await this.emailService.sendTestEmail(recipient);
+
+        if (result.success) {
+            return {
+                success: true,
+                message: `Test email sent successfully to ${recipient}`,
+            };
+        } else {
+            return {
+                success: false,
+                message: 'Failed to send test email',
+                error: result.error?.message || result.error,
+            };
+        }
+    }
+
+    @Get('queue-status')
+    @UseGuards(JwtAuthGuard)
+    async getQueueStatus() {
+        return this.emailService.getQueueStatus();
+    }
+
+    @Post('clear-queue')
+    @UseGuards(JwtAuthGuard)
+    async clearQueue() {
+        return this.emailService.clearQueue();
     }
 }
