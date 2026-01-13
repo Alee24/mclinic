@@ -335,4 +335,20 @@ export class EmailService {
             },
         });
     }
+    async sendTestEmail(to: string) {
+        await this.sendMailWithContext({
+            to,
+            subject: 'Test Email - M-Clinic Configuration',
+            html: `
+                <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                    <h2 style="color: #00F090;">M-Clinic Email Configuration</h2>
+                    <p>Success! Your SMTP settings are working correctly.</p>
+                    <p>Time: ${new Date().toLocaleString()}</p>
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+                    <p style="font-size: 12px; color: #666;">If you received this email, the notification system is operational.</p>
+                </div>
+            `,
+        });
+        return { success: true };
+    }
 }

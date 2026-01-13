@@ -6,7 +6,7 @@ import { toast } from 'react-hot-toast';
 import {
     FiMail, FiSave, FiRefreshCw, FiBell, FiCheckCircle, FiAlertCircle,
     FiCalendar, FiDollarSign, FiActivity, FiFileText, FiUser, FiShield,
-    FiServer, FiLock, FiAtSign
+    FiServer, FiLock, FiAtSign, FiSend
 } from 'react-icons/fi';
 
 interface Setting {
@@ -28,6 +28,7 @@ export default function NotificationSettingsPage() {
     const [settings, setSettings] = useState<Setting[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [testing, setTesting] = useState(false);
 
     useEffect(() => {
         fetchSettings();
@@ -88,6 +89,24 @@ export default function NotificationSettingsPage() {
         }
     };
 
+    const handleTest = async () => {
+        try {
+            setTesting(true);
+            await handleSave(); // Save first to ensure backend uses latest config
+
+            const res = await api.post('/email/test', {});
+            if (res && res.ok) {
+                toast.success('Test email sent successfully! Please check your inbox.');
+            } else {
+                toast.error('Failed to send test email. Check SMTP settings.');
+            }
+        } catch (error) {
+            toast.error('Test failed');
+        } finally {
+            setTesting(false);
+        }
+    };
+
     const getSetting = (key: string) => settings.find(s => s.key === key);
     const getSettingValue = (key: string) => getSetting(key)?.value ?? '';
     const isEnabled = (key: string) => getSetting(key)?.value === 'true'; // Strict check for boolean toggles
@@ -123,14 +142,24 @@ export default function NotificationSettingsPage() {
                     </h1>
                     <p className="text-gray-500 mt-1">Configure SMTP server and notification preferences</p>
                 </div>
-                <button
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold flex items-center gap-2 transition-all shadow-md disabled:opacity-50"
-                >
-                    {saving ? <FiRefreshCw className="animate-spin" /> : <FiSave />}
-                    {saving ? 'Saving...' : 'Save Settings'}
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={handleTest}
+                        disabled={saving || testing}
+                        className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-all shadow-sm disabled:opacity-50"
+                    >
+                        {testing ? <FiRefreshCw className="animate-spin" /> : <FiSend />}
+                        {testing ? 'Sending...' : 'Test Config'}
+                    </button>
+                    <button
+                        onClick={handleSave}
+                        disabled={saving || testing}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold flex items-center gap-2 transition-all shadow-md disabled:opacity-50"
+                    >
+                        {saving ? <FiRefreshCw className="animate-spin" /> : <FiSave />}
+                        {saving ? 'Saving...' : 'Save Settings'}
+                    </button>
+                </div>
             </div>
 
             {/* SMTP Configuration Section */}
