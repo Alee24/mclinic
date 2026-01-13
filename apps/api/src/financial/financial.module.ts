@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { FinancialService } from './financial.service';
 import { FinancialController } from './financial.controller';
@@ -25,7 +25,7 @@ import { MpesaModule } from '../mpesa/mpesa.module';
       Doctor,
     ]),
     WalletsModule,
-    MpesaModule,
+    forwardRef(() => MpesaModule),
   ],
   controllers: [FinancialController],
   providers: [FinancialService],

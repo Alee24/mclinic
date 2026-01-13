@@ -1,10 +1,15 @@
-import { Controller, Post, Get, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, UseGuards, Inject, forwardRef } from '@nestjs/common';
 import { MpesaService } from './mpesa.service';
+import { FinancialService } from '../financial/financial.service';
 import { AuthGuard } from '@nestjs/passport';
 
 @Controller('mpesa')
 export class MpesaController {
-    constructor(private readonly mpesaService: MpesaService) { }
+    constructor(
+        private readonly mpesaService: MpesaService,
+        @Inject(forwardRef(() => FinancialService))
+        private readonly financialService: FinancialService,
+    ) { }
 
     @UseGuards(AuthGuard('jwt'))
     @Post('stk-push')
@@ -27,6 +32,21 @@ export class MpesaController {
 
         try {
             const transaction = await this.mpesaService.handleCallback(callbackData);
+
+            // Link to Financial System (Update Invoice to PAID)
+            if (transaction && transaction.status === 'SUCCESS' && transaction.relatedEntity === 'invoice' && transaction.relatedEntityId) {
+                try {
+                    console.log(`[MPESA-CONTROLLER] Confirming Invoice ID: ${transaction.relatedEntityId}`);
+                    await this.financialService.confirmInvoicePayment(
+                        transaction.relatedEntityId,
+                        'MPESA',
+                        transaction.mpesaReceiptNumber
+                    );
+                } catch (e) {
+                    console.warn(`[MPESA-CONTROLLER] Invoice update warning: ${e.message}`);
+                }
+            }
+
             console.log('Transaction updated:', transaction);
             return { ResultCode: 0, ResultDesc: 'Success' };
         } catch (error) {
