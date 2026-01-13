@@ -7,8 +7,7 @@ export class EmailController {
     constructor(private readonly emailService: EmailService) { }
 
     @Post('test')
-    // Temporarily remove auth for debugging - add back after fixing email
-    // @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard)
     async sendTestEmail(@Body() body: { to?: string }) {
         const recipient = body.to || 'test@example.com';
         const result = await this.emailService.sendTestEmail(recipient);
