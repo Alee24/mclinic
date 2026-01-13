@@ -520,6 +520,22 @@ model LabResult {
 // AMBULANCE
 // -----------------------------------------------------------------------------
 
+model AmbulancePackage {
+  id            Int      @id @default(autoincrement())
+  name          String   @unique
+  description   String?  @db.Text
+  price         Decimal  @db.Decimal(10, 2)
+  validity_days Int      @default(365)
+  features      Json?
+  max_adults    Int      @default(0)
+  max_children  Int      @default(0)
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now()) @db.DateTime(6)
+  updated_at    DateTime @default(now()) @updatedAt @db.DateTime(6)
+
+  @@map("ambulance_packages")
+}
+
 model AmbulanceSubscription {
   id                     Int      @id @default(autoincrement())
   user_id                BigInt?  @db.UnsignedBigInt
