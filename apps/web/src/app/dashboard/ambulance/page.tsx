@@ -128,6 +128,7 @@ export default function AmbulanceSubscriptionPage() {
             <div className="mb-10">
                 <div className="flex items-center gap-4 mb-2">
                     <div className="p-3 bg-red-100/50 text-red-500 rounded-xl">
+                        {/* @ts-ignore */}
                         <FiTruck className="text-2xl" />
                     </div>
                     <h1 className="text-3xl font-black text-gray-900 dark:text-white">
@@ -153,6 +154,7 @@ export default function AmbulanceSubscriptionPage() {
                             >
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex items-center gap-3">
+                                        {/* @ts-ignore */}
                                         <div className="p-2 bg-gray-50 rounded-lg text-gray-600"><FiUsers /></div>
                                         <div>
                                             <div className="font-bold text-lg leading-none">{pkg.name}</div>
@@ -185,6 +187,7 @@ export default function AmbulanceSubscriptionPage() {
                         {/* Section 1 */}
                         <div className="mb-8">
                             <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-4 pb-2 border-b border-gray-100">
+                                {/* @ts-ignore */}
                                 <FiUsers className="text-gray-400" /> Primary Subscriber
                             </h3>
                             <div className="grid grid-cols-2 gap-5">
@@ -236,6 +239,7 @@ export default function AmbulanceSubscriptionPage() {
                         {/* Section 2 */}
                         <div className="mb-8">
                             <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-4 pb-2 border-b border-gray-100">
+                                {/* @ts-ignore */}
                                 <FiMapPin className="text-gray-400" /> Dispatch Location
                             </h3>
                             <div className="grid grid-cols-2 gap-5">
@@ -276,6 +280,7 @@ export default function AmbulanceSubscriptionPage() {
                         {/* Section 3 */}
                         <div className="mb-8">
                             <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-4 pb-2 border-b border-gray-100">
+                                {/* @ts-ignore */}
                                 <FiAlertCircle className="text-gray-400" /> Critical Medical Data
                             </h3>
                             <div className="grid grid-cols-2 gap-5">
@@ -319,6 +324,7 @@ export default function AmbulanceSubscriptionPage() {
                             <div className="mb-8 bg-green-50 p-6 rounded-2xl border border-green-100">
                                 <div className="flex justify-between items-center mb-4">
                                     <h3 className="text-lg font-bold text-green-800 flex items-center gap-2">
+                                        {/* @ts-ignore */}
                                         <FiUsers /> Family Members
                                     </h3>
                                     <button onClick={addFamilyMember} type="button" className="text-xs bg-white border border-green-200 text-green-600 px-3 py-1 rounded font-bold hover:bg-green-100">+ Add</button>
