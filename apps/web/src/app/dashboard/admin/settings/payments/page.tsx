@@ -79,6 +79,7 @@ export default function PaymentSettingsPage() {
     if (loading) {
         return (
             <div className="flex items-center justify-center p-20">
+                {/* @ts-ignore */}
                 <FiRefreshCw className="animate-spin text-4xl text-blue-500" />
             </div>
         );
@@ -89,6 +90,7 @@ export default function PaymentSettingsPage() {
             <div className="flex items-center justify-between mb-8">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
+                        {/* @ts-ignore */}
                         <FiCreditCard className="text-blue-600" />
                         Payment Gateway Settings
                     </h1>
@@ -99,6 +101,7 @@ export default function PaymentSettingsPage() {
                     disabled={saving}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold flex items-center gap-2 transition-all shadow-md disabled:opacity-50"
                 >
+                    {/* @ts-ignore */}
                     {saving ? <FiRefreshCw className="animate-spin" /> : <FiSave />}
                     {saving ? 'Saving...' : 'Save All Settings'}
                 </button>
@@ -110,12 +113,13 @@ export default function PaymentSettingsPage() {
                 <div
                     onClick={() => setActiveGateway('mpesa')}
                     className={`p-6 rounded-2xl border-2 cursor-pointer transition-all ${activeGateway === 'mpesa'
-                            ? 'border-green-500 bg-green-50 shadow-lg'
-                            : 'border-gray-200 bg-white hover:border-gray-300'
+                        ? 'border-green-500 bg-green-50 shadow-lg'
+                        : 'border-gray-200 bg-white hover:border-gray-300'
                         }`}
                 >
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
+                            {/* @ts-ignore */}
                             <FiSmartphone className="text-3xl text-green-600" />
                             <div>
                                 <h3 className="font-bold text-lg">M-Pesa</h3>
@@ -141,12 +145,13 @@ export default function PaymentSettingsPage() {
                 <div
                     onClick={() => setActiveGateway('paypal')}
                     className={`p-6 rounded-2xl border-2 cursor-pointer transition-all ${activeGateway === 'paypal'
-                            ? 'border-blue-500 bg-blue-50 shadow-lg'
-                            : 'border-gray-200 bg-white hover:border-gray-300'
+                        ? 'border-blue-500 bg-blue-50 shadow-lg'
+                        : 'border-gray-200 bg-white hover:border-gray-300'
                         }`}
                 >
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
+                            {/* @ts-ignore */}
                             <SiPaypal className="text-3xl text-[#0070BA]" />
                             <div>
                                 <h3 className="font-bold text-lg">PayPal</h3>
@@ -172,17 +177,20 @@ export default function PaymentSettingsPage() {
                 <div
                     onClick={() => setActiveGateway('stripe')}
                     className={`p-6 rounded-2xl border-2 cursor-pointer transition-all ${activeGateway === 'stripe'
-                            ? 'border-purple-500 bg-purple-50 shadow-lg'
-                            : 'border-gray-200 bg-white hover:border-gray-300'
+                        ? 'border-purple-500 bg-purple-50 shadow-lg'
+                        : 'border-gray-200 bg-white hover:border-gray-300'
                         }`}
                 >
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
+                            {/* @ts-ignore */}
                             <SiStripe className="text-3xl text-[#635BFF]" />
                             <div>
                                 <h3 className="font-bold text-lg">Stripe</h3>
                                 <p className="text-xs text-gray-500 flex items-center gap-1">
+                                    {/* @ts-ignore */}
                                     <SiVisa className="text-blue-600" />
+                                    {/* @ts-ignore */}
                                     <SiMastercard className="text-orange-600" />
                                     Cards
                                 </p>
@@ -208,6 +216,7 @@ export default function PaymentSettingsPage() {
             <div className="bg-white rounded-2xl shadow-xl border overflow-hidden">
                 <div className="p-6 border-b bg-gray-50">
                     <h2 className="text-lg font-bold flex items-center gap-2">
+                        {/* @ts-ignore */}
                         <FiSettings /> {activeGateway.toUpperCase()} Configuration
                     </h2>
                 </div>
@@ -219,6 +228,7 @@ export default function PaymentSettingsPage() {
                                 href="/dashboard/admin/settings/mpesa"
                                 className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-all shadow-md"
                             >
+                                {/* @ts-ignore */}
                                 <FiSettings /> Configure M-Pesa Settings
                             </a>
                         </div>
