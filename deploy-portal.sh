@@ -2,6 +2,9 @@
 set -e
 
 # Configuration
+echo "🔄 Pulling latest code..."
+git pull origin main
+
 APP_DIR="/var/www/mclinicportal"
 API_PORT=3434
 WEB_PORT=3034
