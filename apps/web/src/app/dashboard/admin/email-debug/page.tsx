@@ -181,11 +181,13 @@ export default function EmailDebugPage() {
                         >
                             {testing ? (
                                 <>
+                                    {/* @ts-ignore */}
                                     <FiRefreshCw className="w-4 h-4 animate-spin" />
                                     Testing...
                                 </>
                             ) : (
                                 <>
+                                    {/* @ts-ignore */}
                                     <FiMail className="w-4 h-4" />
                                     Send Test
                                 </>
@@ -201,8 +203,10 @@ export default function EmailDebugPage() {
                             }`}>
                             <div className="flex items-start gap-3">
                                 {result.success ? (
+                                    // @ts-ignore
                                     <FiCheck className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
                                 ) : (
+                                    // @ts-ignore
                                     <FiX className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
                                 )}
                                 <div className="flex-1">
