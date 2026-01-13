@@ -6,6 +6,7 @@ import { FiGrid, FiList, FiCalendar, FiBarChart2, FiUsers, FiSettings, FiHelpCir
 import { useAuth, UserRole } from '@/lib/auth';
 import UserAvatar from '@/components/dashboard/UserAvatar';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import SecureLoader from '@/components/SecureLoader';
 import { usePathname, useRouter } from 'next/navigation';
 import { usePWA } from '@/providers/PWAProvider';
 
@@ -29,8 +30,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
     if (loading || !user) {
         return (
-            <div className="h-screen w-full flex items-center justify-center bg-gray-50 dark:bg-black">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-donezo-dark"></div>
+            <div className="h-screen w-full flex items-center justify-center bg-[#F8FAFC] dark:bg-[#0a0a0a]">
+                <SecureLoader />
             </div>
         );
     }
