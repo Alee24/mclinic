@@ -115,6 +115,7 @@ export default function MpesaSettingsPage() {
     if (loading) {
         return (
             <div className="flex items-center justify-center p-20">
+                {/* @ts-ignore */}
                 <FiRefreshCw className="animate-spin text-4xl text-blue-500" />
             </div>
         );
@@ -152,6 +153,7 @@ export default function MpesaSettingsPage() {
                     </label>
                     {isSecure && (
                         <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider flex items-center gap-1">
+                            {/* @ts-ignore */}
                             <FiShield size={10} /> Secure
                         </span>
                     )}
@@ -164,6 +166,7 @@ export default function MpesaSettingsPage() {
                         onChange={(e) => handleUpdateValue(field.key, e.target.value)}
                         placeholder={field.placeholder}
                     />
+                    {/* @ts-ignore */}
                     <FiSettings className="absolute right-4 top-3.5 text-gray-300 group-focus-within:text-blue-500 transition-colors" />
                 </div>
             </div>
@@ -175,6 +178,7 @@ export default function MpesaSettingsPage() {
             <div className="flex items-center justify-between mb-8">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
+                        {/* @ts-ignore */}
                         <FiSmartphone className="text-blue-600" />
                         M-Pesa Integration
                     </h1>
@@ -185,6 +189,7 @@ export default function MpesaSettingsPage() {
                     disabled={saving}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold flex items-center gap-2 transition-all shadow-md disabled:opacity-50"
                 >
+                    {/* @ts-ignore */}
                     {saving ? <FiRefreshCw className="animate-spin" /> : <FiSave />}
                     {saving ? 'Saving...' : 'Save All Settings'}
                 </button>
@@ -194,7 +199,12 @@ export default function MpesaSettingsPage() {
             <div className={`mb-8 p-4 rounded-xl border-l-4 flex items-center justify-between shadow-sm ${mpesaEnv === 'production' ? 'bg-green-50 border-green-500 text-green-800' : 'bg-yellow-50 border-yellow-500 text-yellow-800'}`}>
                 <div className="flex items-center gap-4">
                     <div className={`p-3 rounded-full ${mpesaEnv === 'production' ? 'bg-green-100' : 'bg-yellow-100'}`}>
-                        {mpesaEnv === 'production' ? <FiCloud className="text-2xl" /> : <FiShield className="text-2xl" />}
+                        {mpesaEnv === 'production' ?
+                            // @ts-ignore
+                            <FiCloud className="text-2xl" /> :
+                            // @ts-ignore
+                            <FiShield className="text-2xl" />
+                        }
                     </div>
                     <div>
                         <p className="font-bold text-lg">Active Mode: <span className="uppercase">{mpesaEnv}</span></p>
@@ -223,18 +233,21 @@ export default function MpesaSettingsPage() {
                     onClick={() => setActiveTab('general')}
                     className={`pb-3 px-2 font-medium transition-all flex items-center gap-2 ${activeTab === 'general' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
                 >
+                    {/* @ts-ignore */}
                     <FiSettings /> General & Test
                 </button>
                 <button
                     onClick={() => setActiveTab('sandbox')}
                     className={`pb-3 px-2 font-medium transition-all flex items-center gap-2 ${activeTab === 'sandbox' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
                 >
+                    {/* @ts-ignore */}
                     <FiShield /> Sandbox API
                 </button>
                 <button
                     onClick={() => setActiveTab('production')}
                     className={`pb-3 px-2 font-medium transition-all flex items-center gap-2 ${activeTab === 'production' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
                 >
+                    {/* @ts-ignore */}
                     <FiCloud /> Production API
                 </button>
             </div>
@@ -245,6 +258,7 @@ export default function MpesaSettingsPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                             <div>
                                 <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                                    {/* @ts-ignore */}
                                     <FiCheckCircle className="text-blue-500" />
                                     Dynamic Config Info
                                 </h3>
@@ -252,6 +266,7 @@ export default function MpesaSettingsPage() {
                                     <p>The system is built with <strong>Dynamic Configuration</strong>. You can swap between Sandbox and Production modes instantly without restarting the server.</p>
                                     <p>Credentials entered in the Sandbox and Production tabs will be automatically used based on the active mode selected above.</p>
                                     <div className="p-4 bg-blue-50 rounded-lg text-sm flex gap-3">
+                                        {/* @ts-ignore */}
                                         <FiAlertCircle className="text-blue-600 shrink-0 mt-1" />
                                         <span>Make sure your <strong>Callback URL</strong> is publicly accessible for M-Pesa to send payment confirmations.</span>
                                     </div>
@@ -260,6 +275,7 @@ export default function MpesaSettingsPage() {
 
                             <div className="bg-gray-50 p-6 rounded-2xl border-2 border-dashed border-gray-200">
                                 <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                                    {/* @ts-ignore */}
                                     <FiTerminal className="text-blue-600" />
                                     Test Connection
                                 </h3>
@@ -269,6 +285,7 @@ export default function MpesaSettingsPage() {
                                     <div>
                                         <label className="block text-sm font-semibold text-gray-700 mb-1">Phone Number (254xxx)</label>
                                         <div className="relative">
+                                            {/* @ts-ignore */}
                                             <FiSmartphone className="absolute left-3 top-3 text-gray-400" />
                                             <input
                                                 type="text"
@@ -284,6 +301,7 @@ export default function MpesaSettingsPage() {
                                         disabled={testing}
                                         className="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg disabled:opacity-50"
                                     >
+                                        {/* @ts-ignore */}
                                         {testing ? <FiRefreshCw className="animate-spin" /> : <FiTerminal />}
                                         {testing ? 'Testing...' : 'Trigger Test STK Push'}
                                     </button>
