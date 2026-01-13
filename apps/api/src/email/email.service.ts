@@ -45,10 +45,21 @@ export class EmailService {
             const pass = (await this.settingsService.get('EMAIL_SMTP_PASS'))?.trim();
             const secure = (await this.settingsService.get('EMAIL_SMTP_SECURE')) === 'true';
             const fromName = await this.settingsService.get('EMAIL_SMTP_FROM_NAME') || 'M-Clinic';
-            const fromEmail = (await this.settingsService.get('EMAIL_SMTP_FROM_EMAIL'))?.trim() || user;
+            let fromEmail = (await this.settingsService.get('EMAIL_SMTP_FROM_EMAIL'))?.trim() || user;
+
+            // Validate and fix from email - must contain @
+            if (fromEmail && !fromEmail.includes('@')) {
+                this.logger.warn(`Invalid from email (missing @): ${fromEmail}`);
+                fromEmail = user; // Fallback to username which should be a valid email
+            }
 
             if (!user || !pass) {
                 this.logger.warn('SMTP credentials not configured in system settings');
+                return null;
+            }
+
+            if (!fromEmail || !fromEmail.includes('@')) {
+                this.logger.error('From email is invalid or missing @ symbol');
                 return null;
             }
 
