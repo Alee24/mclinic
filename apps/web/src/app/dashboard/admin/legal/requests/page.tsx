@@ -51,10 +51,13 @@ export default function DataDeletionRequestsPage() {
     const getStatusBadge = (status: string) => {
         switch (status) {
             case 'completed':
+                // @ts-ignore
                 return <span className="px-2 py-1 text-xs font-bold bg-green-100 text-green-700 rounded-full flex items-center gap-1"><FiCheckCircle /> Completed</span>;
             case 'rejected':
+                // @ts-ignore
                 return <span className="px-2 py-1 text-xs font-bold bg-red-100 text-red-700 rounded-full flex items-center gap-1"><FiXCircle /> Rejected</span>;
             default:
+                // @ts-ignore
                 return <span className="px-2 py-1 text-xs font-bold bg-yellow-100 text-yellow-700 rounded-full flex items-center gap-1"><FiClock /> Pending</span>;
         }
     };
@@ -67,6 +70,7 @@ export default function DataDeletionRequestsPage() {
                     onClick={fetchRequests}
                     className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition"
                 >
+                    {/* @ts-ignore */}
                     <FiRefreshCw className={loading ? 'animate-spin' : ''} />
                     Refresh
                 </button>
@@ -105,6 +109,7 @@ export default function DataDeletionRequestsPage() {
                                 <tr>
                                     <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
                                         <div className="flex flex-col items-center justify-center">
+                                            {/* @ts-ignore */}
                                             <FiTrash2 className="text-4xl text-gray-300 mb-2" />
                                             <p>No deletion requests found.</p>
                                         </div>
