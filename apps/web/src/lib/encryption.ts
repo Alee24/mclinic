@@ -10,7 +10,7 @@ class ClientEncryption {
     /**
      * Generate encryption key from password
      */
-    private async deriveKey(password: string, salt: Uint8Array): Promise<CryptoKey> {
+    private async deriveKey(password: string, salt: BufferSource): Promise<CryptoKey> {
         const encoder = new TextEncoder();
         const passwordBuffer = encoder.encode(password);
 
