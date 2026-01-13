@@ -44,7 +44,8 @@
   --popover-foreground: #0F172A;
 
   --primary: #00C65E;
-  --primary-foreground: #FFFFFF;
+  --primary-foreground: #003314;
+  /* Dark text for accessibility on bright green */
 
   --secondary: #F1F5F9;
   --secondary-foreground: #0F172A;
@@ -77,7 +78,8 @@
   --popover-foreground: #F8FAFC;
 
   --primary: #00C65E;
-  --primary-foreground: #FFFFFF;
+  --primary-foreground: #003314;
+  /* Darker green/black for better contrast on bright green */
 
   --secondary: #1E293B;
   --secondary-foreground: #F8FAFC;
