@@ -128,6 +128,7 @@ export default function EmailDebugPage() {
                 {/* Current Configuration */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                     <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                        {/* @ts-ignore */}
                         <FiSettings className="w-5 h-5" />
                         Current SMTP Configuration
                     </h2>
@@ -288,6 +289,7 @@ export default function EmailDebugPage() {
                 {/* Troubleshooting Guide */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                     <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                        {/* @ts-ignore */}
                         <FiAlertCircle className="w-5 h-5" />
                         Troubleshooting Steps
                     </h2>
