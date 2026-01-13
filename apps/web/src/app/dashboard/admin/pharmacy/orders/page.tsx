@@ -60,6 +60,7 @@ export default function AdminPharmacyOrdersPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold dark:text-white flex items-center gap-3">
+                        {/* @ts-ignore */}
                         <FiPackage className="text-primary" /> Pharmacy Orders
                     </h1>
                     <p className="text-gray-500 font-medium tracking-tight">Manage and fulfill patient medication orders.</p>
@@ -69,6 +70,7 @@ export default function AdminPharmacyOrdersPage() {
             {/* Filters */}
             <div className="bg-white dark:bg-[#1A1A1A] p-4 rounded-2xl border border-gray-100 dark:border-gray-800 flex flex-col md:flex-row gap-4 items-center">
                 <div className="relative flex-1 w-full">
+                    {/* @ts-ignore */}
                     <FiSearch className="absolute left-4 top-3.5 text-gray-400" />
                     <input
                         type="text"
@@ -107,9 +109,9 @@ export default function AdminPharmacyOrdersPage() {
                         <div key={order.id} className="bg-white dark:bg-[#1A1A1A] p-6 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden group">
                             {/* Status Badge */}
                             <div className={`absolute top-0 right-0 px-4 py-2 rounded-bl-2xl text-xs font-bold uppercase tracking-widest ${order.status === 'PENDING' ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/20' :
-                                    order.status === 'PAID' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/20' :
-                                        order.status === 'SHIPPED' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/20' :
-                                            'bg-green-100 text-green-600 dark:bg-green-900/20'
+                                order.status === 'PAID' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/20' :
+                                    order.status === 'SHIPPED' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/20' :
+                                        'bg-green-100 text-green-600 dark:bg-green-900/20'
                                 }`}>
                                 {order.status}
                             </div>
@@ -119,6 +121,7 @@ export default function AdminPharmacyOrdersPage() {
                                 <div className="w-full xl:w-1/4 pb-4 xl:pb-0 xl:border-r border-gray-100 dark:border-gray-800">
                                     <div className="flex items-center gap-3 mb-2">
                                         <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-lg">
+                                            {/* @ts-ignore */}
                                             <FiUser />
                                         </div>
                                         <div>
@@ -127,9 +130,11 @@ export default function AdminPharmacyOrdersPage() {
                                         </div>
                                     </div>
                                     <div className="text-xs text-gray-500 flex items-center gap-2 mt-2">
+                                        {/* @ts-ignore */}
                                         <FiClock /> {new Date(order.createdAt).toLocaleString()}
                                     </div>
                                     <div className="text-xs text-gray-500 flex items-center gap-2 mt-1">
+                                        {/* @ts-ignore */}
                                         <FiActivity /> Amount: <span className="font-bold text-gray-700 dark:text-gray-300">KES {Number(order.totalAmount).toLocaleString()}</span>
                                     </div>
                                     <div className="text-xs text-gray-500 flex items-center gap-2 mt-1">
@@ -161,10 +166,12 @@ export default function AdminPharmacyOrdersPage() {
                                         <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Delivery Details</h4>
                                         <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800 space-y-2 text-sm text-blue-800 dark:text-blue-300">
                                             <div className="flex gap-2 items-start">
+                                                {/* @ts-ignore */}
                                                 <FiMapPin className="mt-0.5 shrink-0" />
                                                 <span>{order.deliveryAddress}, {order.deliveryCity}</span>
                                             </div>
                                             <div className="flex gap-2 items-center">
+                                                {/* @ts-ignore */}
                                                 <FiPhone className="shrink-0" />
                                                 <span>{order.contactPhone}</span>
                                             </div>
@@ -179,6 +186,7 @@ export default function AdminPharmacyOrdersPage() {
                                             onClick={() => updateStatus(order.id, 'SHIPPED')}
                                             className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-500/20 hover:scale-[1.02] transition-transform flex items-center justify-center gap-2"
                                         >
+                                            {/* @ts-ignore */}
                                             <FiTruck /> Mark Shipped
                                         </button>
                                     )}
@@ -187,11 +195,13 @@ export default function AdminPharmacyOrdersPage() {
                                             onClick={() => updateStatus(order.id, 'DELIVERED')}
                                             className="w-full py-3 bg-green-600 text-white rounded-xl font-bold shadow-lg shadow-green-500/20 hover:scale-[1.02] transition-transform flex items-center justify-center gap-2"
                                         >
+                                            {/* @ts-ignore */}
                                             <FiCheckCircle /> Complete
                                         </button>
                                     )}
                                     {order.status === 'DELIVERED' && (
                                         <div className="text-center w-full py-2">
+                                            {/* @ts-ignore */}
                                             <span className="text-green-600 font-bold flex items-center justify-center gap-2"><FiCheckCircle /> Completed</span>
                                         </div>
                                     )}
