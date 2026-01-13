@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { ReactNode, useEffect } from 'react';
-import { FiGrid, FiList, FiCalendar, FiBarChart2, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiSearch, FiBell, FiMail, FiMap, FiPackage, FiFileText, FiDatabase, FiPlusCircle, FiUser, FiTruck, FiCheckCircle, FiActivity } from 'react-icons/fi';
+import { ReactNode, useEffect, useState } from 'react';
+import { FiGrid, FiList, FiCalendar, FiBarChart2, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiSearch, FiBell, FiMail, FiMap, FiPackage, FiFileText, FiDatabase, FiPlusCircle, FiUser, FiTruck, FiCheckCircle, FiActivity, FiMenu, FiX } from 'react-icons/fi';
 import { useAuth, UserRole } from '@/lib/auth';
 import UserAvatar from '@/components/dashboard/UserAvatar';
 import { usePathname, useRouter } from 'next/navigation';
@@ -11,6 +11,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     const { user, loading, logout } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+    // Close mobile menu on path change
+    useEffect(() => {
+        setIsMobileMenuOpen(false);
+    }, [pathname]);
 
     useEffect(() => {
         if (!loading && !user) {
@@ -27,15 +33,32 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     }
 
     return (
-        <div className="flex h-screen bg-[#F8FAFC] dark:bg-[#0a0a0a] text-gray-800 dark:text-gray-200 font-sans">
+        <div className="flex h-screen bg-[#F8FAFC] dark:bg-[#0a0a0a] text-gray-800 dark:text-gray-200 font-sans overflow-hidden">
+            {/* Mobile Sidebar Overlay */}
+            {isMobileMenuOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm transition-opacity"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                />
+            )}
+
             {/* Sidebar */}
-            <aside className="w-64 bg-white dark:bg-[#121212] flex flex-col p-6 border-r border-gray-100 dark:border-gray-800">
+            <aside className={`
+                fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-[#121212] flex flex-col p-6 border-r border-gray-100 dark:border-gray-800 transition-transform duration-300 ease-in-out md:relative md:translate-x-0
+                ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+            `}>
                 {/* Logo */}
-                <div className="flex items-center gap-3 mb-10 px-2">
-                    <div className="w-8 h-8 bg-donezo-dark rounded-full flex items-center justify-center text-white font-bold text-lg">
-                        M
+                {/* Logo */}
+                <div className="flex items-center justify-between mb-10 px-2">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-donezo-dark rounded-full flex items-center justify-center text-white font-bold text-lg">
+                            M
+                        </div>
+                        <span className="text-xl font-bold text-gray-900 dark:text-white">M-Clinic</span>
                     </div>
-                    <span className="text-xl font-bold text-gray-900 dark:text-white">M-Clinic</span>
+                    <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                        <FiX size={24} />
+                    </button>
                 </div>
 
                 {/* Menu */}
@@ -229,23 +252,33 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </aside >
 
             {/* Main Content */}
-            < main className="flex-1 flex flex-col overflow-hidden" >
+            < main className="flex-1 flex flex-col overflow-hidden relative w-full" >
                 {/* Header */}
-                < header className="h-20 flex items-center justify-between px-8 bg-transparent" >
+                < header className="h-16 md:h-20 flex items-center justify-between px-4 md:px-8 bg-white/50 dark:bg-black/50 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 md:border-none shrink-0 z-30" >
                     {/* Search */}
-                    < div className="flex items-center bg-white dark:bg-[#161616] rounded-full px-4 py-2.5 w-96 shadow-sm border border-gray-100 dark:border-gray-800" >
-                        <span className="text-gray-400 text-xl font-bold flex items-center">
-                            <FiSearch />
-                        </span>
-                        <input
-                            type="text"
-                            placeholder="Search everything..."
-                            className="bg-transparent border-none focus:ring-0 text-sm ml-3 flex-1 placeholder-gray-400 text-gray-700 dark:text-gray-200"
-                        />
-                        <kbd className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 text-xs text-gray-400 bg-gray-50 dark:bg-gray-800 rounded">
-                            ⌘ F
-                        </kbd>
-                    </div >
+                    <div className="flex items-center flex-1 gap-4">
+                        {/* Mobile Toggle */}
+                        <button
+                            onClick={() => setIsMobileMenuOpen(true)}
+                            className="md:hidden p-2 -ml-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                        >
+                            <FiMenu size={24} />
+                        </button>
+
+                        < div className="hidden md:flex items-center bg-white dark:bg-[#161616] rounded-full px-4 py-2.5 w-full max-w-md shadow-sm border border-gray-100 dark:border-gray-800" >
+                            <span className="text-gray-400 text-xl font-bold flex items-center">
+                                <FiSearch />
+                            </span>
+                            <input
+                                type="text"
+                                placeholder="Search everything..."
+                                className="bg-transparent border-none focus:ring-0 text-sm ml-3 flex-1 placeholder-gray-400 text-gray-700 dark:text-gray-200"
+                            />
+                            <kbd className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 text-xs text-gray-400 bg-gray-50 dark:bg-gray-800 rounded">
+                                ⌘ F
+                            </kbd>
+                        </div >
+                    </div>
 
                     {/* Right Actions */}
                     < div className="flex items-center gap-6" >
@@ -333,7 +366,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
 
                 {/* Dashboard Content */}
-                < div className="flex-1 overflow-auto p-8 pt-2" >
+                < div className="flex-1 overflow-y-auto p-4 md:p-8 pt-2 scroll-smooth" >
                     {children}
                 </div >
             </main >
