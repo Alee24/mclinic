@@ -104,7 +104,12 @@ export default function NotificationSettingsPage() {
                 if (res.ok && data.success) {
                     toast.success(`Test email sent ${testEmail ? 'to ' + testEmail : 'successfully'}!`);
                 } else {
-                    toast.error(`SMTP Error: ${data.error || 'Connection refused. Check settings.'}`);
+                    let msg = data.error || 'Connection refused. Check settings.';
+                    if (msg.includes('535') || msg.includes('Invalid login')) msg = 'Authentication Failed: Wrong Username or Password.';
+                    else if (msg.includes('wrong version') || msg.includes('SSL')) msg = 'SSL Mismatch: Toggle "Use Secure Connection".';
+                    else if (msg.includes('ETIMEDOUT')) msg = 'Connection Timed Out: Check Host and Port.';
+
+                    toast.error(`SMTP Error: ${msg}`, { duration: 6000 });
                 }
             }
         } catch (error) {
