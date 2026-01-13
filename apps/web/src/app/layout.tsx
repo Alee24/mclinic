@@ -34,6 +34,8 @@ import { Toaster } from "react-hot-toast";
 
 import { ThemeProvider } from "@/components/ThemeProvider";
 
+import { PWAProvider } from "@/providers/PWAProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -51,8 +53,10 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <Toaster position="top-center" reverseOrder={false} />
-            {children}
+            <PWAProvider>
+              <Toaster position="top-center" reverseOrder={false} />
+              {children}
+            </PWAProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

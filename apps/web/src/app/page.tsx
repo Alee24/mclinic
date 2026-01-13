@@ -4,10 +4,12 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { FiPhone, FiMail, FiClock, FiFacebook, FiTwitter, FiInstagram, FiLinkedin, FiMenu, FiX, FiCheckCircle } from 'react-icons/fi';
 import InstallPWA from '../components/InstallPWA';
+import { usePWA } from '@/providers/PWAProvider';
 
 export default function Home() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { install } = usePWA();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -220,7 +222,7 @@ export default function Home() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-5 justify-center md:justify-start">
-              <button className="px-8 py-4 bg-[#00C65E] text-[#1D2B36] rounded-full font-bold shadow-[0_0_20px_rgba(0,198,94,0.3)] hover:bg-[#00A850] hover:scale-105 transition-all flex items-center justify-center gap-3 group">
+              <button onClick={install} className="px-8 py-4 bg-[#00C65E] text-[#1D2B36] rounded-full font-bold shadow-[0_0_20px_rgba(0,198,94,0.3)] hover:bg-[#00A850] hover:scale-105 transition-all flex items-center justify-center gap-3 group">
                 <FiCheckCircle className="text-xl" />
                 <span>Install Web App</span>
               </button>
@@ -266,7 +268,7 @@ export default function Home() {
                     </div>
                     <div className="mt-auto p-4 bg-white m-4 rounded-2xl shadow-lg border border-gray-100">
                       <div className="text-center font-bold text-gray-800 mb-2">Install Now</div>
-                      <div className="w-full h-10 bg-[#00C65E] rounded-xl flex items-center justify-center text-white text-sm font-bold">Add to Home Screen</div>
+                      <div onClick={install} className="w-full h-10 bg-[#00C65E] cursor-pointer rounded-xl flex items-center justify-center text-white text-sm font-bold hover:bg-[#00A850] transition-colors">Add to Home Screen</div>
                     </div>
                   </div>
                 </div>

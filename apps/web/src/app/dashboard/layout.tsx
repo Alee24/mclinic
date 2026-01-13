@@ -7,12 +7,14 @@ import { useAuth, UserRole } from '@/lib/auth';
 import UserAvatar from '@/components/dashboard/UserAvatar';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { usePathname, useRouter } from 'next/navigation';
+import { usePWA } from '@/providers/PWAProvider';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
     const { user, loading, logout } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const { isInstallable, install } = usePWA();
 
     // Close mobile menu on path change
     useEffect(() => {
@@ -236,20 +238,25 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 </div>
 
                 {/* Promo Card */}
-                <div className="mt-6 bg-[#161616] rounded-2xl p-5 text-white relative overflow-hidden">
-                    <div className="relative z-10">
-                        <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center mb-3">
-                            <FiGrid />
+                {isInstallable && (
+                    <div className="mt-6 bg-[#161616] rounded-2xl p-5 text-white relative overflow-hidden">
+                        <div className="relative z-10">
+                            <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center mb-3">
+                                <FiGrid />
+                            </div>
+                            <h4 className="font-semibold mb-1 text-sm">Download our Mobile App</h4>
+                            <p className="text-xs text-gray-400 mb-3">Get easy in another way</p>
+                            <button
+                                onClick={install}
+                                className="w-full py-2 bg-donezo-dark hover:bg-green-800 text-white rounded-lg text-xs font-medium transition-colors"
+                            >
+                                Download
+                            </button>
                         </div>
-                        <h4 className="font-semibold mb-1 text-sm">Download our Mobile App</h4>
-                        <p className="text-xs text-gray-400 mb-3">Get easy in another way</p>
-                        <button className="w-full py-2 bg-donezo-dark hover:bg-green-800 text-white rounded-lg text-xs font-medium transition-colors">
-                            Download
-                        </button>
+                        {/* Abstract circles */}
+                        <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-green-500/20 rounded-full blur-xl"></div>
                     </div>
-                    {/* Abstract circles */}
-                    <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-green-500/20 rounded-full blur-xl"></div>
-                </div>
+                )}
             </aside >
 
             {/* Main Content */}
