@@ -89,6 +89,7 @@ export default function LabOrdersPage() {
                 <div className="text-center py-20 text-gray-400">Loading orders...</div>
             ) : filteredOrders.length === 0 ? (
                 <div className="text-center py-20 bg-white dark:bg-[#121212] rounded-xl border border-dashed border-gray-300">
+                    {/* @ts-ignore */}
                     <FiFileText className="mx-auto text-4xl text-gray-300 mb-4" />
                     <p className="text-gray-500">No orders found.</p>
                 </div>
