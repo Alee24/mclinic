@@ -19,18 +19,42 @@ export function ThemeToggle() {
     }
 
     const currentTheme = theme === 'system' ? systemTheme : theme;
+    const isDark = currentTheme === 'dark';
+
+    const toggleTheme = () => {
+        const newTheme = isDark ? 'light' : 'dark';
+        setTheme(newTheme);
+
+        // Force immediate visual update
+        if (newTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    };
 
     return (
         <button
-            onClick={() => setTheme(currentTheme === 'dark' ? 'light' : 'dark')}
-            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+            onClick={toggleTheme}
+            className="relative p-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 transition-all duration-300 group"
             aria-label="Toggle Theme"
         >
-            {currentTheme === 'dark' ? (
-                <FiSun className="w-5 h-5 text-yellow-400" />
-            ) : (
-                <FiMoon className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-            )}
+            <div className="relative w-5 h-5">
+                {/* Sun Icon */}
+                <FiSun
+                    className={`absolute inset-0 w-5 h-5 text-yellow-500 transition-all duration-300 ${isDark
+                            ? 'rotate-90 scale-0 opacity-0'
+                            : 'rotate-0 scale-100 opacity-100'
+                        }`}
+                />
+                {/* Moon Icon */}
+                <FiMoon
+                    className={`absolute inset-0 w-5 h-5 text-slate-700 dark:text-slate-300 transition-all duration-300 ${isDark
+                            ? 'rotate-0 scale-100 opacity-100'
+                            : '-rotate-90 scale-0 opacity-0'
+                        }`}
+                />
+            </div>
         </button>
     );
 }
