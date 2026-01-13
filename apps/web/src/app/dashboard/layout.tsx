@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ReactNode, useEffect, useState } from 'react';
-import { FiGrid, FiList, FiCalendar, FiBarChart2, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiSearch, FiBell, FiMail, FiMap, FiPackage, FiFileText, FiDatabase, FiPlusCircle, FiUser, FiTruck, FiCheckCircle, FiActivity, FiMenu, FiX, FiFacebook, FiTwitter, FiLinkedin, FiInstagram, FiAlertCircle } from 'react-icons/fi';
+import { FiGrid, FiList, FiCalendar, FiBarChart2, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiSearch, FiBell, FiMail, FiMap, FiPackage, FiFileText, FiDatabase, FiPlusCircle, FiUser, FiTruck, FiCheckCircle, FiActivity, FiMenu, FiX, FiFacebook, FiTwitter, FiLinkedin, FiInstagram, FiAlertCircle, FiShield, FiTrash2 } from 'react-icons/fi';
 import { useAuth, UserRole } from '@/lib/auth';
 import UserAvatar from '@/components/dashboard/UserAvatar';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -227,6 +227,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         <nav className="space-y-1">
 
                             <NavItem href="#" icon={<FiHelpCircle />} label="Help" active={false} />
+
+                            <div className="pt-2 mt-2 border-t border-gray-100 dark:border-gray-800">
+                                <NavItem href="/dashboard/legal/terms" icon={<FiFileText />} label="Terms & Conditions" active={pathname === '/dashboard/legal/terms'} />
+                                <NavItem href="/dashboard/legal/privacy" icon={<FiShield />} label="Privacy Policy" active={pathname === '/dashboard/legal/privacy'} />
+                                <NavItem href="/dashboard/legal/data-deletion" icon={<FiTrash2 />} label="Revoke Data" active={pathname === '/dashboard/legal/data-deletion'} />
+                            </div>
 
                             {/* Mobile PWA Install Button */}
                             {isInstallable && (
