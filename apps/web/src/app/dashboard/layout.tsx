@@ -240,22 +240,26 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
                 {/* Promo Card */}
                 {isInstallable && (
-                    <div className="mt-6 bg-[#161616] rounded-2xl p-5 text-white relative overflow-hidden">
+                    <div className="mt-6 bg-gradient-to-br from-[#00C65E] to-[#1B4D3E] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg">
                         <div className="relative z-10">
-                            <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center mb-3">
-                                <FiGrid />
+                            <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center mb-3">
+                                <FiGrid className="text-lg" />
                             </div>
-                            <h4 className="font-semibold mb-1 text-sm">Download our Mobile App</h4>
-                            <p className="text-xs text-gray-400 mb-3">Get easy in another way</p>
+                            <h4 className="font-bold mb-1 text-sm">Install M-Clinic App</h4>
+                            <p className="text-xs text-white/80 mb-4 leading-relaxed">Add to your home screen for instant access, offline mode & faster performance</p>
                             <button
                                 onClick={install}
-                                className="w-full py-2 bg-donezo-dark hover:bg-green-800 text-white rounded-lg text-xs font-medium transition-colors"
+                                className="w-full py-2.5 bg-white text-[#1B4D3E] rounded-lg text-xs font-bold transition-all hover:bg-white/90 hover:scale-105 shadow-md flex items-center justify-center gap-2"
                             >
-                                Download
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                                Install PWA Now
                             </button>
                         </div>
                         {/* Abstract circles */}
-                        <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-green-500/20 rounded-full blur-xl"></div>
+                        <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
+                        <div className="absolute -top-5 -left-5 w-20 h-20 bg-white/5 rounded-full blur-lg"></div>
                     </div>
                 )}
             </aside >

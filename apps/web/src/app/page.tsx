@@ -216,15 +216,16 @@ export default function Home() {
               <span className="bg-gradient-to-r from-[#00C65E] to-[#C2003F] text-transparent bg-clip-text">Your Pocket.</span>
             </h2>
             <p className="text-gray-400 mb-8 max-w-xl text-lg leading-relaxed">
-              Experience the future of medical care with the M-Clinic Progressive Web App.
-              Install it directly on your phone for faster booking, offline access, and real-time doctor tracking.
-              No app store limits—just instant access.
+              Install the M-Clinic Progressive Web App directly on your device.
+              No app store needed—just tap install for instant access, offline mode, and lightning-fast performance.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-5 justify-center md:justify-start">
               <button onClick={install} className="px-8 py-4 bg-[#00C65E] text-[#1D2B36] rounded-full font-bold shadow-[0_0_20px_rgba(0,198,94,0.3)] hover:bg-[#00A850] hover:scale-105 transition-all flex items-center justify-center gap-3 group">
-                <FiCheckCircle className="text-xl" />
-                <span>Install Web App</span>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                <span>Install PWA App</span>
               </button>
               <button className="px-8 py-4 bg-white/5 border border-white/10 text-white rounded-full font-bold hover:bg-white/10 transition flex items-center justify-center gap-3 backdrop-blur-sm">
                 <span>Learn More</span>
@@ -267,8 +268,13 @@ export default function Home() {
                       </div>
                     </div>
                     <div className="mt-auto p-4 bg-white m-4 rounded-2xl shadow-lg border border-gray-100">
-                      <div className="text-center font-bold text-gray-800 mb-2">Install Now</div>
-                      <div onClick={install} className="w-full h-10 bg-[#00C65E] cursor-pointer rounded-xl flex items-center justify-center text-white text-sm font-bold hover:bg-[#00A850] transition-colors">Add to Home Screen</div>
+                      <div className="text-center font-bold text-gray-800 mb-2">Ready to Install?</div>
+                      <div onClick={install} className="w-full h-10 bg-[#00C65E] cursor-pointer rounded-xl flex items-center justify-center text-white text-sm font-bold hover:bg-[#00A850] transition-colors gap-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Install PWA
+                      </div>
                     </div>
                   </div>
                 </div>
