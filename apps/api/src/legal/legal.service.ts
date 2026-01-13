@@ -1,28 +1,29 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { DataDeletionRequest } from './entities/data-deletion-request.entity';
 import { CreateDataDeletionRequestDto } from './dto/create-data-deletion-request.dto';
 
 @Injectable()
 export class LegalService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        @InjectRepository(DataDeletionRequest)
+        private requestRepository: Repository<DataDeletionRequest>,
+    ) { }
 
     async createDataDeletionRequest(dto: CreateDataDeletionRequestDto) {
-        return this.prisma.dataDeletionRequest.create({
-            data: {
-                email: dto.email,
-                reason: dto.reason,
-            },
-        });
+        const request = this.requestRepository.create(dto);
+        return this.requestRepository.save(request);
     }
 
     async getAllRequests() {
-        return this.prisma.dataDeletionRequest.findMany({
-            orderBy: { createdAt: 'desc' },
+        return this.requestRepository.find({
+            order: { createdAt: 'DESC' },
         });
     }
 
     async getRequestById(id: number) {
-        return this.prisma.dataDeletionRequest.findUnique({
+        return this.requestRepository.findOne({
             where: { id },
         });
     }

@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { LegalService } from './legal.service';
 import { LegalController } from './legal.controller';
-import { PrismaModule } from '../prisma/prisma.module';
+import { DataDeletionRequest } from './entities/data-deletion-request.entity';
 
 @Module({
-    imports: [PrismaModule],
+    imports: [TypeOrmModule.forFeature([DataDeletionRequest])],
     controllers: [LegalController],
     providers: [LegalService],
 })
