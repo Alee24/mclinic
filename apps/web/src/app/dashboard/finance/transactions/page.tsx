@@ -181,6 +181,7 @@ export default function TransactionsPage() {
                     <div className="bg-white dark:bg-[#121212] p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="font-bold dark:text-white flex items-center gap-2">
+                                {/* @ts-ignore */}
                                 <FiActivity className="text-primary" /> Revenue Trend (7 Days)
                             </h3>
                         </div>
@@ -210,6 +211,7 @@ export default function TransactionsPage() {
                     <div className="bg-white dark:bg-[#121212] p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="font-bold dark:text-white flex items-center gap-2">
+                                {/* @ts-ignore */}
                                 <FiPieChart className="text-blue-500" /> Revenue Source
                             </h3>
                         </div>

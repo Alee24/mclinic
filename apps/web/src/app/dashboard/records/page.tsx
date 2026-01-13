@@ -311,6 +311,7 @@ export default function MedicalRecordsPage() {
             {/* Empty State */}
             {!loading && timeline.length === 0 && (
                 <div className="text-center py-24 bg-gray-50 dark:bg-white/5 rounded-3xl border border-dashed border-gray-200 dark:border-gray-800">
+                    {/* @ts-ignore */}
                     <FiFileText size={48} className="mx-auto text-gray-300 mb-4" />
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white">No Records Found</h3>
                     <p className="text-gray-500">You haven't had any appointments or records created yet.</p>
@@ -324,8 +325,11 @@ export default function MedicalRecordsPage() {
 
                         {/* Dot */}
                         <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white dark:border-[#121212] bg-gray-200 dark:bg-gray-800 group-hover:bg-primary group-hover:scale-110 transition shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 shadow-sm">
+                            {/* @ts-ignore */}
                             {item.type === 'FULL_RECORD' ? <FiActivity className="text-white w-4 h-4" /> :
+                                // @ts-ignore
                                 item.type === 'PRESCRIPTION_ONLY' ? <FiFileText className="text-white w-4 h-4" /> :
+                                    // @ts-ignore
                                     <FiCalendar className="text-gray-500 group-hover:text-white w-4 h-4" />}
                         </div>
 
@@ -422,6 +426,7 @@ export default function MedicalRecordsPage() {
                             {/* Fallback if Appointment only */}
                             {item.type === 'APPOINTMENT_ONLY' && (
                                 <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/10 text-yellow-800 dark:text-yellow-200 text-xs rounded-xl flex gap-2 items-center">
+                                    {/* @ts-ignore */}
                                     <FiInfo className="shrink-0" />
                                     <span>No detailed notes or prescriptions recorded for this visit yet.</span>
                                 </div>

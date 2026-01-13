@@ -268,6 +268,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     <div className="mt-6 bg-gradient-to-br from-[#00C65E] to-[#1B4D3E] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg">
                         <div className="relative z-10">
                             <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center mb-3">
+                                {/* @ts-ignore */}
                                 <FiGrid className="text-lg" />
                             </div>
                             <h4 className="font-bold mb-1 text-sm">Install M-Clinic App</h4>
@@ -299,6 +300,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                             className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-[#1877F2] hover:text-white transition-all duration-300"
                             aria-label="Facebook"
                         >
+                            {/* @ts-ignore */}
                             <FiFacebook className="w-4 h-4" />
                         </a>
                         <a
@@ -308,6 +310,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                             className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-[#1DA1F2] hover:text-white transition-all duration-300"
                             aria-label="Twitter"
                         >
+                            {/* @ts-ignore */}
                             <FiTwitter className="w-4 h-4" />
                         </a>
                         <a
@@ -317,6 +320,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                             className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-[#0A66C2] hover:text-white transition-all duration-300"
                             aria-label="LinkedIn"
                         >
+                            {/* @ts-ignore */}
                             <FiLinkedin className="w-4 h-4" />
                         </a>
                         <a
@@ -326,6 +330,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                             className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-gradient-to-br hover:from-[#833AB4] hover:via-[#FD1D1D] hover:to-[#F77737] hover:text-white transition-all duration-300"
                             aria-label="Instagram"
                         >
+                            {/* @ts-ignore */}
                             <FiInstagram className="w-4 h-4" />
                         </a>
                     </div>

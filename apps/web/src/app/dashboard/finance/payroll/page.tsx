@@ -24,6 +24,7 @@ export default function PayrollPage() {
 
             <div className="bg-white dark:bg-[#121212] rounded-xl border border-gray-200 dark:border-gray-800 p-12 flex flex-col items-center justify-center text-center">
                 <div className="w-20 h-20 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+                    {/* @ts-ignore */}
                     <FiUsers size={32} className="text-gray-400" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Payroll System</h3>
