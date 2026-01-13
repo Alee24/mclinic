@@ -20,15 +20,20 @@ export class EmailService {
      * Returns 'custom' if settings exist, otherwise returns undefined (default).
      */
     private async getTransporterName(): Promise<string | undefined> {
-        const host = await this.settingsService.get('EMAIL_SMTP_HOST');
+        let host = await this.settingsService.get('EMAIL_SMTP_HOST');
         if (!host) return undefined; // Use default env config
+        host = host.trim();
 
         const port = await this.settingsService.get('EMAIL_SMTP_PORT');
-        const user = await this.settingsService.get('EMAIL_SMTP_USER');
-        const pass = await this.settingsService.get('EMAIL_SMTP_PASS');
+        let user = await this.settingsService.get('EMAIL_SMTP_USER');
+        if (user) user = user.trim();
+
+        let pass = await this.settingsService.get('EMAIL_SMTP_PASS');
+        if (pass) pass = pass.trim();
+
         const secure = (await this.settingsService.get('EMAIL_SMTP_SECURE')) === 'true';
         const fromName = await this.settingsService.get('EMAIL_SMTP_FROM_NAME') || 'M-Clinic Notifications';
-        const fromEmail = await this.settingsService.get('EMAIL_SMTP_FROM_EMAIL') || user;
+        const fromEmail = (await this.settingsService.get('EMAIL_SMTP_FROM_EMAIL'))?.trim() || user;
 
         const config = {
             host,
