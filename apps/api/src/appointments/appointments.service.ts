@@ -189,16 +189,12 @@ export class AppointmentsService {
 
       if (appointmentWithRelations?.patient && appointmentWithRelations?.doctor) {
         await this.emailService.sendBookingConfirmationEmail(
-          appointmentWithRelations.patient,
-          appointmentWithRelations,
-          appointmentWithRelations.doctor,
+          appointmentWithRelations
         );
 
         // Notify Doctor
         await this.emailService.sendAppointmentNotificationToDoctor(
-          appointmentWithRelations.doctor,
-          appointmentWithRelations,
-          appointmentWithRelations.patient,
+          appointmentWithRelations
         );
       }
     } catch (error) {
