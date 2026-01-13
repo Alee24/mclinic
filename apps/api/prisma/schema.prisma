@@ -29,6 +29,8 @@ model User {
   latitude        Decimal?  @db.Decimal(10, 8)
   longitude       Decimal?  @db.Decimal(10, 8)
   profile_image   String?   @db.VarChar(255)
+  resetToken      String?   @db.VarChar(255)
+  resetTokenExpiry DateTime? @db.Timestamp(0)
   createdAt       DateTime  @default(now()) @db.DateTime(6)
   updatedAt       DateTime  @default(now()) @updatedAt @db.DateTime(6)
 
