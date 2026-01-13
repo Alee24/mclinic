@@ -1,38 +1,100 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ============================================
+   M-CLINIC THEME SYSTEM
+   Complete Dark/Light Mode Implementation
+   ============================================ */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+:root {
+  /* Light Mode Colors */
+  --background: 248 250 252;
+  /* #F8FAFC */
+  --foreground: 15 23 42;
+  /* #0F172A */
+  --card: 255 255 255;
+  /* #FFFFFF */
+  --card-foreground: 15 23 42;
+  --popover: 255 255 255;
+  --popover-foreground: 15 23 42;
+  --primary: 0 198 94;
+  /* #00C65E - M-Clinic Green */
+  --primary-foreground: 255 255 255;
+  --secondary: 241 245 249;
+  /* #F1F5F9 */
+  --secondary-foreground: 15 23 42;
+  --muted: 241 245 249;
+  --muted-foreground: 100 116 139;
+  /* #64748B */
+  --accent: 241 245 249;
+  --accent-foreground: 15 23 42;
+  --destructive: 239 68 68;
+  /* #EF4444 */
+  --destructive-foreground: 255 255 255;
+  --border: 226 232 240;
+  /* #E2E8F0 */
+  --input: 226 232 240;
+  --ring: 0 198 94;
+  --radius: 0.5rem;
 
   /* M-Clinic Brand Colors */
-  --color-primary: #00F090;
+  --color-primary: #00C65E;
   --color-brand-red: #E91E63;
   --color-brand-blue: #B3E5FC;
-
-  /* Donezo Theme */
   --color-donezo-dark: #1B4D3E;
   --color-donezo-green: #4ADE80;
-  --color-donezo-bg: #F8FAFC;
 }
 
-:root.dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+.dark {
+  /* Dark Mode Colors */
+  --background: 10 10 10;
+  /* #0A0A0A */
+  --foreground: 248 250 252;
+  /* #F8FAFC */
+  --card: 18 18 18;
+  /* #121212 */
+  --card-foreground: 248 250 252;
+  --popover: 18 18 18;
+  --popover-foreground: 248 250 252;
+  --primary: 0 198 94;
+  /* #00C65E */
+  --primary-foreground: 255 255 255;
+  --secondary: 30 41 59;
+  /* #1E293B */
+  --secondary-foreground: 248 250 252;
+  --muted: 30 41 59;
+  --muted-foreground: 148 163 184;
+  /* #94A3B8 */
+  --accent: 30 41 59;
+  --accent-foreground: 248 250 252;
+  --destructive: 220 38 38;
+  /* #DC2626 */
+  --destructive-foreground: 248 250 252;
+  --border: 39 39 42;
+  /* #27272A */
+  --input: 39 39 42;
+  --ring: 0 198 94;
+}
+
+* {
+  @apply border-border;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  @apply bg-background text-foreground;
+  font-feature-settings: "rlig" 1, "calt" 1;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Smooth transitions for theme changes */
+*,
+*::before,
+*::after {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Progress animation for loader */
 @keyframes progress {
   0% {
     transform: scaleX(0);
@@ -41,4 +103,64 @@ body {
   100% {
     transform: scaleX(1);
   }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100 dark:bg-gray-900;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 dark:bg-gray-700 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400 dark:bg-gray-600;
+}
+
+/* Selection colors */
+::selection {
+  @apply bg-primary/20 text-foreground;
+}
+
+/* Focus visible styles */
+:focus-visible {
+  @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+}
+
+/* Utility classes for theme-aware components */
+.theme-card {
+  @apply bg-card text-card-foreground border border-border rounded-lg shadow-sm;
+}
+
+.theme-input {
+  @apply bg-background border-input text-foreground placeholder:text-muted-foreground;
+}
+
+.theme-button-primary {
+  @apply bg-primary text-primary-foreground hover:bg-primary/90;
+}
+
+.theme-button-secondary {
+  @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+}
+
+/* Dark mode specific overrides */
+.dark {
+  color-scheme: dark;
+}
+
+/* Ensure images don't get inverted in dark mode */
+.dark img {
+  filter: none;
+}
+
+/* Toast notifications theme support */
+.dark .Toaster {
+  @apply bg-card text-card-foreground border-border;
 }

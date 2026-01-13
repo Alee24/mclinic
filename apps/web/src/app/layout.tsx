@@ -47,16 +47,24 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              try {
-                const theme = localStorage.getItem('theme') || 'system';
-                const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-                const activeTheme = theme === 'system' ? systemTheme : theme;
-                if (activeTheme === 'dark') {
-                  document.documentElement.classList.add('dark');
-                } else {
-                  document.documentElement.classList.remove('dark');
+              (function() {
+                try {
+                  const storageKey = 'mclinic-theme';
+                  const theme = localStorage.getItem(storageKey) || 'system';
+                  const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                  const activeTheme = theme === 'system' ? systemTheme : theme;
+                  
+                  if (activeTheme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.style.colorScheme = 'dark';
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.style.colorScheme = 'light';
+                  }
+                } catch (e) {
+                  console.error('Theme initialization error:', e);
                 }
-              } catch (e) {}
+              })();
             `,
           }}
         />
