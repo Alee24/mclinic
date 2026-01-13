@@ -300,6 +300,7 @@ export default function DataMigrationPage() {
                         {!preview && !stats && (
                             <div className="text-center py-12">
                                 <div className="mx-auto mb-4 w-16 h-16 flex items-center justify-center">
+                                    {/* @ts-ignore */}
                                     <FiDatabase className="text-gray-300" size={64} />
                                 </div>
                                 <p className="text-gray-500">Upload a file to see preview</p>

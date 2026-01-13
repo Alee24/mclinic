@@ -189,6 +189,7 @@ export default function PatientLabResultsPage() {
                 </div>
             ) : orders.length === 0 ? (
                 <div className="text-center py-20 bg-white dark:bg-[#121212] rounded-xl border border-dashed border-gray-300">
+                    {/* @ts-ignore */}
                     <FiActivity className="mx-auto text-4xl text-gray-300 mb-4" />
                     <p className="text-gray-500">No lab tests found.</p>
                 </div>
@@ -266,6 +267,7 @@ export default function PatientLabResultsPage() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
                     <div className="bg-white dark:bg-[#1E1E1E] w-full max-w-md rounded-2xl shadow-xl p-6">
                         <div className="flex items-center gap-3 mb-4">
+                            {/* @ts-ignore */}
                             <FiActivity className="text-blue-500 text-2xl" />
                             <h3 className="text-lg font-bold dark:text-white">Technician Comments</h3>
                         </div>

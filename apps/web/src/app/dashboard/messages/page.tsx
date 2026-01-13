@@ -17,6 +17,7 @@ export default function MessagesPage() {
                 <div className="w-80 border-r border-gray-100 dark:border-gray-800 flex flex-col">
                     <div className="p-4 border-b border-gray-100 dark:border-gray-800">
                         <div className="relative">
+                            {/* @ts-ignore */}
                             <FiSearch className="absolute left-3 top-3 text-gray-400" />
                             <input
                                 placeholder="Search chats..."

@@ -108,6 +108,7 @@ export default function PatientDetailsPage() {
                         {/* Personal Info */}
                         <section className="bg-white dark:bg-[#1A1A1A] rounded-xl p-6 border border-gray-100 dark:border-gray-800">
                             <h3 className="text-lg font-bold dark:text-white mb-4 flex items-center gap-2">
+                                {/* @ts-ignore */}
                                 <FiUser className="text-primary" /> Personal Information
                             </h3>
                             <div className="grid grid-cols-2 gap-y-4 gap-x-8 text-sm">

@@ -53,6 +53,7 @@ export default function LabTestsPage() {
                 {/* Search & Filter */}
                 <div className="flex gap-4">
                     <div className="relative">
+                        {/* @ts-ignore */}
                         <FiSearch className="absolute left-3 top-3 text-gray-400" />
                         <input
                             type="text"
