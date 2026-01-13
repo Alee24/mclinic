@@ -98,6 +98,10 @@ export class UsersService implements OnModuleInit {
     await this.usersRepository.delete({ email });
   }
 
+  async findByResetToken(token: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { resetToken: token } });
+  }
+
   async updateProfilePicture(id: number, filename: string): Promise<User> {
     await this.usersRepository.update(id, { profilePicture: filename });
     // @ts-ignore

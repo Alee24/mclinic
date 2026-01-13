@@ -5,6 +5,7 @@ import { MedicalProfilesService } from '../medical-profiles/medical-profiles.ser
 import { JwtService } from '@nestjs/jwt';
 import { EmailService } from '../email/email.service';
 import * as bcrypt from 'bcrypt';
+import { randomBytes } from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -152,5 +153,36 @@ export class AuthService {
       return result;
     }
     return null;
+  }
+  async forgotPassword(email: string) {
+    const user = await this.usersService.findOne(email);
+    if (user) {
+      const resetToken = randomBytes(32).toString('hex');
+      const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
+
+      await this.usersService.update(user.id, { resetToken, resetTokenExpiry } as any);
+      await this.emailService.sendPasswordResetEmail(user, resetToken);
+    }
+    return { message: 'If the email exists, a reset link has been sent.' };
+  }
+
+  async resetPassword(token: string, newPass: string) {
+    const user = await this.usersService.findByResetToken(token);
+    if (!user) {
+      throw new UnauthorizedException('Invalid token.');
+    }
+
+    if (user.resetTokenExpiry < new Date()) {
+      throw new UnauthorizedException('Token expired.');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPass, 10);
+    await this.usersService.update(user.id, {
+      password: hashedPassword,
+      resetToken: null,
+      resetTokenExpiry: null,
+    } as any);
+
+    return { message: 'Password updated successfully.' };
   }
 }
