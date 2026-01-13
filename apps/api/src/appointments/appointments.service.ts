@@ -165,7 +165,7 @@ export class AppointmentsService {
           customerEmail:
             appointmentWithPatient.patient.mobile || 'noemail@mclinic.com',
           totalAmount: totalAmount,
-          status: InvoiceStatus.PAID, // Auto-mark as PAID per user request
+          status: InvoiceStatus.PENDING,
           dueDate: new Date(appointmentDate),
           commissionAmount: commission,
           doctorId: createAppointmentDto.doctorId, // Link to doctor
@@ -174,22 +174,8 @@ export class AppointmentsService {
         });
         await this.invoiceRepository.save(invoice);
 
-        // Create Transaction Record (Funds Held / PENDING)
-        await this.appointmentsRepository.manager
-          .getRepository('Transaction') // Using string name or entity if imported
-          .save({
-            amount: totalAmount,
-            source: 'SYSTEM', // or 'CASH' since it's auto-paid on booking?
-            reference: `SYS-${Date.now()}`,
-            status: 'pending', // TransactionStatus.PENDING
-            invoice: invoice,
-            invoiceId: invoice.id,
-            type: 'credit', // Credit to system/doctor eventually
-            createdAt: new Date()
-          });
-
         console.log(
-          `[INVOICE] Created PAID invoice ${invoiceNumber}. Funds HELD for Doctor (Pending Completion).`,
+          `[INVOICE] Created PENDING invoice ${invoiceNumber} for Appointment #${savedAppointment.id}`,
         );
       }
     }
@@ -348,7 +334,7 @@ export class AppointmentsService {
   async findOne(id: number): Promise<Appointment | null> {
     return this.appointmentsRepository.findOne({
       where: { id },
-      relations: ['patient', 'doctor', 'service'],
+      relations: ['patient', 'doctor', 'service', 'invoice'],
     });
   }
 

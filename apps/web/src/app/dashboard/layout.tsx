@@ -5,6 +5,7 @@ import { ReactNode, useEffect, useState } from 'react';
 import { FiGrid, FiList, FiCalendar, FiBarChart2, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiSearch, FiBell, FiMail, FiMap, FiPackage, FiFileText, FiDatabase, FiPlusCircle, FiUser, FiTruck, FiCheckCircle, FiActivity, FiMenu, FiX } from 'react-icons/fi';
 import { useAuth, UserRole } from '@/lib/auth';
 import UserAvatar from '@/components/dashboard/UserAvatar';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { usePathname, useRouter } from 'next/navigation';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
@@ -281,9 +282,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     </div>
 
                     {/* Right Actions */}
-                    < div className="flex items-center gap-6" >
-                        <div className="flex items-center gap-4">
-                            <button className="w-10 h-10 bg-white dark:bg-[#161616] rounded-full flex items-center justify-center text-gray-500 hover:text-gray-900 transition-colors shadow-sm text-lg">
+                    < div className="flex items-center gap-2 md:gap-6" >
+                        <ThemeToggle />
+                        <div className="flex items-center gap-2 md:gap-4">
+                            <button className="hidden md:flex w-10 h-10 bg-white dark:bg-[#161616] rounded-full items-center justify-center text-gray-500 hover:text-gray-900 transition-colors shadow-sm text-lg">
                                 <FiMail />
                             </button>
                             <button className="w-10 h-10 bg-white dark:bg-[#161616] rounded-full flex items-center justify-center text-gray-500 hover:text-gray-900 transition-colors shadow-sm text-lg">

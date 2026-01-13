@@ -32,20 +32,29 @@ export const metadata: Metadata = {
 import { AuthProvider } from "@/lib/auth";
 import { Toaster } from "react-hot-toast";
 
+import { ThemeProvider } from "@/components/ThemeProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>
-          <Toaster position="top-center" reverseOrder={false} />
-          {children}
-        </AuthProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthProvider>
+            <Toaster position="top-center" reverseOrder={false} />
+            {children}
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

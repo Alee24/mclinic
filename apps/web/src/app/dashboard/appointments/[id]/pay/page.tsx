@@ -14,6 +14,27 @@ export default function AppointmentPaymentPage() {
     const [processing, setProcessing] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('mpesa');
     const [success, setSuccess] = useState(false);
+    const [waitingForMpesa, setWaitingForMpesa] = useState(false);
+
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (waitingForMpesa && appointment?.id) {
+            interval = setInterval(async () => {
+                try {
+                    const res = await api.get(`/appointments/${appointment.id}`);
+                    if (res && res.ok) {
+                        const data = await res.json();
+                        if (data.invoice?.status === 'paid' || data.invoice?.status === 'PAID') {
+                            setSuccess(true);
+                            setWaitingForMpesa(false);
+                            clearInterval(interval);
+                        }
+                    }
+                } catch (e) { console.error(e); }
+            }, 3000);
+        }
+        return () => clearInterval(interval);
+    }, [waitingForMpesa, appointment?.id]);
 
     useEffect(() => {
         const fetchAppointment = async () => {
@@ -46,25 +67,58 @@ export default function AppointmentPaymentPage() {
         setProcessing(true);
 
         try {
-            // Call Payment Endpoint (to be created)
-            const res = await api.post(`/financial/process-payment`, {
-                appointmentId: appointment.id,
-                amount: (Number(appointment?.fee || 0) + Number(appointment?.transportFee || 0)),
-                phoneNumber
-            });
+            if (paymentMethod === 'mpesa') {
+                const invoiceId = appointment.invoice?.id;
+                if (!invoiceId) {
+                    alert('Invoice not found. Proceeding with manual process.');
+                    // Fallback to manual process-payment (simulated)
+                    const res = await api.post(`/financial/process-payment`, {
+                        appointmentId: appointment.id,
+                        amount: (Number(appointment?.fee || 0) + Number(appointment?.transportFee || 0)),
+                        phoneNumber
+                    });
+                    if (res && res.ok) {
+                        setSuccess(true);
+                        setTimeout(() => router.push('/dashboard/appointments'), 3000);
+                    } else {
+                        alert('Payment failed.');
+                    }
+                    return;
+                }
 
-            if (res && res.ok) {
-                setSuccess(true);
-                setTimeout(() => {
-                    router.push('/dashboard/appointments');
-                }, 3000);
+                const res = await api.post(`/financial/mpesa/stk-push`, {
+                    phoneNumber,
+                    amount: (Number(appointment?.fee || 0) + Number(appointment?.transportFee || 0)),
+                    invoiceId
+                });
+
+                if (res && res.ok) {
+                    setWaitingForMpesa(true);
+                    setProcessing(false); // Enable "Pay" if they need to retry? No, show waiting UI
+                } else {
+                    alert('Failed to initiate M-Pesa payment. Please try again.');
+                    setProcessing(false);
+                }
+
             } else {
-                alert('Payment failed. Please try again.');
+                // Cash / Other (Simulated)
+                const res = await api.post(`/financial/process-payment`, {
+                    appointmentId: appointment.id,
+                    amount: (Number(appointment?.fee || 0) + Number(appointment?.transportFee || 0)),
+                    phoneNumber
+                });
+
+                if (res && res.ok) {
+                    setSuccess(true);
+                    setTimeout(() => router.push('/dashboard/appointments'), 3000);
+                } else {
+                    alert('Payment processing failed.');
+                }
+                setProcessing(false);
             }
         } catch (err) {
             console.error(err);
             alert('An error occurred.');
-        } finally {
             setProcessing(false);
         }
     };
@@ -194,7 +248,12 @@ export default function AppointmentPaymentPage() {
                                     disabled={processing}
                                     className="w-full py-4 bg-[#4CAF50] hover:bg-[#43A047] text-white font-black uppercase tracking-wider rounded-xl shadow-lg shadow-green-500/30 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
                                 >
-                                    {processing ? 'Processing...' : (
+                                    {waitingForMpesa ? (
+                                        <>
+                                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                                            Check your phone...
+                                        </>
+                                    ) : processing ? 'Processing...' : (
                                         <>
                                             Pay with M-Pesa <FiShare2 />
                                         </>
