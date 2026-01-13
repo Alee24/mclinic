@@ -3,8 +3,8 @@ set -e
 
 # Configuration
 APP_DIR="/var/www/mclinicportal"
-API_PORT=3434
-WEB_PORT=3034
+API_PORT=5454
+WEB_PORT=5054
 API_NAME="mclinic-api"
 WEB_NAME="mclinic-web"
 
@@ -34,13 +34,30 @@ require('dotenv').config();
 
 async function run() {
     console.log('Connecting to DB...');
-    const conn = await mysql.createConnection({
+    let config = {
         host: process.env.DB_HOST || 'localhost',
         user: process.env.DB_USER || 'root',
         password: process.env.DB_PASSWORD || '',
         database: process.env.DB_NAME || 'mclinic',
         port: process.env.DB_PORT || 3306,
-    });
+    };
+
+    // Support DATABASE_URL if present (Prisma style)
+    if (process.env.DATABASE_URL) {
+        try {
+            const url = new URL(process.env.DATABASE_URL);
+            config.host = url.hostname;
+            config.port = url.port || 3306;
+            config.user = url.username;
+            config.password = decodeURIComponent(url.password);
+            config.database = url.pathname.replace(/^\//, '');
+            console.log('🔹 Parsed credentials from DATABASE_URL');
+        } catch (e) {
+            console.error('⚠️ Failed to parse DATABASE_URL:', e.message);
+        }
+    }
+
+    const conn = await mysql.createConnection(config);
 
     // 1. Add resetToken
     try {
@@ -111,7 +128,7 @@ echo "🔹 Setting up Web Frontend..."
 cd "$APP_DIR/$WEB_PATH"
 
 # Set API URL for the build
-# We assume Apache proxies /api to localhost:3434
+# We assume Apache proxies /api to localhost:5454
 export NEXT_PUBLIC_API_URL="https://portal.mclinic.co.ke/api" 
 export PORT=$WEB_PORT
 
