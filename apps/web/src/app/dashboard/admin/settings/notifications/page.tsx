@@ -89,18 +89,23 @@ export default function NotificationSettingsPage() {
         }
     };
 
+    const [testEmail, setTestEmail] = useState('');
+
     const handleTest = async () => {
         try {
             setTesting(true);
             await handleSave(); // Save first to ensure backend uses latest config
 
-            const res = await api.post('/email/test', {});
+            const payload = testEmail ? { to: testEmail } : {};
+            const res = await api.post('/email/test', payload);
+
             if (res && res.ok) {
-                toast.success('Test email sent successfully! Please check your inbox.');
+                toast.success(`Test email sent ${testEmail ? 'to ' + testEmail : 'successfully'}!`);
             } else {
                 toast.error('Failed to send test email. Check SMTP settings.');
             }
         } catch (error) {
+            console.error(error);
             toast.error('Test failed');
         } finally {
             setTesting(false);
@@ -134,7 +139,7 @@ export default function NotificationSettingsPage() {
 
     return (
         <div className="p-6 max-w-5xl mx-auto space-y-8">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
                         <FiBell className="text-blue-600" />
@@ -142,11 +147,20 @@ export default function NotificationSettingsPage() {
                     </h1>
                     <p className="text-gray-500 mt-1">Configure SMTP server and notification preferences</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="relative">
+                        <input
+                            type="email"
+                            placeholder="Test email address..."
+                            value={testEmail}
+                            onChange={(e) => setTestEmail(e.target.value)}
+                            className="border border-gray-300 rounded-lg px-3 py-2 pr-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none w-full sm:w-64"
+                        />
+                    </div>
                     <button
                         onClick={handleTest}
                         disabled={saving || testing}
-                        className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-all shadow-sm disabled:opacity-50"
+                        className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all shadow-sm disabled:opacity-50 whitespace-nowrap"
                     >
                         {testing ? <FiRefreshCw className="animate-spin" /> : <FiSend />}
                         {testing ? 'Sending...' : 'Test Config'}
@@ -154,7 +168,7 @@ export default function NotificationSettingsPage() {
                     <button
                         onClick={handleSave}
                         disabled={saving || testing}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold flex items-center gap-2 transition-all shadow-md disabled:opacity-50"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all shadow-md disabled:opacity-50 whitespace-nowrap"
                     >
                         {saving ? <FiRefreshCw className="animate-spin" /> : <FiSave />}
                         {saving ? 'Saving...' : 'Save Settings'}
