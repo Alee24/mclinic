@@ -28,8 +28,8 @@ export default function EditPersonalDetailsModal({ user, onClose, onSuccess }: E
         e.preventDefault();
         setLoading(true);
         try {
-            // Using /patients/:id because we updated PatientsService to handle user fields too
-            const res = await api.patch(`/patients/${user.id}`, formData);
+            // Using /users/:id to handle generic profile updates for ALL roles (Admin, Medic, Patient)
+            const res = await api.patch(`/users/${user.id}`, formData);
             if (res && res.ok) {
                 onSuccess();
             } else {
