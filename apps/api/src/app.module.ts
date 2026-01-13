@@ -30,6 +30,7 @@ import { EmailModule } from './email/email.module';
 import { MpesaModule } from './mpesa/mpesa.module';
 // import { RecommendationsModule } from './recommendations/recommendations.module';
 import { SystemSettingsModule } from './system-settings/system-settings.module';
+import { EncryptionModule } from './common/encryption.module';
 
 @Module({
   imports: [
@@ -76,6 +77,7 @@ import { SystemSettingsModule } from './system-settings/system-settings.module';
     MpesaModule,
     // RecommendationsModule,
     SystemSettingsModule,
+    EncryptionModule,
   ],
   controllers: [AppController],
   providers: [
