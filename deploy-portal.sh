@@ -22,41 +22,82 @@ cd "$APP_DIR/$API_PATH"
 npm install --legacy-peer-deps
 npm run build
 
-# --- Fix Database Schema (Auto-Patch) ---
-echo "🔧 Checking and Patching Schema..."
-SCHEMA_FILE="prisma/schema.prisma"
-if [ -f "$SCHEMA_FILE" ]; then
-    # Auto-add resetToken if missing
-    if ! grep -q "resetToken" "$SCHEMA_FILE"; then
-         echo "   + Adding resetToken columns..."
-         sed -i '/profile_image.*String/a \  resetToken      String?   @db.VarChar(255)\n  resetTokenExpiry DateTime? @db.Timestamp(0)' "$SCHEMA_FILE"
-    fi
-    # Auto-add AmbulancePackage if missing
-    if ! grep -q "model AmbulancePackage" "$SCHEMA_FILE"; then
-         echo "   + Adding AmbulancePackage model..."
-         cat >> "$SCHEMA_FILE" <<EOF
+npm run build
 
-model AmbulancePackage {
-  id            Int      @id @default(autoincrement())
-  name          String   @unique
-  description   String?  @db.Text
-  price         Decimal  @db.Decimal(10, 2)
-  validity_days Int      @default(365)
-  features      Json?
-  max_adults    Int      @default(0)
-  max_children  Int      @default(0)
-  is_active     Boolean  @default(true)
-  created_at    DateTime @default(now()) @db.DateTime(6)
-  updated_at    DateTime @default(now()) @updatedAt @db.DateTime(6)
+# --- Fix Database Schema (Direct SQL Patch) ---
+echo "🔧 Running Direct SQL Patch to fix missing columns..."
+npm install dotenv mysql2
 
-  @@map("ambulance_packages")
+cat > fix-db-patch.js << 'EOF'
+const mysql = require('mysql2/promise');
+require('dotenv').config();
+
+async function run() {
+    console.log('Connecting to DB...');
+    const conn = await mysql.createConnection({
+        host: process.env.DB_HOST || 'localhost',
+        user: process.env.DB_USER || 'root',
+        password: process.env.DB_PASSWORD || '',
+        database: process.env.DB_NAME || 'mclinic',
+        port: process.env.DB_PORT || 3306,
+    });
+
+    // 1. Add resetToken
+    try {
+        await conn.query('ALTER TABLE users ADD COLUMN resetToken VARCHAR(255) NULL');
+        console.log('✅ Added resetToken');
+    } catch (e) { 
+        if(e.code !== 'ER_DUP_FIELDNAME') console.log('Info:', e.message); 
+    }
+
+    try {
+         await conn.query('ALTER TABLE users ADD COLUMN resetTokenExpiry TIMESTAMP NULL');
+         console.log('✅ Added resetTokenExpiry');
+    } catch (e) { 
+        if(e.code !== 'ER_DUP_FIELDNAME') console.log('Info:', e.message); 
+    }
+
+    // 2. Ensure Tables exist
+    try {
+        await conn.query(`
+            CREATE TABLE IF NOT EXISTS ambulance_packages (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(191) UNIQUE NOT NULL,
+                description TEXT,
+                price DECIMAL(10, 2) NOT NULL,
+                validity_days INT DEFAULT 365,
+                features JSON,
+                max_adults INT DEFAULT 0,
+                max_children INT DEFAULT 0,
+                is_active TINYINT(1) DEFAULT 1,
+                created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
+                updated_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)
+            )
+        `);
+        console.log('✅ Verified ambulance_packages table');
+    } catch (e) { console.error('Table error:', e.message); }
+    
+    try {
+         await conn.query(`
+            CREATE TABLE IF NOT EXISTS system_setting (
+                \`key\` VARCHAR(191) PRIMARY KEY,
+                value TEXT NOT NULL,
+                description VARCHAR(191),
+                isSecure TINYINT(1) DEFAULT 0
+            )
+         `);
+         console.log('✅ Verified system_setting table');
+    } catch (e) { console.error('Settings error:', e.message); }
+
+    await conn.end();
 }
+run().catch(e => { console.error(e); process.exit(1); });
 EOF
-    fi
 
-    echo "🔄 Synchronizing Database..."
-    npx prisma db push
-    echo "🔄 Regenerating Prisma Client..."
+node fix-db-patch.js
+
+# Sync Prisma just in case (but rely on SQL patch)
+if [ -f "prisma/schema.prisma" ]; then
     npx prisma generate
 fi
 
