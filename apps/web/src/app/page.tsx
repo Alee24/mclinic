@@ -73,11 +73,23 @@ export default function Home() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden absolute top-full left-0 w-full bg-white shadow-xl border-t p-6 flex flex-col gap-4 animate-in slide-in-from-top-2">
+          <div className="lg:hidden absolute top-full left-0 w-full bg-white shadow-xl border-t p-6 flex flex-col gap-4 animate-in slide-in-from-top-2 z-50">
             <Link href="/" className="py-2 border-b">Home</Link>
             <Link href="#about" className="py-2 border-b">About Us</Link>
             <Link href="#services" className="py-2 border-b">Services</Link>
             <Link href="/login" className="py-2 border-b font-bold text-[#C2003F]">Provider Login</Link>
+
+            {/* Install PWA Button */}
+            <button
+              onClick={install}
+              className="bg-[#00C65E] text-white py-3 rounded-lg text-center font-bold flex items-center justify-center gap-2 hover:bg-[#00A850] transition-colors shadow-md"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Install PWA App
+            </button>
+
             <Link href="/register/patient" className="bg-[#C2003F] text-white py-3 rounded text-center font-bold">Book Appointment</Link>
           </div>
         )}
