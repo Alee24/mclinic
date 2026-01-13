@@ -6,10 +6,34 @@ import { IoMdTrash, IoMdWarning, IoMdCheckmarkCircle } from 'react-icons/io';
 export default function RevokeDataPage() {
     const [submitted, setSubmitted] = useState(false);
 
-    // In a real implementation, this would call an API
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setSubmitted(true);
+
+        // Get form data
+        const formData = new FormData(e.currentTarget as HTMLFormElement);
+        const email = formData.get('email') as string;
+        const reason = formData.get('reason') as string;
+
+        try {
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://portal.mclinic.co.ke/api';
+            const res = await fetch(`${API_URL}/legal/data-deletion-request`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, reason }),
+            });
+
+            if (res.ok) {
+                setSubmitted(true);
+            } else {
+                const data = await res.json();
+                alert(data.message || 'Failed to submit request');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('An error occurred. Please try again.');
+        }
     };
 
     if (submitted) {

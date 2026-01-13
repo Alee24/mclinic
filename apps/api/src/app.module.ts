@@ -31,6 +31,7 @@ import { MpesaModule } from './mpesa/mpesa.module';
 // import { RecommendationsModule } from './recommendations/recommendations.module';
 import { SystemSettingsModule } from './system-settings/system-settings.module';
 import { EncryptionModule } from './common/encryption.module';
+import { LegalModule } from './legal/legal.module';
 
 @Module({
   imports: [
@@ -78,6 +79,7 @@ import { EncryptionModule } from './common/encryption.module';
     // RecommendationsModule,
     SystemSettingsModule,
     EncryptionModule,
+    LegalModule,
   ],
   controllers: [AppController],
   providers: [

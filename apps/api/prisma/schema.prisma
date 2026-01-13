@@ -607,14 +607,19 @@ model Review {
    @@map("reviews")
 }
 
-enum UserRole {
-  patient
-  doctor
-  admin
-  lab_tech
-  nurse
-  clinician
-  medic
-  finance
-  pharmacist
+// -----------------------------------------------------------------------------
+// LEGAL AND COMPLIANCE
+// -----------------------------------------------------------------------------
+
+model DataDeletionRequest {
+  id        Int      @id @default(autoincrement())
+  email     String   @db.VarChar(255)
+  reason    String?  @db.Text
+  status    String   @default("pending") // pending, reviewed, completed, rejected
+  reviewedBy BigInt? @db.UnsignedBigInt // Admin ID who reviewed it
+  createdAt DateTime @default(now()) @db.DateTime(6)
+  updatedAt DateTime @default(now()) @updatedAt @db.DateTime(6)
+
+  @@map("data_deletion_requests")
 }
+

@@ -169,6 +169,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                         <NavItem href="/dashboard/admin/settings/notifications" icon={<FiMail />} label="Email Settings" active={pathname?.startsWith('/dashboard/admin/settings/notifications')} />
                                         <NavItem href="/dashboard/admin/email-debug" icon={<FiAlertCircle />} label="Email Debug" active={pathname === '/dashboard/admin/email-debug'} />
                                         <NavItem href="/dashboard/finance/settings" icon={<FiSettings />} label="General Settings" active={pathname === '/dashboard/finance/settings'} />
+                                        <NavItem href="/dashboard/admin/legal/requests" icon={<FiTrash2 />} label="Data Requests" active={pathname === '/dashboard/admin/legal/requests'} />
                                         <NavItem href="/dashboard/migration" icon={<FiDatabase />} label="Data Migration" active={pathname === '/dashboard/migration'} />
                                     </div>
                                 </>
