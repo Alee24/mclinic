@@ -194,6 +194,7 @@ export default function LabOrdersPage() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
                     <div className="bg-white dark:bg-[#1E1E1E] w-full max-w-md rounded-2xl shadow-xl p-6">
                         <div className="flex items-center gap-3 mb-4">
+                            {/* @ts-ignore */}
                             <FiAlertCircle className="text-blue-500 text-2xl" />
                             <h3 className="text-lg font-bold dark:text-white">Technician Notes</h3>
                         </div>
