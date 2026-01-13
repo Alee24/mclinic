@@ -66,8 +66,8 @@ export default function MpesaSettingsPage() {
             // Given the instruction "Make sure to incorporate the change in a way so that the resulting file is syntactically correct.",
             // and the instruction explicitly states `formData`, I will use `formData` and assume it's defined elsewhere.
             // The syntax error `&& res.ok) {&& res.ok) {` will be corrected.
-            const formData = settings; // Placeholder for formData, assuming it's meant to be the current settings
-            const res = await api.post('/financial/mpesa-config', formData);
+            // POST to /settings which handles bulk updates for SystemSettings
+            const res = await api.post('/settings', { settings });
             if (res && res.ok) {
                 toast.success('Settings updated successfully');
             } else {

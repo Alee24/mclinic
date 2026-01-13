@@ -33,7 +33,7 @@ export class SystemSettingsService {
 
     async updateSettings(settings: { key: string; value: string }[]) {
         for (const s of settings) {
-            await this.settingsRepo.update({ key: s.key }, { value: s.value });
+            await this.set(s.key, s.value);
         }
         return { success: true };
     }
