@@ -225,6 +225,22 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         <nav className="space-y-1">
 
                             <NavItem href="#" icon={<FiHelpCircle />} label="Help" active={false} />
+
+                            {/* Mobile PWA Install Button */}
+                            {isInstallable && (
+                                <button
+                                    onClick={install}
+                                    className="md:hidden w-full flex items-center gap-3 px-3 py-2.5 text-white bg-gradient-to-r from-[#00C65E] to-[#1B4D3E] hover:from-[#00A850] hover:to-[#164030] transition-all rounded-xl shadow-md"
+                                >
+                                    <span className="text-xl">
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                        </svg>
+                                    </span>
+                                    <span className="font-bold text-sm">Install App</span>
+                                </button>
+                            )}
+
                             <button
                                 onClick={logout}
                                 className="w-full flex items-center gap-3 px-3 py-2.5 text-gray-500 hover:text-red-500 transition-colors rounded-xl"
