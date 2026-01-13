@@ -98,7 +98,8 @@ node fix-db-patch.js
 
 # Sync Prisma just in case (but rely on SQL patch)
 if [ -f "prisma/schema.prisma" ]; then
-    npx prisma generate
+    echo "⚙️  Generating Prisma Client (using local version)..."
+    ./node_modules/.bin/prisma generate || npx prisma generate
 fi
 
 # Start API on Port 3434
