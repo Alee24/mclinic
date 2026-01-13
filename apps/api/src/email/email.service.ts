@@ -52,7 +52,7 @@ export class EmailService {
                 return null;
             }
 
-            const transporter = nodemailer.createTransporter({
+            const transporter = nodemailer.createTransport({
                 host,
                 port,
                 secure,
@@ -66,7 +66,7 @@ export class EmailService {
                 pool: true, // Use connection pooling
                 maxConnections: 5,
                 maxMessages: 100,
-            });
+            } as any);
 
             // Verify connection
             await transporter.verify();
@@ -352,6 +352,93 @@ export class EmailService {
                 transactionId: payment.reference,
                 date: new Date().toLocaleDateString(),
                 dashboardUrl: `${this.frontendUrl}/dashboard/invoices`,
+            }
+        );
+    }
+
+    // Alias for sendAppointmentConfirmation (backward compatibility)
+    async sendBookingConfirmationEmail(appointment: any) {
+        return this.sendAppointmentConfirmation(appointment);
+    }
+
+    // Alias for doctor notification (backward compatibility)
+    async sendAppointmentNotificationToDoctor(appointment: any) {
+        const doctorEmail = appointment.doctor?.email;
+        if (doctorEmail) {
+            return this.sendTemplateEmail(
+                doctorEmail,
+                'New Appointment Scheduled',
+                'appointment-notification-doctor',
+                {
+                    doctorName: `Dr. ${appointment.doctor.fname}`,
+                    patientName: `${appointment.patient.fname} ${appointment.patient.lname}`,
+                    appointmentDate: new Date(appointment.appointmentDate).toLocaleDateString(),
+                    appointmentTime: appointment.appointmentTime,
+                    serviceType: appointment.service?.name || 'Medical Consultation',
+                    dashboardUrl: `${this.frontendUrl}/dashboard/appointments`,
+                }
+            );
+        }
+    }
+
+    async sendDoctorApprovalEmail(doctor: any, status: 'approved' | 'rejected', reason?: string) {
+        const subject = status === 'approved'
+            ? 'Your M-Clinic Provider Account Has Been Approved'
+            : 'M-Clinic Provider Application Update';
+
+        return this.sendTemplateEmail(
+            doctor.email,
+            subject,
+            status === 'approved' ? 'doctor-approved' : 'doctor-rejected',
+            {
+                doctorName: `Dr. ${doctor.fname} ${doctor.lname}`,
+                status: status,
+                reason: reason || '',
+                loginUrl: `${this.frontendUrl}/login`,
+                dashboardUrl: `${this.frontendUrl}/dashboard`,
+            },
+            true // Priority
+        );
+    }
+
+    async sendAccountReactivatedEmail(doctor: any) {
+        return this.sendTemplateEmail(
+            doctor.email,
+            'Your M-Clinic Account Has Been Reactivated',
+            'account-reactivated',
+            {
+                name: `Dr. ${doctor.fname} ${doctor.lname}`,
+                loginUrl: `${this.frontendUrl}/login`,
+                dashboardUrl: `${this.frontendUrl}/dashboard`,
+            }
+        );
+    }
+
+    async sendLicenseExpiryWarning(doctor: any, daysRemaining: number) {
+        return this.sendTemplateEmail(
+            doctor.email,
+            `License Expiry Warning - ${daysRemaining} Days Remaining`,
+            'license-expiry-warning',
+            {
+                doctorName: `Dr. ${doctor.fname} ${doctor.lname}`,
+                daysRemaining: daysRemaining,
+                expiryDate: doctor.licenseExpiryDate ? new Date(doctor.licenseExpiryDate).toLocaleDateString() : 'Unknown',
+                dashboardUrl: `${this.frontendUrl}/dashboard/profile`,
+            },
+            true // Priority
+        );
+    }
+
+    async sendLabResultsReadyEmail(patient: any, order: any, testName: string) {
+        return this.sendTemplateEmail(
+            patient.email,
+            'Your Lab Results Are Ready - M-Clinic',
+            'lab-results-ready',
+            {
+                patientName: `${patient.fname} ${patient.lname}`,
+                testName: testName,
+                orderNumber: order.orderNumber || order.id,
+                resultsUrl: `${this.frontendUrl}/dashboard/lab-results`,
             }
         );
     }
