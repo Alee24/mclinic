@@ -7,6 +7,7 @@ import { useAuth, UserRole } from '@/lib/auth';
 import UserAvatar from '@/components/dashboard/UserAvatar';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import SecureLoader from '@/components/SecureLoader';
+import InstallInstructions from '@/components/InstallInstructions';
 import { usePathname, useRouter } from 'next/navigation';
 import { usePWA } from '@/providers/PWAProvider';
 
@@ -398,9 +399,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 {/* Dashboard Content */}
                 < div className="flex-1 overflow-y-auto p-4 md:p-8 pt-2 scroll-smooth" >
                     {children}
-                </div >
-            </main >
-        </div >
+                </ div >
+            </ main >
+            <InstallInstructions />
+        </ div >
     );
 }
 

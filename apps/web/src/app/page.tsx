@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { FiPhone, FiMail, FiClock, FiFacebook, FiTwitter, FiInstagram, FiLinkedin, FiMenu, FiX, FiCheckCircle } from 'react-icons/fi';
 import InstallPWA from '../components/InstallPWA';
+import InstallInstructions from '../components/InstallInstructions';
 import { usePWA } from '@/providers/PWAProvider';
 
 export default function Home() {
@@ -353,6 +354,7 @@ export default function Home() {
         </div>
       </footer>
       <InstallPWA />
+      <InstallInstructions />
     </div>
   );
 }
