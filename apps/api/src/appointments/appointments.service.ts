@@ -253,15 +253,15 @@ export class AppointmentsService {
   }
 
   async findAllForUser(user: any): Promise<Appointment[]> {
-    // FIX: Admin should not see system-wide appointments in the personal view.
-    // if (user.role === 'admin') {
-    //   return this.findAll();
-    // }
+    // Admin should see all appointments system-wide
+    if (user.role === 'admin') {
+      return this.findAll();
+    }
 
     console.log(`[Appointments] findAllForUser called. Role: ${user.role}, Email: ${user.email}`);
 
-    // Unified Medic Check: If the user is a 'Doctor'/'Medic' or 'Admin' (who is also a provider), try to find their provider profile.
-    if (['medic', 'doctor', 'nurse', 'admin'].includes(user.role)) { // Included admin to allow provider-admins to see their schedule
+    // Unified Medic Check: If the user is a 'Doctor'/'Medic', try to find their provider profile.
+    if (['medic', 'doctor', 'nurse'].includes(user.role)) {
       // Generic Provider Check: Try to find a Doctor/Medic profile for this user
       // Priority 1: Check by user_id
       let doctor = await this.appointmentsRepository.manager
