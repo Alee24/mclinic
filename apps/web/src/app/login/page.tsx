@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import Link from 'next/link';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function LoginPage() {
     const router = useRouter();
@@ -43,32 +44,35 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#1A1A1A]">
-            <div className="max-w-md w-full p-8 bg-white dark:bg-[#121212] rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-background transition-colors duration-300">
+            <div className="absolute top-6 right-6">
+                <ThemeToggle />
+            </div>
+            <div className="max-w-md w-full p-8 bg-white dark:bg-card rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 transition-colors duration-300">
                 <h1 className="text-3xl font-bold text-center mb-2">
                     <span className="text-primary">M</span>
-                    <span className="dark:text-white">-Clinic</span>
+                    <span className="text-gray-900 dark:text-white">-Clinic</span>
                 </h1>
-                <p className="text-center text-gray-500 mb-8">Provider Portal Login</p>
+                <p className="text-center text-gray-500 dark:text-gray-400 mb-8">Provider Portal Login</p>
 
                 <form onSubmit={handleLogin} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Email Address</label>
+                        <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Email Address</label>
                         <input
                             type="email"
                             name="email"
                             defaultValue="doctor@mclinic.com"
-                            className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary outline-none transition"
+                            className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary outline-none transition"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Password</label>
+                        <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Password</label>
                         <input
                             type="password"
                             name="password"
                             defaultValue="password"
-                            className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary outline-none transition"
+                            className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary outline-none transition"
                         />
                     </div>
 
@@ -81,13 +85,13 @@ export default function LoginPage() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-primary text-black font-bold py-3 rounded-lg hover:opacity-90 transition disabled:opacity-50"
+                        className="w-full bg-primary text-white font-bold py-3 rounded-lg hover:bg-primary/90 transition disabled:opacity-50"
                     >
                         {loading ? 'Logging in...' : 'Sign In'}
                     </button>
                 </form>
 
-                <div className="mt-6 text-center text-sm text-gray-500">
+                <div className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
                     Don't have an account? <Link href="/register" className="text-primary font-bold hover:underline">Register here</Link>
                 </div>
             </div>
