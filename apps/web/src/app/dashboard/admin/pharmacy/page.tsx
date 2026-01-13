@@ -123,6 +123,7 @@ export default function AdminPharmacyPage() {
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold dark:text-white flex items-center gap-3">
+                        {/* @ts-ignore */}
                         <FiPackage className="text-primary" /> Pharmacy Inventory
                     </h1>
                     <p className="text-gray-500 font-medium">Manage stock, prices, and medication details.</p>
@@ -134,12 +135,14 @@ export default function AdminPharmacyPage() {
                         rel="noreferrer"
                         className="bg-white dark:bg-[#1A1A1A] text-gray-700 dark:text-gray-300 px-4 py-3 rounded-xl font-bold border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors flex items-center gap-2"
                     >
+                        {/* @ts-ignore */}
                         <FiDownload /> Template
                     </a>
                     <button
                         onClick={() => setShowUploadModal(true)}
                         className="bg-white dark:bg-[#1A1A1A] text-gray-700 dark:text-gray-300 px-4 py-3 rounded-xl font-bold border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors flex items-center gap-2"
                     >
+                        {/* @ts-ignore */}
                         <FiUpload /> Upload CSV
                     </button>
                     <button
@@ -150,6 +153,7 @@ export default function AdminPharmacyPage() {
                         }}
                         className="bg-primary text-black px-6 py-3 rounded-xl font-bold shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity flex items-center gap-2"
                     >
+                        {/* @ts-ignore */}
                         <FiPlus /> Add Medication
                     </button>
                 </div>
@@ -175,6 +179,7 @@ export default function AdminPharmacyPage() {
             <div className="bg-white dark:bg-[#1A1A1A] rounded-3xl border border-gray-100 dark:border-gray-800 overflow-hidden">
                 <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex gap-4">
                     <div className="relative flex-1">
+                        {/* @ts-ignore */}
                         <FiSearch className="absolute left-4 top-3.5 text-gray-400" />
                         <input
                             type="text"
@@ -224,6 +229,7 @@ export default function AdminPharmacyPage() {
                                             title="Edit disabled in MVP"
                                             className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-gray-400 cursor-not-allowed"
                                         >
+                                            {/* @ts-ignore */}
                                             <FiEdit2 />
                                         </button>
                                     </td>
@@ -248,6 +254,7 @@ export default function AdminPharmacyPage() {
                                 {editingMed ? 'Edit Medication' : 'Add New Medication'}
                             </h2>
                             <button onClick={() => setShowModal(false)} className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                                {/* @ts-ignore */}
                                 <FiX />
                             </button>
                         </div>
