@@ -68,12 +68,31 @@ export class EmailService {
                 maxMessages: 100,
             } as any);
 
+
             // Verify connection
-            await transporter.verify();
-            this.logger.log(`Custom SMTP transporter created successfully: ${host}:${port}`);
+            try {
+                await transporter.verify();
+                this.logger.log(`✓ Custom SMTP transporter verified successfully: ${host}:${port} (${user})`);
+            } catch (verifyError: any) {
+                this.logger.error(`✗ SMTP Verification Failed for ${host}:${port}`);
+                this.logger.error(`  Username: ${user}`);
+                this.logger.error(`  Error: ${verifyError.message}`);
+                this.logger.error(`  Code: ${verifyError.code || 'N/A'}`);
+
+                // Common error codes
+                if (verifyError.code === 'EAUTH') {
+                    this.logger.error('  → Authentication failed. Check username/password.');
+                } else if (verifyError.code === 'ECONNREFUSED') {
+                    this.logger.error('  → Connection refused. Check host/port or firewall.');
+                } else if (verifyError.code === 'ETIMEDOUT') {
+                    this.logger.error('  → Connection timeout. Check network/firewall.');
+                }
+
+                throw verifyError;
+            }
 
             return transporter;
-        } catch (error) {
+        } catch (error: any) {
             this.logger.error(`Failed to create custom transporter: ${error.message}`);
             return null;
         }

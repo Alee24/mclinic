@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ReactNode, useEffect, useState } from 'react';
-import { FiGrid, FiList, FiCalendar, FiBarChart2, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiSearch, FiBell, FiMail, FiMap, FiPackage, FiFileText, FiDatabase, FiPlusCircle, FiUser, FiTruck, FiCheckCircle, FiActivity, FiMenu, FiX, FiFacebook, FiTwitter, FiLinkedin, FiInstagram } from 'react-icons/fi';
+import { FiGrid, FiList, FiCalendar, FiBarChart2, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiSearch, FiBell, FiMail, FiMap, FiPackage, FiFileText, FiDatabase, FiPlusCircle, FiUser, FiTruck, FiCheckCircle, FiActivity, FiMenu, FiX, FiFacebook, FiTwitter, FiLinkedin, FiInstagram, FiAlertCircle } from 'react-icons/fi';
 import { useAuth, UserRole } from '@/lib/auth';
 import UserAvatar from '@/components/dashboard/UserAvatar';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -167,6 +167,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                     <div className="mt-4">
                                         <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">System</div>
                                         <NavItem href="/dashboard/admin/settings/notifications" icon={<FiMail />} label="Email Settings" active={pathname?.startsWith('/dashboard/admin/settings/notifications')} />
+                                        <NavItem href="/dashboard/admin/email-debug" icon={<FiAlertCircle />} label="Email Debug" active={pathname === '/dashboard/admin/email-debug'} />
                                         <NavItem href="/dashboard/finance/settings" icon={<FiSettings />} label="General Settings" active={pathname === '/dashboard/finance/settings'} />
                                         <NavItem href="/dashboard/migration" icon={<FiDatabase />} label="Data Migration" active={pathname === '/dashboard/migration'} />
                                     </div>
