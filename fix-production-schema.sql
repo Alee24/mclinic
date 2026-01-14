@@ -3,38 +3,65 @@
 
 USE mclinicportal;
 
--- First, check if users table exists, if not show error
-SELECT 'Checking users table...' AS Status;
+SELECT 'Starting schema migration...' AS Status;
 
--- Add missing columns to users table
--- Add role column (enum)
-ALTER TABLE `users` 
-ADD COLUMN IF NOT EXISTS `role` ENUM('patient', 'doctor', 'admin', 'lab_tech', 'nurse', 'clinician', 'medic', 'finance', 'pharmacist') NOT NULL DEFAULT 'patient' AFTER `password`;
-
--- Add emailVerifiedAt column
-ALTER TABLE `users` 
-ADD COLUMN IF NOT EXISTS `emailVerifiedAt` TIMESTAMP NULL AFTER `status`;
-
--- Add national_id column (encrypted)
-ALTER TABLE `users` 
-ADD COLUMN IF NOT EXISTS `national_id` VARCHAR(255) NULL AFTER `mobile`;
-
--- Add resetToken and resetTokenExpiry columns
-ALTER TABLE `users` 
-ADD COLUMN IF NOT EXISTS `resetToken` VARCHAR(255) NULL AFTER `createdAt`,
-ADD COLUMN IF NOT EXISTS `resetTokenExpiry` TIMESTAMP NULL AFTER `resetToken`;
-
--- Rename created_at to createdAt and updated_at to updatedAt for consistency
--- (Only if they don't already exist with the new names)
+-- Add role column (enum) if it doesn't exist
 SET @col_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS 
-    WHERE TABLE_SCHEMA = 'mclinicportal' AND TABLE_NAME = 'users' AND COLUMN_NAME = 'createdAt');
+    WHERE TABLE_SCHEMA = 'mclinicportal' AND TABLE_NAME = 'users' AND COLUMN_NAME = 'role');
 
-SELECT IF(@col_exists = 0, 
-    'Will rename created_at to createdAt', 
-    'createdAt column already exists') AS Status;
+SET @sql = IF(@col_exists = 0,
+    'ALTER TABLE `users` ADD COLUMN `role` ENUM(''patient'', ''doctor'', ''admin'', ''lab_tech'', ''nurse'', ''clinician'', ''medic'', ''finance'', ''pharmacist'') NOT NULL DEFAULT ''patient'' AFTER `password`',
+    'SELECT ''role column already exists'' AS Info');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Add emailVerifiedAt column if it doesn't exist
+SET @col_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS 
+    WHERE TABLE_SCHEMA = 'mclinicportal' AND TABLE_NAME = 'users' AND COLUMN_NAME = 'emailVerifiedAt');
+
+SET @sql = IF(@col_exists = 0,
+    'ALTER TABLE `users` ADD COLUMN `emailVerifiedAt` TIMESTAMP NULL AFTER `status`',
+    'SELECT ''emailVerifiedAt column already exists'' AS Info');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Add national_id column if it doesn't exist
+SET @col_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS 
+    WHERE TABLE_SCHEMA = 'mclinicportal' AND TABLE_NAME = 'users' AND COLUMN_NAME = 'national_id');
+
+SET @sql = IF(@col_exists = 0,
+    'ALTER TABLE `users` ADD COLUMN `national_id` VARCHAR(255) NULL AFTER `mobile`',
+    'SELECT ''national_id column already exists'' AS Info');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Add resetToken column if it doesn't exist
+SET @col_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS 
+    WHERE TABLE_SCHEMA = 'mclinicportal' AND TABLE_NAME = 'users' AND COLUMN_NAME = 'resetToken');
+
+SET @sql = IF(@col_exists = 0,
+    'ALTER TABLE `users` ADD COLUMN `resetToken` VARCHAR(255) NULL AFTER `updated_at`',
+    'SELECT ''resetToken column already exists'' AS Info');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Add resetTokenExpiry column if it doesn't exist
+SET @col_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS 
+    WHERE TABLE_SCHEMA = 'mclinicportal' AND TABLE_NAME = 'users' AND COLUMN_NAME = 'resetTokenExpiry');
+
+SET @sql = IF(@col_exists = 0,
+    'ALTER TABLE `users` ADD COLUMN `resetTokenExpiry` TIMESTAMP NULL AFTER `resetToken`',
+    'SELECT ''resetTokenExpiry column already exists'' AS Info');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
 -- Show final structure
-SELECT 'Migration complete! Final users table structure:' AS Status;
+SELECT '✅ Migration complete! Final users table structure:' AS Status;
 DESCRIBE `users`;
 
 SELECT 'Checking for existing users...' AS Status;
