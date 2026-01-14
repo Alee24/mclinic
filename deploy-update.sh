@@ -31,20 +31,26 @@ npm install --legacy-peer-deps
 echo "   ✅ Dependencies updated"
 
 echo ""
-echo "🗄️  Step 4: Updating database schema..."
+echo "🔧 Step 4: Downgrading Prisma to compatible version..."
+cd "$APP_DIR/apps/api"
+npm install prisma@5.10.2 @prisma/client@5.10.2 --save-exact
+echo "   ✅ Prisma downgraded to 5.10.2"
+
+echo ""
+echo "🗄️  Step 5: Updating database schema..."
 cd "$APP_DIR/apps/api"
 npx prisma generate --schema=prisma/schema.prisma
 npx prisma db push --schema=prisma/schema.prisma --skip-generate
 echo "   ✅ Database schema updated"
 
 echo ""
-echo "🏗️  Step 5: Building API..."
+echo "🏗️  Step 6: Building API..."
 cd "$APP_DIR/apps/api"
 npm run build
 echo "   ✅ API built successfully"
 
 echo ""
-echo "🌐 Step 6: Building Web..."
+echo "🌐 Step 7: Building Web..."
 cd "$APP_DIR/apps/web"
 
 # Ensure TypeScript checks are disabled
@@ -58,7 +64,7 @@ npm run build
 echo "   ✅ Web built successfully"
 
 echo ""
-echo "🔄 Step 7: Restarting PM2 services..."
+echo "🔄 Step 8: Restarting PM2 services..."
 cd "$APP_DIR"
 
 # Restart PM2 services
@@ -67,11 +73,11 @@ pm2 save
 echo "   ✅ Services restarted"
 
 echo ""
-echo "⏳ Step 8: Waiting for services to stabilize..."
+echo "⏳ Step 9: Waiting for services to stabilize..."
 sleep 5
 
 echo ""
-echo "🔍 Step 9: Testing endpoints..."
+echo "🔍 Step 10: Testing endpoints..."
 echo ""
 echo "Testing API (port $API_PORT):"
 curl -s http://localhost:$API_PORT/users/count-active || echo "   ⚠️  API not responding yet"
