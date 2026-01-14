@@ -47,7 +47,7 @@ import { EncryptionModule } from './common/encryption.module';
         port: parseInt(configService.get('DB_PORT', '3306')),
         username: configService.get('DB_USER', 'root'),
         password: configService.get('DB_PASSWORD', ''),
-        database: configService.get('DB_NAME', 'mclinic'),
+        database: configService.get('DB_NAME', 'mclinicportal'),
         autoLoadEntities: true,
         synchronize: false, // Using Prisma for schema management
       }),

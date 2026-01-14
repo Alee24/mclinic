@@ -38,7 +38,7 @@ async function run() {
         host: process.env.DB_HOST || 'localhost',
         user: process.env.DB_USER || 'root',
         password: process.env.DB_PASSWORD || '',
-        database: process.env.DB_NAME || 'mclinic',
+        database: process.env.DB_NAME || 'mclinicportal',
         port: process.env.DB_PORT || 3306,
     };
 
