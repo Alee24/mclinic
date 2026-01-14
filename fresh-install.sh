@@ -102,7 +102,13 @@ sudo systemctl restart apache2
 echo "   ✅ Apache configured and restarted"
 
 echo ""
-echo "🗄️  Step 8: Setting up database..."
+echo "🗄️  Step 8: Downgrading Prisma to compatible version..."
+cd "$APP_DIR/apps/api"
+npm install prisma@5.10.2 @prisma/client@5.10.2 --save-exact
+echo "   ✅ Prisma downgraded to 5.10.2"
+
+echo ""
+echo "🗄️  Step 9: Setting up database..."
 cd "$APP_DIR/apps/api"
 
 # Generate Prisma client
@@ -114,19 +120,19 @@ npx prisma db push --schema=prisma/schema.prisma --accept-data-loss
 echo "   ✅ Database schema applied"
 
 echo ""
-echo "🏗️  Step 9: Building API..."
+echo "🏗️  Step 10: Building API..."
 cd "$APP_DIR/apps/api"
 npm run build
 echo "   ✅ API built successfully"
 
 echo ""
-echo "🌐 Step 10: Building Web..."
+echo "🌐 Step 11: Building Web..."
 cd "$APP_DIR/apps/web"
 NEXT_DISABLE_TYPE_CHECK=true npm run build
 echo "   ✅ Web built successfully"
 
 echo ""
-echo "📋 Step 11: Creating PM2 ecosystem..."
+echo "📋 Step 12: Creating PM2 ecosystem..."
 cat > "$APP_DIR/ecosystem.config.js" << 'PMEOF'
 module.exports = {
   apps: [
@@ -179,7 +185,7 @@ PMEOF
 echo "   ✅ PM2 ecosystem created"
 
 echo ""
-echo "🚀 Step 12: Starting services with PM2..."
+echo "🚀 Step 13: Starting services with PM2..."
 mkdir -p "$APP_DIR/logs"
 cd "$APP_DIR"
 pm2 start ecosystem.config.js
@@ -188,11 +194,11 @@ pm2 startup
 echo "   ✅ Services started"
 
 echo ""
-echo "⏳ Step 13: Waiting for services to initialize..."
+echo "⏳ Step 14: Waiting for services to initialize..."
 sleep 10
 
 echo ""
-echo "🔍 Step 14: Testing endpoints..."
+echo "🔍 Step 15: Testing endpoints..."
 echo ""
 echo "Testing API (port $API_PORT):"
 curl -s http://localhost:$API_PORT/users/count-active || echo "   ⚠️  API not responding yet (may need more time)"
