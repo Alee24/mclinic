@@ -37,6 +37,7 @@ echo "   ✅ All services stopped"
 
 echo ""
 echo "🗑️  Step 2: Removing old installation..."
+cd /var/www
 if [ -d "$APP_DIR" ]; then
     sudo rm -rf "$APP_DIR"
     echo "   ✅ Old installation removed"
