@@ -8,8 +8,8 @@ echo "=============================================="
 
 # Configuration
 APP_DIR="/var/www/mclinicportal"
-API_PORT=3434
-WEB_PORT=3034
+API_PORT=5454
+WEB_PORT=5054
 STABLE_COMMIT="54930a55d6bdf96e60211ded9c46bcb5d6fa8610"
 APACHE_CONF="/etc/apache2/sites-available/portal.mclinic.co.ke-le-ssl.conf"
 
@@ -50,7 +50,7 @@ echo "📝 Step 5: Creating Environment Files..."
 # API .env
 cat > "$APP_DIR/apps/api/.env" << 'APIENV'
 DATABASE_URL="mysql://m-cl-app:Mclinic%40App2023%3F@localhost:3306/mclinicportal"
-PORT=3434
+PORT=5454
 NODE_ENV=production
 JWT_SECRET="mclinic-secret-key-production-2026"
 JWT_EXPIRATION="7d"
@@ -116,7 +116,7 @@ module.exports = {
       cwd: '/var/www/mclinicportal/apps/api',
       interpreter: '/root/.nvm/versions/node/v20.20.0/bin/node',
       env: {
-        PORT: 3434,
+        PORT: 5454,
         NODE_ENV: 'production',
         DATABASE_URL: 'mysql://m-cl-app:Mclinic%40App2023%3F@localhost:3306/mclinicportal',
         JWT_SECRET: 'mclinic-secret-key-production-2026',
@@ -133,7 +133,7 @@ module.exports = {
       args: 'start',
       cwd: '/var/www/mclinicportal/apps/web',
       env: {
-        PORT: 3034,
+        PORT: 5054,
         NODE_ENV: 'production',
         NEXT_PUBLIC_API_URL: 'https://portal.mclinic.co.ke/api'
       },

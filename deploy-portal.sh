@@ -3,8 +3,8 @@ set -e
 
 # Configuration
 APP_DIR="/var/www/mclinicportal"
-API_PORT=3434
-WEB_PORT=3034
+API_PORT=5454
+WEB_PORT=5054
 API_NAME="mclinic-api"
 WEB_NAME="mclinic-web"
 

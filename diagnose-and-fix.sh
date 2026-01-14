@@ -14,11 +14,11 @@ pm2 status
 echo ""
 echo "🔍 Step 2: Checking Ports..."
 echo ""
-echo "Port 3434 (API):"
-sudo lsof -i :3434 || echo "   ❌ Nothing running on port 3434"
+echo "Port 5454 (API):"
+sudo lsof -i :5454 || echo "   ❌ Nothing running on port 5454"
 echo ""
-echo "Port 3034 (Web):"
-sudo lsof -i :3034 || echo "   ❌ Nothing running on port 3034"
+echo "Port 5054 (Web):"
+sudo lsof -i :5054 || echo "   ❌ Nothing running on port 5054"
 
 echo ""
 echo "📝 Step 3: Checking Environment Files..."
@@ -66,8 +66,8 @@ echo "🔄 Step 6: Attempting Service Restart..."
 echo ""
 
 # Kill any processes on the ports
-sudo lsof -ti:3434 | xargs kill -9 2>/dev/null || true
-sudo lsof -ti:3034 | xargs kill -9 2>/dev/null || true
+sudo lsof -ti:5454 | xargs kill -9 2>/dev/null || true
+sudo lsof -ti:5054 | xargs kill -9 2>/dev/null || true
 
 # Delete PM2 processes
 pm2 delete all 2>/dev/null || true
@@ -78,10 +78,10 @@ export NVM_DIR="$HOME/.nvm"
 nvm use 20
 
 # Start API
-echo "   Starting API on port 3434..."
+echo "   Starting API on port 5454..."
 cd /var/www/mclinicportal/apps/api
 DATABASE_URL="mysql://m-cl-app:Mclinic%40App2023%3F@localhost:3306/mclinicportal" \
-PORT=3434 \
+PORT=5454 \
 NODE_ENV=production \
 /root/.nvm/versions/node/v20.20.0/bin/node dist/main.js > /tmp/api.log 2>&1 &
 API_PID=$!
@@ -92,13 +92,13 @@ sleep 3
 # Test API
 echo ""
 echo "   Testing API endpoint..."
-curl -s http://localhost:3434/users/count-active || echo "   ❌ API not responding"
+curl -s http://localhost:5454/users/count-active || echo "   ❌ API not responding"
 
 # Start Web
 echo ""
-echo "   Starting Web on port 3034..."
+echo "   Starting Web on port 5054..."
 cd /var/www/mclinicportal/apps/web
-PORT=3034 /root/.nvm/versions/node/v20.20.0/bin/npm start > /tmp/web.log 2>&1 &
+PORT=5054 /root/.nvm/versions/node/v20.20.0/bin/npm start > /tmp/web.log 2>&1 &
 WEB_PID=$!
 echo "   Web started with PID: $WEB_PID"
 
@@ -107,7 +107,7 @@ sleep 3
 # Test Web
 echo ""
 echo "   Testing Web endpoint..."
-curl -s http://localhost:3034 | head -20
+curl -s http://localhost:5054 | head -20
 
 echo ""
 echo "=============================================="
@@ -115,8 +115,8 @@ echo "✅ DIAGNOSTICS COMPLETE"
 echo "=============================================="
 echo ""
 echo "📊 Current Status:"
-echo "   API PID: $API_PID (port 3434)"
-echo "   Web PID: $WEB_PID (port 3034)"
+echo "   API PID: $API_PID (port 5454)"
+echo "   Web PID: $WEB_PID (port 5054)"
 echo ""
 echo "📝 View Logs:"
 echo "   API: tail -f /tmp/api.log"
