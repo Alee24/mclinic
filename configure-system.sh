@@ -7,8 +7,8 @@ echo "=============================================="
 
 # Configuration
 APP_DIR="/var/www/mclinicportal"
-API_PORT=5454
-WEB_PORT=5054
+API_PORT=3434
+WEB_PORT=3034
 APACHE_CONF="/etc/apache2/sites-available/portal.mclinic.co.ke-le-ssl.conf"
 
 echo "📋 Step 1: Creating Environment Files..."
@@ -16,10 +16,10 @@ echo "📋 Step 1: Creating Environment Files..."
 # API .env
 cat > "$APP_DIR/apps/api/.env" << 'EOF'
 # Database Configuration
-DATABASE_URL="mysql://m-cl-app:Mclinic%40App2023%3F@localhost:3306/mpesaconnect"
+DATABASE_URL="mysql://m-cl-app:Mclinic%40App2023%3F@localhost:3306/mclinicportal"
 
 # Server Configuration
-PORT=5454
+PORT=3434
 NODE_ENV=production
 
 # JWT Configuration

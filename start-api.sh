@@ -16,7 +16,7 @@ npm run build
 echo "🔄 Starting PM2 process..."
 # Check if it already exists, delete if so to ensure fresh start
 pm2 delete mclinic-api 2>/dev/null || true
-pm2 start dist/main.js --name mclinic-api --update-env
+PORT=3434 pm2 start dist/main.js --name mclinic-api --update-env
 
 # Save PM2 list
 pm2 save
