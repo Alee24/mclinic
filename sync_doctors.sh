@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Configuration
-API_URL="http://localhost:5454" # Using local port as per pm2 config
+API_URL="http://localhost:3434" # Correct port matching ecosystem.config.js
 EMAIL="mettoalex@gmail.com"
 PASSWORD="Digital2025"
 
