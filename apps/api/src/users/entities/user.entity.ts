@@ -94,8 +94,8 @@ export class User {
   @UpdateDateColumn()
   updatedAt: Date;
   @Column({ type: 'timestamp', nullable: true })
-  deletionRequestedAt: Date;
+  deletionRequestedAt: Date | null;
 
   @Column({ type: 'timestamp', nullable: true })
-  deletionScheduledAt: Date;
+  deletionScheduledAt: Date | null;
 }
