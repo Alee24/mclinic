@@ -35,6 +35,7 @@ import { Toaster } from "react-hot-toast";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import PWAInstallButton from "@/components/PWAInstallButton";
 import PanicSystem from "@/components/PanicSystem";
+import MedicLocationFab from "@/components/MedicLocationFab";
 import { PWAProvider } from "@/providers/PWAProvider";
 
 export default function RootLayout({
@@ -75,6 +76,7 @@ export default function RootLayout({
             <PWAProvider>
               <PWAInstallButton />
               <PanicSystem />
+              <MedicLocationFab />
               <Toaster position="top-center" reverseOrder={false} />
               {children}
             </PWAProvider>
