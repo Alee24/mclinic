@@ -11,7 +11,7 @@ export class EmergencyController {
     constructor(private readonly emergencyService: EmergencyService) { }
 
     @Post('alert')
-    async triggerAlert(@Request() req, @Body() body: { lat: number; lng: number }) {
+    async triggerAlert(@Request() req: any, @Body() body: { lat: number; lng: number }) {
         // Determine medicId. If user is doctor/medic, use doctorId from token/req
         // req.user might have doctorId if AuthService attached it, or we rely on userId and look it up.
         // Assuming req.user.doctorId exists or we use req.user.id if they are the medic User.

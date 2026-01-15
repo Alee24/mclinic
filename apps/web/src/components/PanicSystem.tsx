@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
-import { FiLoader, FiShield, FiXCircle, FiClock, FiAlertCode } from 'react-icons/fi';
+import { FiLoader, FiShield, FiXCircle, FiClock, FiAlertTriangle } from 'react-icons/fi';
 
 export default function PanicSystem() {
     const { user } = useAuth();
@@ -215,7 +215,7 @@ export default function PanicSystem() {
                     className="w-24 h-24 rounded-full bg-green-400 border-4 border-green-200 hover:bg-red-500 hover:border-red-300 transition-all duration-300 shadow-xl shadow-green-400/40 flex flex-col items-center justify-center gap-1 group relative overflow-hidden"
                 >
                     <span className="absolute inset-0 bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-                    <FiAlertCode className="text-3xl text-white relative z-10" />
+                    <FiAlertTriangle className="text-3xl text-white relative z-10" />
                     <span className="text-[10px] font-black uppercase text-white tracking-widest relative z-10">Panic</span>
 
                     {/* Ripple Effect Animation */}
