@@ -22,8 +22,13 @@ export class DoctorsService implements OnModuleInit {
 
     async onModuleInit() {
         console.log('[DoctorsService] Running startup checks...');
-        await this.backfillUserIds();
-        await this.syncDoctorsWithUsers();
+        try {
+            await this.backfillUserIds();
+            await this.syncDoctorsWithUsers();
+        } catch (error) {
+            console.error('[DoctorsService] Startup sync failed:', error);
+            // Don't throw, let the app start
+        }
     }
 
     private async backfillUserIds() {
