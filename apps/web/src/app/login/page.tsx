@@ -44,7 +44,7 @@ export default function LoginPage() {
                     return;
                 }
 
-                if (userType === 'patient' && isProvider) {
+                if (userType === 'patient' && isProvider && userRole !== 'admin') {
                     alert('This account is registered as a Healthcare Provider. Please switch to Provider login.');
                     setLoading(false);
                     return;
