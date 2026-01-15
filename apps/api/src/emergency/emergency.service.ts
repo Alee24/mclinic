@@ -12,7 +12,7 @@ export class EmergencyService {
 
     async create(medicId: number, latitude: number, longitude: number) {
         const alert = this.emergencyRepository.create({
-            medicId,
+            medic: { id: medicId } as any,
             latitude,
             longitude,
             status: 'active',

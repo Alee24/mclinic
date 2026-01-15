@@ -7,8 +7,8 @@ export class EmergencyAlert {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ nullable: true })
-    medicId: number;
+    // Virtual property for easier access if needed (optional)
+    medicId?: number;
 
     @ManyToOne(() => Doctor)
     @JoinColumn({ name: 'medicId' })
