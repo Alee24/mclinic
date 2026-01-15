@@ -33,7 +33,7 @@ import { AuthProvider } from "@/lib/auth";
 import { Toaster } from "react-hot-toast";
 
 import { ThemeProvider } from "@/components/ThemeProvider";
-
+import PWAInstallButton from "@/components/PWAInstallButton";
 import { PWAProvider } from "@/providers/PWAProvider";
 
 export default function RootLayout({
@@ -72,6 +72,7 @@ export default function RootLayout({
         >
           <AuthProvider>
             <PWAProvider>
+              <PWAInstallButton />
               <Toaster position="top-center" reverseOrder={false} />
               {children}
             </PWAProvider>
