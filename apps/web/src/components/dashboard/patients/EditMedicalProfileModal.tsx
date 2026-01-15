@@ -2,6 +2,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { Fragment, useState, useEffect } from 'react';
 import { FiX, FiSave, FiHeart, FiActivity, FiShield } from 'react-icons/fi';
 import { api } from '@/lib/api';
+import { toast } from 'react-hot-toast';
 
 interface EditMedicalProfileModalProps {
     user: any;
@@ -77,15 +78,18 @@ export default function EditMedicalProfileModal({ user, patient, onClose, onSucc
         try {
             const res = await api.patch('/medical-profiles/me', formData);
             if (res && res.ok) {
+                toast.success('Medical profile updated successfully!');
                 setSuccessMsg('Profile updated successfully!');
                 setTimeout(() => {
                     onSuccess();
                 }, 1500);
             } else {
+                toast.error('Failed to update profile.');
                 setError('Failed to update profile. Please try again.');
             }
         } catch (err) {
             console.error(err);
+            toast.error('An error occurred.');
             setError('An error occurred. Check your connection.');
         } finally {
             setLoading(false);

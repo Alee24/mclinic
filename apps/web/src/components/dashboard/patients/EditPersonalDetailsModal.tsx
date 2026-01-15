@@ -2,6 +2,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { Fragment, useState } from 'react';
 import { FiX, FiSave, FiUser } from 'react-icons/fi';
 import { api } from '@/lib/api';
+import { toast } from 'react-hot-toast';
 
 interface EditPersonalDetailsModalProps {
     user: any;
@@ -31,13 +32,14 @@ export default function EditPersonalDetailsModal({ user, onClose, onSuccess }: E
             // Using /users/:id to handle generic profile updates for ALL roles (Admin, Medic, Patient)
             const res = await api.patch(`/users/${user.id}`, formData);
             if (res && res.ok) {
+                toast.success('Personal details updated successfully');
                 onSuccess();
             } else {
-                alert('Failed to update details');
+                toast.error('Failed to update details');
             }
         } catch (err) {
             console.error(err);
-            alert('An error occurred');
+            toast.error('An error occurred');
         } finally {
             setLoading(false);
         }
