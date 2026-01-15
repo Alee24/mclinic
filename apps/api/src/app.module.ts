@@ -49,7 +49,7 @@ import { EncryptionModule } from './common/encryption.module';
         password: configService.get('DB_PASSWORD', ''),
         database: configService.get('DB_NAME', 'mclinicportal'),
         autoLoadEntities: true,
-        synchronize: false, // Using Prisma
+        synchronize: true, // Enable sync to update schema
         extra: {
           connectionLimit: 10,
           connectTimeout: 60000,

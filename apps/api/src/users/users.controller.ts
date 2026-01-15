@@ -71,6 +71,21 @@ export class UsersController {
     return this.usersService.updateProfilePicture(+id, file.filename);
   }
 
-  // TODO: Data deletion endpoints - implement after database migration
-  // See DATA_DELETION_IMPLEMENTATION.md for details
+  @UseGuards(AuthGuard('jwt'))
+  @Post(':id/deletion-request')
+  async requestDeletion(@Param('id') id: string, @Body('password') password: string) {
+    return this.usersService.requestDeletion(+id, password);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Delete(':id/deletion-request')
+  async cancelDeletion(@Param('id') id: string) {
+    return this.usersService.cancelDeletion(+id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get(':id/deletion-status')
+  async getDeletionStatus(@Param('id') id: string) {
+    return this.usersService.getDeletionStatus(+id);
+  }
 }

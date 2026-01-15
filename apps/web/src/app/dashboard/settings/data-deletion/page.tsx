@@ -46,10 +46,8 @@ export default function DataDeletionPage() {
 
         setLoading(true);
         try {
-            const res = await api.post('/users/request-deletion', {
-                userId: user.id,
+            const res = await api.post(`/users/${user.id}/deletion-request`, {
                 password,
-                reason,
             });
 
             if (res?.ok) {
@@ -80,9 +78,7 @@ export default function DataDeletionPage() {
 
         setLoading(true);
         try {
-            const res = await api.post('/users/cancel-deletion', {
-                userId: user.id,
-            });
+            const res = await api.delete(`/users/${user.id}/deletion-request`);
 
             if (res?.ok) {
                 const data = await res.json();

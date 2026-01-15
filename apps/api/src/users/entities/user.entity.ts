@@ -93,4 +93,9 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
+  @Column({ type: 'timestamp', nullable: true })
+  deletionRequestedAt: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  deletionScheduledAt: Date;
 }

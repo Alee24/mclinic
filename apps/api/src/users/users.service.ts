@@ -107,4 +107,54 @@ export class UsersService implements OnModuleInit {
     // @ts-ignore
     return this.usersRepository.findOne({ where: { id } });
   }
+  async requestDeletion(id: number, password: string): Promise<User> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new Error('Invalid password');
+    }
+
+    user.deletionRequestedAt = new Date();
+    // Schedule for 7 days later
+    const scheduledDate = new Date();
+    scheduledDate.setDate(scheduledDate.getDate() + 7);
+    user.deletionScheduledAt = scheduledDate;
+
+    return this.usersRepository.save(user);
+  }
+
+  async cancelDeletion(id: number): Promise<User> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    user.deletionRequestedAt = null;
+    user.deletionScheduledAt = null;
+
+    return this.usersRepository.save(user);
+  }
+
+  async getDeletionStatus(id: number) {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const isRequested = !!user.deletionRequestedAt;
+    const daysRemaining = isRequested && user.deletionScheduledAt
+      ? Math.ceil((user.deletionScheduledAt.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+      : 0;
+
+    return {
+      hasPendingDeletion: isRequested,
+      requestedAt: user.deletionRequestedAt,
+      scheduledFor: user.deletionScheduledAt,
+      daysRemaining
+    };
+  }
 }

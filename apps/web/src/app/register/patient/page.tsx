@@ -4,12 +4,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import Link from 'next/link';
-import { FiCheckCircle, FiUser, FiMapPin, FiNavigation, FiLock, FiMail, FiPhone, FiCreditCard } from 'react-icons/fi';
+import { FiCheckCircle, FiUser, FiMapPin, FiNavigation, FiLock, FiMail, FiPhone, FiCreditCard, FiFileText } from 'react-icons/fi';
+
 
 export default function PatientRegisterPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [locationStatus, setLocationStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+    const [termsAccepted, setTermsAccepted] = useState(false);
 
     const [formData, setFormData] = useState({
         fname: '',
@@ -58,6 +60,11 @@ export default function PatientRegisterPage() {
         // Validate GPS location
         if (!formData.latitude || !formData.longitude) {
             alert('Please enable GPS location to continue. We need your location to connect you with nearby healthcare providers.');
+            return;
+        }
+
+        if (!termsAccepted) {
+            alert('Please accept the Terms and Conditions to continue.');
             return;
         }
 
@@ -117,6 +124,12 @@ export default function PatientRegisterPage() {
                                     <div className="text-xs text-green-100">Start booking immediately</div>
                                 </div>
                             </div>
+                        </div>
+
+                        <div className="mt-8">
+                            <Link href="/terms-and-conditions" target="_blank" className="inline-flex items-center gap-2 px-5 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-xl text-white font-bold transition-all text-sm">
+                                <FiFileText /> Read Terms & Conditions
+                            </Link>
                         </div>
                     </div>
 
@@ -210,8 +223,8 @@ export default function PatientRegisterPage() {
                                 onClick={handleGetLocation}
                                 disabled={locationStatus === 'loading'}
                                 className={`w-full px-6 py-4 rounded-xl flex items-center justify-center gap-2 font-bold transition shadow-md ${locationStatus === 'success'
-                                        ? 'bg-green-600 text-white'
-                                        : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                    ? 'bg-green-600 text-white'
+                                    : 'bg-blue-600 hover:bg-blue-700 text-white'
                                     }`}
                             >
                                 {locationStatus === 'loading' && 'Getting Location...'}
@@ -240,7 +253,23 @@ export default function PatientRegisterPage() {
                             />
                         </div>
 
+                        <div className="flex items-start gap-3 p-2">
+                            <div className="flex items-center h-5">
+                                <input
+                                    id="terms"
+                                    type="checkbox"
+                                    checked={termsAccepted}
+                                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                                    className="w-5 h-5 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-green-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-green-600 dark:ring-offset-gray-800"
+                                />
+                            </div>
+                            <label htmlFor="terms" className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                                I agree to the <Link href="/terms-and-conditions" className="text-green-600 hover:underline dark:text-green-500 font-bold">Terms and Conditions</Link> and <Link href="/terms-and-conditions" className="text-green-600 hover:underline dark:text-green-500 font-bold">Privacy Policy</Link>.
+                            </label>
+                        </div>
+
                         <button
+
                             type="submit"
                             disabled={loading || locationStatus !== 'success'}
                             className="w-full mt-6 px-6 py-4 rounded-xl font-bold bg-green-600 hover:bg-green-700 text-white transition shadow-lg shadow-green-500/30 flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
