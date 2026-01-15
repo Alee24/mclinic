@@ -133,8 +133,8 @@ export class UsersService implements OnModuleInit {
       throw new Error('User not found');
     }
 
-    user.deletionRequestedAt = null;
-    user.deletionScheduledAt = null;
+    user.deletionRequestedAt = null as any;
+    user.deletionScheduledAt = null as any;
 
     return this.usersRepository.save(user);
   }
