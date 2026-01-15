@@ -224,7 +224,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     <div>
                         <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4 px-2">General</div>
                         <nav className="space-y-1">
-                            <NavItem href="/terms" icon={<FiFileText />} label="Terms & Conditions" active={pathname === '/terms'} />
+                            <NavItem href="/terms-and-conditions" icon={<FiFileText />} label="Terms & Conditions" active={pathname === '/terms-and-conditions'} />
                             <NavItem href="#" icon={<FiHelpCircle />} label="Help" active={false} />
 
                             {/* Mobile PWA Install Button */}
