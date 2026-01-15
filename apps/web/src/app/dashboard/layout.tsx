@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ReactNode, useEffect, useState } from 'react';
-import { FiGrid, FiList, FiCalendar, FiBarChart2, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiSearch, FiBell, FiMail, FiMap, FiPackage, FiFileText, FiDatabase, FiPlusCircle, FiUser, FiTruck, FiCheckCircle, FiActivity, FiMenu, FiX } from 'react-icons/fi';
+import { FiGrid, FiList, FiCalendar, FiBarChart2, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiSearch, FiBell, FiMail, FiMap, FiPackage, FiFileText, FiDatabase, FiPlusCircle, FiUser, FiTruck, FiCheckCircle, FiActivity, FiMenu, FiX, FiTrash2 } from 'react-icons/fi';
 import { useAuth, UserRole } from '@/lib/auth';
 import UserAvatar from '@/components/dashboard/UserAvatar';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -225,6 +225,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4 px-2">General</div>
                         <nav className="space-y-1">
                             <NavItem href="/terms-and-conditions" icon={<FiFileText />} label="Terms & Conditions" active={pathname === '/terms-and-conditions'} />
+                            <NavItem href="/dashboard/settings/data-deletion" icon={<FiTrash2 />} label="Delete My Data" active={pathname === '/dashboard/settings/data-deletion'} />
                             <NavItem href="#" icon={<FiHelpCircle />} label="Help" active={false} />
 
                             {/* Mobile PWA Install Button */}

@@ -70,4 +70,22 @@ export class UsersController {
   ) {
     return this.usersService.updateProfilePicture(+id, file.filename);
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('request-deletion')
+  async requestDataDeletion(@Body() body: { userId: number; password: string }) {
+    return this.usersService.requestDataDeletion(body.userId, body.password);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('cancel-deletion')
+  async cancelDataDeletion(@Body() body: { userId: number }) {
+    return this.usersService.cancelDataDeletion(body.userId);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get(':id/deletion-status')
+  async getDeletionStatus(@Param('id') id: string) {
+    return this.usersService.getDeletionStatus(+id);
+  }
 }
