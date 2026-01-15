@@ -21,12 +21,21 @@ export class AuthService {
     let user: any = null;
 
     if (userType === 'provider') {
-      user = await this.doctorsService.findByEmail(email);
-      if (user && (await bcrypt.compare(pass, user.password))) {
-        // Map Doctor entity to a User-like object with a role
-        const role = this.mapDrTypeToRole(user.dr_type);
-        const { password, ...result } = user;
+      // 1. Try to find in Doctors table
+      const doctor = await this.doctorsService.findByEmail(email);
+      if (doctor && (await bcrypt.compare(pass, doctor.password))) {
+        const role = this.mapDrTypeToRole(doctor.dr_type);
+        const { password, ...result } = doctor;
         return { ...result, role };
+      }
+
+      // 2. Fallback: If not in Doctors table, check Users table for 'admin' role
+      if (!doctor) {
+        const normalUser = await this.usersService.findOne(email);
+        if (normalUser && normalUser.role === 'admin' && (await bcrypt.compare(pass, normalUser.password))) {
+          const { password, ...result } = normalUser;
+          return { ...result, role: 'admin' };
+        }
       }
     } else {
       user = await this.usersService.findOne(email);
