@@ -23,7 +23,7 @@ export class Service {
   @Column({ default: 30 }) // Duration in minutes
   duration: number;
 
-  @Column({ default: true })
+  @Column({ name: 'is_active', default: true })
   isActive: boolean;
 
   @CreateDateColumn()
