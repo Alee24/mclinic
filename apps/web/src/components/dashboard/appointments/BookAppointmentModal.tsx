@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { FiX, FiSearch, FiMapPin, FiUser, FiDollarSign, FiCalendar, FiClock } from 'react-icons/fi';
 import { useAuth } from '@/lib/auth';
+import CompleteProfileModal from '../CompleteProfileModal';
 
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -341,21 +342,14 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                     </div>
                 ) : !profileComplete && user?.role === 'patient' ? (
-                    <div className="flex-1 flex flex-col items-center justify-center p-12 text-center space-y-4">
-                        <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center text-3xl">
-                            📋
-                        </div>
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">Profile Update Required</h3>
-                        <p className="text-gray-500 max-w-sm">
-                            To ensure the best care, please complete your medical profile (Blood Group, Emergency Contact, etc.) before booking.
-                        </p>
-                        <button
-                            onClick={() => router.push('/dashboard/profile')}
-                            className="bg-primary text-black font-bold px-8 py-3 rounded-xl hover:opacity-90 transition shadow-lg shadow-primary/20"
-                        >
-                            Go to Profile
-                        </button>
-                    </div>
+                    <CompleteProfileModal
+                        onClose={onClose}
+                        onSuccess={() => {
+                            setProfileComplete(true);
+                            // Refresh to continue booking
+                        }}
+                        user={user}
+                    />
                 ) : !selectedDoctor ? (
                     <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
                         {/* Filters Sidebar */}
