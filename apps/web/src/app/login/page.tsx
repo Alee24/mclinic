@@ -36,7 +36,7 @@ export default function LoginPage() {
 
                 // Validate user type matches selection
                 const userRole = data.user.role.toLowerCase();
-                const isProvider = ['doctor', 'nurse', 'clinician', 'medic', 'lab_tech'].includes(userRole);
+                const isProvider = ['doctor', 'nurse', 'clinician', 'medic', 'lab_tech', 'admin', 'pharmacist'].includes(userRole);
 
                 if (userType === 'provider' && !isProvider) {
                     alert('This account is registered as a Patient. Please switch to Patient login.');

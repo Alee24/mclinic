@@ -45,6 +45,7 @@ export class AuthService {
     if (type.includes('clinical')) return 'clinician';
     if (type.includes('lab')) return 'lab_tech';
     if (type.includes('pharm')) return 'pharmacist';
+    if (type.includes('admin')) return 'admin';
     return 'doctor';
   }
 

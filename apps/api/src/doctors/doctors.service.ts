@@ -59,7 +59,7 @@ export class DoctorsService implements OnModuleInit {
         console.log('[DoctorsService] Syncing Doctors from Users table...');
         const allUsers = await this.usersService.findAll();
         const doctorUsers = allUsers.filter(u =>
-            ['doctor', 'medic', 'nurse', 'clinician', 'lab_tech', 'pharmacist'].includes(u.role)
+            ['doctor', 'medic', 'nurse', 'clinician', 'lab_tech', 'pharmacist', 'admin'].includes(u.role)
         );
 
         let createdCount = 0;
@@ -112,6 +112,7 @@ export class DoctorsService implements OnModuleInit {
             case 'clinician': return 'Clinical Officer';
             case 'lab_tech': return 'Lab Technician';
             case 'pharmacist': return 'Pharmacist';
+            case 'admin': return 'Admin';
             default: return 'Medic';
         }
     }
