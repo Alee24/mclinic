@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import Link from 'next/link';
 import { FiCheckCircle, FiUser, FiActivity, FiBriefcase, FiMapPin, FiClock } from 'react-icons/fi';
+import { toast } from 'react-hot-toast';
 import { getCadres, getTitles, getSpecialties, getRegulatoryBody } from '@/lib/data/specialties';
 
 export default function MedicRegisterPage() {
@@ -116,15 +117,15 @@ export default function MedicRegisterPage() {
             });
 
             if (res && res.ok) {
-                alert('Application submitted successfully! Your account is pending verification by the medical board.');
+                toast.success('Application submitted successfully! Your account is pending verification by the medical board.');
                 router.push('/login');
             } else {
                 const data = res ? await res.json() : { message: 'Network error or no response' };
-                alert(data.message || 'Registration failed. Please check your details.');
+                toast.error(data.message || 'Registration failed. Please check your details.');
             }
         } catch (error) {
             console.error(error);
-            alert('An error occurred during submission.');
+            toast.error('An error occurred during submission.');
         } finally {
             setLoading(false);
         }

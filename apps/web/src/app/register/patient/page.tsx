@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import Link from 'next/link';
 import { FiCheckCircle, FiUser, FiMapPin, FiNavigation, FiLock, FiMail, FiPhone, FiCreditCard, FiFileText } from 'react-icons/fi';
+import { toast } from 'react-hot-toast';
 
 
 export default function PatientRegisterPage() {
@@ -59,12 +60,12 @@ export default function PatientRegisterPage() {
 
         // Validate GPS location
         if (!formData.latitude || !formData.longitude) {
-            alert('Please enable GPS location to continue. We need your location to connect you with nearby healthcare providers.');
+            toast.error('Please enable GPS location to continue. We need your location to connect you with nearby healthcare providers.');
             return;
         }
 
         if (!termsAccepted) {
-            alert('Please accept the Terms and Conditions to continue.');
+            toast.error('Please accept the Terms and Conditions to continue.');
             return;
         }
 
@@ -73,14 +74,15 @@ export default function PatientRegisterPage() {
         try {
             const res = await api.post('/auth/register', formData);
             if (res && res.ok) {
+                toast.success('Registration successful! Please login to continue.');
                 router.push('/login?registered=true');
             } else {
                 const data = res ? await res.json() : { message: 'Network error' };
-                alert(data.message || 'Registration failed. Email might be in use.');
+                toast.error(data.message || 'Registration failed. Email might be in use.');
             }
         } catch (error) {
             console.error(error);
-            alert('An error occurred during registration.');
+            toast.error('An error occurred during registration.');
         } finally {
             setLoading(false);
         }

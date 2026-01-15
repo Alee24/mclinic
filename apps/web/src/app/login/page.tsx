@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import Link from 'next/link';
 import { FiUser, FiHeart, FiArrowRight } from 'react-icons/fi';
+import { toast } from 'react-hot-toast';
 
 type UserType = 'patient' | 'provider';
 
@@ -39,25 +40,27 @@ export default function LoginPage() {
                 const isProvider = ['doctor', 'nurse', 'clinician', 'medic', 'lab_tech', 'admin', 'pharmacist'].includes(userRole);
 
                 if (userType === 'provider' && !isProvider) {
-                    alert('This account is registered as a Patient. Please switch to Patient login.');
+                    toast.error('This account is registered as a Patient. Please switch to Patient login.');
                     setLoading(false);
                     return;
                 }
 
                 if (userType === 'patient' && isProvider && userRole !== 'admin') {
-                    alert('This account is registered as a Healthcare Provider. Please switch to Provider login.');
+                    toast.error('This account is registered as a Healthcare Provider. Please switch to Provider login.');
                     setLoading(false);
                     return;
                 }
 
+                // Success toast? usually redirect is enough, but 'Login Successful' is nice.
+                toast.success(`Welcome back, ${data.user.fname || 'User'}!`);
                 login(data.user, data.access_token);
             } else {
                 const errorData = await res.json().catch(() => ({}));
                 const errorMessage = errorData.message || res.statusText || 'Login failed';
-                alert(`Login Failed: ${errorMessage}`);
+                toast.error(`Login Failed: ${errorMessage}`);
             }
         } catch (err) {
-            alert('Connection error. Please check your internet connection.');
+            toast.error('Connection error. Please check your internet connection.');
         } finally {
             setLoading(false);
         }
