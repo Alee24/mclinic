@@ -28,7 +28,7 @@ export default function LoginPage() {
             const res = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ email, password, userType }),
             });
 
             if (res && res.ok) {
@@ -119,20 +119,20 @@ export default function LoginPage() {
                                 type="button"
                                 onClick={() => setUserType('patient')}
                                 className={`relative p-6 rounded-2xl border-2 transition-all ${userType === 'patient'
-                                        ? 'border-green-600 bg-green-50 dark:bg-green-900/20'
-                                        : 'border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-800'
+                                    ? 'border-green-600 bg-green-50 dark:bg-green-900/20'
+                                    : 'border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-800'
                                     }`}
                             >
                                 <div className="flex flex-col items-center text-center">
                                     <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-3 transition-colors ${userType === 'patient'
-                                            ? 'bg-green-600 text-white'
-                                            : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                                        ? 'bg-green-600 text-white'
+                                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
                                         }`}>
                                         <FiUser className="text-2xl" />
                                     </div>
                                     <div className={`font-bold transition-colors ${userType === 'patient'
-                                            ? 'text-green-600 dark:text-green-400'
-                                            : 'text-gray-700 dark:text-gray-300'
+                                        ? 'text-green-600 dark:text-green-400'
+                                        : 'text-gray-700 dark:text-gray-300'
                                         }`}>
                                         Patient
                                     </div>
@@ -151,20 +151,20 @@ export default function LoginPage() {
                                 type="button"
                                 onClick={() => setUserType('provider')}
                                 className={`relative p-6 rounded-2xl border-2 transition-all ${userType === 'provider'
-                                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
-                                        : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-800'
+                                    ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
+                                    : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-800'
                                     }`}
                             >
                                 <div className="flex flex-col items-center text-center">
                                     <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-3 transition-colors ${userType === 'provider'
-                                            ? 'bg-blue-600 text-white'
-                                            : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
                                         }`}>
                                         <FiHeart className="text-2xl" />
                                     </div>
                                     <div className={`font-bold transition-colors ${userType === 'provider'
-                                            ? 'text-blue-600 dark:text-blue-400'
-                                            : 'text-gray-700 dark:text-gray-300'
+                                        ? 'text-blue-600 dark:text-blue-400'
+                                        : 'text-gray-700 dark:text-gray-300'
                                         }`}>
                                         Provider
                                     </div>
@@ -223,8 +223,8 @@ export default function LoginPage() {
                             type="submit"
                             disabled={loading}
                             className={`w-full py-4 rounded-xl font-bold text-white transition shadow-lg flex items-center justify-center gap-2 group ${userType === 'patient'
-                                    ? 'bg-green-600 hover:bg-green-700 shadow-green-500/30'
-                                    : 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/30'
+                                ? 'bg-green-600 hover:bg-green-700 shadow-green-500/30'
+                                : 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/30'
                                 } disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
                             {loading ? (

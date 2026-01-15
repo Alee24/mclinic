@@ -54,32 +54,65 @@ export class DoctorsService implements OnModuleInit {
         console.log('[DoctorsService] Syncing Doctors from Users table...');
         const allUsers = await this.usersService.findAll();
         const doctorUsers = allUsers.filter(u =>
-            u.role === 'doctor' || u.role === 'medic' || u.role === 'nurse' || u.role === 'clinician'
+            ['doctor', 'medic', 'nurse', 'clinician', 'lab_tech', 'pharmacist'].includes(u.role)
         );
 
         let createdCount = 0;
+        let updatedCount = 0;
+
         for (const user of doctorUsers) {
-            const existingDoc = await this.doctorsRepository.findOne({ where: { email: user.email } });
-            if (!existingDoc) {
+            let doctor = await this.doctorsRepository.findOne({ where: { email: user.email } });
+
+            // Map User Role to Doctor Type
+            const drType = this.mapRoleToDrType(user.role);
+
+            const docData: DeepPartial<Doctor> = {
+                user_id: user.id,
+                fname: user.fname,
+                lname: user.lname,
+                email: user.email,
+                mobile: user.mobile,
+                address: user.address,
+                sex: user.sex,
+                dob: user.dob,
+                profile_image: user.profilePicture,
+                dr_type: drType,
+                password: user.password, // IMPORTANT: Sync password for direct login
+                status: 1, // Ensure active
+            };
+
+            if (!doctor) {
                 console.log(`[DoctorsService] Creating missing Doctor profile for ${user.email}`);
-                // Create minimal doctor profile
-                const newDoc = this.doctorsRepository.create({
-                    user_id: user.id,
-                    fname: user.fname,
-                    lname: user.lname,
-                    email: user.email,
-                    mobile: user.mobile,
-                    status: 1, // Active by default if syncing from active user? Or pending? User said "all are active".
-                    Verified_status: 1, // Assume verified if they are already in the system as a doctor user
+                doctor = this.doctorsRepository.create({
+                    ...docData,
+                    Verified_status: 1,
                     approvalStatus: 'approved',
-                    dr_type: user.role === 'nurse' ? 'Nurse' : 'Specialist', // Basic mapping
-                    fee: 1500, // Default
-                } as unknown as DeepPartial<Doctor>);
-                await this.doctorsRepository.save(newDoc);
+                    fee: 1500,
+                });
+                await this.doctorsRepository.save(doctor);
                 createdCount++;
+            } else {
+                // Update existing doctor to ensure password and details are in sync
+                await this.doctorsRepository.update(doctor.id, docData);
+                updatedCount++;
             }
         }
-        return { success: true, message: `Synced ${doctorUsers.length} doctor users. Created ${createdCount} new profiles.` };
+        return { success: true, message: `Synced ${doctorUsers.length} doctor users. Created ${createdCount}, Updated ${updatedCount}.` };
+    }
+
+    private mapRoleToDrType(role: string): string {
+        switch (role) {
+            case 'doctor': return 'Specialist';
+            case 'nurse': return 'Nurse';
+            case 'clinician': return 'Clinical Officer';
+            case 'lab_tech': return 'Lab Technician';
+            case 'pharmacist': return 'Pharmacist';
+            default: return 'Medic';
+        }
+    }
+
+    async syncDoctorsFromUsers() {
+        return this.syncDoctorsWithUsers();
     }
 
     async create(createDoctorDto: any, user: User | null): Promise<Doctor> {

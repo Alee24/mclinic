@@ -17,17 +17,39 @@ export class AuthService {
     private emailService: EmailService,
   ) { }
 
-  async validateUser(email: string, pass: string): Promise<any> {
-    const user = await this.usersService.findOne(email);
-    if (user && (await bcrypt.compare(pass, user.password))) {
-      const { password, ...result } = user;
-      return result;
+  async validateUser(email: string, pass: string, userType: string = 'patient'): Promise<any> {
+    let user: any = null;
+
+    if (userType === 'provider') {
+      user = await this.doctorsService.findByEmail(email);
+      if (user && (await bcrypt.compare(pass, user.password))) {
+        // Map Doctor entity to a User-like object with a role
+        const role = this.mapDrTypeToRole(user.dr_type);
+        const { password, ...result } = user;
+        return { ...result, role };
+      }
+    } else {
+      user = await this.usersService.findOne(email);
+      if (user && (await bcrypt.compare(pass, user.password))) {
+        const { password, ...result } = user;
+        return result;
+      }
     }
+
     return null;
   }
 
-  async login(user: any, ipAddress?: string, location?: string) {
-    const validUser = await this.validateUser(user.email, user.password);
+  private mapDrTypeToRole(drType: string): string {
+    const type = (drType || '').toLowerCase();
+    if (type.includes('nurse')) return 'nurse';
+    if (type.includes('clinical')) return 'clinician';
+    if (type.includes('lab')) return 'lab_tech';
+    if (type.includes('pharm')) return 'pharmacist';
+    return 'doctor';
+  }
+
+  async login(loginDto: any, ipAddress?: string, location?: string) {
+    const validUser = await this.validateUser(loginDto.email, loginDto.password, loginDto.userType);
     if (!validUser) {
       throw new UnauthorizedException('Invalid credentials');
     }
