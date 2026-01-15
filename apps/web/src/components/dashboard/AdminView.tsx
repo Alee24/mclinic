@@ -40,7 +40,11 @@ export default function AdminView() {
                     const patients = await patientsRes.json();
                     const doctors = await doctorsRes.json();
                     const appointments = await appointmentsRes.json();
-                    const users = usersRes?.ok ? await usersRes.json() : { count: 0 };
+                    const usersData = usersRes?.ok ? await usersRes.json() : { count: 0 };
+                    console.log('STATS DEBUG:', usersData); // Debug log
+
+                    // Handle both { count: 357 } and raw 357 responses
+                    const userCount = typeof usersData === 'number' ? usersData : (usersData?.count || 0);
 
                     // Assuming financeRes returns detailed stats or we fetch invoices to calc sum.
                     // If financeRes structure is { revenue: 0, activeInvoices: [], paidInvoices: [] }
@@ -57,7 +61,7 @@ export default function AdminView() {
                         doctors: doctors.length,
                         activeDoctors: activeDocs,
                         inactiveDoctors: doctors.length - activeDocs,
-                        activeUsers: users.count,
+                        activeUsers: userCount,
                         appointments: appointments.length,
                         totalRevenue: financials.totalRevenue || 0, // Matches service return key
                         invoices: {

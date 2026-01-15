@@ -34,7 +34,7 @@ module.exports = {
             args: 'start',
             cwd: '/var/www/mclinicportal/apps/web',
             env: {
-                PORT: 5054,
+                PORT: 3034,
                 NODE_ENV: 'production',
                 NEXT_PUBLIC_API_URL: 'https://portal.mclinic.co.ke/api'
             },

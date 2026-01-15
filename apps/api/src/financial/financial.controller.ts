@@ -103,14 +103,14 @@ export class FinancialController {
   }
 
   @Get('stats')
-  @UseGuards(AuthGuard('jwt'))
   async getStats(@Req() req: any) {
-    console.log(`[FINANCIAL] getStats (AUTH) called for User ID: ${req.user.id}, Role: ${req.user.role}, Email: ${req.user.email}`);
+    const user = req.user || null;
+    console.log(`[FINANCIAL] getStats called for User: ${user ? `${user.email} (ID: ${user.id}, Role: ${user.role})` : 'Public/Unauthenticated'}`);
     try {
-      const stats = await this.financialService.getStats(req.user);
+      const stats = await this.financialService.getStats(user);
       return stats;
     } catch (e) {
-      console.error(`[FINANCIAL] error for ${req.user.email}:`, e.message);
+      console.error(`[FINANCIAL] error:`, e.message);
       throw e;
     }
   }

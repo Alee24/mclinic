@@ -60,7 +60,7 @@ export default function AdminPharmacyOrdersPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold dark:text-white flex items-center gap-3">
-                        <FiPackage className="text-primary" /> Pharmacy Orders
+                        <FiPackage /> Pharmacy Orders
                     </h1>
                     <p className="text-gray-500 font-medium tracking-tight">Manage and fulfill patient medication orders.</p>
                 </div>
@@ -107,9 +107,9 @@ export default function AdminPharmacyOrdersPage() {
                         <div key={order.id} className="bg-white dark:bg-[#1A1A1A] p-6 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden group">
                             {/* Status Badge */}
                             <div className={`absolute top-0 right-0 px-4 py-2 rounded-bl-2xl text-xs font-bold uppercase tracking-widest ${order.status === 'PENDING' ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/20' :
-                                    order.status === 'PAID' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/20' :
-                                        order.status === 'SHIPPED' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/20' :
-                                            'bg-green-100 text-green-600 dark:bg-green-900/20'
+                                order.status === 'PAID' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/20' :
+                                    order.status === 'SHIPPED' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/20' :
+                                        'bg-green-100 text-green-600 dark:bg-green-900/20'
                                 }`}>
                                 {order.status}
                             </div>
