@@ -99,7 +99,7 @@ export default function MedicLocationFab() {
     if (status === 'online') {
         // Show a subtle "Online" indicator that doesn't annoy
         return (
-            <div className="fixed bottom-24 right-4 z-[40]">
+            <div className="fixed top-20 right-4 z-[99]">
                 <div className="bg-green-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 text-sm font-bold animate-pulse">
                     <FiWifi /> You are Online
                 </div>
@@ -109,7 +109,7 @@ export default function MedicLocationFab() {
 
     // Offline / Locating State - Prominent Animation
     return (
-        <div className="fixed bottom-24 right-4 z-[40]">
+        <div className="fixed top-20 right-4 z-[99]">
             <button
                 onClick={handleGoOnline}
                 disabled={status === 'locating'}
