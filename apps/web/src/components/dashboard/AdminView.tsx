@@ -31,7 +31,7 @@ export default function AdminView() {
                 const [patientsRes, doctorsRes, appointmentsRes, usersRes, financeRes] = await Promise.all([
                     api.get('/patients'),
                     api.get('/doctors/admin/all'),
-                    api.get('/appointments'),
+                    api.get('/appointments/admin/all'), // Admin-specific endpoint
                     api.get('/users/count-active'),
                     api.get('/financial/stats') // Fetch real finance stats
                 ]);

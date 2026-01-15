@@ -28,15 +28,15 @@ export class AppointmentsController {
     });
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Get()
   findAll(@Request() req: any) {
-    // Allow public access for dashboard stats, but filter by user if authenticated
-    const user = req.user || null;
-    if (user) {
-      return this.appointmentsService.findAllForUser(user);
+    // Always filter by authenticated user - never return all appointments to unauthenticated users
+    const user = req.user;
+    if (!user) {
+      return []; // Return empty if somehow no user (shouldn't happen with guard)
     }
-    // Return all appointments for admin dashboard (public stats)
-    return this.appointmentsService.findAll();
+    return this.appointmentsService.findAllForUser(user);
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -51,6 +51,16 @@ export class AppointmentsController {
     // Determine if user is doctor or patient and fetch relevant appointments
     // Simplified for now:
     return [];
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('admin/all')
+  async findAllForAdmin(@Request() req: any) {
+    // Only admins can see all appointments
+    if (req.user.role !== 'admin') {
+      return [];
+    }
+    return this.appointmentsService.findAll();
   }
 
   @Get('patient/:id')
