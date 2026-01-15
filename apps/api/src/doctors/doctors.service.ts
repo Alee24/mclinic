@@ -146,10 +146,15 @@ export class DoctorsService implements OnModuleInit {
 
     async findAllVerified(search?: string): Promise<any[]> {
         // Query Builder to handle search filters - ONLY APPROVED DOCTORS
+        const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
         const query = this.doctorsRepository.createQueryBuilder('doctor')
             .where('doctor.approvalStatus = :approvalStatus', { approvalStatus: 'approved' })
             .andWhere('doctor.licenseStatus = :licenseStatus', { licenseStatus: 'valid' })
             .andWhere('doctor.status = :status', { status: 1 })
+            // Strict License Date Check: Expiry must be in the future
+            .andWhere('doctor.licenseExpiryDate > :currentDate', { currentDate })
+            // Keep Online check if that's the desired flow for immediate booking
             .andWhere('doctor.is_online = :isOnline', { isOnline: 1 });
 
         if (search) {
@@ -161,22 +166,8 @@ export class DoctorsService implements OnModuleInit {
 
         let activeDocs = await query.getMany();
 
-        // DEMO AUTO-FIX: If no verified doctors, find ANY doctors and verify them
-        if (activeDocs.length === 0 && !search) {
-            const anyDocs = await this.doctorsRepository.find({ take: 5 });
-            if (anyDocs.length > 0) {
-                for (const d of anyDocs) {
-                    d.Verified_status = 1;
-                    d.status = 1;
-                    // Ensure location
-                    d.latitude = -1.2921 + (Math.random() - 0.5) * 0.1;
-                    d.longitude = 36.8219 + (Math.random() - 0.5) * 0.1;
-                    await this.doctorsRepository.save(d);
-                }
-                // Re-fetch
-                activeDocs = await this.doctorsRepository.find({ where: { Verified_status: 1, status: 1 } });
-            }
-        }
+        // REMOVED DEMO AUTO-FIX to ensure strict production compliance.
+
 
         // Ensure location data exists
         const updates = [];
