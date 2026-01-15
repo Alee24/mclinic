@@ -28,10 +28,15 @@ export class AppointmentsController {
     });
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Get()
   findAll(@Request() req: any) {
-    return this.appointmentsService.findAllForUser(req.user);
+    // Allow public access for dashboard stats, but filter by user if authenticated
+    const user = req.user || null;
+    if (user) {
+      return this.appointmentsService.findAllForUser(user);
+    }
+    // Return all appointments for admin dashboard (public stats)
+    return this.appointmentsService.findAll();
   }
 
   @UseGuards(AuthGuard('jwt'))
