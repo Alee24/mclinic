@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
-import { FiCalendar, FiPlusSquare, FiFileText, FiActivity, FiMapPin, FiClock, FiVideo, FiAlertCircle, FiGrid } from 'react-icons/fi';
+import { FiCalendar, FiPlusSquare, FiFileText, FiActivity, FiMapPin, FiClock, FiVideo, FiAlertCircle, FiGrid, FiMessageCircle, FiPhone } from 'react-icons/fi';
 import { useAuth } from '@/lib/auth';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -80,25 +80,25 @@ export default function PatientView() {
                 <div className="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
                     <button
                         onClick={() => setShowBookingModal(true)}
-                        className="flex items-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm transition whitespace-nowrap"
+                        className="flex items-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm transition whitespace-nowrap shadow-lg shadow-blue-600/20"
                     >
                         <FiPlusSquare className="text-lg" />
                         Book Appointment
                     </button>
                     <Link
-                        href="/dashboard/pharmacy"
-                        className="flex items-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold text-sm transition whitespace-nowrap"
+                        href="/dashboard/support"
+                        className="flex items-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold text-sm transition whitespace-nowrap shadow-lg shadow-green-600/20"
                     >
-                        <FiPlusSquare className="text-lg" />
-                        Pharmacy
+                        <FiMessageCircle className="text-lg" />
+                        Chat Support
                     </Link>
-                    <Link
-                        href="/dashboard/lab"
-                        className="flex items-center gap-2 px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-sm transition whitespace-nowrap"
+                    <a
+                        href="tel:+254700000000"
+                        className="flex items-center gap-2 px-4 py-3 bg-gray-900 dark:bg-white hover:bg-black dark:hover:bg-gray-200 text-white dark:text-black rounded-xl font-bold text-sm transition whitespace-nowrap shadow-lg"
                     >
-                        <FiActivity className="text-lg" />
-                        Laboratory
-                    </Link>
+                        <FiPhone className="text-lg" />
+                        Call Admin
+                    </a>
                 </div>
 
                 <div className="flex items-center gap-3 w-full md:w-auto">
