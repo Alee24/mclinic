@@ -66,6 +66,10 @@ export default function DoctorDetailsPage() {
                             }`}>
                             {doctor.verified_status ? 'Verified' : 'Pending Verification'}
                         </span>
+                        {/* Online Status */}
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase border ${doctor.isWorking ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
+                            {doctor.isWorking ? 'Online' : 'Offline'}
+                        </span>
                     </div>
                     <div className="text-lg text-gray-500 dark:text-gray-400 font-medium mt-1">{doctor.dr_type}</div>
 
@@ -185,7 +189,7 @@ export default function DoctorDetailsPage() {
 
             {/* Tabs */}
             <div className="flex gap-6 border-b border-gray-200 dark:border-gray-800 overflow-x-auto">
-                {['profile', 'appointments', (isAdmin || isOwner) ? 'financials' : null].filter(Boolean).map((tab) => (
+                {['profile', (isAdmin || isOwner) ? 'appointments' : null, (isAdmin || isOwner) ? 'financials' : null].filter(Boolean).map((tab) => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab as any)}
@@ -243,35 +247,48 @@ export default function DoctorDetailsPage() {
                         <div className="space-y-6">
                             <section className="bg-white dark:bg-[#161616] rounded-xl p-6 border border-gray-100 dark:border-gray-800">
                                 <h3 className="text-lg font-bold dark:text-white mb-4">Contact Information</h3>
-                                <div className="space-y-4 text-sm">
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 shrink-0"><FiPhone /></div>
-                                        <div>
-                                            <div className="text-xs text-gray-400">Mobile Number</div>
-                                            <div className="font-medium dark:text-gray-200">{doctor.mobile}</div>
+                                {(isAdmin || isOwner || appointments.some(a => a.patient?.id === user?.id && ['completed', 'approved'].includes(a.status))) ? (
+                                    <div className="space-y-4 text-sm">
+                                        <div className="flex items-start gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 shrink-0"><FiPhone /></div>
+                                            <div>
+                                                <div className="text-xs text-gray-400">Mobile Number</div>
+                                                <div className="font-medium dark:text-gray-200">{doctor.mobile}</div>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-start gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 shrink-0"><FiMail /></div>
+                                            <div>
+                                                <div className="text-xs text-gray-400">Email Address</div>
+                                                <div className="font-medium dark:text-gray-200">{doctor.email}</div>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-start gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 shrink-0"><FiMapPin /></div>
+                                            <div>
+                                                <div className="text-xs text-gray-400">Address / Location</div>
+                                                <div className="font-medium dark:text-gray-200">{doctor.address}</div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 shrink-0"><FiMail /></div>
-                                        <div>
-                                            <div className="text-xs text-gray-400">Email Address</div>
-                                            <div className="font-medium dark:text-gray-200">{doctor.email}</div>
+                                ) : (
+                                    <div className="text-center p-6 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                                        <div className="w-12 h-12 bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-3">
+                                            <FiUser className="text-gray-400" size={24} />
                                         </div>
+                                        <div className="text-sm font-bold text-gray-600 dark:text-gray-300">Contact Details Hidden</div>
+                                        <p className="text-xs text-gray-500 mt-1 mb-3">
+                                            Book and pay for an appointment to view this medic's contact information.
+                                        </p>
                                     </div>
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 shrink-0"><FiMapPin /></div>
-                                        <div>
-                                            <div className="text-xs text-gray-400">Address / Location</div>
-                                            <div className="font-medium dark:text-gray-200">{doctor.address}</div>
-                                        </div>
-                                    </div>
-                                </div>
+                                )}
                             </section>
                         </div>
                     </div>
                 )}
 
-                {activeTab === 'appointments' && (
+                {/* Appointments Tab - Only visible to Admin/Owner */}
+                {(activeTab === 'appointments' && (isAdmin || isOwner)) && (
                     <div className="bg-white dark:bg-[#161616] rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800 animate-in fade-in slide-in-from-bottom-2 duration-500">
                         <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
                             <h3 className="font-bold dark:text-white">Appointment History</h3>

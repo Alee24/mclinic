@@ -149,16 +149,18 @@ export default function MapViewer() {
                         ? (doc.profile_image.startsWith('http') ? doc.profile_image : `${process.env.NEXT_PUBLIC_API_URL || 'https://portal.mclinic.co.ke/api'}/uploads/profiles/${doc.profile_image}`)
                         : `https://ui-avatars.com/api/?name=${doc.fname}+${doc.lname}&background=random`;
 
+                    const isOnline = doc.isWorking; // Assuming backend sends this
+
                     return (
                         <Marker
                             key={doc.id}
                             position={[doc.latitude, doc.longitude]}
                             icon={L.divIcon({
-                                html: `<div class="relative w-12 h-12 group transition-transform hover:scale-110">
-                                         <div class="absolute inset-0 bg-gradient-to-tr from-green-500 to-emerald-400 rounded-full p-[2px] shadow-lg shadow-green-900/50">
+                                html: `<div class="relative w-12 h-12 group transition-transform hover:scale-110 z-10">
+                                         <div class="absolute inset-0 bg-gradient-to-tr ${isOnline ? 'from-green-500 to-emerald-400' : 'from-gray-500 to-gray-400'} rounded-full p-[2px] shadow-lg ${isOnline ? 'shadow-green-900/50' : 'shadow-black/50'}">
                                             <img src="${avatarUrl}" class="w-full h-full rounded-full object-cover border-2 border-[#1a1a20]" />
                                          </div>
-                                         <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-[#1a1a20] rounded-full"></div>
+                                         <div class="absolute -bottom-1 -right-1 w-4 h-4 ${isOnline ? 'bg-green-500' : 'bg-gray-500'} border-2 border-[#1a1a20] rounded-full"></div>
                                        </div>`,
                                 className: '',
                                 iconSize: [48, 48],
@@ -168,19 +170,26 @@ export default function MapViewer() {
                             <Popup>
                                 <div className="p-1 min-w-[200px]">
                                     <div className="flex items-center gap-3 mb-3">
-                                        <div className="w-10 h-10 rounded-full overflow-hidden">
+                                        <div className="w-10 h-10 rounded-full overflow-hidden border border-gray-200">
                                             <img src={avatarUrl} className="w-full h-full object-cover" />
                                         </div>
                                         <div>
                                             <div className="font-bold text-gray-900 text-sm">{doc.fname} {doc.lname}</div>
-                                            <div className="text-xs text-green-600 font-bold uppercase">{doc.dr_type}</div>
+                                            <div className="text-xs text-gray-500 font-medium uppercase">{doc.dr_type}</div>
                                         </div>
                                     </div>
-                                    <div className="text-xs text-gray-500 mb-3 flex items-center gap-1">
-                                        <span>📍</span> {doc.distance ? doc.distance.toFixed(1) : '?'} km away
+
+                                    <div className="flex items-center gap-2 mb-3 text-xs">
+                                        <span className={`px-2 py-0.5 rounded-full font-bold text-white ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}>
+                                            {isOnline ? 'ONLINE' : 'OFFLINE'}
+                                        </span>
+                                        <span className="text-gray-500 flex items-center gap-1">
+                                            📍 {doc.distance ? doc.distance.toFixed(1) : '?'} km
+                                        </span>
                                     </div>
+
                                     <a href={`/dashboard/doctors/${doc.id}`} className="block w-full text-center py-2 bg-gray-900 text-white text-xs font-bold rounded-lg hover:bg-gray-800 transition">
-                                        VIEW PROFILE
+                                        VIEW PROFILE & BOOK
                                     </a>
                                 </div>
                             </Popup>
