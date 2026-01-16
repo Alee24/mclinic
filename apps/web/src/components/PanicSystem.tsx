@@ -74,7 +74,11 @@ export default function PanicSystem() {
             }, (err) => {
                 console.error('Geolocation failed', err);
                 // Try sending without location?
-                api.post('/emergency/alert', { lat: 0, lng: 0 }).then(res => res?.ok && res.json().then(d => startRecording(d.id)));
+                api.post('/emergency/alert', { lat: 0, lng: 0 }).then(res => {
+                    if (res?.ok) {
+                        res.json().then((d: any) => startRecording(d.id));
+                    }
+                });
             });
         }
     };
@@ -97,9 +101,7 @@ export default function PanicSystem() {
 
             // Upload chunk every 10 seconds
             recordingIntervalRef.current = setInterval(() => {
-                stopAndUpload(currentAlertId); // Note: Simplified logic. MediaRecorder handling is tricky for continuous streams. 
-                // Better: stop, upload, restart? Or requestData?
-                // mediaRecorder.requestData(); // This triggers ondataavailable
+                // Upload chunk periodically
                 uploadChunks(currentAlertId);
             }, 10000);
 
