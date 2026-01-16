@@ -34,8 +34,12 @@ export class DoctorsController {
   }
 
   @Get()
-  findAll(@Query('search') search?: string) {
-    return this.doctorsService.findAllVerified(search);
+  findAll(
+    @Query('search') search?: string,
+    @Query('include_offline') includeOffline?: string
+  ) {
+    const isOfflineIncluded = includeOffline === 'true';
+    return this.doctorsService.findAllVerified(search, isOfflineIncluded);
   }
 
   @Get('admin/all')

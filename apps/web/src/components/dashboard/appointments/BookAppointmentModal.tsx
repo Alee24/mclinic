@@ -54,6 +54,7 @@ interface Doctor {
     distance?: number;
     dr_type: string;
     profile_image?: string;
+    is_online?: number;
 }
 
 interface BookAppointmentModalProps {
@@ -182,7 +183,8 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
 
     const fetchDoctors = async () => {
         try {
-            const res = await api.get('/doctors');
+            // Include offline doctors for booking purposes
+            const res = await api.get('/doctors?include_offline=true');
             if (res && res.ok) {
                 const data = await res.json();
                 setDoctors(data);
@@ -466,6 +468,21 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                                             {doc.distance !== undefined && (
                                                 <span className="text-xs font-medium text-gray-400 bg-gray-50 dark:bg-gray-900 px-2 py-1 rounded">
                                                     {doc.distance < 1 ? '< 1 km' : `${doc.distance.toFixed(1)} km`}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {/* Status Badge */}
+                                        <div className="mb-3">
+                                            {doc.is_online === 1 ? (
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-200">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                                                    Online
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                                                    Offline
                                                 </span>
                                             )}
                                         </div>

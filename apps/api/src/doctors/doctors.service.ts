@@ -144,7 +144,7 @@ export class DoctorsService implements OnModuleInit {
         return this.doctorsRepository.save(doctor);
     }
 
-    async findAllVerified(search?: string): Promise<any[]> {
+    async findAllVerified(search?: string, includeOffline: boolean = false): Promise<any[]> {
         // Query Builder to handle search filters - ONLY APPROVED DOCTORS
         const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
@@ -153,9 +153,12 @@ export class DoctorsService implements OnModuleInit {
             .andWhere('doctor.licenseStatus = :licenseStatus', { licenseStatus: 'valid' })
             .andWhere('doctor.status = :status', { status: 1 })
             // Strict License Date Check: Expiry must be in the future
-            .andWhere('doctor.licenseExpiryDate > :currentDate', { currentDate })
-            // Keep Online check if that's the desired flow for immediate booking
-            .andWhere('doctor.is_online = :isOnline', { isOnline: 1 });
+            .andWhere('doctor.licenseExpiryDate > :currentDate', { currentDate });
+
+        // Only enforce Online check if NOT specifically asked to include offline
+        if (!includeOffline) {
+            query.andWhere('doctor.is_online = :isOnline', { isOnline: 1 });
+        }
 
         if (search) {
             query.andWhere(
