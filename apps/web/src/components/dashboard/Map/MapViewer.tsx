@@ -164,10 +164,17 @@ export default function MapViewer() {
                 {position && (
                     <Marker position={position} icon={L.divIcon({
                         className: '',
-                        html: `<div class="relative w-6 h-6">
-                                 <div class="absolute inset-0 bg-blue-500 rounded-full opacity-50 animate-ping"></div>
-                                 <div class="absolute inset-1.5 bg-blue-500 rounded-full border-2 border-white shadow-lg"></div>
-                               </div>`
+                        html: `
+                            <div class="relative w-12 h-12 flex items-center justify-center -ml-3 -mt-3">
+                                <div class="absolute inset-0 bg-green-500 rounded-full opacity-30 animate-ping"></div>
+                                <div class="relative z-10 w-10 h-10 bg-green-600 rounded-full border-4 border-white shadow-xl flex items-center justify-center text-white">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                </div>
+                                <div class="absolute -bottom-2 bg-white px-2 py-0.5 rounded text-[10px] font-bold shadow-sm whitespace-nowrap">You</div>
+                            </div>
+                        `,
+                        iconSize: [40, 40],
+                        iconAnchor: [20, 20]
                     })} />
                 )}
 
