@@ -116,7 +116,8 @@ export default function EncryptionSpinner({
                 </div>
             </div>
 
-            <style jsx>{`
+            <style dangerouslySetInnerHTML={{
+                __html: `
         @keyframes shimmer {
           0% { transform: translateX(-100%); }
           100% { transform: translateX(100%); }
@@ -125,7 +126,7 @@ export default function EncryptionSpinner({
           0% { transform: scaleX(0); }
           100% { transform: scaleX(1); }
         }
-      `}</style>
+      `}} />
         </div>
     );
 }
