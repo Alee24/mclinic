@@ -1,10 +1,12 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { useState, useEffect, useRef } from 'react';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { FiNavigation, FiSearch, FiFilter, FiCrosshair, FiMapPin, FiUser, FiX, FiCheck, FiMoreHorizontal } from 'react-icons/fi';
+import { useRouter } from 'next/navigation';
 
-// Fix for Leaflet default marker icons in Next.js
+// Fix for Leaflet default marker icons
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
@@ -17,10 +19,18 @@ L.Icon.Default.mergeOptions({
     shadowUrl: markerShadow.src,
 });
 
+// Component to handle map clicks and movement
+function MapController({ onMapClick }: { onMapClick: () => void }) {
+    useMapEvents({
+        click: () => onMapClick(),
+    });
+    return null;
+}
+
 function RecenterAutomatically({ lat, lng }: { lat: number, lng: number }) {
     const map = useMap();
     useEffect(() => {
-        map.setView([lat, lng]);
+        map.flyTo([lat, lng], 14, { duration: 2 });
     }, [lat, lng, map]);
     return null;
 }
@@ -28,175 +38,252 @@ function RecenterAutomatically({ lat, lng }: { lat: number, lng: number }) {
 export default function MapViewer() {
     const [position, setPosition] = useState<[number, number] | null>(null);
     const [doctors, setDoctors] = useState<any[]>([]);
+    const [filteredDoctors, setFilteredDoctors] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    const handleGetLocation = () => {
-        setLoading(true);
-        setError(null);
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(async (pos) => {
-                const { latitude, longitude } = pos.coords;
-                setPosition([latitude, longitude]);
-
-                // Fetch doctors
-                try {
-                    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://portal.mclinic.co.ke/api';
-                    const res = await fetch(`${API_URL}/doctors/nearby?lat=${latitude}&lng=${longitude}&radius=50`);
-                    if (!res.ok) throw new Error('Failed to fetch');
-                    const data = await res.json();
-                    setDoctors(data);
-                } catch (e) {
-                    setError('Failed to load nearby doctors');
-                } finally {
-                    setLoading(false);
-                }
-            }, (err) => {
-                setError('Location access denied. Please enable GPS in your browser settings.');
-                setLoading(false);
-            });
-        } else {
-            setError('Geolocation is not supported by this browser.');
-            setLoading(false);
-        }
-    };
+    const [selectedDoctor, setSelectedDoctor] = useState<any>(null);
+    const [activeFilter, setActiveFilter] = useState('All');
+    const [viewMode, setViewMode] = useState<'dark' | 'light'>('dark');
+    const mapRef = useRef<L.Map>(null);
+    const router = useRouter();
 
     // Nairobi default
     const defaultCenter: [number, number] = [-1.2921, 36.8219];
 
+    // Fetch Doctors
+    const fetchDoctors = async (lat: number, lng: number) => {
+        setLoading(true);
+        try {
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://portal.mclinic.co.ke/api';
+            const res = await fetch(`${API_URL}/doctors/nearby?lat=${lat}&lng=${lng}&radius=50`);
+            if (res.ok) {
+                const data = await res.json();
+                setDoctors(data);
+                setFilteredDoctors(data);
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleGetLocation = () => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((pos) => {
+                const { latitude, longitude } = pos.coords;
+                setPosition([latitude, longitude]);
+                fetchDoctors(latitude, longitude);
+            }, (err) => {
+                alert('Location access required to find nearby medics.');
+            });
+        }
+    };
+
+    // Initial load
+    useEffect(() => {
+        handleGetLocation();
+    }, []);
+
+    // Filter Logic
+    useEffect(() => {
+        if (activeFilter === 'All') {
+            setFilteredDoctors(doctors);
+        } else {
+            setFilteredDoctors(doctors.filter(d =>
+                (d.dr_type || '').toLowerCase().includes(activeFilter.toLowerCase()) ||
+                (d.speciality || '').toLowerCase().includes(activeFilter.toLowerCase())
+            ));
+        }
+    }, [activeFilter, doctors]);
+
+    // Marker Icon Generator
+    const createMarkerIcon = (doc: any, isSelected: boolean) => {
+        const avatarUrl = doc.profile_image
+            ? (doc.profile_image.startsWith('http') ? doc.profile_image : `${process.env.NEXT_PUBLIC_API_URL || 'https://portal.mclinic.co.ke/api'}/uploads/profiles/${doc.profile_image}`)
+            : `https://ui-avatars.com/api/?name=${doc.fname}+${doc.lname}&background=random`;
+
+        const isOnline = doc.isWorking;
+
+        return L.divIcon({
+            html: `
+                <div class="relative transition-all duration-300 ${isSelected ? 'scale-125 z-50' : 'scale-100 hover:scale-110 z-10'}">
+                    <div class="w-12 h-12 rounded-full border-2 ${isSelected ? 'border-white shadow-[0_0_20px_rgba(255,255,255,0.5)]' : 'border-[#1a1a20] shadow-xl'} overflow-hidden bg-gray-800">
+                        <img src="${avatarUrl}" class="w-full h-full object-cover" />
+                    </div>
+                    <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}"></div>
+                </div>
+            `,
+            className: '',
+            iconSize: [48, 48],
+            iconAnchor: [24, 24],
+        });
+    };
+
+    const specialties = ['All', 'General', 'Dentist', 'Cardiologist', 'Pediatrician', 'Optician'];
+
     return (
-        <div className="relative w-full h-full min-h-[600px] rounded-3xl overflow-hidden shadow-2xl border border-gray-800 bg-[#0f0f13]">
+        <div className="relative w-full h-[85vh] min-h-[600px] rounded-3xl overflow-hidden shadow-2xl bg-[#0f0f13] flex flex-col">
 
-            {/* Overlay Card - Floating Control */}
-            <div className="absolute top-6 left-6 z-[1000] w-72 bg-[#1a1a20]/95 backdrop-blur-xl border border-white/10 p-5 rounded-2xl shadow-2xl text-white">
-                <div className="flex justify-between items-start mb-4">
-                    <h3 className="font-bold text-lg">Radar</h3>
-                    <div className="animate-pulse w-2 h-2 rounded-full bg-green-500 mt-2"></div>
+            {/* 1. Header Filters (Floating) */}
+            <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[1000] max-w-[95%] w-full sm:w-auto">
+                <div className="flex items-center gap-2 p-1.5 bg-black/40 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl overflow-x-auto no-scrollbar">
+                    {specialties.map(spec => (
+                        <button
+                            key={spec}
+                            onClick={() => setActiveFilter(spec)}
+                            className={`px-4 py-2 rounded-full text-xs font-bold transition whitespace-nowrap ${activeFilter === spec
+                                    ? 'bg-white text-black shadow-lg scale-105'
+                                    : 'text-gray-300 hover:bg-white/10'
+                                }`}
+                        >
+                            {spec}
+                        </button>
+                    ))}
                 </div>
-
-                {/* Stats Grid */}
-                <div className="grid grid-cols-3 gap-2 mb-6">
-                    <div className="bg-white/5 rounded-xl p-2 text-center">
-                        <div className="text-xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
-                            {doctors.length}
-                        </div>
-                        <div className="text-[10px] text-gray-400 uppercase tracking-wider">Medics</div>
-                    </div>
-                    <div className="bg-white/5 rounded-xl p-2 text-center">
-                        <div className="text-xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
-                            50
-                        </div>
-                        <div className="text-[10px] text-gray-400 uppercase tracking-wider">Km Range</div>
-                    </div>
-                    <div className="bg-white/5 rounded-xl p-2 text-center">
-                        <div className="text-xl font-bold text-white">
-                            {position ? 'ON' : 'OFF'}
-                        </div>
-                        <div className="text-[10px] text-gray-400 uppercase tracking-wider">GPS</div>
-                    </div>
-                </div>
-
-                <button
-                    onClick={handleGetLocation}
-                    disabled={loading}
-                    className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl font-bold text-sm shadow-xl shadow-blue-900/20 hover:shadow-blue-900/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 group ring-1 ring-white/10"
-                >
-                    {loading ? (
-                        <>
-                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                            Scanning...
-                        </>
-                    ) : (
-                        <>
-                            <svg className="w-5 h-5 group-hover:animate-ping absolute opacity-20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" /></svg>
-                            <svg className="w-5 h-5 relative" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" /></svg>
-                            ENABLE GPS
-                        </>
-                    )}
-                </button>
-                {error && <p className="text-red-400 text-xs mt-3 text-center bg-red-900/20 p-2 rounded-lg">{error}</p>}
             </div>
 
-            <MapContainer center={defaultCenter} zoom={13} style={{ height: '100%', width: '100%', background: '#09090b', zIndex: 0 }}>
-                {/* Dark Matter Map Style */}
+            {/* 2. Map Layer */}
+            <MapContainer
+                ref={mapRef}
+                center={defaultCenter}
+                zoom={13}
+                zoomControl={false}
+                style={{ height: '100%', width: '100%', background: '#09090b', zIndex: 0 }}
+            >
                 <TileLayer
-                    url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                    attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
-                    subdomains="abcd"
+                    url={viewMode === 'dark'
+                        ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                        : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                    }
+                    attribution='&copy; CARTO'
                     maxZoom={20}
                 />
 
+                <MapController onMapClick={() => setSelectedDoctor(null)} />
+
                 {position && <RecenterAutomatically lat={position[0]} lng={position[1]} />}
 
-                {/* Current User Marker - Pulse Effect */}
+                {/* User Location */}
                 {position && (
                     <Marker position={position} icon={L.divIcon({
-                        className: '', // Reset
-                        html: `<div class="relative w-8 h-8">
+                        className: '',
+                        html: `<div class="relative w-6 h-6">
                                  <div class="absolute inset-0 bg-blue-500 rounded-full opacity-50 animate-ping"></div>
-                                 <div class="absolute inset-2 bg-blue-500 rounded-full border-2 border-white shadow-lg"></div>
-                               </div>`,
-                        iconSize: [32, 32],
-                        iconAnchor: [16, 16]
-                    })}>
-                        <Popup className="custom-popup">You are here</Popup>
-                    </Marker>
+                                 <div class="absolute inset-1.5 bg-blue-500 rounded-full border-2 border-white shadow-lg"></div>
+                               </div>`
+                    })} />
                 )}
 
                 {/* Doctor Markers */}
-                {doctors.map((doc: any) => {
-                    const avatarUrl = doc.profile_image
-                        ? (doc.profile_image.startsWith('http') ? doc.profile_image : `${process.env.NEXT_PUBLIC_API_URL || 'https://portal.mclinic.co.ke/api'}/uploads/profiles/${doc.profile_image}`)
-                        : `https://ui-avatars.com/api/?name=${doc.fname}+${doc.lname}&background=random`;
-
-                    const isOnline = doc.isWorking; // Assuming backend sends this
-
-                    return (
-                        <Marker
-                            key={doc.id}
-                            position={[doc.latitude, doc.longitude]}
-                            icon={L.divIcon({
-                                html: `<div class="relative w-12 h-12 group transition-transform hover:scale-110 z-10">
-                                         <div class="absolute inset-0 bg-gradient-to-tr ${isOnline ? 'from-green-500 to-emerald-400' : 'from-gray-500 to-gray-400'} rounded-full p-[2px] shadow-lg ${isOnline ? 'shadow-green-900/50' : 'shadow-black/50'}">
-                                            <img src="${avatarUrl}" class="w-full h-full rounded-full object-cover border-2 border-[#1a1a20]" />
-                                         </div>
-                                         <div class="absolute -bottom-1 -right-1 w-4 h-4 ${isOnline ? 'bg-green-500' : 'bg-gray-500'} border-2 border-[#1a1a20] rounded-full"></div>
-                                       </div>`,
-                                className: '',
-                                iconSize: [48, 48],
-                                iconAnchor: [24, 48]
-                            })}
-                        >
-                            <Popup>
-                                <div className="p-1 min-w-[200px]">
-                                    <div className="flex items-center gap-3 mb-3">
-                                        <div className="w-10 h-10 rounded-full overflow-hidden border border-gray-200">
-                                            <img src={avatarUrl} className="w-full h-full object-cover" />
-                                        </div>
-                                        <div>
-                                            <div className="font-bold text-gray-900 text-sm">{doc.fname} {doc.lname}</div>
-                                            <div className="text-xs text-gray-500 font-medium uppercase">{doc.dr_type}</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-2 mb-3 text-xs">
-                                        <span className={`px-2 py-0.5 rounded-full font-bold text-white ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}>
-                                            {isOnline ? 'ONLINE' : 'OFFLINE'}
-                                        </span>
-                                        <span className="text-gray-500 flex items-center gap-1">
-                                            📍 {doc.distance ? doc.distance.toFixed(1) : '?'} km
-                                        </span>
-                                    </div>
-
-                                    <a href={`/dashboard/doctors/${doc.id}`} className="block w-full text-center py-2 bg-gray-900 text-white text-xs font-bold rounded-lg hover:bg-gray-800 transition">
-                                        VIEW PROFILE & BOOK
-                                    </a>
-                                </div>
-                            </Popup>
-                        </Marker>
-                    );
-                })}
+                {filteredDoctors.map((doc) => (
+                    <Marker
+                        key={doc.id}
+                        position={[doc.latitude, doc.longitude]}
+                        icon={createMarkerIcon(doc, selectedDoctor?.id === doc.id)}
+                        eventHandlers={{
+                            click: () => {
+                                setSelectedDoctor(doc);
+                                // Optional: Fly to doctor
+                                // mapRef.current?.flyTo([doc.latitude, doc.longitude], 15);
+                            }
+                        }}
+                    />
+                ))}
             </MapContainer>
+
+            {/* 3. Floating Controls (Bottom Right) */}
+            <div className="absolute bottom-8 right-6 z-[1000] flex flex-col gap-3">
+                <button
+                    onClick={() => setViewMode(prev => prev === 'dark' ? 'light' : 'dark')}
+                    className="w-12 h-12 bg-black/60 backdrop-blur-md rounded-2xl border border-white/10 text-white flex items-center justify-center hover:bg-black/80 transition"
+                    title="Toggle Theme"
+                >
+                    {viewMode === 'dark' ? '☀️' : '🌙'}
+                </button>
+                <button
+                    onClick={handleGetLocation}
+                    className="w-12 h-12 bg-blue-600 rounded-2xl text-white flex items-center justify-center shadow-lg shadow-blue-500/30 hover:scale-110 active:scale-95 transition"
+                    title="Locate Me"
+                >
+                    <FiCrosshair size={24} />
+                </button>
+            </div>
+
+            {/* 4. Selected Doctor Card (Bottom Left / Bottom Sheet) */}
+            {selectedDoctor && (
+                <div className="absolute bottom-6 left-6 right-6 sm:right-auto sm:w-96 z-[1000] animate-in slide-in-from-bottom-5 fade-in duration-300">
+                    <div className="bg-[#1a1a20]/95 backdrop-blur-xl border border-white/10 rounded-3xl p-5 shadow-2xl relative overflow-hidden group">
+
+                        {/* Background Gradient Blob */}
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/20 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+
+                        <button
+                            onClick={() => setSelectedDoctor(null)}
+                            className="absolute top-4 right-4 text-gray-400 hover:text-white transition"
+                        >
+                            <FiX />
+                        </button>
+
+                        <div className="flex items-start gap-4">
+                            <div className="w-20 h-20 rounded-2xl bg-gray-800 overflow-hidden shadow-lg border-2 border-white/10 shrink-0">
+                                <img
+                                    src={selectedDoctor.profile_image
+                                        ? (selectedDoctor.profile_image.startsWith('http') ? selectedDoctor.profile_image : `${process.env.NEXT_PUBLIC_API_URL || 'https://portal.mclinic.co.ke/api'}/uploads/profiles/${selectedDoctor.profile_image}`)
+                                        : `https://ui-avatars.com/api/?name=${selectedDoctor.fname}+${selectedDoctor.lname}&background=random`
+                                    }
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                            <div className="flex-1 min-w-0 pr-6">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <h3 className="text-lg font-bold text-white truncate">
+                                        Dr. {selectedDoctor.fname} {selectedDoctor.lname}
+                                    </h3>
+                                    {selectedDoctor.verified_status && <FiCheck className="text-blue-400" />}
+                                </div>
+                                <div className="text-sm font-medium text-blue-400 mb-2">{selectedDoctor.dr_type}</div>
+                                <div className="flex items-center gap-2 text-xs text-gray-400">
+                                    <span className={`w-2 h-2 rounded-full ${selectedDoctor.isWorking ? 'bg-green-500' : 'bg-gray-500'}`}></span>
+                                    {selectedDoctor.isWorking ? 'Available Now' : 'Offline'}
+                                    <span className="mx-1">•</span>
+                                    <span>{selectedDoctor.distance ? `${selectedDoctor.distance.toFixed(1)} km` : 'Nearby'}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Specs Grid */}
+                        <div className="grid grid-cols-2 gap-3 mt-5 mb-5">
+                            <div className="bg-white/5 rounded-xl p-3 text-center border border-white/5">
+                                <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Fee</div>
+                                <div className="font-bold text-white text-lg">KES {selectedDoctor.fee}</div>
+                            </div>
+                            <div className="bg-white/5 rounded-xl p-3 text-center border border-white/5">
+                                <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Reviews</div>
+                                <div className="font-bold text-white text-lg flex items-center justify-center gap-1">
+                                    ⭐ 4.8
+                                </div>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => router.push(`/dashboard/doctors/${selectedDoctor.id}`)}
+                            className="w-full py-4 bg-white text-black rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-gray-200 transition active:scale-[0.98]"
+                        >
+                            View Profile & Book
+                            <FiNavigation />
+                        </button>
+
+                    </div>
+                </div>
+            )}
+
+            {/* Loading Indicator */}
+            {loading && (
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/80 text-white px-6 py-3 rounded-full flex items-center gap-3 backdrop-blur-md z-[2000]">
+                    <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                    <span className="font-bold text-sm">Scanning Area...</span>
+                </div>
+            )}
         </div>
     );
 }
