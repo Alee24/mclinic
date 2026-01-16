@@ -454,54 +454,71 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                                 {loading && <div className="col-span-2 text-center py-12">Loading...</div>}
 
                                 {filteredDoctors.map(doc => (
-                                    <div key={doc.id} className="border border-gray-100 dark:border-gray-800 rounded-2xl p-4 hover:shadow-lg transition-shadow bg-white dark:bg-[#1A1A1A] group">
-                                        <div className="flex items-start justify-between mb-3">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xl overflow-hidden shrink-0">
+                                    <div
+                                        key={doc.id}
+                                        className="relative group bg-white dark:bg-[#1A1A1A] border border-gray-100 dark:border-gray-800 rounded-2xl p-5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                                        onClick={() => setSelectedDoctor(doc)}
+                                    >
+                                        {/* Header: Avatar & Status */}
+                                        <div className="flex items-start justify-between mb-4">
+                                            <div className="relative">
+                                                <div className="w-16 h-16 rounded-2xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center text-2xl overflow-hidden shadow-sm border-2 border-white dark:border-gray-700">
                                                     <DoctorAvatar doctor={doc} />
                                                 </div>
-                                                <div>
-                                                    <h4 className="font-bold text-gray-900 dark:text-white line-clamp-1">{doc.fname} {doc.lname}</h4>
-                                                    <p className="text-xs text-primary font-bold uppercase tracking-wide">{doc.dr_type || doc.speciality || 'General'}</p>
+                                                {/* Online Status Dot */}
+                                                <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white dark:border-[#1A1A1A] flex items-center justify-center ${doc.is_online === 1 ? 'bg-green-500' : 'bg-gray-300'}`}>
+                                                    {doc.is_online === 1 && <div className="w-2 h-2 rounded-full bg-white animate-pulse"></div>}
                                                 </div>
                                             </div>
+
+                                            {/* Distance Badge */}
                                             {doc.distance !== undefined && (
-                                                <span className="text-xs font-medium text-gray-400 bg-gray-50 dark:bg-gray-900 px-2 py-1 rounded">
+                                                <span className="flex items-center gap-1 text-[10px] font-bold text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full">
+                                                    <FiMapPin className="w-3 h-3" />
                                                     {doc.distance < 1 ? '< 1 km' : `${doc.distance.toFixed(1)} km`}
                                                 </span>
                                             )}
                                         </div>
 
-                                        {/* Status Badge */}
-                                        <div className="mb-3">
-                                            {doc.is_online === 1 ? (
-                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-200">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                                                    Online
-                                                </span>
-                                            ) : (
-                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
-                                                    Offline
-                                                </span>
-                                            )}
-                                        </div>
+                                        {/* Content */}
+                                        <div className="space-y-1 mb-4">
+                                            <h4 className="text-lg font-black text-gray-900 dark:text-white leading-tight line-clamp-1 group-hover:text-primary transition-colors">
+                                                {doc.fname} {doc.lname}
+                                            </h4>
 
-                                        <div className="space-y-2 mb-4">
-                                            <div className="flex items-center gap-2 text-xs text-gray-500">
-                                                <FiMapPin /> <span className="truncate">{doc.address || 'Nairobi, Kenya'}</span>
-                                            </div>
-                                            <div className="flex items-center gap-2 text-xs text-gray-500">
-                                                <FiDollarSign /> <span className="font-bold text-gray-900 dark:text-white">KES {getDisplayFee(doc)}</span> / Visit
+                                            {/* Role Badge */}
+                                            <div className="flex flex-wrap gap-2">
+                                                <span className="inline-block px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">
+                                                    {doc.dr_type || 'Specialist'}
+                                                </span>
+                                                {doc.speciality && (
+                                                    <span className="inline-block px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[10px] font-bold uppercase tracking-wider">
+                                                        {doc.speciality}
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
 
-                                        <button
-                                            onClick={() => setSelectedDoctor(doc)}
-                                            className="w-full py-2.5 bg-gray-50 dark:bg-gray-800 hover:bg-donezo-dark hover:text-white text-gray-900 dark:text-white font-bold rounded-xl transition-colors text-sm"
-                                        >
-                                            Book Appointment
-                                        </button>
+                                        {/* Details Details */}
+                                        <div className="space-y-3 pt-4 border-t border-gray-50 dark:border-gray-800">
+                                            <div className="flex items-center justify-between text-xs">
+                                                <span className="text-gray-400 flex items-center gap-1.5">
+                                                    <FiMapPin />
+                                                    <span className="truncate max-w-[120px] font-medium">{doc.address || 'Nairobi, Kenya'}</span>
+                                                </span>
+
+                                                <div className="flex flex-col items-end">
+                                                    <span className="text-[10px] text-gray-400 uppercase font-bold">Consultation</span>
+                                                    <span className="font-black text-gray-900 dark:text-white">KES {getDisplayFee(doc)}</span>
+                                                </div>
+                                            </div>
+
+                                            {/* Action Button */}
+                                            <div className="w-full py-2.5 bg-gray-50 dark:bg-gray-800 group-hover:bg-primary group-hover:text-black text-gray-500 font-bold rounded-xl transition-all text-sm flex items-center justify-center gap-2">
+                                                <span>Book Appointment</span>
+                                                <span className="group-hover:translate-x-1 transition-transform">→</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
