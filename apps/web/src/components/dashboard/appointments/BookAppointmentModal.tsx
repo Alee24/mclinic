@@ -738,62 +738,75 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                                             </div>
 
                                             {/* External Controls */}
-                                            <div className="flex flex-col md:flex-row gap-4 items-center">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        if (navigator.geolocation) {
-                                                            const btn = document.getElementById('gps-btn-label');
-                                                            if (btn) btn.innerText = 'Locating...';
+                                            {/* External Controls */}
+                                            <div className="flex flex-col gap-4">
+                                                <div className="flex flex-col sm:flex-row gap-4">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            if (navigator.geolocation) {
+                                                                const btn = document.getElementById('gps-btn-label');
+                                                                if (btn) btn.innerText = 'Locating...';
 
-                                                            navigator.geolocation.getCurrentPosition(p => {
-                                                                const coords = { lat: p.coords.latitude, lng: p.coords.longitude };
-                                                                setUserLocation(coords);
-                                                                <div className="flex flex-col gap-4">
-                                                                    <div className="flex flex-col sm:flex-row gap-4">
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() => {
-                                                                                if (navigator.geolocation) {
-                                                                                    const btn = document.getElementById('gps-btn-label');
-                                                                                    if (btn) btn.innerText = 'Locating...';
+                                                                navigator.geolocation.getCurrentPosition(p => {
+                                                                    const coords = { lat: p.coords.latitude, lng: p.coords.longitude };
+                                                                    setUserLocation(coords);
+                                                                    fetchAddressFromCoords(coords.lat, coords.lng);
+                                                                    if (btn) btn.innerText = 'Got it!';
+                                                                    setTimeout(() => { if (btn) btn.innerText = 'Use Current GPS Location'; }, 2000);
+                                                                });
+                                                            }
+                                                        }}
+                                                        className="w-full sm:w-auto px-6 py-4 bg-gray-900 dark:bg-white text-white dark:text-black rounded-2xl font-black text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-xl flex items-center justify-center gap-2"
+                                                    >
+                                                        <FiMapPin className="text-lg" />
+                                                        <span id="gps-btn-label">Use Current GPS Location</span>
+                                                    </button>
 
-                                                                                    navigator.geolocation.getCurrentPosition(p => {
-                                                                                        const coords = { lat: p.coords.latitude, lng: p.coords.longitude };
-                                                                                        setUserLocation(coords);
-                                                                                        fetchAddressFromCoords(coords.lat, coords.lng);
-                                                                                        if (btn) btn.innerText = 'Got it!';
-                                                                                        setTimeout(() => { if (btn) btn.innerText = 'Use Current GPS Location'; }, 2000);
-                                                                                    });
-                                                                                }
-                                                                            }}
-                                                                            className="w-full sm:w-auto px-6 py-4 bg-gray-900 dark:bg-white text-white dark:text-black rounded-2xl font-black text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-xl flex items-center justify-center gap-2"
-                                                                        >
-                                                                            <FiMapPin className="text-lg" />
-                                                                            <span id="gps-btn-label">Use Current GPS Location</span>
-                                                                        </button>
-                                                                        <button
-                                                                            type="button"
-                                                                            id="search-btn"
-                                                                            className="w-full sm:w-auto bg-gray-900 dark:bg-white text-white dark:text-black px-6 py-4 sm:py-0 rounded-xl font-bold text-sm whitespace-nowrap hover:bg-gray-800 transition shadow-sm active:scale-95 flex items-center justify-center"
-                                                                        >
-                                                                            Find on Map
-                                                                        </button>
-                                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={async () => {
+                                                            if (!customHomeAddress) return;
+                                                            const btn = document.getElementById('search-btn');
+                                                            if (btn) btn.innerText = 'Searching...';
 
-                                                                    <div className="flex-1 w-full relative group">
-                                                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                                                            <FiSearch className="text-gray-400 group-focus-within:text-primary" />
-                                                                        </div>
-                                                                        <input
-                                                                            type="text"
-                                                                            placeholder="Or search address manually..."
-                                                                            className="w-full pl-11 pr-4 py-4 rounded-2xl bg-gray-50 dark:bg-[#0A0A0A] border-transparent focus:bg-white dark:focus:bg-black focus:ring-2 focus:ring-primary/20 transition-all font-medium outline-none text-sm"
-                                                                            value={customHomeAddress}
-                                                                            onChange={(e) => setCustomHomeAddress(e.target.value)}
-                                                                        />
-                                                                    </div>
-                                                                </div>
+                                                            try {
+                                                                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(customHomeAddress + ', Kenya')}`, {
+                                                                    headers: { 'User-Agent': 'Mclinic-App/1.0' }
+                                                                });
+                                                                const data = await res.json();
+                                                                if (data && data.length > 0) {
+                                                                    const { lat, lon } = data[0];
+                                                                    setUserLocation({ lat: Number(lat), lng: Number(lon) });
+                                                                } else {
+                                                                    alert('Location not found. Try adding a city name.');
+                                                                }
+                                                            } catch (e) {
+                                                                console.error(e);
+                                                            } finally {
+                                                                if (btn) btn.innerText = 'Find on Map';
+                                                            }
+                                                        }}
+                                                        id="search-btn"
+                                                        className="w-full sm:w-auto bg-gray-900 dark:bg-white text-white dark:text-black px-6 py-4 sm:py-0 rounded-xl font-bold text-sm whitespace-nowrap hover:bg-gray-800 transition shadow-sm active:scale-95 flex items-center justify-center"
+                                                    >
+                                                        Find on Map
+                                                    </button>
+                                                </div>
+
+                                                <div className="flex-1 w-full relative group">
+                                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                        <FiSearch className="text-gray-400 group-focus-within:text-primary" />
+                                                    </div>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Or search address manually..."
+                                                        className="w-full pl-11 pr-4 py-4 rounded-2xl bg-gray-50 dark:bg-[#0A0A0A] border-transparent focus:bg-white dark:focus:bg-black focus:ring-2 focus:ring-primary/20 transition-all font-medium outline-none text-sm"
+                                                        value={customHomeAddress}
+                                                        onChange={(e) => setCustomHomeAddress(e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
                                         </section>
                                     )}
 
