@@ -42,7 +42,7 @@ export default function MapViewer() {
     const [loading, setLoading] = useState(false);
     const [selectedDoctor, setSelectedDoctor] = useState<any>(null);
     const [activeFilter, setActiveFilter] = useState('All');
-    const [viewMode, setViewMode] = useState<'dark' | 'light'>('dark');
+    const [viewMode, setViewMode] = useState<'dark' | 'light'>('light');
     const mapRef = useRef<L.Map>(null);
     const router = useRouter();
 
@@ -107,10 +107,10 @@ export default function MapViewer() {
         return L.divIcon({
             html: `
                 <div class="relative transition-all duration-300 ${isSelected ? 'scale-125 z-50' : 'scale-100 hover:scale-110 z-10'}">
-                    <div class="w-12 h-12 rounded-full border-2 ${isSelected ? 'border-white shadow-[0_0_20px_rgba(255,255,255,0.5)]' : 'border-[#1a1a20] shadow-xl'} overflow-hidden bg-gray-800">
+                    <div class="w-12 h-12 rounded-full border-2 ${isSelected ? 'border-primary shadow-xl' : 'border-white dark:border-[#1a1a20] shadow-lg'} overflow-hidden bg-gray-200 dark:bg-gray-800">
                         <img src="${avatarUrl}" class="w-full h-full object-cover" />
                     </div>
-                    <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}"></div>
+                    <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white dark:border-[#1a1a20] ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}"></div>
                 </div>
             `,
             className: '',
@@ -122,18 +122,18 @@ export default function MapViewer() {
     const specialties = ['All', 'General', 'Dentist', 'Cardiologist', 'Pediatrician', 'Optician'];
 
     return (
-        <div className="relative w-full h-[85vh] min-h-[600px] rounded-3xl overflow-hidden shadow-2xl bg-[#0f0f13] flex flex-col">
+        <div className="relative w-full h-[85vh] min-h-[600px] rounded-3xl overflow-hidden shadow-2xl bg-white dark:bg-[#0f0f13] border border-gray-200 dark:border-gray-800 flex flex-col">
 
             {/* 1. Header Filters (Floating) */}
             <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[1000] max-w-[95%] w-full sm:w-auto">
-                <div className="flex items-center gap-2 p-1.5 bg-black/40 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl overflow-x-auto no-scrollbar">
+                <div className="flex items-center gap-2 p-1.5 bg-white/80 dark:bg-black/40 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-full shadow-xl overflow-x-auto no-scrollbar">
                     {specialties.map(spec => (
                         <button
                             key={spec}
                             onClick={() => setActiveFilter(spec)}
                             className={`px-4 py-2 rounded-full text-xs font-bold transition whitespace-nowrap ${activeFilter === spec
-                                    ? 'bg-white text-black shadow-lg scale-105'
-                                    : 'text-gray-300 hover:bg-white/10'
+                                ? 'bg-black text-white dark:bg-white dark:text-black shadow-lg scale-105'
+                                : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10'
                                 }`}
                         >
                             {spec}
@@ -148,7 +148,7 @@ export default function MapViewer() {
                 center={defaultCenter}
                 zoom={13}
                 zoomControl={false}
-                style={{ height: '100%', width: '100%', background: '#09090b', zIndex: 0 }}
+                style={{ height: '100%', width: '100%', background: 'transparent', zIndex: 0 }}
             >
                 <TileLayer
                     url={viewMode === 'dark'
@@ -195,7 +195,7 @@ export default function MapViewer() {
             <div className="absolute bottom-8 right-6 z-[1000] flex flex-col gap-3">
                 <button
                     onClick={() => setViewMode(prev => prev === 'dark' ? 'light' : 'dark')}
-                    className="w-12 h-12 bg-black/60 backdrop-blur-md rounded-2xl border border-white/10 text-white flex items-center justify-center hover:bg-black/80 transition"
+                    className="w-12 h-12 bg-white/90 dark:bg-black/60 backdrop-blur-md rounded-2xl border border-gray-200 dark:border-white/10 text-gray-800 dark:text-white flex items-center justify-center hover:bg-gray-50 dark:hover:bg-black/80 transition shadow-lg"
                     title="Toggle Theme"
                 >
                     {viewMode === 'dark' ? '☀️' : '🌙'}
@@ -212,20 +212,20 @@ export default function MapViewer() {
             {/* 4. Selected Doctor Card (Bottom Left / Bottom Sheet) */}
             {selectedDoctor && (
                 <div className="absolute bottom-6 left-6 right-6 sm:right-auto sm:w-96 z-[1000] animate-in slide-in-from-bottom-5 fade-in duration-300">
-                    <div className="bg-[#1a1a20]/95 backdrop-blur-xl border border-white/10 rounded-3xl p-5 shadow-2xl relative overflow-hidden group">
+                    <div className="bg-white/95 dark:bg-[#1a1a20]/95 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-3xl p-5 shadow-2xl relative overflow-hidden group">
 
                         {/* Background Gradient Blob */}
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/20 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/10 dark:bg-blue-600/20 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
 
                         <button
                             onClick={() => setSelectedDoctor(null)}
-                            className="absolute top-4 right-4 text-gray-400 hover:text-white transition"
+                            className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition"
                         >
                             <FiX />
                         </button>
 
                         <div className="flex items-start gap-4">
-                            <div className="w-20 h-20 rounded-2xl bg-gray-800 overflow-hidden shadow-lg border-2 border-white/10 shrink-0">
+                            <div className="w-20 h-20 rounded-2xl bg-gray-100 dark:bg-gray-800 overflow-hidden shadow-lg border-2 border-white dark:border-white/10 shrink-0">
                                 <img
                                     src={selectedDoctor.profile_image
                                         ? (selectedDoctor.profile_image.startsWith('http') ? selectedDoctor.profile_image : `${process.env.NEXT_PUBLIC_API_URL || 'https://portal.mclinic.co.ke/api'}/uploads/profiles/${selectedDoctor.profile_image}`)
@@ -236,14 +236,14 @@ export default function MapViewer() {
                             </div>
                             <div className="flex-1 min-w-0 pr-6">
                                 <div className="flex items-center gap-2 mb-1">
-                                    <h3 className="text-lg font-bold text-white truncate">
+                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">
                                         Dr. {selectedDoctor.fname} {selectedDoctor.lname}
                                     </h3>
-                                    {selectedDoctor.verified_status && <FiCheck className="text-blue-400" />}
+                                    {selectedDoctor.verified_status && <FiCheck className="text-blue-500" />}
                                 </div>
-                                <div className="text-sm font-medium text-blue-400 mb-2">{selectedDoctor.dr_type}</div>
-                                <div className="flex items-center gap-2 text-xs text-gray-400">
-                                    <span className={`w-2 h-2 rounded-full ${selectedDoctor.isWorking ? 'bg-green-500' : 'bg-gray-500'}`}></span>
+                                <div className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-2">{selectedDoctor.dr_type}</div>
+                                <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                    <span className={`w-2 h-2 rounded-full ${selectedDoctor.isWorking ? 'bg-green-500' : 'bg-gray-400 dark:bg-gray-500'}`}></span>
                                     {selectedDoctor.isWorking ? 'Available Now' : 'Offline'}
                                     <span className="mx-1">•</span>
                                     <span>{selectedDoctor.distance ? `${selectedDoctor.distance.toFixed(1)} km` : 'Nearby'}</span>
@@ -253,13 +253,13 @@ export default function MapViewer() {
 
                         {/* Specs Grid */}
                         <div className="grid grid-cols-2 gap-3 mt-5 mb-5">
-                            <div className="bg-white/5 rounded-xl p-3 text-center border border-white/5">
-                                <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Fee</div>
-                                <div className="font-bold text-white text-lg">KES {selectedDoctor.fee}</div>
+                            <div className="bg-gray-50 dark:bg-white/5 rounded-xl p-3 text-center border border-gray-100 dark:border-white/5">
+                                <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Fee</div>
+                                <div className="font-bold text-gray-900 dark:text-white text-lg">KES {selectedDoctor.fee}</div>
                             </div>
-                            <div className="bg-white/5 rounded-xl p-3 text-center border border-white/5">
-                                <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Reviews</div>
-                                <div className="font-bold text-white text-lg flex items-center justify-center gap-1">
+                            <div className="bg-gray-50 dark:bg-white/5 rounded-xl p-3 text-center border border-gray-100 dark:border-white/5">
+                                <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Reviews</div>
+                                <div className="font-bold text-gray-900 dark:text-white text-lg flex items-center justify-center gap-1">
                                     ⭐ 4.8
                                 </div>
                             </div>
@@ -267,7 +267,7 @@ export default function MapViewer() {
 
                         <button
                             onClick={() => router.push(`/dashboard/doctors/${selectedDoctor.id}`)}
-                            className="w-full py-4 bg-white text-black rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-gray-200 transition active:scale-[0.98]"
+                            className="w-full py-4 bg-black text-white dark:bg-white dark:text-black rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 transition active:scale-[0.98]"
                         >
                             View Profile & Book
                             <FiNavigation />
@@ -279,8 +279,8 @@ export default function MapViewer() {
 
             {/* Loading Indicator */}
             {loading && (
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/80 text-white px-6 py-3 rounded-full flex items-center gap-3 backdrop-blur-md z-[2000]">
-                    <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/90 dark:bg-black/80 text-gray-900 dark:text-white px-6 py-3 rounded-full flex items-center gap-3 backdrop-blur-md z-[2000] shadow-xl">
+                    <div className="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
                     <span className="font-bold text-sm">Scanning Area...</span>
                 </div>
             )}
