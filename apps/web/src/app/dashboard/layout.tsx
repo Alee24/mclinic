@@ -196,8 +196,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                 <>
                                     <div className="mt-4">
                                         <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">My Care</div>
-                                        <NavItem href="/dashboard/map" icon={<FiMap />} label="Find Medics" active={pathname === '/dashboard/map'} />
                                         <NavItem href="/dashboard/services-hub" icon={<FiGrid />} label="Services Hub" active={pathname === '/dashboard/services-hub'} />
+                                        <NavItem href="/dashboard/map" icon={<FiMap />} label="Live Map" active={pathname === '/dashboard/map'} />
                                         <NavItem href="/dashboard/appointments" icon={<FiCalendar />} label="Appointments" active={pathname === '/dashboard/appointments'} />
                                         <NavItem href="/dashboard/records" icon={<FiPlusCircle />} label="Medical Records" active={pathname === '/dashboard/records'} />
                                         <NavItem href="/dashboard/pharmacy" icon={<FiPackage />} label="My Pharmacy" active={pathname === '/dashboard/pharmacy'} />
