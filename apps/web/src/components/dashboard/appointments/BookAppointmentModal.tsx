@@ -655,17 +655,31 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                                             />
                                         </div>
                                     </div>
-                                    <div>
+                                    <div className="col-span-2 md:col-span-1">
                                         <label className="block text-xs font-black uppercase text-gray-400 mb-2 tracking-wider">Time</label>
-                                        <div className="relative group">
-                                            <FiClock className="absolute left-4 top-3.5 text-gray-400 group-focus-within:text-primary transition-colors" />
+                                        <div className="grid grid-cols-4 gap-2">
+                                            {["08:00", "09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00"].map((time) => (
+                                                <button
+                                                    key={time}
+                                                    type="button"
+                                                    onClick={() => setBookingTime(time)}
+                                                    className={`py-2 rounded-lg text-xs font-bold transition-all ${bookingTime === time
+                                                            ? 'bg-primary text-black shadow-md scale-105'
+                                                            : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700'
+                                                        }`}
+                                                >
+                                                    {time}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <div className="mt-2 text-center">
                                             <input
                                                 type="time"
-                                                required
-                                                className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#121212] focus:bg-white dark:focus:bg-black focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-bold text-gray-700 dark:text-gray-200"
+                                                className="hidden" // Hidden input for fallback logic if needed
                                                 value={bookingTime}
                                                 onChange={(e) => setBookingTime(e.target.value)}
                                             />
+                                            {!bookingTime && <p className="text-[10px] text-red-400">Please select a time</p>}
                                         </div>
                                     </div>
                                 </div>
@@ -699,21 +713,26 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                                             </MapContainer>
 
                                             {/* Overlay Buttons */}
-                                            <div className="absolute top-3 right-3 flex flex-col gap-2 z-[9999]">
+                                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[400] w-full px-4 text-center">
                                                 <button
                                                     type="button"
                                                     onClick={() => {
                                                         if (navigator.geolocation) {
+                                                            const btn = document.getElementById('gps-btn-label');
+                                                            if (btn) btn.innerText = 'Locating...';
+
                                                             navigator.geolocation.getCurrentPosition(p => {
                                                                 const coords = { lat: p.coords.latitude, lng: p.coords.longitude };
                                                                 setUserLocation(coords);
                                                                 fetchAddressFromCoords(coords.lat, coords.lng);
+                                                                if (btn) btn.innerText = 'GPS Location Set!';
+                                                                setTimeout(() => { if (btn) btn.innerText = 'Pick GPS Location'; }, 2000);
                                                             });
                                                         }
                                                     }}
-                                                    className="bg-white text-gray-800 p-2.5 rounded-xl shadow-lg hover:bg-gray-50 text-xs font-bold flex items-center gap-2 transition-transform active:scale-95"
+                                                    className="bg-gray-900 text-white dark:bg-white dark:text-black py-3 px-6 rounded-full shadow-2xl hover:scale-105 active:scale-95 text-sm font-black flex items-center justify-center gap-2 transition-all mx-auto max-w-[200px]"
                                                 >
-                                                    📍 Use My Location
+                                                    <span className="text-xl">📍</span> <span id="gps-btn-label">Pick GPS Location</span>
                                                 </button>
                                             </div>
                                         </div>
