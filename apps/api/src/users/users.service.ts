@@ -80,14 +80,19 @@ export class UsersService implements OnModuleInit {
     return this.usersRepository.findOne({ where: { id } });
   }
   async update(id: number, updateUserDto: any): Promise<User> {
-    await this.usersRepository.update(id, updateUserDto);
-    // @ts-ignore
-    return this.usersRepository.findOne({ where: { id } });
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new Error(`User #${id} not found`);
+    }
+    this.usersRepository.merge(user, updateUserDto);
+    return this.usersRepository.save(user);
   }
 
   async updateByEmail(email: string, updateUserDto: any): Promise<User | null> {
-    await this.usersRepository.update({ email }, updateUserDto);
-    return this.usersRepository.findOne({ where: { email } });
+    const user = await this.usersRepository.findOne({ where: { email } });
+    if (!user) return null;
+    this.usersRepository.merge(user, updateUserDto);
+    return this.usersRepository.save(user);
   }
 
   async remove(id: number): Promise<void> {
@@ -103,9 +108,10 @@ export class UsersService implements OnModuleInit {
   }
 
   async updateProfilePicture(id: number, filename: string): Promise<User> {
-    await this.usersRepository.update(id, { profilePicture: filename });
-    // @ts-ignore
-    return this.usersRepository.findOne({ where: { id } });
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) throw new Error('User not found');
+    user.profilePicture = filename;
+    return this.usersRepository.save(user);
   }
   async requestDeletion(id: number, password: string): Promise<User> {
     const user = await this.usersRepository.findOne({ where: { id } });
