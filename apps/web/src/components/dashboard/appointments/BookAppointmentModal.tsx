@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
-import { FiX, FiSearch, FiMapPin, FiUser, FiDollarSign, FiCalendar, FiClock } from 'react-icons/fi';
+import { FiX, FiSearch, FiMapPin, FiUser, FiDollarSign, FiCalendar, FiClock, FiArrowRight } from 'react-icons/fi';
 import { useAuth } from '@/lib/auth';
 import CompleteProfileModal from '../CompleteProfileModal';
 
@@ -526,199 +526,219 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                     </div>
                 ) : (
                     // Booking Form
-                    <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-[#121212]">
-                        <form onSubmit={handleBook} className="max-w-2xl mx-auto p-6 md:p-8 space-y-8">
+                    <div className="flex-1 overflow-y-auto bg-gray-50/50 dark:bg-[#121212]">
+                        <form onSubmit={handleBook} className="max-w-3xl mx-auto p-4 md:p-8 space-y-8 pb-32">
 
-                            {/* Back Navigation */}
+                            {/* Navigation */}
                             <button
                                 type="button"
                                 onClick={() => setSelectedDoctor(null)}
-                                className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                                className="group flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                             >
-                                <span className="text-lg">←</span> Back to Specialists
+                                <div className="w-8 h-8 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                                    <span className="text-lg pb-1">←</span>
+                                </div>
+                                Back to Specialists
                             </button>
 
-                            {/* Professional Header Card */}
-                            <div className="bg-white dark:bg-[#1A1A1A] rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col md:flex-row items-center gap-6">
-                                <div className="w-20 h-20 rounded-2xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center text-3xl overflow-hidden shadow-sm border-2 border-white dark:border-gray-700 shrink-0">
-                                    <DoctorAvatar doctor={selectedDoctor} />
-                                </div>
-                                <div className="text-center md:text-left flex-1">
-                                    <h3 className="font-black text-2xl text-gray-900 dark:text-white leading-tight mb-1">
-                                        {selectedDoctor.fname} {selectedDoctor.lname}
-                                    </h3>
-                                    <div className="flex flex-wrap gap-2 justify-center md:justify-start mb-3">
-                                        <span className="px-2 py-0.5 rounded-md bg-primary/10 text-primary text-xs font-bold uppercase tracking-wide">
-                                            {selectedDoctor.speciality}
-                                        </span>
-                                        <span className="px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-500 text-xs font-bold">
-                                            {selectedDoctor.address}
-                                        </span>
+                            {/* Doctor Summary Card */}
+                            <div className="bg-white dark:bg-[#1A1A1A] rounded-3xl p-1 shadow-sm border border-gray-100 dark:border-gray-800">
+                                <div className="flex flex-col md:flex-row gap-6 p-5">
+                                    <div className="w-24 h-24 rounded-2xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center text-4xl overflow-hidden shadow-sm border-4 border-white dark:border-gray-700 shrink-0">
+                                        <DoctorAvatar doctor={selectedDoctor} />
                                     </div>
-                                    <div className="inline-block px-4 py-1.5 rounded-full bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-sm font-bold border border-green-100 dark:border-green-900">
-                                        Consultation Fee: KES {selectedService ? selectedService.price : getDisplayFee(selectedDoctor)}
+                                    <div className="flex-1 py-1">
+                                        <div className="flex items-start justify-between">
+                                            <div>
+                                                <h3 className="font-black text-2xl text-gray-900 dark:text-white leading-tight mb-2">
+                                                    Dr. {selectedDoctor.fname} {selectedDoctor.lname}
+                                                </h3>
+                                                <p className="text-sm font-medium text-primary mb-1">{selectedDoctor.speciality}</p>
+                                                <p className="text-xs font-bold text-gray-400 flex items-center gap-1">
+                                                    <FiMapPin /> {selectedDoctor.address}
+                                                </p>
+                                            </div>
+                                            <div className="text-right hidden md:block">
+                                                <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Consultation</div>
+                                                <div className="text-xl font-black text-gray-900 dark:text-white">
+                                                    KES {selectedService ? selectedService.price : getDisplayFee(selectedDoctor)}
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="space-y-8 bg-white dark:bg-[#1A1A1A] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
-                                {/* 1. Who is this for? */}
-                                <div>
-                                    <label className="block text-xs font-black uppercase text-gray-400 mb-3 tracking-wider">Who is this appointment for?</label>
-                                    <div className="flex p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsForSelf(true)}
-                                            className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-bold transition-all duration-200 ${isForSelf
-                                                ? 'bg-white dark:bg-[#2A2A2A] text-black dark:text-white shadow-sm'
-                                                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
-                                        >
-                                            For Me
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsForSelf(false)}
-                                            className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-bold transition-all duration-200 ${!isForSelf
-                                                ? 'bg-white dark:bg-[#2A2A2A] text-black dark:text-white shadow-sm'
-                                                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
-                                        >
-                                            Someone Else
-                                        </button>
-                                    </div>
+                            <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+                                {/* LEFT COLUMN: Details */}
+                                <div className="md:col-span-12 space-y-8">
 
-                                    {!isForSelf && (
-                                        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
-                                            <div>
-                                                <label className="text-xs font-bold text-gray-500 mb-1.5 block">Full Name</label>
-                                                <input
-                                                    type="text"
-                                                    required={!isForSelf}
-                                                    placeholder="Patient Name"
-                                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#121212] focus:bg-white dark:focus:bg-black focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-medium"
-                                                    value={beneficiaryDetails.name}
-                                                    onChange={(e) => setBeneficiaryDetails({ ...beneficiaryDetails, name: e.target.value })}
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="text-xs font-bold text-gray-500 mb-1.5 block">Relation</label>
-                                                <select
-                                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#121212] focus:bg-white dark:focus:bg-black focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-medium"
-                                                    value={beneficiaryDetails.relation}
-                                                    onChange={(e) => setBeneficiaryDetails({ ...beneficiaryDetails, relation: e.target.value })}
-                                                >
-                                                    <option>Family Member</option>
-                                                    <option>Friend</option>
-                                                    <option>Child</option>
-                                                    <option>Parent</option>
-                                                    <option>Spouse</option>
-                                                    <option>Other</option>
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label className="text-xs font-bold text-gray-500 mb-1.5 block">Age</label>
-                                                <input
-                                                    type="number"
-                                                    placeholder="Age"
-                                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#121212] focus:bg-white dark:focus:bg-black focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-medium"
-                                                    value={beneficiaryDetails.age}
-                                                    onChange={(e) => setBeneficiaryDetails({ ...beneficiaryDetails, age: e.target.value })}
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="text-xs font-bold text-gray-500 mb-1.5 block">Gender</label>
-                                                <select
-                                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#121212] focus:bg-white dark:focus:bg-black focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-medium"
-                                                    value={beneficiaryDetails.gender}
-                                                    onChange={(e) => setBeneficiaryDetails({ ...beneficiaryDetails, gender: e.target.value })}
-                                                >
-                                                    <option value="Male">Male</option>
-                                                    <option value="Female">Female</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
+                                    {/* SECTION 1: Patient Details */}
+                                    <section className="bg-white dark:bg-[#1A1A1A] rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100 dark:border-gray-800 relative overflow-hidden group hover:shadow-md transition-shadow">
+                                        <div className="absolute top-0 left-0 w-1 h-full bg-blue-500 rounded-l-3xl"></div>
+                                        <h4 className="text-lg font-black text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                                            <span className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center text-sm">1</span>
+                                            Patient Details
+                                        </h4>
 
-                                {/* Date & Time */}
-                                <div className="grid grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="block text-xs font-black uppercase text-gray-400 mb-2 tracking-wider">Date</label>
-                                        <div className="relative group">
-                                            <FiCalendar className="absolute left-4 top-3.5 text-gray-400 group-focus-within:text-primary transition-colors" />
-                                            <input
-                                                type="date"
-                                                required
-                                                min={new Date().toISOString().split('T')[0]}
-                                                className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#121212] focus:bg-white dark:focus:bg-black focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-bold text-gray-700 dark:text-gray-200"
-                                                value={bookingDate}
-                                                onChange={(e) => setBookingDate(e.target.value)}
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="col-span-2 md:col-span-1">
-                                        <label className="block text-xs font-black uppercase text-gray-400 mb-2 tracking-wider">Time (24 Hours)</label>
-                                        <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
-                                            {Array.from({ length: 48 }).map((_, i) => {
-                                                const h = Math.floor(i / 2).toString().padStart(2, '0');
-                                                const m = i % 2 === 0 ? '00' : '30';
-                                                const time = `${h}:${m}`;
-                                                return (
-                                                    <button
-                                                        key={time}
-                                                        type="button"
-                                                        onClick={() => setBookingTime(time)}
-                                                        className={`py-2 rounded-lg text-xs font-bold transition-all ${bookingTime === time
-                                                            ? 'bg-primary text-black shadow-md scale-105'
-                                                            : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700'
-                                                            }`}
-                                                    >
-                                                        {time}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                        <div className="mt-2 text-center">
-                                            <input
-                                                type="time"
-                                                className="hidden" // Hidden input for fallback logic if needed
-                                                value={bookingTime}
-                                                onChange={(e) => setBookingTime(e.target.value)}
-                                            />
-                                            {!bookingTime && <p className="text-[10px] text-red-400">Please select a time</p>}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Address for Home Visit */}
-                                {(!selectedService?.id?.toString().includes('VIRTUAL') && !selectedService?.name?.toLowerCase().includes('virtual')) && (
-                                    <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <label className="text-xs font-black uppercase text-gray-400 tracking-wider">Home Visit Location</label>
-                                            <span className="text-xs text-primary font-bold bg-primary/10 px-2 py-1 rounded">Step 1: Pin Location</span>
-                                        </div>
-
-                                        {/* Map Section */}
-                                        <div className="h-64 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 mb-4 relative z-0 shadow-sm group hover:border-primary/50 transition-colors">
-                                            <MapContainer
-                                                center={[userLocation?.lat || -1.2921, userLocation?.lng || 36.8219]}
-                                                zoom={13}
-                                                style={{ height: '100%', width: '100%' }}
+                                        <div className="bg-gray-50 dark:bg-black/20 p-1.5 rounded-2xl inline-flex w-full mb-6">
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsForSelf(true)}
+                                                className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-200 ${isForSelf
+                                                    ? 'bg-white dark:bg-[#2A2A2A] text-black dark:text-white shadow-sm ring-1 ring-black/5'
+                                                    : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
                                             >
-                                                <TileLayer
-                                                    attribution='&copy; OpenStreetMap contributors'
-                                                    url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-                                                />
-                                                <LocationPicker
-                                                    location={userLocation}
-                                                    onLocationSelect={(latlng: any) => {
-                                                        setUserLocation({ lat: latlng.lat, lng: latlng.lng });
-                                                        fetchAddressFromCoords(latlng.lat, latlng.lng);
-                                                    }}
-                                                />
-                                            </MapContainer>
+                                                Myself
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsForSelf(false)}
+                                                className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-200 ${!isForSelf
+                                                    ? 'bg-white dark:bg-[#2A2A2A] text-black dark:text-white shadow-sm ring-1 ring-black/5'
+                                                    : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+                                            >
+                                                Someone Else
+                                            </button>
+                                        </div>
 
-                                            {/* Overlay Buttons */}
-                                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[400] w-full px-4 text-center">
+                                        {!isForSelf && (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider pl-1">Name</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Full Name"
+                                                        className="w-full px-5 py-4 rounded-2xl bg-gray-50 dark:bg-[#0A0A0A] border-transparent focus:bg-white dark:focus:bg-black focus:ring-2 focus:ring-blue-500/20 transition-all font-bold outline-none"
+                                                        value={beneficiaryDetails.name}
+                                                        onChange={(e) => setBeneficiaryDetails({ ...beneficiaryDetails, name: e.target.value })}
+                                                    />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider pl-1">Relation</label>
+                                                    <select
+                                                        className="w-full px-5 py-4 rounded-2xl bg-gray-50 dark:bg-[#0A0A0A] border-transparent focus:bg-white dark:focus:bg-black focus:ring-2 focus:ring-blue-500/20 transition-all font-bold outline-none appearance-none"
+                                                        value={beneficiaryDetails.relation}
+                                                        onChange={(e) => setBeneficiaryDetails({ ...beneficiaryDetails, relation: e.target.value })}
+                                                    >
+                                                        {['Family Member', 'Child', 'Spouse', 'Parent', 'Friend', 'Other'].map(r => <option key={r} value={r}>{r}</option>)}
+                                                    </select>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider pl-1">Age</label>
+                                                    <input
+                                                        type="number"
+                                                        placeholder="Years"
+                                                        className="w-full px-5 py-4 rounded-2xl bg-gray-50 dark:bg-[#0A0A0A] border-transparent focus:bg-white dark:focus:bg-black focus:ring-2 focus:ring-blue-500/20 transition-all font-bold outline-none"
+                                                        value={beneficiaryDetails.age}
+                                                        onChange={(e) => setBeneficiaryDetails({ ...beneficiaryDetails, age: e.target.value })}
+                                                    />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider pl-1">Gender</label>
+                                                    <select
+                                                        className="w-full px-5 py-4 rounded-2xl bg-gray-50 dark:bg-[#0A0A0A] border-transparent focus:bg-white dark:focus:bg-black focus:ring-2 focus:ring-blue-500/20 transition-all font-bold outline-none appearance-none"
+                                                        value={beneficiaryDetails.gender}
+                                                        onChange={(e) => setBeneficiaryDetails({ ...beneficiaryDetails, gender: e.target.value })}
+                                                    >
+                                                        <option value="Male">Male</option>
+                                                        <option value="Female">Female</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </section>
+
+                                    {/* SECTION 2: Date & Time */}
+                                    <section className="bg-white dark:bg-[#1A1A1A] rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100 dark:border-gray-800 relative overflow-hidden group hover:shadow-md transition-shadow">
+                                        <div className="absolute top-0 left-0 w-1 h-full bg-purple-500 rounded-l-3xl"></div>
+                                        <h4 className="text-lg font-black text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                                            <span className="w-8 h-8 rounded-full bg-purple-50 dark:bg-purple-900/20 text-purple-600 flex items-center justify-center text-sm">2</span>
+                                            Schedule
+                                        </h4>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider pl-1">Select Date</label>
+                                                <div className="relative group">
+                                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                        <FiCalendar className="text-gray-400 group-focus-within:text-purple-500" />
+                                                    </div>
+                                                    <input
+                                                        type="date"
+                                                        required
+                                                        min={new Date().toISOString().split('T')[0]}
+                                                        className="w-full pl-11 pr-5 py-4 rounded-2xl bg-gray-50 dark:bg-[#0A0A0A] border-transparent focus:bg-white dark:focus:bg-black focus:ring-2 focus:ring-purple-500/20 transition-all font-bold outline-none text-gray-700 dark:text-gray-200"
+                                                        value={bookingDate}
+                                                        onChange={(e) => setBookingDate(e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider pl-1">Select Time (24H)</label>
+                                                {!bookingDate ? (
+                                                    <div className="h-[56px] rounded-2xl bg-gray-50 dark:bg-[#0A0A0A] flex items-center justify-center text-xs text-gray-400 font-bold border-2 border-dashed border-gray-200 dark:border-gray-800">
+                                                        First select a date
+                                                    </div>
+                                                ) : (
+                                                    <div className="grid grid-cols-4 gap-2 max-h-56 overflow-y-auto pr-2 custom-scrollbar p-1">
+                                                        {Array.from({ length: 48 }).map((_, i) => {
+                                                            const h = Math.floor(i / 2).toString().padStart(2, '0');
+                                                            const m = i % 2 === 0 ? '00' : '30';
+                                                            const time = `${h}:${m}`;
+                                                            return (
+                                                                <button
+                                                                    key={time}
+                                                                    type="button"
+                                                                    onClick={() => setBookingTime(time)}
+                                                                    className={`py-2 rounded-lg text-xs font-bold transition-all shrink-0 ${bookingTime === time
+                                                                        ? 'bg-purple-600 text-white shadow-lg shadow-purple-200 dark:shadow-none scale-105'
+                                                                        : 'bg-gray-100 dark:bg-[#0A0A0A] text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800'
+                                                                        }`}
+                                                                >
+                                                                    {time}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </section>
+
+                                    {/* SECTION 3: Location (If Home Visit) */}
+                                    {(!selectedService?.id?.toString().includes('VIRTUAL') && !selectedService?.name?.toLowerCase().includes('virtual')) && (
+                                        <section className="bg-white dark:bg-[#1A1A1A] rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100 dark:border-gray-800 relative overflow-hidden group hover:shadow-md transition-shadow">
+                                            <div className="absolute top-0 left-0 w-1 h-full bg-primary rounded-l-3xl"></div>
+                                            <h4 className="text-lg font-black text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                                                <span className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm">3</span>
+                                                Location
+                                            </h4>
+
+                                            {/* Map Container - PURE MAP */}
+                                            <div className="h-64 w-full rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 relative z-0 shadow-inner bg-gray-100 mb-4">
+                                                <MapContainer
+                                                    center={[userLocation?.lat || -1.2921, userLocation?.lng || 36.8219]}
+                                                    zoom={13}
+                                                    style={{ height: '100%', width: '100%' }}
+                                                >
+                                                    <TileLayer
+                                                        attribution='&copy; OpenStreetMap contributors'
+                                                        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                                                    />
+                                                    <LocationPicker
+                                                        location={userLocation}
+                                                        onLocationSelect={(latlng: any) => {
+                                                            setUserLocation({ lat: latlng.lat, lng: latlng.lng });
+                                                            fetchAddressFromCoords(latlng.lat, latlng.lng);
+                                                        }}
+                                                    />
+                                                </MapContainer>
+                                            </div>
+
+                                            {/* External Controls */}
+                                            <div className="flex flex-col md:flex-row gap-4 items-center">
                                                 <button
                                                     type="button"
                                                     onClick={() => {
@@ -730,162 +750,140 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                                                                 const coords = { lat: p.coords.latitude, lng: p.coords.longitude };
                                                                 setUserLocation(coords);
                                                                 fetchAddressFromCoords(coords.lat, coords.lng);
-                                                                if (btn) btn.innerText = 'GPS Location Set!';
-                                                                setTimeout(() => { if (btn) btn.innerText = 'Pick GPS Location'; }, 2000);
+                                                                if (btn) btn.innerText = 'Got it!';
+                                                                setTimeout(() => { if (btn) btn.innerText = 'Use Current GPS Location'; }, 2000);
                                                             });
                                                         }
                                                     }}
-                                                    className="bg-gray-900 text-white dark:bg-white dark:text-black py-3 px-6 rounded-full shadow-2xl hover:scale-105 active:scale-95 text-sm font-black flex items-center justify-center gap-2 transition-all mx-auto max-w-[200px]"
+                                                    className="w-full md:w-auto px-6 py-4 bg-gray-900 dark:bg-white text-white dark:text-black rounded-2xl font-black text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-xl flex items-center justify-center gap-2"
                                                 >
-                                                    <span className="text-xl">📍</span> <span id="gps-btn-label">Pick GPS Location</span>
+                                                    <FiMapPin className="text-lg" />
+                                                    <span id="gps-btn-label">Use Current GPS Location</span>
                                                 </button>
-                                            </div>
-                                        </div>
 
-                                        <label className="text-xs font-bold text-gray-500 mb-2 block">Confirm Specific Address</label>
-                                        <div className="flex gap-3">
-                                            <div className="relative flex-1 group">
-                                                <FiMapPin className="absolute left-4 top-3.5 text-gray-400 group-focus-within:text-primary transition-colors" />
-                                                <input
-                                                    type="text"
-                                                    placeholder="Enter house no, street, or landmark..."
-                                                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#121212] focus:bg-white dark:focus:bg-black focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm font-medium"
-                                                    value={customHomeAddress}
-                                                    onChange={(e) => setCustomHomeAddress(e.target.value)}
+                                                <div className="flex-1 w-full relative group">
+                                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                        <FiSearch className="text-gray-400 group-focus-within:text-primary" />
+                                                    </div>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Or search address manually..."
+                                                        className="w-full pl-11 pr-4 py-4 rounded-2xl bg-gray-50 dark:bg-[#0A0A0A] border-transparent focus:bg-white dark:focus:bg-black focus:ring-2 focus:ring-primary/20 transition-all font-medium outline-none text-sm"
+                                                        value={customHomeAddress}
+                                                        onChange={(e) => setCustomHomeAddress(e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </section>
+                                    )}
+
+                                    {/* SECTION 4: Service & Medical */}
+                                    <section className="bg-white dark:bg-[#1A1A1A] rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100 dark:border-gray-800 relative overflow-hidden group hover:shadow-md transition-shadow">
+                                        <div className="absolute top-0 left-0 w-1 h-full bg-orange-500 rounded-l-3xl"></div>
+                                        <h4 className="text-lg font-black text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                                            <span className="w-8 h-8 rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-600 flex items-center justify-center text-sm">4</span>
+                                            Final Details
+                                        </h4>
+
+                                        <div className="space-y-6">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider pl-1">Service Type</label>
+                                                <select
+                                                    className="w-full px-5 py-4 rounded-2xl bg-gray-50 dark:bg-[#0A0A0A] border-transparent focus:bg-white dark:focus:bg-black focus:ring-2 focus:ring-orange-500/20 transition-all font-bold outline-none appearance-none"
+                                                    value={selectedService?.id || ''}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value;
+                                                        if (val === 'VIRTUAL_DOC' || val === 'VIRTUAL_NURSE') {
+                                                            setSelectedService({ id: val, name: 'Virtual Consultation', price: getDisplayFee(selectedDoctor) } as any);
+                                                        } else if (val === 'HOME_VISIT_NURSE') {
+                                                            setSelectedService({ id: val, name: 'Home Visit', price: getDisplayFee(selectedDoctor) } as any);
+                                                        } else {
+                                                            const sId = Number(val);
+                                                            const svc = services.find(s => s.id === sId) || null;
+                                                            setSelectedService(svc);
+                                                        }
+                                                    }}
+                                                >
+                                                    {(!selectedDoctor.dr_type || !['nurse', 'clinician'].some(t => selectedDoctor.dr_type.toLowerCase().includes(t))) ? (
+                                                        <>
+                                                            <option value="">General Consultation (Home Visit) - KES {getDisplayFee(selectedDoctor)} + Transport</option>
+                                                            <option value="VIRTUAL_DOC">Virtual Session - KES {getDisplayFee(selectedDoctor)} (No Transport)</option>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <option value="">Select Service...</option>
+                                                            <option value="HOME_VISIT_NURSE">Home Visit - KES {getDisplayFee(selectedDoctor)} + Transport</option>
+                                                            <option value="VIRTUAL_NURSE">Virtual Consultation - KES {getDisplayFee(selectedDoctor)}</option>
+                                                            {services.map(s => (
+                                                                <option key={s.id} value={s.id}>
+                                                                    {s.name} - KES {s.price}
+                                                                </option>
+                                                            ))}
+                                                        </>
+                                                    )}
+                                                </select>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider pl-1">Reason for Visit</label>
+                                                <textarea
+                                                    rows={3}
+                                                    placeholder="Briefly describe your symptoms..."
+                                                    className="w-full px-5 py-4 rounded-2xl bg-gray-50 dark:bg-[#0A0A0A] border-transparent focus:bg-white dark:focus:bg-black focus:ring-2 focus:ring-orange-500/20 transition-all font-medium outline-none resize-none"
+                                                    value={bookingNote}
+                                                    onChange={(e) => setBookingNote(e.target.value)}
                                                 />
                                             </div>
-                                            <button
-                                                type="button"
-                                                onClick={async () => {
-                                                    if (!customHomeAddress) return;
-                                                    // Simple Search Indicator
-                                                    const btn = document.getElementById('search-btn');
-                                                    if (btn) btn.innerText = 'Searching...';
 
-                                                    try {
-                                                        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(customHomeAddress + ', Kenya')}`, {
-                                                            headers: { 'User-Agent': 'Mclinic-App/1.0' }
-                                                        });
-                                                        const data = await res.json();
-                                                        if (data && data.length > 0) {
-                                                            const { lat, lon } = data[0];
-                                                            setUserLocation({ lat: Number(lat), lng: Number(lon) });
-                                                        } else {
-                                                            alert('Location not found. Try adding a city name.');
-                                                        }
-                                                    } catch (e) {
-                                                        console.error(e);
-                                                    } finally {
-                                                        if (btn) btn.innerText = 'Find on Map';
-                                                    }
-                                                }}
-                                                id="search-btn"
-                                                className="bg-gray-900 dark:bg-white text-white dark:text-black px-6 rounded-xl font-bold text-sm whitespace-nowrap hover:bg-gray-800 transition shadow-sm active:scale-95"
-                                            >
-                                                Find on Map
-                                            </button>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider pl-1">Medical Info (Optional)</label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Current medications, allergies, etc."
+                                                    className="w-full px-5 py-4 rounded-2xl bg-gray-50 dark:bg-[#0A0A0A] border-transparent focus:bg-white dark:focus:bg-black focus:ring-2 focus:ring-orange-500/20 transition-all font-medium outline-none"
+                                                    value={medicalInfo.medications}
+                                                    onChange={(e) => setMedicalInfo({ ...medicalInfo, medications: e.target.value })}
+                                                />
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
-
-                                <div>
-                                    <label className="block text-xs font-black uppercase text-gray-400 mb-2 tracking-wider">Service (Optional)</label>
-                                    <select
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#121212] focus:bg-white dark:focus:bg-black focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-medium appearance-none"
-                                        value={selectedService?.id || ''}
-                                        onChange={(e) => {
-                                            const val = e.target.value;
-                                            if (val === 'VIRTUAL_DOC' || val === 'VIRTUAL_NURSE') {
-                                                // Virtual Session
-                                                setSelectedService({ id: val, name: 'Virtual Consultation', price: getDisplayFee(selectedDoctor) } as any);
-                                            } else if (val === 'HOME_VISIT_NURSE') {
-                                                setSelectedService({ id: val, name: 'Home Visit', price: getDisplayFee(selectedDoctor) } as any);
-                                            } else {
-                                                const sId = Number(val);
-                                                const svc = services.find(s => s.id === sId) || null;
-                                                setSelectedService(svc);
-                                            }
-                                        }}
-                                    >
-                                        {/* Logic for Doctors vs Nurses */}
-                                        {(!selectedDoctor.dr_type || !['nurse', 'clinician'].some(t => selectedDoctor.dr_type.toLowerCase().includes(t))) ? (
-                                            <>
-                                                <option value="">General Consultation (Home Visit) - KES {getDisplayFee(selectedDoctor)} + Transport</option>
-                                                <option value="VIRTUAL_DOC">Virtual Session - KES {getDisplayFee(selectedDoctor)} (No Transport)</option>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <option value="">Select Service...</option>
-                                                <option value="HOME_VISIT_NURSE">Home Visit - KES {getDisplayFee(selectedDoctor)} + Transport</option>
-                                                <option value="VIRTUAL_NURSE">Virtual Consultation - KES {getDisplayFee(selectedDoctor)}</option>
-                                                {services.map(s => (
-                                                    <option key={s.id} value={s.id}>
-                                                        {s.name} - KES {s.price}
-                                                    </option>
-                                                ))}
-                                            </>
-                                        )}
-                                    </select>
-                                </div>
-
-                                {/* Medical Info */}
-                                <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-gray-800">
-                                    <label className="block text-xs font-black uppercase text-gray-400 tracking-wider">Medical Information</label>
-
-                                    <div>
-                                        <textarea
-                                            rows={2}
-                                            placeholder="Active Medications (e.g. Aspirin 75mg daily)..."
-                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#121212] focus:bg-white dark:focus:bg-black focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none resize-none text-sm transition-all"
-                                            value={medicalInfo.medications}
-                                            onChange={(e) => setMedicalInfo({ ...medicalInfo, medications: e.target.value })}
-                                        />
-                                    </div>
-                                    <div>
-                                        <textarea
-                                            rows={2}
-                                            placeholder="Current Prescriptions / Allergies..."
-                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#121212] focus:bg-white dark:focus:bg-black focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none resize-none text-sm transition-all"
-                                            value={medicalInfo.prescriptions}
-                                            onChange={(e) => setMedicalInfo({ ...medicalInfo, prescriptions: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-xs font-black uppercase text-gray-400 mb-2 tracking-wider">Reason for Visit</label>
-                                    <textarea
-                                        rows={3}
-                                        placeholder="Briefly describe your symptoms..."
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#121212] focus:bg-white dark:focus:bg-black focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none resize-none transition-all"
-                                        value={bookingNote}
-                                        onChange={(e) => setBookingNote(e.target.value)}
-                                    />
+                                    </section>
                                 </div>
                             </div>
 
-                            {/* Submit Button */}
-                            <div className="sticky bottom-0 bg-gray-50 dark:bg-[#121212] pt-4 pb-0">
-                                <button
-                                    type="submit"
-                                    disabled={submitting}
-                                    className="w-full py-4 bg-gray-900 dark:bg-white hover:bg-black hover:scale-[1.01] text-white dark:text-black font-black text-lg rounded-2xl transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                >
-                                    {submitting ? (
-                                        <>
-                                            <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                            Processing...
-                                        </>
-                                    ) : (
-                                        <>
-                                            Confirm Appointment
-                                            <span className="text-xl">→</span>
-                                        </>
-                                    )}
-                                </button>
-                                <p className="text-center text-xs text-gray-400 mt-3 pb-2">
-                                    By booking, you agree to our terms of service.
-                                </p>
+                            {/* Sticky Bottom Actions */}
+                            <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-[#1A1A1A]/90 backdrop-blur-md border-t border-gray-100 dark:border-gray-800 z-50 flex justify-center">
+                                <div className="w-full max-w-3xl flex items-center justify-between gap-6">
+                                    <div className="hidden md:block">
+                                        <p className="text-xs text-gray-400 uppercase font-bold">Total to Pay</p>
+                                        <p className="text-2xl font-black text-gray-900 dark:text-white">
+                                            KES {selectedService ? selectedService.price : getDisplayFee(selectedDoctor)}
+                                            <span className="text-xs font-normal text-gray-500 ml-1">(+ Transport if applicable)</span>
+                                        </p>
+                                    </div>
+                                    <button
+                                        type="submit"
+                                        disabled={submitting || !bookingDate || !bookingTime}
+                                        className={`flex-1 md:flex-none md:w-96 py-4 rounded-2xl font-black text-lg shadow-xl shadow-primary/20 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3 ${submitting || !bookingDate || !bookingTime
+                                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                            : 'bg-primary text-black hover:shadow-2xl hover:shadow-primary/30'
+                                            }`}
+                                    >
+                                        {submitting ? (
+                                            <>
+                                                <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                                                Processing...
+                                            </>
+                                        ) : (
+                                            <>
+                                                Confirm Appointment
+                                                <span className="text-xl">→</span>
+                                            </>
+                                        )}
+                                    </button>
+                                    <p className="text-center text-xs text-gray-400 mt-3 pb-2">
+                                        By booking, you agree to our terms of service.
+                                    </p>
+                                </div>
                             </div>
 
                         </form>
