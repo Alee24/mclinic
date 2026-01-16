@@ -656,21 +656,26 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                                         </div>
                                     </div>
                                     <div className="col-span-2 md:col-span-1">
-                                        <label className="block text-xs font-black uppercase text-gray-400 mb-2 tracking-wider">Time</label>
-                                        <div className="grid grid-cols-4 gap-2">
-                                            {["08:00", "09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00"].map((time) => (
-                                                <button
-                                                    key={time}
-                                                    type="button"
-                                                    onClick={() => setBookingTime(time)}
-                                                    className={`py-2 rounded-lg text-xs font-bold transition-all ${bookingTime === time
+                                        <label className="block text-xs font-black uppercase text-gray-400 mb-2 tracking-wider">Time (24 Hours)</label>
+                                        <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                                            {Array.from({ length: 48 }).map((_, i) => {
+                                                const h = Math.floor(i / 2).toString().padStart(2, '0');
+                                                const m = i % 2 === 0 ? '00' : '30';
+                                                const time = `${h}:${m}`;
+                                                return (
+                                                    <button
+                                                        key={time}
+                                                        type="button"
+                                                        onClick={() => setBookingTime(time)}
+                                                        className={`py-2 rounded-lg text-xs font-bold transition-all ${bookingTime === time
                                                             ? 'bg-primary text-black shadow-md scale-105'
                                                             : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700'
-                                                        }`}
-                                                >
-                                                    {time}
-                                                </button>
-                                            ))}
+                                                            }`}
+                                                    >
+                                                        {time}
+                                                    </button>
+                                                );
+                                            })}
                                         </div>
                                         <div className="mt-2 text-center">
                                             <input
