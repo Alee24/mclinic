@@ -526,64 +526,83 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                     </div>
                 ) : (
                     // Booking Form
-                    <div className="p-8 flex-1 overflow-y-auto">
-                        <form onSubmit={handleBook} className="max-w-xl mx-auto space-y-8">
+                    <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-[#121212]">
+                        <form onSubmit={handleBook} className="max-w-2xl mx-auto p-6 md:p-8 space-y-8">
 
-                            <div className="bg-primary/10 rounded-2xl p-6 flex items-center gap-4 border border-primary/20">
-                                <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-2xl shadow-sm overflow-hidden shrink-0">
+                            {/* Back Navigation */}
+                            <button
+                                type="button"
+                                onClick={() => setSelectedDoctor(null)}
+                                className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                            >
+                                <span className="text-lg">←</span> Back to Specialists
+                            </button>
+
+                            {/* Professional Header Card */}
+                            <div className="bg-white dark:bg-[#1A1A1A] rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col md:flex-row items-center gap-6">
+                                <div className="w-20 h-20 rounded-2xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center text-3xl overflow-hidden shadow-sm border-2 border-white dark:border-gray-700 shrink-0">
                                     <DoctorAvatar doctor={selectedDoctor} />
                                 </div>
-                                <div>
-                                    <h3 className="font-black text-xl text-gray-900 dark:text-white">{selectedDoctor.fname} {selectedDoctor.lname}</h3>
-                                    <p className="text-gray-600 dark:text-gray-400 font-medium">{selectedDoctor.speciality} • {selectedDoctor.address}</p>
-                                    <div className="mt-2 text-sm font-bold text-primary">
-                                        Consulation Fee: KES {selectedService ? selectedService.price : getDisplayFee(selectedDoctor)}
+                                <div className="text-center md:text-left flex-1">
+                                    <h3 className="font-black text-2xl text-gray-900 dark:text-white leading-tight mb-1">
+                                        {selectedDoctor.fname} {selectedDoctor.lname}
+                                    </h3>
+                                    <div className="flex flex-wrap gap-2 justify-center md:justify-start mb-3">
+                                        <span className="px-2 py-0.5 rounded-md bg-primary/10 text-primary text-xs font-bold uppercase tracking-wide">
+                                            {selectedDoctor.speciality}
+                                        </span>
+                                        <span className="px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-500 text-xs font-bold">
+                                            {selectedDoctor.address}
+                                        </span>
+                                    </div>
+                                    <div className="inline-block px-4 py-1.5 rounded-full bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-sm font-bold border border-green-100 dark:border-green-900">
+                                        Consultation Fee: KES {selectedService ? selectedService.price : getDisplayFee(selectedDoctor)}
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="space-y-6">
+                            <div className="space-y-8 bg-white dark:bg-[#1A1A1A] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
                                 {/* 1. Who is this for? */}
-                                <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
-                                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">Who is this appointment for?</label>
-                                    <div className="flex gap-4">
+                                <div>
+                                    <label className="block text-xs font-black uppercase text-gray-400 mb-3 tracking-wider">Who is this appointment for?</label>
+                                    <div className="flex p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
                                         <button
                                             type="button"
                                             onClick={() => setIsForSelf(true)}
-                                            className={`flex-1 py-2 px-4 rounded-lg text-sm font-bold border transition-colors ${isForSelf
-                                                ? 'bg-primary text-black border-primary'
-                                                : 'bg-white dark:bg-black border-gray-200 dark:border-gray-700 dark:text-gray-300 hover:border-primary/50'}`}
+                                            className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-bold transition-all duration-200 ${isForSelf
+                                                ? 'bg-white dark:bg-[#2A2A2A] text-black dark:text-white shadow-sm'
+                                                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
                                         >
                                             For Me
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => setIsForSelf(false)}
-                                            className={`flex-1 py-2 px-4 rounded-lg text-sm font-bold border transition-colors ${!isForSelf
-                                                ? 'bg-primary text-black border-primary'
-                                                : 'bg-white dark:bg-black border-gray-200 dark:border-gray-700 dark:text-gray-300 hover:border-primary/50'}`}
+                                            className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-bold transition-all duration-200 ${!isForSelf
+                                                ? 'bg-white dark:bg-[#2A2A2A] text-black dark:text-white shadow-sm'
+                                                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
                                         >
                                             Someone Else
                                         </button>
                                     </div>
 
                                     {!isForSelf && (
-                                        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                                        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
                                             <div>
-                                                <label className="text-xs uppercase font-bold text-gray-500 mb-1 block">Full Name</label>
+                                                <label className="text-xs font-bold text-gray-500 mb-1.5 block">Full Name</label>
                                                 <input
                                                     type="text"
                                                     required={!isForSelf}
                                                     placeholder="Patient Name"
-                                                    className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white outline-none focus:ring-2 focus:ring-primary"
+                                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#121212] focus:bg-white dark:focus:bg-black focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-medium"
                                                     value={beneficiaryDetails.name}
                                                     onChange={(e) => setBeneficiaryDetails({ ...beneficiaryDetails, name: e.target.value })}
                                                 />
                                             </div>
                                             <div>
-                                                <label className="text-xs uppercase font-bold text-gray-500 mb-1 block">Relation</label>
+                                                <label className="text-xs font-bold text-gray-500 mb-1.5 block">Relation</label>
                                                 <select
-                                                    className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white outline-none focus:ring-2 focus:ring-primary"
+                                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#121212] focus:bg-white dark:focus:bg-black focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-medium"
                                                     value={beneficiaryDetails.relation}
                                                     onChange={(e) => setBeneficiaryDetails({ ...beneficiaryDetails, relation: e.target.value })}
                                                 >
@@ -596,19 +615,19 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="text-xs uppercase font-bold text-gray-500 mb-1 block">Age</label>
+                                                <label className="text-xs font-bold text-gray-500 mb-1.5 block">Age</label>
                                                 <input
                                                     type="number"
                                                     placeholder="Age"
-                                                    className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white outline-none focus:ring-2 focus:ring-primary"
+                                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#121212] focus:bg-white dark:focus:bg-black focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-medium"
                                                     value={beneficiaryDetails.age}
                                                     onChange={(e) => setBeneficiaryDetails({ ...beneficiaryDetails, age: e.target.value })}
                                                 />
                                             </div>
                                             <div>
-                                                <label className="text-xs uppercase font-bold text-gray-500 mb-1 block">Gender</label>
+                                                <label className="text-xs font-bold text-gray-500 mb-1.5 block">Gender</label>
                                                 <select
-                                                    className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white outline-none focus:ring-2 focus:ring-primary"
+                                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#121212] focus:bg-white dark:focus:bg-black focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-medium"
                                                     value={beneficiaryDetails.gender}
                                                     onChange={(e) => setBeneficiaryDetails({ ...beneficiaryDetails, gender: e.target.value })}
                                                 >
@@ -620,29 +639,30 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                                     )}
                                 </div>
 
+                                {/* Date & Time */}
                                 <div className="grid grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Date</label>
-                                        <div className="relative">
-                                            <FiCalendar className="absolute left-3 top-3 text-gray-400" />
+                                        <label className="block text-xs font-black uppercase text-gray-400 mb-2 tracking-wider">Date</label>
+                                        <div className="relative group">
+                                            <FiCalendar className="absolute left-4 top-3.5 text-gray-400 group-focus-within:text-primary transition-colors" />
                                             <input
                                                 type="date"
                                                 required
                                                 min={new Date().toISOString().split('T')[0]}
-                                                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white outline-none focus:ring-2 focus:ring-primary"
+                                                className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#121212] focus:bg-white dark:focus:bg-black focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-bold text-gray-700 dark:text-gray-200"
                                                 value={bookingDate}
                                                 onChange={(e) => setBookingDate(e.target.value)}
                                             />
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Time</label>
-                                        <div className="relative">
-                                            <FiClock className="absolute left-3 top-3 text-gray-400" />
+                                        <label className="block text-xs font-black uppercase text-gray-400 mb-2 tracking-wider">Time</label>
+                                        <div className="relative group">
+                                            <FiClock className="absolute left-4 top-3.5 text-gray-400 group-focus-within:text-primary transition-colors" />
                                             <input
                                                 type="time"
                                                 required
-                                                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white outline-none focus:ring-2 focus:ring-primary"
+                                                className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#121212] focus:bg-white dark:focus:bg-black focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-bold text-gray-700 dark:text-gray-200"
                                                 value={bookingTime}
                                                 onChange={(e) => setBookingTime(e.target.value)}
                                             />
@@ -652,14 +672,14 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
 
                                 {/* Address for Home Visit */}
                                 {(!selectedService?.id?.toString().includes('VIRTUAL') && !selectedService?.name?.toLowerCase().includes('virtual')) && (
-                                    <div>
-                                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center justify-between">
-                                            <span>Home Visit Location</span>
-                                            <span className="text-xs text-primary font-normal">Step 1: Pin Location</span>
-                                        </label>
+                                    <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <label className="text-xs font-black uppercase text-gray-400 tracking-wider">Home Visit Location</label>
+                                            <span className="text-xs text-primary font-bold bg-primary/10 px-2 py-1 rounded">Step 1: Pin Location</span>
+                                        </div>
 
                                         {/* Map Section */}
-                                        <div className="h-64 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 mb-3 relative z-0">
+                                        <div className="h-64 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 mb-4 relative z-0 shadow-sm group hover:border-primary/50 transition-colors">
                                             <MapContainer
                                                 center={[userLocation?.lat || -1.2921, userLocation?.lng || 36.8219]}
                                                 zoom={13}
@@ -679,7 +699,7 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                                             </MapContainer>
 
                                             {/* Overlay Buttons */}
-                                            <div className="absolute top-2 right-2 flex flex-col gap-2 z-[9999]">
+                                            <div className="absolute top-3 right-3 flex flex-col gap-2 z-[9999]">
                                                 <button
                                                     type="button"
                                                     onClick={() => {
@@ -691,21 +711,21 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                                                             });
                                                         }
                                                     }}
-                                                    className="bg-white text-black p-2 rounded-lg shadow-md hover:bg-gray-50 text-xs font-bold"
+                                                    className="bg-white text-gray-800 p-2.5 rounded-xl shadow-lg hover:bg-gray-50 text-xs font-bold flex items-center gap-2 transition-transform active:scale-95"
                                                 >
                                                     📍 Use My Location
                                                 </button>
                                             </div>
                                         </div>
 
-                                        <label className="block text-xs font-bold text-gray-500 mb-1">Confirm Specific Address</label>
-                                        <div className="flex gap-2">
-                                            <div className="relative flex-1">
-                                                <FiMapPin className="absolute left-3 top-3 text-gray-400" />
+                                        <label className="text-xs font-bold text-gray-500 mb-2 block">Confirm Specific Address</label>
+                                        <div className="flex gap-3">
+                                            <div className="relative flex-1 group">
+                                                <FiMapPin className="absolute left-4 top-3.5 text-gray-400 group-focus-within:text-primary transition-colors" />
                                                 <input
                                                     type="text"
                                                     placeholder="Enter house no, street, or landmark..."
-                                                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white outline-none focus:ring-2 focus:ring-primary"
+                                                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#121212] focus:bg-white dark:focus:bg-black focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm font-medium"
                                                     value={customHomeAddress}
                                                     onChange={(e) => setCustomHomeAddress(e.target.value)}
                                                 />
@@ -736,19 +756,18 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                                                     }
                                                 }}
                                                 id="search-btn"
-                                                className="bg-gray-900 dark:bg-white text-white dark:text-black px-6 rounded-xl font-bold text-sm whitespace-nowrap hover:opacity-80 transition shadow-lg"
+                                                className="bg-gray-900 dark:bg-white text-white dark:text-black px-6 rounded-xl font-bold text-sm whitespace-nowrap hover:bg-gray-800 transition shadow-sm active:scale-95"
                                             >
                                                 Find on Map
                                             </button>
                                         </div>
-                                        <p className="text-xs text-gray-500 mt-1 ml-1">Click on the map to set location, then edit the address above if needed.</p>
                                     </div>
                                 )}
 
                                 <div>
-                                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Service (Optional)</label>
+                                    <label className="block text-xs font-black uppercase text-gray-400 mb-2 tracking-wider">Service (Optional)</label>
                                     <select
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white outline-none focus:ring-2 focus:ring-primary"
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#121212] focus:bg-white dark:focus:bg-black focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-medium appearance-none"
                                         value={selectedService?.id || ''}
                                         onChange={(e) => {
                                             const val = e.target.value;
@@ -786,14 +805,14 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                                 </div>
 
                                 {/* Medical Info */}
-                                <div className="space-y-4">
-                                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">Medical Information</label>
+                                <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+                                    <label className="block text-xs font-black uppercase text-gray-400 tracking-wider">Medical Information</label>
 
                                     <div>
                                         <textarea
                                             rows={2}
                                             placeholder="Active Medications (e.g. Aspirin 75mg daily)..."
-                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white outline-none focus:ring-2 focus:ring-primary resize-none text-sm"
+                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#121212] focus:bg-white dark:focus:bg-black focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none resize-none text-sm transition-all"
                                             value={medicalInfo.medications}
                                             onChange={(e) => setMedicalInfo({ ...medicalInfo, medications: e.target.value })}
                                         />
@@ -801,8 +820,8 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                                     <div>
                                         <textarea
                                             rows={2}
-                                            placeholder="Current Prescriptions..."
-                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white outline-none focus:ring-2 focus:ring-primary resize-none text-sm"
+                                            placeholder="Current Prescriptions / Allergies..."
+                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#121212] focus:bg-white dark:focus:bg-black focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none resize-none text-sm transition-all"
                                             value={medicalInfo.prescriptions}
                                             onChange={(e) => setMedicalInfo({ ...medicalInfo, prescriptions: e.target.value })}
                                         />
@@ -810,33 +829,41 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Reason for Visit</label>
+                                    <label className="block text-xs font-black uppercase text-gray-400 mb-2 tracking-wider">Reason for Visit</label>
                                     <textarea
                                         rows={3}
                                         placeholder="Briefly describe your symptoms..."
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white outline-none focus:ring-2 focus:ring-primary resize-none"
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#121212] focus:bg-white dark:focus:bg-black focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none resize-none transition-all"
                                         value={bookingNote}
                                         onChange={(e) => setBookingNote(e.target.value)}
                                     />
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-4 pt-4">
-                                <button
-                                    type="button"
-                                    onClick={() => setSelectedDoctor(null)}
-                                    className="flex-1 py-3 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white font-bold rounded-xl hover:bg-gray-200 transition-colors"
-                                >
-                                    Back
-                                </button>
+                            {/* Submit Button */}
+                            <div className="sticky bottom-0 bg-gray-50 dark:bg-[#121212] pt-4 pb-0">
                                 <button
                                     type="submit"
                                     disabled={submitting}
-                                    className="flex-1 py-3 bg-primary text-black font-bold rounded-xl hover:opacity-90 transition-colors shadow-lg shadow-primary/30"
+                                    className="w-full py-4 bg-gray-900 dark:bg-white hover:bg-black hover:scale-[1.01] text-white dark:text-black font-black text-lg rounded-2xl transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
-                                    {submitting ? 'Confirming...' : 'Confirm Booking'}
+                                    {submitting ? (
+                                        <>
+                                            <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            Processing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            Confirm Appointment
+                                            <span className="text-xl">→</span>
+                                        </>
+                                    )}
                                 </button>
+                                <p className="text-center text-xs text-gray-400 mt-3 pb-2">
+                                    By booking, you agree to our terms of service.
+                                </p>
                             </div>
+
                         </form>
                     </div >
                 )
