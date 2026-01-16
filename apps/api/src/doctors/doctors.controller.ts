@@ -42,6 +42,24 @@ export class DoctorsController {
     return this.doctorsService.findAllVerified(search, isOfflineIncluded);
   }
 
+  @Get('nearby')
+  findNearby(
+    @Query('lat') lat: string,
+    @Query('lng') lng: string,
+    @Query('radius') radius?: string, // km
+  ) {
+    const latNum = parseFloat(lat);
+    const lngNum = parseFloat(lng);
+    const radiusNum = radius ? parseFloat(radius) : 50;
+
+    // Provide defaults if missing to avoid NaN errors, though validation should handle it
+    if (isNaN(latNum) || isNaN(lngNum)) {
+      return [];
+    }
+
+    return this.doctorsService.getNearby(latNum, lngNum, radiusNum);
+  }
+
   @Get('admin/all')
   findAllAdmin() {
     return this.doctorsService.findAll();

@@ -116,7 +116,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                     <div className="mt-4">
                                         <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">Operations</div>
                                         <NavItem href="/dashboard/appointments" icon={<FiCalendar />} label="All Appointments" active={pathname === '/dashboard/appointments'} />
-                                        <NavItem href="/dashboard/doctors/map" icon={<FiMap />} label="Live Map" active={pathname === '/dashboard/doctors/map'} />
+                                        <NavItem href="/dashboard/map" icon={<FiMap />} label="Live Map" active={pathname === '/dashboard/map'} />
                                         <NavItem href="/dashboard/admin/ambulance-packages" icon={<FiTruck />} label="Ambulance Plans" active={pathname === '/dashboard/admin/ambulance-packages'} />
                                     </div>
 
@@ -178,9 +178,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                 <>
                                     <div className="mt-4">
                                         <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">Practice</div>
+                                        <NavItem href="/dashboard/map" icon={<FiMap />} label="Live Map" active={pathname === '/dashboard/map'} />
                                         <NavItem href="/dashboard/appointments" icon={<FiCalendar />} label="My Appointments" active={pathname === '/dashboard/appointments'} />
                                         <NavItem href="/dashboard/patients" icon={<FiList />} label="My Patients" active={pathname === '/dashboard/patients'} />
-                                        <NavItem href="/dashboard/ambulance" icon={<FiMap />} label="Ambulance Service" active={pathname?.startsWith('/dashboard/ambulance')} />
+                                        <NavItem href="/dashboard/ambulance" icon={<FiTruck />} label="Ambulance Service" active={pathname?.startsWith('/dashboard/ambulance')} />
                                     </div>
                                     <div className="mt-4">
                                         <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">Personal</div>
@@ -195,6 +196,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                 <>
                                     <div className="mt-4">
                                         <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">My Care</div>
+                                        <NavItem href="/dashboard/map" icon={<FiMap />} label="Find Medics" active={pathname === '/dashboard/map'} />
                                         <NavItem href="/dashboard/services-hub" icon={<FiGrid />} label="Services Hub" active={pathname === '/dashboard/services-hub'} />
                                         <NavItem href="/dashboard/appointments" icon={<FiCalendar />} label="Appointments" active={pathname === '/dashboard/appointments'} />
                                         <NavItem href="/dashboard/records" icon={<FiPlusCircle />} label="Medical Records" active={pathname === '/dashboard/records'} />

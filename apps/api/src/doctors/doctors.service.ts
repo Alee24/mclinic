@@ -144,6 +144,25 @@ export class DoctorsService implements OnModuleInit {
         return this.doctorsRepository.save(doctor);
     }
 
+    async getNearby(lat: number, lng: number, radiusKm: number = 50): Promise<any[]> {
+        // Raw query for Haversine distance
+        const doctors = await this.doctorsRepository.query(
+            `
+            SELECT *, 
+            ( 6371 * acos( cos( radians(?) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( latitude ) ) ) ) AS distance 
+            FROM doctors 
+            WHERE approvalStatus = 'approved' 
+            AND status = 1 
+            AND (licenseExpiryDate > CURDATE() OR licenseExpiryDate IS NULL)
+            HAVING distance < ? 
+            ORDER BY distance 
+            LIMIT 20
+            `,
+            [lat, lng, lat, radiusKm]
+        );
+        return doctors;
+    }
+
     async findAllVerified(search?: string, includeOffline: boolean = false): Promise<any[]> {
         // Query Builder to handle search filters - ONLY APPROVED DOCTORS
         const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
