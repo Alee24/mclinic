@@ -184,6 +184,29 @@ export default function LoginPage() {
                         </div>
                     </div>
 
+                    {/* Google Sign In */}
+                    <div className="mb-8">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://portal.mclinic.co.ke/api';
+                                window.location.href = `${API_URL}/auth/google`;
+                            }}
+                            className="w-full py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-black hover:bg-gray-50 dark:hover:bg-gray-900 transition flex items-center justify-center gap-3 font-bold text-gray-700 dark:text-gray-300"
+                        >
+                            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
+                            Sign in with Google
+                        </button>
+                        <div className="relative mt-6">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
+                            </div>
+                            <div className="relative flex justify-center text-sm">
+                                <span className="px-2 bg-white dark:bg-[#121212] text-gray-500">Or continue with email</span>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Login Form */}
                     <form onSubmit={handleLogin} className="space-y-5">
                         <div>

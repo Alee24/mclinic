@@ -100,6 +100,11 @@ export class AuthService {
     // 1. Create User
     const user = await this.usersService.create(dto);
 
+    // Generate Verification Token
+    const verificationToken = randomBytes(32).toString('hex');
+    await this.usersService.update(user.id, { verificationToken } as any);
+    user.verificationToken = verificationToken;
+
     // 2. Create Medical Profile if role is patient
     if (user.role === 'patient') {
       try {
@@ -122,11 +127,11 @@ export class AuthService {
       }
     }
 
-    // 3. Send welcome email
+    // 3. Send Verification Email
     try {
-      await this.emailService.sendAccountCreationEmail(user, user.role);
+      await this.emailService.sendVerificationEmail(user, verificationToken);
     } catch (error) {
-      console.error('Failed to send welcome email:', error);
+      console.error('Failed to send verification email:', error);
     }
 
     return user;
@@ -216,5 +221,81 @@ export class AuthService {
     } as any);
 
     return { message: 'Password updated successfully.' };
+  }
+
+  async validateGoogleUser(details: any) {
+    let user = await this.usersService.findOne(details.email);
+
+    if (user) {
+      if (!user.googleId) {
+        user.googleId = details.googleId;
+        user.emailVerifiedAt = new Date();
+        if (!user.profilePicture) user.profilePicture = details.picture;
+        await this.usersService.update(user.id, { googleId: user.googleId, emailVerifiedAt: user.emailVerifiedAt, profilePicture: user.profilePicture } as any);
+      }
+      return user;
+    }
+
+    const password = await bcrypt.hash(randomBytes(16).toString('hex'), 10);
+
+    user = await this.usersService.create({
+      email: details.email,
+      password: password,
+      fname: details.firstName,
+      lname: details.lastName,
+      role: 'patient',
+      status: true,
+      googleId: details.googleId,
+      emailVerifiedAt: new Date(),
+      profilePicture: details.picture
+    } as any);
+
+    try {
+      await this.emailService.sendAccountCreationEmail(user, 'patient');
+    } catch (e) {
+      console.error('Failed to send welcome email for Google User', e);
+    }
+
+    return user;
+  }
+
+  async verifyEmail(token: string) {
+    const user = await this.usersService.findByVerificationToken(token);
+    if (!user) throw new UnauthorizedException('Invalid or expired verification token');
+
+    user.emailVerifiedAt = new Date();
+    user.verificationToken = null as any;
+    await this.usersService.update(user.id, { emailVerifiedAt: user.emailVerifiedAt, verificationToken: null } as any);
+
+    return { message: 'Email verified successfully' };
+  }
+
+  async resendVerificationEmail(email: string) {
+    const user = await this.usersService.findOne(email);
+    if (!user) throw new UnauthorizedException('User not found');
+    if (user.emailVerifiedAt) return { message: 'Email already verified' };
+
+    const token = randomBytes(32).toString('hex');
+    await this.usersService.update(user.id, { verificationToken: token } as any);
+
+    // Send Email
+    try {
+      await this.emailService.sendVerificationEmail(user, token);
+    } catch (e) {
+      console.error('Failed to send verification email', e);
+    }
+    return { message: 'Verification email sent' };
+  }
+
+  async loginWithGoogle(user: any) {
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      role: user.role,
+    };
+    return {
+      access_token: this.jwtService.sign(payload),
+      user,
+    };
   }
 }

@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Request, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -35,5 +35,31 @@ export class AuthController {
   @Post('reset-password')
   async resetPassword(@Body() body: { token: string; password: string }) {
     return this.authService.resetPassword(body.token, body.password);
+  }
+
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  async googleAuth(@Request() req: any) {
+    // Initiates the Google OAuth flow
+  }
+
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleAuthRedirect(@Request() req: any, @Res() res: any) {
+    const user = await this.authService.validateGoogleUser(req.user);
+    const { access_token } = await this.authService.loginWithGoogle(user);
+    // Redirect to dashboard with token
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5054';
+    res.redirect(`${frontendUrl}/dashboard?token=${access_token}`);
+  }
+
+  @Post('verify-email')
+  async verifyEmail(@Body() body: { token: string }) {
+    return this.authService.verifyEmail(body.token);
+  }
+
+  @Post('resend-verification')
+  async resendVerification(@Body() body: { email: string }) {
+    return this.authService.resendVerificationEmail(body.email);
   }
 }

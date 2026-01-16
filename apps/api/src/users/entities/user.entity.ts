@@ -29,6 +29,12 @@ export class User {
   @Column({ unique: true })
   email: string;
 
+  @Column({ nullable: true })
+  googleId: string;
+
+  @Column({ nullable: true })
+  verificationToken: string;
+
   @Column()
   password: string;
 
