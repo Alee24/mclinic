@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth, UserRole } from '@/lib/auth';
-import { FiUser, FiMapPin, FiAward, FiCheckCircle, FiAlertCircle, FiDollarSign, FiBriefcase, FiClock, FiPhone, FiMail } from 'react-icons/fi';
+import { FiUser, FiMapPin, FiAward, FiCheckCircle, FiAlertCircle, FiDollarSign, FiBriefcase, FiClock, FiPhone, FiMail, FiCalendar, FiVideo } from 'react-icons/fi';
+import BookAppointmentModal from '@/components/dashboard/appointments/BookAppointmentModal';
 
 export default function DoctorDetailsPage() {
     const { user } = useAuth();
@@ -14,6 +15,10 @@ export default function DoctorDetailsPage() {
     const [appointments, setAppointments] = useState<any[]>([]);
     const [transactions, setTransactions] = useState<any[]>([]);
     const [activeTab, setActiveTab] = useState<'profile' | 'appointments' | 'financials'>('profile');
+
+    // Booking State
+    const [showBookingModal, setShowBookingModal] = useState(false);
+    const [bookingType, setBookingType] = useState<'PHYSICAL' | 'VIRTUAL'>('PHYSICAL');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -31,7 +36,6 @@ export default function DoctorDetailsPage() {
                 }
 
                 // Simulate/Fetch Transactions (We can add a real endpoint later)
-                // For now, derive from appointments or use empty
                 setTransactions([]);
 
             } catch (error) {
@@ -49,15 +53,17 @@ export default function DoctorDetailsPage() {
 
     const isAdmin = user?.role === UserRole.ADMIN;
     // Check if the current user is the doctor being viewed
-    // Note: user.doctorId might be number or string, doctor.id is usually number
-    const isOwner = user?.role === UserRole.DOCTOR && user?.doctorId == doctor.id;
+    const isOwner = user?.role === UserRole.DOCTOR && (user?.doctorId == doctor.id || user?.id === doctor.userId);
+
+    // Is Patient (able to book)
+    const isPatient = user?.role === UserRole.PATIENT;
 
     return (
         <div className="space-y-6">
             {/* Header Card */}
             <div className="bg-white dark:bg-[#161616] rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col md:flex-row gap-6 items-start">
                 <div className="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center text-4xl font-bold text-primary overflow-hidden border-2 border-gray-100 dark:border-gray-700">
-                    <img src={`https://ui-avatars.com/api/?name=${doctor.fname}+${doctor.lname}&background=random`} alt="Profile" className="w-full h-full object-cover" />
+                    <img src={doctor.profile_image?.startsWith('http') ? doctor.profile_image : `https://ui-avatars.com/api/?name=${doctor.fname}+${doctor.lname}&background=random`} alt="Profile" className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1">
                     <div className="flex items-center gap-3">
@@ -245,6 +251,43 @@ export default function DoctorDetailsPage() {
                             </section>
                         </div>
                         <div className="space-y-6">
+
+                            {/* NEW: Booking Options (Patients Only) */}
+                            {isPatient && (
+                                <section className="bg-white dark:bg-[#161616] rounded-xl p-6 border border-gray-100 dark:border-gray-800 shadow-sm">
+                                    <h3 className="text-lg font-bold dark:text-white mb-4">Book Appointment</h3>
+                                    <div className="flex flex-col gap-3">
+                                        <button
+                                            onClick={() => {
+                                                setBookingType('PHYSICAL');
+                                                setShowBookingModal(true);
+                                            }}
+                                            className="w-full py-4 bg-black dark:bg-white text-white dark:text-black rounded-xl font-bold hover:opacity-90 transition active:scale-[0.98] flex items-center justify-center gap-2"
+                                        >
+                                            <FiCalendar />
+                                            Book Appointment
+                                        </button>
+
+                                        <button
+                                            onClick={() => {
+                                                setBookingType('VIRTUAL');
+                                                setShowBookingModal(true);
+                                            }}
+                                            className="w-full py-4 bg-blue-50 dark:bg-blue-900/10 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/30 rounded-xl font-bold hover:bg-blue-100 dark:hover:bg-blue-900/20 transition active:scale-[0.98] flex flex-col items-center justify-center gap-0.5"
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <FiVideo size={18} />
+                                                <span>Book Virtual Consultation</span>
+                                            </div>
+                                            <span className="text-[10px] opacity-80 font-medium tracking-wide">from KES {doctor.services?.find((s: any) => s.name?.toLowerCase().includes('virtual'))?.price || 900} / session</span>
+                                        </button>
+                                    </div>
+                                    <p className="text-xs text-center text-gray-400 mt-3">
+                                        Secure payment & instant confirmation
+                                    </p>
+                                </section>
+                            )}
+
                             <section className="bg-white dark:bg-[#161616] rounded-xl p-6 border border-gray-100 dark:border-gray-800">
                                 <h3 className="text-lg font-bold dark:text-white mb-4">Contact Information</h3>
                                 {(isAdmin || isOwner || appointments.some(a => a.patient?.id === user?.id && ['completed', 'approved'].includes(a.status))) ? (
@@ -362,6 +405,19 @@ export default function DoctorDetailsPage() {
                     </div>
                 )}
             </div>
+
+            {/* Booking Modal */}
+            {showBookingModal && (
+                <BookAppointmentModal
+                    initialDoctor={doctor}
+                    initialType={bookingType}
+                    onClose={() => setShowBookingModal(false)}
+                    onSuccess={() => {
+                        setShowBookingModal(false);
+                        // Refresh if needed
+                    }}
+                />
+            )}
         </div>
     );
 }

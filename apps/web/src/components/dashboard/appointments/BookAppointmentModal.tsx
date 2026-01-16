@@ -60,9 +60,11 @@ interface Doctor {
 interface BookAppointmentModalProps {
     onClose: () => void;
     onSuccess: () => void;
+    initialDoctor?: any; // Allow loose typing to match profile doctor
+    initialType?: 'PHYSICAL' | 'VIRTUAL';
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://portal.mclinic.co.ke/api';
 
 const DoctorAvatar = ({ doctor }: { doctor: Doctor }) => {
     const [error, setError] = useState(false);
@@ -73,7 +75,7 @@ const DoctorAvatar = ({ doctor }: { doctor: Doctor }) => {
 
     return (
         <img
-            src={`${API_URL}/uploads/profiles/${doctor.profile_image}`}
+            src={(doctor.profile_image.startsWith('http') ? doctor.profile_image : `${API_URL}/uploads/profiles/${doctor.profile_image}`)}
             alt={doctor.fname}
             className="w-full h-full object-cover"
             onError={() => setError(true)}
@@ -81,7 +83,7 @@ const DoctorAvatar = ({ doctor }: { doctor: Doctor }) => {
     );
 };
 
-export default function BookAppointmentModal({ onClose, onSuccess }: BookAppointmentModalProps) {
+export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor, initialType }: BookAppointmentModalProps) {
     const router = useRouter();
     const { user } = useAuth();
     const [doctors, setDoctors] = useState<Doctor[]>([]);
@@ -121,6 +123,12 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
         prescriptions: ''
     });
     const [customHomeAddress, setCustomHomeAddress] = useState(''); // Allow editing home address for transport fee logic
+
+    useEffect(() => {
+        if (initialDoctor) {
+            setSelectedDoctor(initialDoctor);
+        }
+    }, [initialDoctor]);
 
     useEffect(() => {
         // Fix Icons
@@ -167,6 +175,7 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
         fetchServices();
     }, [user]);
 
+    // ... (Keep existing fetchAddressFromCoords) ...
     const fetchAddressFromCoords = async (lat: number, lng: number) => {
         try {
             const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`, {
@@ -221,6 +230,8 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
     };
 
     const getDisplayFee = (doc: Doctor) => {
+        if (initialType === 'VIRTUAL') return 900; // Force 900 for virtual if specified
+
         const type = (doc.dr_type || '').toLowerCase();
         if (type.includes('nurse') || type.includes('clinician')) {
             return 1500;
@@ -275,7 +286,7 @@ export default function BookAppointmentModal({ onClose, onSuccess }: BookAppoint
 
         try {
             // Determine if virtual
-            const isVirtual = selectedService?.id === 'VIRTUAL_DOC' || selectedService?.id === 'VIRTUAL_NURSE' || selectedService?.id === 2 || selectedService?.name?.toLowerCase().includes('virtual');
+            const isVirtual = initialType === 'VIRTUAL' || selectedService?.id === 'VIRTUAL_DOC' || selectedService?.id === 'VIRTUAL_NURSE' || selectedService?.id === 2 || selectedService?.name?.toLowerCase().includes('virtual');
 
             const payload = {
                 doctorId: selectedDoctor.id,
