@@ -152,8 +152,8 @@ export class DoctorsService implements OnModuleInit {
             .where('doctor.approvalStatus = :approvalStatus', { approvalStatus: 'approved' })
             .andWhere('doctor.licenseStatus = :licenseStatus', { licenseStatus: 'valid' })
             .andWhere('doctor.status = :status', { status: 1 })
-            // Strict License Date Check: Expiry must be in the future
-            .andWhere('doctor.licenseExpiryDate > :currentDate', { currentDate });
+            // Strict License Date Check: Expiry must be in the future OR Null (if not yet set but approved manually)
+            .andWhere('(doctor.licenseExpiryDate > :currentDate OR doctor.licenseExpiryDate IS NULL)', { currentDate });
 
         // Only enforce Online check if NOT specifically asked to include offline
         if (!includeOffline) {
@@ -378,6 +378,14 @@ export class DoctorsService implements OnModuleInit {
         doctor.status = 1;
         doctor.approvedAt = new Date();
         doctor.approvedBy = adminId;
+
+        // Ensure License Expiry is set (Default 1 year if missing)
+        if (!doctor.licenseExpiryDate) {
+            const nextYear = new Date();
+            nextYear.setFullYear(nextYear.getFullYear() + 1);
+            doctor.licenseExpiryDate = nextYear;
+            doctor.licenseStatus = 'valid';
+        }
 
         const savedDoctor = await this.doctorsRepository.save(doctor);
 
