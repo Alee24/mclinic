@@ -3,9 +3,11 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { api } from '@/lib/api';
+import { useAuth, UserRole } from '@/lib/auth';
 import { FiUser, FiMapPin, FiAward, FiCheckCircle, FiAlertCircle, FiDollarSign, FiBriefcase, FiClock, FiPhone, FiMail } from 'react-icons/fi';
 
 export default function DoctorDetailsPage() {
+    const { user } = useAuth();
     const params = useParams();
     const [doctor, setDoctor] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -45,6 +47,11 @@ export default function DoctorDetailsPage() {
     if (loading) return <div className="p-8 text-center text-gray-500">Loading doctor profile...</div>;
     if (!doctor) return <div className="p-8 text-center text-red-500">Doctor not found</div>;
 
+    const isAdmin = user?.role === UserRole.ADMIN;
+    // Check if the current user is the doctor being viewed
+    // Note: user.doctorId might be number or string, doctor.id is usually number
+    const isOwner = user?.role === UserRole.DOCTOR && user?.doctorId == doctor.id;
+
     return (
         <div className="space-y-6">
             {/* Header Card */}
@@ -78,101 +85,107 @@ export default function DoctorDetailsPage() {
                         {doctor.latitude && (
                             <div className="flex items-center gap-2">
                                 <span className="text-primary"><FiMapPin /></span>
-                                <span>Location Set</span>
+                                <span className="text-green-600">Location Set</span>
                             </div>
                         )}
                     </div>
                 </div>
-                <div className="flex flex-col gap-2 bg-gray-50 dark:bg-gray-900 p-4 rounded-xl">
-                    <div className="text-right">
-                        <div className="text-xs text-gray-400 uppercase tracking-widest mb-1">Wallet Balance</div>
-                        <div className="text-2xl font-bold text-gray-900 dark:text-white">KES {doctor.balance}</div>
+
+                {/* Wallet - Only visible to Admin or the Doctor themselves */}
+                {(isAdmin || isOwner) && (
+                    <div className="flex flex-col gap-2 bg-gray-50 dark:bg-gray-900 p-4 rounded-xl">
+                        <div className="text-right">
+                            <div className="text-xs text-gray-400 uppercase tracking-widest mb-1">Wallet Balance</div>
+                            <div className="text-2xl font-bold text-gray-900 dark:text-white">KES {doctor.balance}</div>
+                        </div>
                     </div>
+                )}
+            </div>
+
+            {/* Admin Actions - STRICTLY ADMIN ONLY */}
+            {isAdmin && (
+                <div className="flex flex-wrap gap-3 p-4 bg-white dark:bg-[#161616] rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
+                    <div className="text-sm font-bold uppercase text-gray-400 self-center mr-2">Admin Actions:</div>
+
+                    {doctor.approvalStatus === 'pending' && (
+                        <button
+                            onClick={async () => {
+                                if (!confirm('Approve this doctor?')) return;
+                                try {
+                                    await api.post(`/doctors/${doctor.id}/approve`, {});
+                                    window.location.reload();
+                                } catch (e) { alert('Failed to approve'); }
+                            }}
+                            className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-xs font-bold uppercase rounded-lg transition"
+                        >
+                            Approve
+                        </button>
+                    )}
+
+                    {doctor.status === 1 ? (
+                        <>
+                            <button
+                                onClick={async () => {
+                                    if (!confirm('Deactivate this doctor? They will not be able to login.')) return;
+                                    try {
+                                        await api.patch(`/doctors/${doctor.id}/deactivate`, {});
+                                        window.location.reload();
+                                    } catch (e) { alert('Failed to deactivate'); }
+                                }}
+                                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold uppercase rounded-lg transition"
+                            >
+                                Deactivate
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    const reason = prompt('Enter suspension reason:');
+                                    if (!reason) return;
+                                    try {
+                                        await api.patch(`/doctors/${doctor.id}/suspend`, { reason });
+                                        window.location.reload();
+                                    } catch (e) { alert('Failed to suspend'); }
+                                }}
+                                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-bold uppercase rounded-lg transition"
+                            >
+                                Suspend
+                            </button>
+                        </>
+                    ) : (
+                        <button
+                            onClick={async () => {
+                                if (!confirm('Activate this doctorAccount?')) return;
+                                try {
+                                    await api.patch(`/doctors/${doctor.id}/activate`, {});
+                                    window.location.reload();
+                                } catch (e) { alert('Failed to activate'); }
+                            }}
+                            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold uppercase rounded-lg transition"
+                        >
+                            Activate
+                        </button>
+                    )}
+
+                    <button
+                        onClick={async () => {
+                            if (!confirm('PERMANENTLY DELETE doctor? This cannot be undone.')) return;
+                            const confirmation = prompt("Type 'DELETE' to confirm:");
+                            if (confirmation !== 'DELETE') return;
+
+                            try {
+                                await api.delete(`/doctors/${doctor.id}`);
+                                window.location.href = '/dashboard/admin/doctors';
+                            } catch (e) { alert('Failed to delete'); }
+                        }}
+                        className="px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold uppercase rounded-lg transition ml-auto"
+                    >
+                        Delete Account
+                    </button>
                 </div>
-            </div>
-
-            {/* Admin Actions */}
-            <div className="flex flex-wrap gap-3 p-4 bg-white dark:bg-[#161616] rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
-                <div className="text-sm font-bold uppercase text-gray-400 self-center mr-2">Actions:</div>
-
-                {doctor.approvalStatus === 'pending' && (
-                    <button
-                        onClick={async () => {
-                            if (!confirm('Approve this doctor?')) return;
-                            try {
-                                await api.post(`/doctors/${doctor.id}/approve`, {});
-                                window.location.reload();
-                            } catch (e) { alert('Failed to approve'); }
-                        }}
-                        className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-xs font-bold uppercase rounded-lg transition"
-                    >
-                        Approve
-                    </button>
-                )}
-
-                {doctor.status === 1 ? (
-                    <>
-                        <button
-                            onClick={async () => {
-                                if (!confirm('Deactivate this doctor? They will not be able to login.')) return;
-                                try {
-                                    await api.patch(`/doctors/${doctor.id}/deactivate`, {});
-                                    window.location.reload();
-                                } catch (e) { alert('Failed to deactivate'); }
-                            }}
-                            className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold uppercase rounded-lg transition"
-                        >
-                            Deactivate
-                        </button>
-                        <button
-                            onClick={async () => {
-                                const reason = prompt('Enter suspension reason:');
-                                if (!reason) return;
-                                try {
-                                    await api.patch(`/doctors/${doctor.id}/suspend`, { reason });
-                                    window.location.reload();
-                                } catch (e) { alert('Failed to suspend'); }
-                            }}
-                            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-bold uppercase rounded-lg transition"
-                        >
-                            Suspend
-                        </button>
-                    </>
-                ) : (
-                    <button
-                        onClick={async () => {
-                            if (!confirm('Activate this doctorAccount?')) return;
-                            try {
-                                await api.patch(`/doctors/${doctor.id}/activate`, {});
-                                window.location.reload();
-                            } catch (e) { alert('Failed to activate'); }
-                        }}
-                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold uppercase rounded-lg transition"
-                    >
-                        Activate
-                    </button>
-                )}
-
-                <button
-                    onClick={async () => {
-                        if (!confirm('PERMANENTLY DELETE doctor? This cannot be undone.')) return;
-                        const confirmation = prompt("Type 'DELETE' to confirm:");
-                        if (confirmation !== 'DELETE') return;
-
-                        try {
-                            await api.delete(`/doctors/${doctor.id}`);
-                            window.location.href = '/dashboard/admin/doctors';
-                        } catch (e) { alert('Failed to delete'); }
-                    }}
-                    className="px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold uppercase rounded-lg transition ml-auto"
-                >
-                    Delete Account
-                </button>
-            </div>
+            )}
 
             {/* Tabs */}
             <div className="flex gap-6 border-b border-gray-200 dark:border-gray-800 overflow-x-auto">
-                {['profile', 'appointments', 'financials'].map((tab) => (
+                {['profile', 'appointments', (isAdmin || isOwner) ? 'financials' : null].filter(Boolean).map((tab) => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab as any)}
@@ -335,3 +348,4 @@ export default function DoctorDetailsPage() {
         </div>
     );
 }
+

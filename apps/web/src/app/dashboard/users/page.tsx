@@ -2,15 +2,30 @@
 
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
-import { FiUsers, FiLock, FiSearch, FiEdit2, FiTrash2, FiCheck, FiX } from 'react-icons/fi';
+import { useAuth, UserRole } from '@/lib/auth';
+import { FiUsers, FiLock, FiSearch, FiEdit2, FiTrash2, FiCheck, FiX, FiShield } from 'react-icons/fi';
 
 export default function UsersPage() {
+    const { user, loading: authLoading } = useAuth();
     const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [resettingUser, setResettingUser] = useState<any>(null);
     const [newPassword, setNewPassword] = useState('');
     const [resetLoading, setResetLoading] = useState(false);
+
+    if (authLoading) return <div className="p-8 text-center">Loading auth...</div>;
+    if (user?.role !== UserRole.ADMIN) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-8 space-y-4">
+                <div className="bg-red-100 dark:bg-red-900/20 p-4 rounded-full">
+                    <FiShield className="w-12 h-12 text-red-500" />
+                </div>
+                <h2 className="text-2xl font-bold dark:text-white">Access Denied</h2>
+                <p className="text-gray-500">Only System Administrators can manage users.</p>
+            </div>
+        );
+    }
 
     useEffect(() => {
         fetchUsers();
