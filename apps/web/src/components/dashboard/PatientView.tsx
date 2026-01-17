@@ -75,40 +75,89 @@ export default function PatientView() {
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-1000">
-            {/* Top Bar - Quick Actions */}
-            <div className="bg-white dark:bg-[#161616] rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm border border-gray-100 dark:border-gray-800">
-                <div className="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+            {/* Top Bar - Quick Actions - ENHANCED */}
+            <div className="bg-gradient-to-r from-white to-gray-50 dark:from-[#161616] dark:to-[#1A1A1A] rounded-3xl p-6 shadow-lg border border-gray-100 dark:border-gray-800">
+                <h2 className="text-sm font-black text-gray-400 uppercase tracking-widest mb-4">Quick Actions</h2>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    {/* Book Appointment */}
                     <button
                         onClick={() => setShowBookingModal(true)}
-                        className="flex items-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm transition whitespace-nowrap shadow-lg shadow-blue-600/20"
+                        className="flex flex-col items-center justify-center gap-3 p-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-blue-600/30 hover:scale-105 active:scale-95 group"
                     >
-                        <FiPlusSquare className="text-lg" />
-                        Book Appointment
+                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <FiCalendar className="text-2xl" />
+                        </div>
+                        <span className="text-xs text-center leading-tight">Book<br />Appointment</span>
                     </button>
-                    <Link
-                        href="/dashboard/support"
-                        className="flex items-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold text-sm transition whitespace-nowrap shadow-lg shadow-green-600/20"
-                    >
-                        <FiMessageCircle className="text-lg" />
-                        Chat Support
-                    </Link>
-                    <a
-                        href="tel:+254700000000"
-                        className="flex items-center gap-2 px-4 py-3 bg-gray-900 dark:bg-white hover:bg-black dark:hover:bg-gray-200 text-white dark:text-black rounded-xl font-bold text-sm transition whitespace-nowrap shadow-lg"
-                    >
-                        <FiPhone className="text-lg" />
-                        Call Admin
-                    </a>
-                </div>
 
-                <div className="flex items-center gap-3 w-full md:w-auto">
+                    {/* Order Lab Test */}
+                    <Link
+                        href="/dashboard/lab"
+                        className="flex flex-col items-center justify-center gap-3 p-5 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-purple-600/30 hover:scale-105 active:scale-95 group"
+                    >
+                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <FiActivity className="text-2xl" />
+                        </div>
+                        <span className="text-xs text-center leading-tight">Order Lab<br />Test</span>
+                    </Link>
+
+                    {/* Find Nearby Doctors */}
+                    <Link
+                        href="/dashboard/doctors"
+                        className="flex flex-col items-center justify-center gap-3 p-5 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-green-600/30 hover:scale-105 active:scale-95 group"
+                    >
+                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <FiMapPin className="text-2xl" />
+                        </div>
+                        <span className="text-xs text-center leading-tight">Find<br />Doctors</span>
+                    </Link>
+
+                    {/* Emergency Ambulance */}
+                    <Link
+                        href="/dashboard/ambulance"
+                        className="flex flex-col items-center justify-center gap-3 p-5 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-red-600/30 hover:scale-105 active:scale-95 group animate-pulse hover:animate-none"
+                    >
+                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <FiAlertCircle className="text-2xl" />
+                        </div>
+                        <span className="text-xs text-center leading-tight">Emergency<br />Ambulance</span>
+                    </Link>
+
+                    {/* All Services */}
                     <Link
                         href="/dashboard/services-hub"
-                        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-bold text-sm transition whitespace-nowrap"
+                        className="flex flex-col items-center justify-center gap-3 p-5 bg-gray-900 dark:bg-white hover:bg-black dark:hover:bg-gray-200 text-white dark:text-black rounded-2xl font-bold transition-all shadow-lg hover:scale-105 active:scale-95 group"
                     >
-                        <FiGrid />
-                        All Services
+                        <div className="w-12 h-12 bg-white/20 dark:bg-black/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <FiGrid className="text-2xl" />
+                        </div>
+                        <span className="text-xs text-center leading-tight">All<br />Services</span>
                     </Link>
+                </div>
+
+                {/* Secondary Actions Row */}
+                <div className="grid grid-cols-3 gap-3 mt-3">
+                    <Link
+                        href="/dashboard/pharmacy"
+                        className="flex items-center justify-center gap-2 px-4 py-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-bold text-xs transition border border-gray-200 dark:border-gray-700"
+                    >
+                        <FiPlusSquare className="text-base" />
+                        Pharmacy
+                    </Link>
+                    <Link
+                        href="/dashboard/support"
+                        className="flex items-center justify-center gap-2 px-4 py-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-bold text-xs transition border border-gray-200 dark:border-gray-700"
+                    >
+                        <FiMessageCircle className="text-base" />
+                        Support
+                    </Link>
+                    <a
+                        href="tel:+254700448448"
+                        className="flex items-center justify-center gap-2 px-4 py-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-bold text-xs transition border border-gray-200 dark:border-gray-700"
+                    >
+                        <FiPhone className="text-base" />
+                        Call Us
+                    </a>
                 </div>
             </div>
 
