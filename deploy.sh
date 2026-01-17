@@ -1,56 +1,60 @@
 #!/bin/bash
 
-# M-Clinic Production Deployment Script
-# This script ensures all environment variables are set and builds are up to date
-
-echo "🚀 M-Clinic Production Deployment"
-echo "=================================="
+echo "🚀 M-Clinic Deployment Script"
+echo "=============================="
+echo ""
 
 # Navigate to project root
-cd /var/www/mclinicportal
+cd /root/mclinic || exit
 
-# Pull latest changes
-echo "📥 Pulling latest changes from Git..."
+echo "📥 Pulling latest changes from GitHub..."
+git stash
 git pull origin main
 
-# Install dependencies
-echo "📦 Installing dependencies..."
-npm install
-
-# API Setup
+echo ""
 echo "🔧 Setting up API..."
 cd apps/api
 
-# Generate Prisma Client
+echo "📦 Installing API dependencies..."
+npm install
+
 echo "🔄 Generating Prisma Client..."
 npx prisma generate
 
-# Push database schema
 echo "💾 Pushing database schema..."
 npx prisma db push
 
-# Build API
 echo "🏗️  Building API..."
 npm run build
 
-# Web Setup
+echo "♻️  Restarting API service..."
+pm2 restart mclinic-api || pm2 start npm --name "mclinic-api" -- run start:prod
+
+echo ""
 echo "🌐 Setting up Web..."
 cd ../web
+
+echo "📦 Installing Web dependencies..."
+npm install
+
+echo "🏗️  Building Web..."
 npm run build
 
-# Restart services
-echo "🔄 Restarting PM2 services..."
-cd /var/www/mclinicportal
-pm2 restart mclinic-api
-pm2 restart mclinic-web
+echo "♻️  Restarting Web service..."
+pm2 restart mclinic-web || pm2 start npm --name "mclinic-web" -- run start
 
-# Show status
-echo "✅ Deployment complete!"
 echo ""
+echo "💾 Saving PM2 configuration..."
+pm2 save
+
+echo ""
+echo "✅ Deployment Complete!"
+echo ""
+echo "📊 Service Status:"
 pm2 status
 
 echo ""
-echo "📋 Next steps:"
-echo "1. Verify API is running: curl https://portal.mclinic.co.ke/api/users/count-active"
-echo "2. Check logs if needed: pm2 logs mclinic-api"
-echo "3. Create admin user if needed: node create-admin.js"
+echo "📝 View logs with:"
+echo "   pm2 logs mclinic-api"
+echo "   pm2 logs mclinic-web"
+echo ""
