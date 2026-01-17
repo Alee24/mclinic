@@ -163,16 +163,19 @@ export default function DoctorView() {
                         </button>
                     </div>
 
-                    <button
-                        onClick={() => {
-                            const roomName = `Dr-${user?.fname}-${user?.id}`;
-                            const url = `https://virtual.mclinic.co.ke/${roomName}`;
-                            window.open(url, '_blank');
-                        }}
-                        className="bg-donezo-dark text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-donezo-dark/30 hover:scale-[1.02] transition-transform"
-                    >
-                        <FiPlus /> Start Session
-                    </button>
+                    {/* Safety Button - Only show when doctor has appointments */}
+                    {stats.appointmentsToday > 0 && (
+                        <button
+                            onClick={() => {
+                                const roomName = `Dr-${user?.fname}-${user?.id}`;
+                                const url = `https://virtual.mclinic.co.ke/${roomName}`;
+                                window.open(url, '_blank');
+                            }}
+                            className="bg-red-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-red-600/30 hover:scale-[1.02] transition-transform"
+                        >
+                            <FiPlus /> Safety Button
+                        </button>
+                    )}
                 </div>
             </div>
 
