@@ -42,20 +42,35 @@ import { EmergencyModule } from './emergency/emergency.module';
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        type: 'mysql',
-        host: configService.get('DB_HOST', 'localhost'),
-        port: parseInt(configService.get('DB_PORT', '3306')),
-        username: configService.get('DB_USER', 'root'),
-        password: configService.get('DB_PASSWORD', ''),
-        database: configService.get('DB_NAME', 'mclinicportal'),
-        autoLoadEntities: true,
-        synchronize: true, // Enable sync to update schema
-        extra: {
-          connectionLimit: 10,
-          connectTimeout: 60000,
-        },
-      }),
+      useFactory: (configService: ConfigService) => {
+        let dbName = configService.get('DB_NAME');
+        const dbUrl = configService.get('DATABASE_URL');
+
+        // If DB_NAME is not set but DATABASE_URL is, try to parse it
+        if (!dbName && dbUrl) {
+          try {
+            const urlParts = new URL(dbUrl.replace('mysql://', 'http://')); // Hack to use URL parser
+            dbName = urlParts.pathname.replace(/^\//, '');
+          } catch (e) {
+            console.warn('Failed to parse DATABASE_URL for DB_NAME');
+          }
+        }
+
+        return {
+          type: 'mysql',
+          host: configService.get('DB_HOST', 'localhost'),
+          port: parseInt(configService.get('DB_PORT', '3306')),
+          username: configService.get('DB_USER', 'root'),
+          password: configService.get('DB_PASSWORD', ''),
+          database: dbName || 'mclinicportal', // Fallback
+          autoLoadEntities: true,
+          synchronize: true, // Enable sync to update schema
+          extra: {
+            connectionLimit: 10,
+            connectTimeout: 60000,
+          },
+        };
+      },
       inject: [ConfigService],
     }),
     AuthModule,
