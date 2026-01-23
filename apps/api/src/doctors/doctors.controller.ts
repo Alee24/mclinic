@@ -47,17 +47,19 @@ export class DoctorsController {
     @Query('lat') lat: string,
     @Query('lng') lng: string,
     @Query('radius') radius?: string, // km
+    @Query('include_all') includeAll?: string,
   ) {
     const latNum = parseFloat(lat);
     const lngNum = parseFloat(lng);
     const radiusNum = radius ? parseFloat(radius) : 50;
+    const shouldIncludeAll = includeAll === 'true';
 
     // Provide defaults if missing to avoid NaN errors, though validation should handle it
     if (isNaN(latNum) || isNaN(lngNum)) {
       return [];
     }
 
-    return this.doctorsService.getNearby(latNum, lngNum, radiusNum);
+    return this.doctorsService.getNearby(latNum, lngNum, radiusNum, shouldIncludeAll);
   }
 
   @Get('admin/all')

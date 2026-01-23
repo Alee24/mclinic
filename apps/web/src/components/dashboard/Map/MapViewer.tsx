@@ -54,7 +54,7 @@ export default function MapViewer() {
         setLoading(true);
         try {
             const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://portal.mclinic.co.ke/api';
-            const res = await fetch(`${API_URL}/doctors/nearby?lat=${lat}&lng=${lng}&radius=50`);
+            const res = await fetch(`${API_URL}/doctors/nearby?lat=${lat}&lng=${lng}&radius=50&include_all=true`);
             if (res.ok) {
                 const data = await res.json();
                 setDoctors(data);

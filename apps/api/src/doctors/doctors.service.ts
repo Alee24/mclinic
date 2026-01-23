@@ -144,22 +144,31 @@ export class DoctorsService implements OnModuleInit {
         return this.doctorsRepository.save(doctor);
     }
 
-    async getNearby(lat: number, lng: number, radiusKm: number = 50): Promise<any[]> {
+    async getNearby(lat: number, lng: number, radiusKm: number = 50, includeAll: boolean = false): Promise<any[]> {
         // Raw query for Haversine distance
-        const doctors = await this.doctorsRepository.query(
-            `
+        // If includeAll is true, we remove the strict WHERE clauses for approval and status
+        const whereClause = includeAll
+            ? ""
+            : "WHERE approvalStatus = 'approved' AND status = 1 AND (licenseExpiryDate > CURDATE() OR licenseExpiryDate IS NULL)";
+
+        // If includeAll is true, we might still want to ensure latitude/longitude are not null, but usually checking lat/lng IS NOT NULL is handled by HAVING distance being calculable or logic. 
+        // Actually, the HAversine formula returns null if lat/lng are null, so HAVING distance < ? filters them out implicitly? No, we should ensure they exist.
+        // Let's keep it simple and just rely on previous logic structure but change WHERE.
+
+        // Note: We need WHERE 1=1 or similar if we remove all conditions to make appending valid.
+        // But here we construct the string directly.
+
+        const sql = `
             SELECT *, 
             ( 6371 * acos( cos( radians(?) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( latitude ) ) ) ) AS distance 
             FROM doctors 
-            WHERE approvalStatus = 'approved' 
-            AND status = 1 
-            AND (licenseExpiryDate > CURDATE() OR licenseExpiryDate IS NULL)
+            ${whereClause}
             HAVING distance < ? 
             ORDER BY distance 
             LIMIT 20
-            `,
-            [lat, lng, lat, radiusKm]
-        );
+        `;
+
+        const doctors = await this.doctorsRepository.query(sql, [lat, lng, lat, radiusKm]);
         return doctors;
     }
 
