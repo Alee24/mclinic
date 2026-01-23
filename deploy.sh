@@ -2,12 +2,21 @@
 # Stop script on error
 set -e
 
-echo "🚀 Starting Deployment (Preserving Data)..."
+# Define target directory (User specified: mpesaconnnect)
+# We try to detect the correct one just in case
+if [ -d "/var/www/mpesaconnnect" ]; then
+  APP_DIR="/var/www/mpesaconnnect"
+elif [ -d "/var/www/mpesaconnect" ]; then
+  APP_DIR="/var/www/mpesaconnect"
+else
+  # Fallback or current dir
+  APP_DIR="/var/www/mpesaconnnect"
+fi
 
-# Ensure we are in the right directory (optional, but good practice if running from outside)
-# cd /root/mclinic 
+echo "🚀 Starting Deployment to $APP_DIR"
+cd $APP_DIR || { echo "❌ Directory $APP_DIR not found!"; exit 1; }
 
-echo "🔄 Cleaning code state (git reset --hard)..."
+echo "🔄 Cleaning code state..."
 git fetch origin
 git reset --hard origin/main
 git pull origin main
@@ -19,8 +28,11 @@ echo "🔧 Setting up API..."
 cd apps/api
 npm install
 npx prisma generate
-echo "🗄️  Syncing Database Schema (Data Safe)..."
-npx prisma db push
+
+echo "⚠️  SKIPPING Database Schema Update to protect data."
+echo "   If you made changes to the database schema (schema.prisma),"
+echo "   please run 'npx prisma db push' manually inside apps/api."
+# npx prisma db push 
 
 echo "🏗️  Building API..."
 npm run build
@@ -35,5 +47,5 @@ npm run build
 pm2 restart mclinic-web
 
 pm2 save
-echo "✅ Deployment Successful! Database data was preserved."
+echo "✅ Deployment Successful!"
 pm2 status
