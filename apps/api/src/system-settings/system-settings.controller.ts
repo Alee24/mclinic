@@ -1,23 +1,6 @@
 import { Controller, Get, Post, Body, UseGuards, Param } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { SystemSettingsService } from './system-settings.service';
-import { IsArray, IsString, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
-
-class SettingItemDto {
-    @IsString()
-    key: string;
-
-    @IsString()
-    value: string;
-}
-
-class UpdateSettingsDto {
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => SettingItemDto)
-    settings: SettingItemDto[];
-}
 
 @Controller('settings')
 export class SystemSettingsController {
@@ -37,7 +20,9 @@ export class SystemSettingsController {
 
     @UseGuards(AuthGuard('jwt'))
     @Post()
-    async updateSettings(@Body() body: UpdateSettingsDto) {
-        return await this.settingsService.updateSettings(body.settings);
+    async updateSettings(@Body() body: any) {
+        // Handle both structure with { settings: [...] } and direct array if ever changed
+        const settings = body.settings || body;
+        return await this.settingsService.updateSettings(settings);
     }
 }

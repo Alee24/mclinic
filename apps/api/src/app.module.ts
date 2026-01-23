@@ -42,49 +42,20 @@ import { EmergencyModule } from './emergency/emergency.module';
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => {
-        let dbName = configService.get('DB_NAME');
-        let dbUser = configService.get('DB_USER');
-        let dbPass = configService.get('DB_PASSWORD');
-        let dbHost = configService.get('DB_HOST');
-        let dbPort = configService.get('DB_PORT');
-
-        const dbUrl = configService.get('DATABASE_URL');
-
-        // If DATABASE_URL is present, use it to fill in missing gaps
-        if (dbUrl) {
-          try {
-            // Ensure protocol is present for URL parsing
-            const urlStr = dbUrl.includes('://') ? dbUrl : `mysql://${dbUrl}`;
-            // Replace mysql protocol with http to use standard URL parser
-            const urlParts = new URL(urlStr.replace(/^mysql(2)?:\/\//, 'http://'));
-
-            if (!dbName) dbName = urlParts.pathname.replace(/^\//, '');
-            if (!dbUser && urlParts.username) dbUser = decodeURIComponent(urlParts.username);
-            if (!dbPass && urlParts.password) dbPass = decodeURIComponent(urlParts.password);
-            if (!dbHost && urlParts.hostname) dbHost = urlParts.hostname;
-            if (!dbPort && urlParts.port) dbPort = urlParts.port;
-
-          } catch (e) {
-            console.warn('Failed to parse DATABASE_URL connection string:', e);
-          }
-        }
-
-        return {
-          type: 'mysql',
-          host: dbHost || 'localhost',
-          port: parseInt(dbPort || '3306'),
-          username: dbUser || 'root',
-          password: dbPass || '',
-          database: dbName || 'mclinicportal', // Fallback
-          autoLoadEntities: true,
-          synchronize: true, // Enable sync to update schema
-          extra: {
-            connectionLimit: 10,
-            connectTimeout: 60000,
-          },
-        };
-      },
+      useFactory: (configService: ConfigService) => ({
+        type: 'mysql',
+        host: configService.get('DB_HOST', 'localhost'),
+        port: parseInt(configService.get('DB_PORT', '3306')),
+        username: configService.get('DB_USER', 'root'),
+        password: configService.get('DB_PASSWORD', ''),
+        database: configService.get('DB_NAME', 'mclinicportal'),
+        autoLoadEntities: true,
+        synchronize: true, // Enable sync to update schema
+        extra: {
+          connectionLimit: 10,
+          connectTimeout: 60000,
+        },
+      }),
       inject: [ConfigService],
     }),
     AuthModule,
