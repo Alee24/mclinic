@@ -134,7 +134,15 @@ export class AuthService {
       console.error('Failed to send verification email:', error);
     }
 
-    return user;
+    // Generate auto-login token
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      role: user.role,
+    };
+    const access_token = this.jwtService.sign(payload);
+
+    return { user, access_token };
   }
 
   async registerDoctor(dto: any) {

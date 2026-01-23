@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth'; // Import useAuth
 import Link from 'next/link';
 import { FiCheckCircle, FiUser, FiMapPin, FiNavigation, FiLock, FiMail, FiPhone, FiCreditCard, FiFileText } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
@@ -10,6 +11,7 @@ import { toast } from 'react-hot-toast';
 
 export default function PatientRegisterPage() {
     const router = useRouter();
+    const { login } = useAuth(); // Get login function
     const [loading, setLoading] = useState(false);
     const [locationStatus, setLocationStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [termsAccepted, setTermsAccepted] = useState(false);
@@ -74,8 +76,14 @@ export default function PatientRegisterPage() {
         try {
             const res = await api.post('/auth/register', formData);
             if (res && res.ok) {
-                toast.success('Registration successful! Please login to continue.');
-                router.push('/login?registered=true');
+                const data = await res.json();
+                toast.success('Registration successful! Welcome to M-Clinic.');
+                login(data.user, data.access_token);
+                // The login function in AuthContext usually handles redirection, but we can force it here just in case or let the Context handle it.
+                // Looking at Login page, it redirects if user is set.
+                // But let's verify if login() redirects.
+                // Assuming login() sets state, and we might need to redirect manually if it doesn't.
+                router.push('/dashboard');
             } else {
                 const data = res ? await res.json() : { message: 'Network error' };
                 toast.error(data.message || 'Registration failed. Email might be in use.');
