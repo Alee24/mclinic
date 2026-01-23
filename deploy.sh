@@ -2,16 +2,8 @@
 # Stop script on error
 set -e
 
-# Define target directory (User specified: mpesaconnnect)
-# We try to detect the correct one just in case
-if [ -d "/var/www/mpesaconnnect" ]; then
-  APP_DIR="/var/www/mpesaconnnect"
-elif [ -d "/var/www/mpesaconnect" ]; then
-  APP_DIR="/var/www/mpesaconnect"
-else
-  # Fallback or current dir
-  APP_DIR="/var/www/mpesaconnnect"
-fi
+# Define target directory
+APP_DIR="/var/www/mclinicportal"
 
 echo "🚀 Starting Deployment to $APP_DIR"
 cd $APP_DIR || { echo "❌ Directory $APP_DIR not found!"; exit 1; }
