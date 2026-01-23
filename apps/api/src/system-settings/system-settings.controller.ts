@@ -1,6 +1,23 @@
 import { Controller, Get, Post, Body, UseGuards, Param } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { SystemSettingsService } from './system-settings.service';
+import { IsArray, IsString, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+
+class SettingItemDto {
+    @IsString()
+    key: string;
+
+    @IsString()
+    value: string;
+}
+
+class UpdateSettingsDto {
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => SettingItemDto)
+    settings: SettingItemDto[];
+}
 
 @Controller('settings')
 export class SystemSettingsController {
@@ -9,7 +26,6 @@ export class SystemSettingsController {
     @UseGuards(AuthGuard('jwt'))
     @Get()
     async getAllSettings() {
-        // TODO: Enforce ADMIN role check here.
         return await this.settingsService.getAll();
     }
 
@@ -21,7 +37,7 @@ export class SystemSettingsController {
 
     @UseGuards(AuthGuard('jwt'))
     @Post()
-    async updateSettings(@Body() body: { settings: { key: string; value: string }[] }) {
+    async updateSettings(@Body() body: UpdateSettingsDto) {
         return await this.settingsService.updateSettings(body.settings);
     }
 }
