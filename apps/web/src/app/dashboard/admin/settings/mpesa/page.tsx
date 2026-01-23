@@ -100,10 +100,13 @@ export default function MpesaSettingsPage() {
             if (res.ok) {
                 toast.success('Test STK Push initiated successfully! Check your phone.');
             } else {
-                toast.error(data.message || 'Test failed');
+                console.error('STK Push Error:', data);
+                const errorMsg = data.message || data.errorMessage || data.error || 'Test failed';
+                toast.error(`Failed: ${errorMsg}`);
             }
         } catch (error) {
-            toast.error('Connection test failed. Check your credentials.');
+            console.error('Connection test error:', error);
+            toast.error('Connection test failed. Please check your internet connection or server logs.');
         } finally {
             setTesting(false);
         }

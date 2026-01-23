@@ -72,8 +72,9 @@ export class MpesaService {
             return response.data.access_token;
         } catch (error) {
             console.error('M-Pesa Access Token Error:', error.response?.data || error.message);
+            const msg = error.response?.data?.errorMessage || error.message || 'Unknown Auth Error';
             throw new HttpException(
-                'Failed to get M-Pesa access token',
+                `M-Pesa Auth Failed: ${msg}`,
                 HttpStatus.INTERNAL_SERVER_ERROR,
             );
         }
@@ -159,8 +160,9 @@ export class MpesaService {
             return await this.mpesaTransactionRepository.save(transaction);
         } catch (error) {
             console.error('M-Pesa STK Push Error:', error.response?.data || error.message);
+            const msg = error.response?.data?.errorMessage || error.message || 'Unknown STK Error';
             throw new HttpException(
-                error.response?.data?.errorMessage || 'Failed to initiate M-Pesa payment',
+                `STK Push Failed: ${msg}`,
                 HttpStatus.BAD_REQUEST,
             );
         }
