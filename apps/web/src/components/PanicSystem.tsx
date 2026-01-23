@@ -163,17 +163,9 @@ export default function PanicSystem() {
         return `${m}:${s < 10 ? '0' : ''}${s}`;
     };
 
-    // Idle State: Small Floating Button to Start
+    // Idle State: Do not render anything
     if (status === 'idle') {
-        return (
-            <button
-                onClick={startSession}
-                className="fixed bottom-24 right-4 z-40 bg-green-600 text-white p-4 rounded-full shadow-lg shadow-green-500/40 flex items-center justify-center gap-2 animate-bounce"
-            >
-                <FiShield className="text-xl" />
-                <span className="font-bold text-sm">Start Visit</span>
-            </button>
-        );
+        return null; // Button removed as per request
     }
 
     // Panic State: Black Screen
