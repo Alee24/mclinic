@@ -237,4 +237,10 @@ export class DoctorsController {
       throw error;
     }
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('admin/approve-all')
+  async approveAllDoctors(@Request() req: any) {
+    return this.doctorsService.approveAll(req.user.id);
+  }
 }

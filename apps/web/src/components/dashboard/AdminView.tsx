@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import Link from 'next/link';
-import { FiUsers, FiActivity, FiBriefcase, FiCalendar, FiArrowUpRight, FiMail, FiBell, FiDollarSign } from 'react-icons/fi';
+import { toast } from 'react-hot-toast'; // Added toast import
+import { FiUsers, FiActivity, FiBriefcase, FiCalendar, FiArrowUpRight, FiMail, FiBell, FiDollarSign, FiCheckCircle } from 'react-icons/fi';
 
 import TransactionDetailsModal from './finance/TransactionDetailsModal';
 
@@ -24,6 +25,32 @@ export default function AdminView() {
 
     const [selectedTx, setSelectedTx] = useState<any>(null);
     const [showTxModal, setShowTxModal] = useState(false);
+    const [approving, setApproving] = useState(false);
+
+    const handleApproveAll = async () => {
+        if (!stats.pendingDoctors?.length) return;
+        if (!confirm(`Are you sure you want to approve all ${stats.pendingDoctors.length} pending medics? This will activate their accounts immediately.`)) return;
+
+        setApproving(true);
+        const toastId = toast.loading('Processing approvals...');
+
+        try {
+            const res = await api.post('/doctors/admin/approve-all', {});
+            if (res.ok) {
+                const data = await res.json();
+                toast.success(`Approved ${data.count} medics successfully!`, { id: toastId });
+                // Simple refresh of stats by reloading or re-fetching. Reload is safer to clear all states.
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                toast.error('Failed to approve medics. Please try again.', { id: toastId });
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error('Connection error occurred.', { id: toastId });
+        } finally {
+            setApproving(false);
+        }
+    };
 
     useEffect(() => {
         const fetchStats = async () => {
@@ -69,7 +96,7 @@ export default function AdminView() {
                             paid: financials.invoices?.paidAmount || 0,       // Correctly accessing nested amount
                             total: (financials.invoices?.pending || 0) + (financials.invoices?.paid || 0) // Total count (optional usage)
                         },
-                        pendingDoctors: doctors.filter((d: any) => !d.Verified_status).slice(0, 5),
+                        pendingDoctors: doctors.filter((d: any) => d.approvalStatus === 'pending' || !d.Verified_status),
                     }));
                 }
             } catch (err) {
@@ -169,7 +196,23 @@ export default function AdminView() {
             <div className="bg-white dark:bg-[#161616] rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="font-bold text-gray-900 dark:text-white">Action Items & Verifications</h3>
-                    <Link href="/dashboard/doctors" className="text-sm font-bold text-donezo-dark hover:underline">View All Medics</Link>
+                    <div className="flex items-center gap-3">
+                        {stats.pendingDoctors.length > 0 && (
+                            <button
+                                onClick={handleApproveAll}
+                                disabled={approving}
+                                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-green-600/20 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {approving ? (
+                                    <span className="animate-spin text-lg">↻</span>
+                                ) : (
+                                    <FiCheckCircle />
+                                )}
+                                Approve All ({stats.pendingDoctors.length})
+                            </button>
+                        )}
+                        <Link href="/dashboard/doctors" className="text-sm font-bold text-donezo-dark hover:underline">View All Medics</Link>
+                    </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {/* Shortcuts Group */}

@@ -494,6 +494,63 @@ export class DoctorsService implements OnModuleInit {
         return savedDoctor;
     }
 
+    async approveAll(adminId: number): Promise<{ success: boolean; count: number }> {
+        const pendingDoctors = await this.doctorsRepository.find({
+            where: { approvalStatus: 'pending' },
+        });
+
+        if (pendingDoctors.length === 0) {
+            return { success: true, count: 0 };
+        }
+
+        const approvedDocs: Doctor[] = [];
+        const nextYear = new Date();
+        nextYear.setFullYear(nextYear.getFullYear() + 1);
+
+        for (const doctor of pendingDoctors) {
+            doctor.approvalStatus = 'approved';
+            doctor.Verified_status = 1;
+            doctor.status = 1;
+            doctor.approvedAt = new Date();
+            doctor.approvedBy = adminId;
+
+            // Auto License
+            if (!doctor.licenseExpiryDate) {
+                doctor.licenseExpiryDate = nextYear;
+                doctor.licenseStatus = 'valid';
+            }
+
+            // Auto-assign random Nairobi location if missing (for map visibility)
+            // @ts-ignore
+            if (!doctor.latitude || !doctor.longitude || Number(doctor.latitude) === 0) {
+                // @ts-ignore
+                doctor.latitude = -1.2921 + (Math.random() - 0.5) * 0.1;
+                // @ts-ignore
+                doctor.longitude = 36.8219 + (Math.random() - 0.5) * 0.1;
+            }
+
+            // Sync with User if exists
+            if (doctor.email) {
+                await this.usersService.updateUserStatus(doctor.email, true);
+            }
+
+            approvedDocs.push(doctor);
+        }
+
+        await this.doctorsRepository.save(approvedDocs);
+
+        // Send emails asynchronously
+        approvedDocs.forEach(async (doc) => {
+            try {
+                await this.emailService.sendDoctorApprovalEmail(doc, 'approved');
+            } catch (e) {
+                console.error(`Failed to send approval email to ${doc.email}`, e);
+            }
+        });
+
+        return { success: true, count: approvedDocs.length };
+    }
+
     async findPendingDoctors(): Promise<Doctor[]> {
         return await this.doctorsRepository.find({
             where: { approvalStatus: 'pending' },
