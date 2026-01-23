@@ -50,7 +50,7 @@ import { EmergencyModule } from './emergency/emergency.module';
         password: configService.get('DB_PASSWORD', ''),
         database: configService.get('DB_NAME', 'mclinicportal'),
         autoLoadEntities: true,
-        synchronize: true, // Enable sync to update schema
+        synchronize: false, // Disable sync to prevent startup crash on schema mismatch
         extra: {
           connectionLimit: 10,
           connectTimeout: 60000,
