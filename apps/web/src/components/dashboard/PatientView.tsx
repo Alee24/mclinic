@@ -75,139 +75,180 @@ export default function PatientView() {
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-1000">
-            {/* Top Bar - Quick Actions - ENHANCED */}
-            <div className="bg-gradient-to-r from-white to-gray-50 dark:from-[#161616] dark:to-[#1A1A1A] rounded-3xl p-6 shadow-lg border border-gray-100 dark:border-gray-800">
-                <h2 className="text-sm font-black text-gray-400 uppercase tracking-widest mb-4">Quick Actions</h2>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            {/* Hero Welcome - NEW PREMIUM DESIGN */}
+            <div className="relative overflow-hidden rounded-[40px] bg-[#0A0A0A] p-8 md:p-12 text-white shadow-2xl shadow-black/20 group">
+                {/* Background Effects */}
+                <div className="absolute inset-0 bg-gradient-to-br from-[#10b981]/20 via-transparent to-[#0ea5e9]/10 opacity-70"></div>
+                <div className="absolute -right-20 -top-20 h-96 w-96 rounded-full bg-[#10b981]/10 blur-[100px] group-hover:bg-[#10b981]/20 transition-all duration-1000"></div>
+                <div className="absolute -left-20 -bottom-20 h-80 w-80 rounded-full bg-[#0ea5e9]/10 blur-[80px] group-hover:bg-[#0ea5e9]/20 transition-all duration-1000"></div>
+
+                <div className="relative z-10 grid grid-cols-1 gap-12 lg:grid-cols-12 items-center">
+                    <div className="lg:col-span-7">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 backdrop-blur-md mb-6 hover:bg-white/10 transition-colors cursor-default">
+                            <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
+                            <span className="text-xs font-bold uppercase tracking-widest text-green-300">System Active</span>
+                        </div>
+
+                        <h1 className="mb-4 text-4xl font-black leading-tight tracking-tight md:text-6xl bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400">
+                            Hello, {user?.fname}!
+                        </h1>
+                        <p className="mb-10 max-w-lg text-lg font-medium text-gray-400">
+                            Your health dashboard is ready. {nextAppointment ? 'You have an upcoming consultation.' : 'Start by booking a checkup or ordering tests.'}
+                        </p>
+
+                        <div className="flex flex-wrap gap-4">
+                            <button
+                                onClick={() => setShowBookingModal(true)}
+                                className="group relative overflow-hidden rounded-2xl bg-white px-8 py-4 text-sm font-black uppercase tracking-widest text-black transition-all hover:scale-105 hover:shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] active:scale-95"
+                            >
+                                <span className="relative z-10">Book Appointment</span>
+                                <div className="absolute inset-0 -translate-x-full bg-gray-200 transition-transform duration-300 group-hover:translate-x-0"></div>
+                            </button>
+                            <Link
+                                href="/dashboard/ambulance"
+                                className="group flex items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-8 py-4 text-sm font-bold uppercase tracking-widest text-white backdrop-blur-md transition-all hover:bg-white/10 hover:border-white/20 active:scale-95"
+                            >
+                                Emergency
+                            </Link>
+                        </div>
+                    </div>
+
+                    {/* Next Appointment Card - Floating Glass */}
+                    <div className="lg:col-span-5">
+                        {nextAppointment ? (
+                            <div
+                                onClick={() => handleOpenDetails(nextAppointment)}
+                                className="group/card relative cursor-pointer overflow-hidden rounded-[32px] border border-white/10 bg-white/5 p-6 backdrop-blur-xl transition-all duration-500 hover:-translate-y-2 hover:bg-white/10 hover:shadow-2xl hover:shadow-green-500/10"
+                            >
+                                <div className="mb-6 flex items-start justify-between">
+                                    <div className="rounded-2xl bg-[#10b981] p-3 text-2xl text-black shadow-lg shadow-green-500/20">
+                                        <FiCalendar />
+                                    </div>
+                                    <span className="rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-green-400">
+                                        Upcoming
+                                    </span>
+                                </div>
+
+                                <div className="mb-6">
+                                    <h4 className="flex items-center gap-2 text-2xl font-bold text-white">
+                                        Dr. {nextAppointment.doctor?.fname || 'Specialist'}
+                                        <FiActivity className="text-green-500 text-lg opacity-0 group-hover/card:opacity-100 -translate-x-2 group-hover/card:translate-x-0 transition-all" />
+                                    </h4>
+                                    <p className="font-medium text-gray-400">{nextAppointment.doctor?.dr_type} • General Clinic</p>
+                                </div>
+
+                                <div className="flex items-center justify-between border-t border-white/5 pt-4">
+                                    <div className="flex items-center gap-2">
+                                        <FiClock className="text-green-400" />
+                                        <span className="text-sm font-bold text-gray-300">{nextAppointment.appointment_time}</span>
+                                    </div>
+                                    <div className="h-1 w-1 rounded-full bg-gray-700"></div>
+                                    <div className="flex items-center gap-2">
+                                        <FiMapPin className="text-green-400" />
+                                        <span className="text-sm font-bold text-gray-300">Main Branch</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="rounded-[32px] border border-white/5 bg-white/5 p-8 text-center backdrop-blur-sm">
+                                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/5 text-3xl">
+                                    👋
+                                </div>
+                                <h3 className="mb-2 text-xl font-bold text-white">No Upcoming Visits</h3>
+                                <p className="text-sm text-gray-500">You are all caught up! Book a new appointment anytime.</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Top Bar - Quick Actions */}
+            <div className="bg-white dark:bg-[#111] rounded-[32px] p-6 shadow-sm border border-gray-100 dark:border-gray-800">
+                <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Quick Actions</h2>
+                    <Link href="/dashboard/services-hub" className="text-xs font-bold text-donezo-dark hover:underline">View All</Link>
+                </div>
+
+                <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
                     {/* Book Appointment */}
                     <button
                         onClick={() => setShowBookingModal(true)}
-                        className="flex flex-col items-center justify-center gap-3 p-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-blue-600/30 hover:scale-105 active:scale-95 group"
+                        className="flex flex-col items-center justify-center gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-2xl font-bold transition-all active:scale-95 group border border-blue-100 dark:border-blue-800/50"
                     >
-                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <FiCalendar className="text-2xl" />
+                        <div className="w-10 h-10 bg-white dark:bg-blue-500/20 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                            <FiCalendar className="text-xl" />
                         </div>
-                        <span className="text-xs text-center leading-tight">Book<br />Appointment</span>
+                        <span className="text-xs text-center">Book<br />Appointment</span>
                     </button>
 
                     {/* Order Lab Test */}
                     <Link
                         href="/dashboard/lab"
-                        className="flex flex-col items-center justify-center gap-3 p-5 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-purple-600/30 hover:scale-105 active:scale-95 group"
+                        className="flex flex-col items-center justify-center gap-3 p-4 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/40 text-purple-600 dark:text-purple-400 rounded-2xl font-bold transition-all active:scale-95 group border border-purple-100 dark:border-purple-800/50"
                     >
-                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <FiActivity className="text-2xl" />
+                        <div className="w-10 h-10 bg-white dark:bg-purple-500/20 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                            <FiActivity className="text-xl" />
                         </div>
-                        <span className="text-xs text-center leading-tight">Order Lab<br />Test</span>
+                        <span className="text-xs text-center">Order Lab<br />Test</span>
                     </Link>
 
                     {/* Find Nearby Doctors */}
                     <Link
                         href="/dashboard/doctors"
-                        className="flex flex-col items-center justify-center gap-3 p-5 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-green-600/30 hover:scale-105 active:scale-95 group"
+                        className="flex flex-col items-center justify-center gap-3 p-4 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 text-green-600 dark:text-green-400 rounded-2xl font-bold transition-all active:scale-95 group border border-green-100 dark:border-green-800/50"
                     >
-                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <FiMapPin className="text-2xl" />
+                        <div className="w-10 h-10 bg-white dark:bg-green-500/20 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                            <FiMapPin className="text-xl" />
                         </div>
-                        <span className="text-xs text-center leading-tight">Find<br />Doctors</span>
+                        <span className="text-xs text-center">Find<br />Doctors</span>
                     </Link>
 
                     {/* Emergency Ambulance */}
                     <Link
                         href="/dashboard/ambulance"
-                        className="flex flex-col items-center justify-center gap-3 p-5 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-red-600/30 hover:scale-105 active:scale-95 group animate-pulse hover:animate-none"
+                        className="flex flex-col items-center justify-center gap-3 p-4 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 rounded-2xl font-bold transition-all active:scale-95 group border border-red-100 dark:border-red-800/50"
                     >
-                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <FiAlertCircle className="text-2xl" />
+                        <div className="w-10 h-10 bg-white dark:bg-red-500/20 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                            <FiAlertCircle className="text-xl" />
                         </div>
-                        <span className="text-xs text-center leading-tight">Emergency<br />Ambulance</span>
+                        <span className="text-xs text-center">Emergency<br />Ambulance</span>
                     </Link>
 
                     {/* All Services */}
                     <Link
                         href="/dashboard/services-hub"
-                        className="flex flex-col items-center justify-center gap-3 p-5 bg-gray-900 dark:bg-white hover:bg-black dark:hover:bg-gray-200 text-white dark:text-black rounded-2xl font-bold transition-all shadow-lg hover:scale-105 active:scale-95 group"
+                        className="flex flex-col items-center justify-center gap-3 p-4 bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-2xl font-bold transition-all active:scale-95 group border border-gray-100 dark:border-gray-700"
                     >
-                        <div className="w-12 h-12 bg-white/20 dark:bg-black/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <FiGrid className="text-2xl" />
+                        <div className="w-10 h-10 bg-white dark:bg-gray-700 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                            <FiGrid className="text-xl" />
                         </div>
-                        <span className="text-xs text-center leading-tight">All<br />Services</span>
+                        <span className="text-xs text-center">All<br />Services</span>
                     </Link>
                 </div>
 
                 {/* Secondary Actions Row */}
-                <div className="grid grid-cols-3 gap-3 mt-3">
+                <div className="grid grid-cols-3 gap-3 mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
                     <Link
                         href="/dashboard/pharmacy"
-                        className="flex items-center justify-center gap-2 px-4 py-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-bold text-xs transition border border-gray-200 dark:border-gray-700"
+                        className="flex items-center justify-center gap-2 py-2 text-gray-500 dark:text-gray-400 hover:text-donezo-dark dark:hover:text-white font-bold text-xs transition bg-gray-50 dark:bg-transparent dark:hover:bg-gray-800 rounded-xl"
                     >
-                        <FiPlusSquare className="text-base" />
+                        <FiPlusSquare className="text-sm" />
                         Pharmacy
                     </Link>
                     <Link
                         href="/dashboard/support"
-                        className="flex items-center justify-center gap-2 px-4 py-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-bold text-xs transition border border-gray-200 dark:border-gray-700"
+                        className="flex items-center justify-center gap-2 py-2 text-gray-500 dark:text-gray-400 hover:text-donezo-dark dark:hover:text-white font-bold text-xs transition bg-gray-50 dark:bg-transparent dark:hover:bg-gray-800 rounded-xl"
                     >
-                        <FiMessageCircle className="text-base" />
+                        <FiMessageCircle className="text-sm" />
                         Support
                     </Link>
                     <a
                         href="tel:+254700448448"
-                        className="flex items-center justify-center gap-2 px-4 py-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-bold text-xs transition border border-gray-200 dark:border-gray-700"
+                        className="flex items-center justify-center gap-2 py-2 text-gray-500 dark:text-gray-400 hover:text-donezo-dark dark:hover:text-white font-bold text-xs transition bg-gray-50 dark:bg-transparent dark:hover:bg-gray-800 rounded-xl"
                     >
-                        <FiPhone className="text-base" />
+                        <FiPhone className="text-sm" />
                         Call Us
                     </a>
-                </div>
-            </div>
-
-            {/* Hero Welcome */}
-            <div className="relative bg-gradient-to-r from-donezo-dark to-green-600 rounded-[32px] p-8 md:p-12 text-white overflow-hidden shadow-2xl shadow-green-900/20">
-                <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl animate-pulse"></div>
-                <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-                    <div>
-                        <h1 className="text-4xl md:text-5xl font-black mb-4 leading-tight">Hello, {user?.fname}!</h1>
-                        <p className="text-green-50 text-lg font-medium mb-8 max-w-md opacity-90">How are you feeling today? {nextAppointment ? 'You have an upcoming visit.' : 'No upcoming visits scheduled.'}</p>
-                        <div className="flex flex-wrap gap-4">
-                            <button
-                                onClick={() => setShowBookingModal(true)}
-                                className="bg-white text-donezo-dark px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-green-50 transition-colors shadow-xl"
-                            >
-                                Book Appointment
-                            </button>
-                            <Link href="/dashboard/ambulance" className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-8 py-4 rounded-2xl font-bold text-sm uppercase tracking-widest hover:bg-white/20 transition-colors flex items-center justify-center">
-                                Emergency
-                            </Link>
-                        </div>
-                    </div>
-                    {nextAppointment && (
-                        <div
-                            onClick={() => handleOpenDetails(nextAppointment)}
-                            className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-[28px] p-6 text-white group hover:bg-white/20 transition-all cursor-pointer"
-                        >
-                            <div className="flex items-center justify-between mb-6">
-                                <span className="bg-green-500/30 text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full border border-green-400/30">Next Appointment</span>
-                                <span className="text-2xl opacity-50"><FiCalendar /></span>
-                            </div>
-                            <div className="flex items-center gap-4 mb-4">
-                                <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center text-3xl">🧑‍⚕️</div>
-                                <div>
-                                    <h4 className="font-black text-xl">Dr. {nextAppointment.doctor?.fname || 'Specialist'}</h4>
-                                    <p className="text-green-100/70 text-sm font-medium">{nextAppointment.doctor?.dr_type} • General Clinic</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center justify-between mt-auto pt-4 border-t border-white/10">
-                                <div className="flex items-center gap-2 text-sm font-bold">
-                                    <span className="text-green-300"><FiClock /></span>
-                                    <span>{nextAppointment.appointment_time}</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-sm font-bold">
-                                    <span className="text-green-300"><FiMapPin /></span>
-                                    <span>Nairobi Branch</span>
-                                </div>
-                            </div>
-                        </div>
-                    )}
                 </div>
             </div>
 
