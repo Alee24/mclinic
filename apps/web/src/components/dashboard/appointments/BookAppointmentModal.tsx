@@ -403,8 +403,40 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
             case 3:
                 return (
                     <div className="space-y-6">
-                        <h3 className="text-xl font-bold dark:text-white">Location</h3>
-                        <p className="text-sm text-gray-500">Where should the medic visit you?</p>
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <h3 className="text-xl font-bold dark:text-white">Location</h3>
+                                <p className="text-sm text-gray-500">Where should the medic visit you?</p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (navigator.geolocation) {
+                                        const btn = document.getElementById('geo-btn');
+                                        if (btn) btn.innerText = 'Locating...';
+                                        navigator.geolocation.getCurrentPosition(
+                                            (position) => {
+                                                const ll = { lat: position.coords.latitude, lng: position.coords.longitude };
+                                                setUserLocation(ll);
+                                                fetchAddressFromCoords(ll.lat, ll.lng);
+                                                if (btn) btn.innerText = 'Updated!';
+                                                setTimeout(() => { if (btn) btn.innerText = 'Use Current Location'; }, 2000);
+                                            },
+                                            (error) => {
+                                                console.error(error);
+                                                alert('Could not get location. Please allow GPS access.');
+                                                if (btn) btn.innerText = 'Use Current Location';
+                                            }
+                                        );
+                                    } else {
+                                        alert('Geolocation is not supported by this browser.');
+                                    }
+                                }}
+                                className="flex items-center gap-2 bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-100 px-3 py-1.5 rounded-lg text-xs font-bold transition"
+                            >
+                                <FiMapPin /> <span id="geo-btn">Use Current Location</span>
+                            </button>
+                        </div>
                         <div className="h-64 rounded-xl overflow-hidden border dark:border-gray-700 relative">
                             <MapContainer center={[userLocation?.lat || -1.2921, userLocation?.lng || 36.8219]} zoom={13} style={{ height: '100%', width: '100%' }}>
                                 <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
