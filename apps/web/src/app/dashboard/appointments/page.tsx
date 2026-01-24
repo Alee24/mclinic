@@ -8,12 +8,14 @@ import Link from 'next/link';
 import ViewAppointmentDetailsModal from '@/components/dashboard/appointments/ViewAppointmentDetailsModal';
 import RateDoctorModal from '@/components/dashboard/appointments/RateDoctorModal';
 import CreateAppointmentModal from '@/components/dashboard/appointments/CreateAppointmentModal';
+import BookAppointmentModal from '@/components/dashboard/appointments/BookAppointmentModal';
 
 export default function AppointmentsPage() {
     const { user } = useAuth();
     const [appointments, setAppointments] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [showBookModal, setShowBookModal] = useState(false);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [showRateModal, setShowRateModal] = useState(false);
     const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
@@ -61,12 +63,12 @@ export default function AppointmentsPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold dark:text-white">Appointments</h1>
-                {isAdmin && (
+                {(isAdmin || isPatient) && (
                     <button
-                        onClick={() => setShowModal(true)}
-                        className="bg-primary text-black font-bold px-4 py-2 rounded-lg hover:opacity-90 transition"
+                        onClick={() => isPatient ? setShowBookModal(true) : setShowModal(true)}
+                        className="bg-primary text-black font-bold px-4 py-2 rounded-lg hover:opacity-90 transition shadow-lg hover:translate-y-[-2px]"
                     >
-                        + New Booking
+                        {isPatient ? '+ Book Appointment' : '+ New Booking'}
                     </button>
                 )}
             </div>
@@ -242,6 +244,17 @@ export default function AppointmentsPage() {
                     onClose={() => setShowModal(false)}
                     onSuccess={() => {
                         setShowModal(false);
+                        fetchData();
+                    }}
+                />
+            )}
+
+            {/* New Patient Booking Modal */}
+            {showBookModal && (
+                <BookAppointmentModal
+                    onClose={() => setShowBookModal(false)}
+                    onSuccess={() => {
+                        setShowBookModal(false);
                         fetchData();
                     }}
                 />
