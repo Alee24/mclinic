@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
-import { FiX, FiSearch, FiMapPin, FiUser, FiDollarSign, FiCalendar, FiClock, FiArrowRight, FiArrowLeft, FiCheckCircle, FiActivity } from 'react-icons/fi';
+import { FiX, FiSearch, FiMapPin, FiUser, FiDollarSign, FiCalendar, FiClock, FiArrowRight, FiArrowLeft, FiCheckCircle, FiActivity, FiFilter } from 'react-icons/fi';
 import { useAuth } from '@/lib/auth';
 import CompleteProfileModal from '../CompleteProfileModal';
 
@@ -93,6 +93,7 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
     const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
     const [profileComplete, setProfileComplete] = useState(true);
     const [checkingProfile, setCheckingProfile] = useState(true);
+    const [showMobileFilters, setShowMobileFilters] = useState(false);
 
     // Filters
     const [speciality, setSpeciality] = useState('');
@@ -483,75 +484,95 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
     };
 
     return (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className={`bg-white dark:bg-[#1A1A1A] w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]`}>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-2 md:p-4">
+            <div className={`bg-white dark:bg-[#1A1A1A] w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh] h-full md:h-auto`}>
 
                 {/* Header */}
-                <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-                    <div>
-                        <h2 className="text-2xl font-black dark:text-white">
-                            {selectedDoctor ? `Book ${selectedDoctor.fname}` : 'Find a Medic'}
-                        </h2>
-                        {selectedDoctor && (
-                            <div className="flex gap-2 mt-2">
-                                {Array.from({ length: totalSteps }).map((_, i) => (
-                                    <div key={i} className={`h-1.5 w-8 rounded-full transition-all ${currentStep > i ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-800'}`} />
-                                ))}
-                            </div>
-                        )}
+                <div className="p-4 md:p-6 border-b border-gray-100 dark:border-gray-800">
+                    <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                            <h2 className="text-2xl font-black dark:text-white leading-tight">
+                                {selectedDoctor ? `Book ${selectedDoctor.fname}` : 'Find a Medic'}
+                            </h2>
+                            {!selectedDoctor ? (
+                                <p className="text-xs font-bold text-green-600 mt-1 flex items-center gap-1">
+                                    <FiMapPin /> Medics listed from closest to furthest
+                                </p>
+                            ) : (
+                                <div className="flex gap-2 mt-2">
+                                    {Array.from({ length: totalSteps }).map((_, i) => (
+                                        <div key={i} className={`h-1.5 w-8 rounded-full transition-all ${currentStep > i ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-800'}`} />
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        <button onClick={onClose} className="p-2 ml-4 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition bg-gray-50 dark:bg-gray-800/50">
+                            <FiX size={24} className="dark:text-white" />
+                        </button>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition">
-                        <FiX size={24} className="dark:text-white" />
-                    </button>
+
+                    {/* Mobile Filter Toggle */}
+                    {!selectedDoctor && (
+                        <button
+                            onClick={() => setShowMobileFilters(!showMobileFilters)}
+                            className="mt-4 md:hidden w-full py-3 bg-gray-100 dark:bg-[#121212] rounded-xl font-bold text-sm flex items-center justify-center gap-2 border border-gray-200 dark:border-gray-800"
+                        >
+                            <FiFilter /> {showMobileFilters ? 'Hide Filters' : 'Filter & Search Medics'}
+                        </button>
+                    )}
                 </div>
 
                 {!selectedDoctor ? (
                     <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
-                        {/* Filters */}
-                        <div className="w-full md:w-72 bg-gray-50 dark:bg-[#121212] p-6 border-r border-gray-100 dark:border-gray-800 overflow-y-auto hidden md:block">
+                        {/* Filters Sidebar */}
+                        <div className={`w-full md:w-72 bg-gray-50 dark:bg-[#121212] p-6 border-b md:border-b-0 md:border-r border-gray-100 dark:border-gray-800 overflow-y-auto transition-all ${showMobileFilters ? 'block h-auto max-h-[50vh]' : 'hidden md:block'}`}>
                             <h3 className="font-bold text-gray-400 uppercase tracking-wider text-xs mb-4">Filters</h3>
                             <div className="space-y-4">
-                                <input type="text" placeholder="Search..." className="w-full p-3 rounded-xl border dark:border-gray-800 bg-white dark:bg-black outline-none text-sm" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-                                <select className="w-full p-3 rounded-xl border dark:border-gray-800 bg-white dark:bg-black outline-none text-sm" value={drTypeFilter} onChange={e => setDrTypeFilter(e.target.value)}>
+                                <input type="text" placeholder="Search name..." className="w-full p-4 rounded-xl border dark:border-gray-800 bg-white dark:bg-black outline-none text-sm font-medium" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                                <select className="w-full p-4 rounded-xl border dark:border-gray-800 bg-white dark:bg-black outline-none text-sm font-medium" value={drTypeFilter} onChange={e => setDrTypeFilter(e.target.value)}>
                                     <option value="">All Medic Types</option>
                                     <option value="Doctor">Doctor</option>
                                     <option value="Nurse">Nurse</option>
                                     <option value="Clinician">Clinician</option>
                                 </select>
-                                <select className="w-full p-3 rounded-xl border dark:border-gray-800 bg-white dark:bg-black outline-none text-sm" value={speciality} onChange={e => setSpeciality(e.target.value)}>
+                                <select className="w-full p-4 rounded-xl border dark:border-gray-800 bg-white dark:bg-black outline-none text-sm font-medium" value={speciality} onChange={e => setSpeciality(e.target.value)}>
                                     <option value="">All Specialities</option>
                                     {uniqueSpecialities.map(s => <option key={s} value={s}>{s}</option>)}
                                 </select>
 
                                 {userLocation && (
-                                    <div className="p-3 bg-blue-50 dark:bg-blue-900/10 rounded-xl text-xs text-blue-600 dark:text-blue-400 font-bold flex gap-2">
-                                        <FiMapPin /> Sorted by closest to you
+                                    <div className="p-3 bg-blue-50 dark:bg-blue-900/10 rounded-xl text-xs text-blue-600 dark:text-blue-400 font-bold flex gap-2 items-center">
+                                        <FiMapPin size={16} />
+                                        <span>Sort: Closest First</span>
                                     </div>
                                 )}
                             </div>
                         </div>
 
                         {/* List */}
-                        <div className="flex-1 p-6 overflow-y-auto bg-white dark:bg-[#161616]">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex-1 p-4 md:p-6 overflow-y-auto bg-white dark:bg-[#161616]">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-20 md:pb-0">
                                 {loading ? <div className="col-span-2 text-center py-10">Loading Medics...</div> : filteredDoctors.map(doc => (
-                                    <div key={doc.id} onClick={() => setSelectedDoctor(doc)} className="border border-gray-100 dark:border-gray-800 p-4 rounded-2xl hover:bg-gray-50 dark:hover:bg-[#1A1A1A] cursor-pointer transition-all hover:shadow-lg flex gap-4">
-                                        <div className="w-16 h-16 rounded-xl bg-gray-100 dark:bg-gray-800 overflow-hidden shrink-0">
+                                    <div key={doc.id} onClick={() => setSelectedDoctor(doc)} className="border border-gray-100 dark:border-gray-800 p-4 md:p-5 rounded-2xl hover:bg-green-50/50 dark:hover:bg-[#1A1A1A] cursor-pointer transition-all hover:shadow-lg flex gap-4 items-center group">
+                                        <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-gray-800 overflow-hidden shrink-0 shadow-inner group-hover:scale-105 transition-transform">
                                             <DoctorAvatar doctor={doc} />
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-gray-900 dark:text-white">{doc.fname} {doc.lname}</h4>
-                                            <p className="text-xs text-primary font-bold uppercase">{doc.dr_type || 'Medic'}</p>
-                                            <p className="text-xs text-gray-500">{doc.speciality}</p>
+                                            <h4 className="font-bold text-gray-900 dark:text-white text-lg leading-tight">{doc.fname} {doc.lname}</h4>
+                                            <p className="text-xs text-primary font-black uppercase tracking-wide mt-0.5">{doc.dr_type || 'Medic'}</p>
+                                            <p className="text-xs text-gray-500 font-medium">{doc.speciality}</p>
                                             {doc.distance !== undefined && doc.distance < 1000 && (
-                                                <p className="text-xs text-gray-400 mt-1 flex items-center gap-1"><FiMapPin /> {doc.distance.toFixed(1)} km away</p>
+                                                <p className="text-xs text-gray-400 mt-2 flex items-center gap-1 font-medium bg-gray-50 dark:bg-gray-800 px-2 py-1 rounded-md w-fit">
+                                                    <FiMapPin size={10} />
+                                                    {doc.distance.toFixed(1)} km away
+                                                </p>
                                             )}
                                         </div>
                                     </div>
                                 ))}
                                 {!loading && filteredDoctors.length === 0 && (
-                                    <div className="col-span-2 text-center py-10 text-gray-500">
-                                        No medics found matching your criteria.
+                                    <div className="col-span-2 text-center py-10 text-gray-500 px-4">
+                                        No medics found matching your criteria. Try adjusting filters.
                                     </div>
                                 )}
                             </div>
