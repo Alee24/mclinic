@@ -73,6 +73,12 @@ export class DoctorsController {
     return this.doctorsService.syncDoctorsWithUsers();
   }
 
+  @Post('admin/sync-users-from-doctors')
+  @UseGuards(AuthGuard('jwt'))
+  syncUsersFromDoctors() {
+    return this.doctorsService.syncUsersFromDoctors();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.doctorsService.findOne(+id);

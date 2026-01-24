@@ -25,6 +25,8 @@ export class DoctorsService implements OnModuleInit {
         try {
             await this.backfillUserIds();
             await this.syncDoctorsWithUsers();
+            // NEW: Also sync user roles FROM doctors
+            await this.syncUsersFromDoctors();
         } catch (error) {
             console.error('[DoctorsService] Startup sync failed:', error);
             // Don't throw, let the app start
@@ -119,6 +121,54 @@ export class DoctorsService implements OnModuleInit {
 
     async syncDoctorsFromUsers() {
         return this.syncDoctorsWithUsers();
+    }
+
+    // NEW: Sync Users FROM Doctors (reverse direction)
+    // This ensures that users table has correct roles based on doctors table
+    async syncUsersFromDoctors(): Promise<{ success: boolean; message: string; updated: number }> {
+        console.log('[DoctorsService] Syncing Users FROM Doctors table (updating user roles)...');
+        const allDoctors = await this.doctorsRepository.find();
+        let updatedCount = 0;
+
+        for (const doctor of allDoctors) {
+            if (!doctor.email) continue;
+
+            const user = await this.usersService.findOne(doctor.email);
+            if (!user) {
+                console.log(`[DoctorsService] No user found for doctor ${doctor.email}, skipping...`);
+                continue;
+            }
+
+            // Map doctor type to user role
+            const correctRole = this.mapDrTypeToUserRole(doctor.dr_type);
+
+            // Only update if role is different
+            if (user.role !== correctRole) {
+                console.log(`[DoctorsService] Updating ${doctor.email}: ${user.role} -> ${correctRole}`);
+                await this.usersService.updateByEmail(doctor.email, { role: correctRole });
+                updatedCount++;
+            }
+        }
+
+        return {
+            success: true,
+            message: `Synced ${allDoctors.length} doctors. Updated ${updatedCount} user roles.`,
+            updated: updatedCount
+        };
+    }
+
+    private mapDrTypeToUserRole(drType: string): string {
+        if (!drType) return 'medic';
+
+        const type = drType.toLowerCase();
+        if (type.includes('nurse')) return 'nurse';
+        if (type.includes('clinical') || type.includes('clinician')) return 'clinician';
+        if (type.includes('lab') || type.includes('technician')) return 'lab_tech';
+        if (type.includes('pharmac')) return 'pharmacist';
+        if (type.includes('admin')) return 'admin';
+        if (type.includes('doctor') || type.includes('specialist')) return 'doctor';
+
+        return 'medic'; // Default for medical staff
     }
 
     async create(createDoctorDto: any, user: User | null): Promise<Doctor> {
