@@ -705,4 +705,29 @@ export class DoctorsService implements OnModuleInit {
             issuedDate: new Date()
         };
     }
+
+    async resetAllPasswords(newPassword: string = 'Mclinic@2025'): Promise<{ success: boolean; count: number; message: string }> {
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        const allDoctors = await this.doctorsRepository.find();
+
+        for (const doctor of allDoctors) {
+            doctor.password = hashedPassword;
+            // Also sync with User entity
+            if (doctor.email) {
+                try {
+                    await this.usersService.updateByEmail(doctor.email, { password: hashedPassword });
+                } catch (err) {
+                    console.error(`Failed to sync password for ${doctor.email}`, err);
+                }
+            }
+        }
+
+        await this.doctorsRepository.save(allDoctors);
+
+        return {
+            success: true,
+            count: allDoctors.length,
+            message: `Reset ${allDoctors.length} doctor passwords to: ${newPassword}`
+        };
+    }
 }

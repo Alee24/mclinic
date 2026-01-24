@@ -249,4 +249,10 @@ export class DoctorsController {
   async activateAllDoctors(@Request() req: any) {
     return this.doctorsService.activateAll(req.user.id);
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('admin/reset-all-passwords')
+  async resetAllPasswords(@Body('password') password?: string) {
+    return this.doctorsService.resetAllPasswords(password);
+  }
 }

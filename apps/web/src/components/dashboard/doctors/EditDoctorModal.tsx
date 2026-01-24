@@ -28,10 +28,10 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
         licenceNo: '',
         reg_code: '',
         licenceExpiryDate: '',
-        hospitalAffiliation: '',
+        hospital_attachment: '',
         qualification: '',
         fee: 0,
-        bio: '',
+        about: '',
     });
 
     useEffect(() => {
@@ -53,10 +53,10 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
                         licenceNo: data.licenceNo || '',
                         reg_code: data.reg_code || '',
                         licenceExpiryDate: data.licenceExpiryDate ? new Date(data.licenceExpiryDate).toISOString().split('T')[0] : '',
-                        hospitalAffiliation: data.hospitalAffiliation || '',
+                        hospital_attachment: data.hospital_attachment || '',
                         qualification: data.qualification || '',
                         fee: data.fee || 0,
-                        bio: data.bio || '',
+                        about: data.about || '',
                     });
                     if (data.profile_image) {
                         if (data.profile_image.startsWith('http') || data.profile_image.startsWith('blob:')) {
@@ -100,8 +100,6 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
                 const uploadRes = await api.post(`/doctors/${doctorId}/upload-profile`, formData);
                 if (!uploadRes || !uploadRes.ok) {
                     console.error('Image upload failed');
-                    // Continue to save text data anyway, or stop?
-                    // Let's warn but continue
                 }
             }
 
@@ -112,11 +110,9 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
             });
 
             if (res && res.ok) {
-                // alert('Doctor updated successfully');
-                // Replaced alert with callback or toast logic if avail, for now just call success
                 onSuccess();
             } else {
-                alert('Failed to update medic profile text');
+                alert('Failed to update medic profile');
             }
         } catch (err) {
             console.error(err);
@@ -139,7 +135,6 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-6 overflow-y-auto">
-
                     {/* Image Upload Section */}
                     <div className="flex flex-col items-center mb-6">
                         <div className="w-24 h-24 rounded-full bg-gray-100 dark:bg-gray-800 mb-3 overflow-hidden border-4 border-white dark:border-[#1A1A1A] shadow-lg relative group">
@@ -148,7 +143,6 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center text-3xl">👨‍⚕️</div>
                             )}
-
                             <label className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                                 <span className="text-white text-xs font-bold">Change</span>
                                 <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
@@ -158,7 +152,7 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Section: Personal Details */}
+                        {/* Personal Details */}
                         <div className="md:col-span-2 border-b pb-2 mb-2">
                             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Personal Information</h3>
                         </div>
@@ -186,7 +180,7 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
                             <input type="date" name="dob" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.dob} onChange={handleChange} />
                         </div>
 
-                        {/* Section: Contact Info */}
+                        {/* Contact Info */}
                         <div className="md:col-span-2 border-b border-t py-2 my-2 bg-gray-50/50 -mx-6 px-6">
                             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Contact Details</h3>
                         </div>
@@ -206,7 +200,7 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
                             <input name="address" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.address} onChange={handleChange} />
                         </div>
 
-                        {/* Section: Professional Info */}
+                        {/* Professional Info */}
                         <div className="md:col-span-2 border-b border-t py-2 my-2 bg-gray-50/50 -mx-6 px-6">
                             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Professional Profile</h3>
                         </div>
@@ -250,7 +244,7 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
 
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Hospital Affiliation</label>
-                            <input name="hospitalAffiliation" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.hospitalAffiliation} onChange={handleChange} />
+                            <input name="hospital_attachment" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.hospital_attachment} onChange={handleChange} />
                         </div>
 
                         <div className="md:col-span-2">
@@ -258,7 +252,7 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
                             <input name="qualification" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.qualification} onChange={handleChange} placeholder="MBBS, MD, PhD..." />
                         </div>
 
-                        {/* Section: Financial & Other */}
+                        {/* Financial & Other */}
                         <div className="md:col-span-2 border-b border-t py-2 my-2 bg-gray-50/50 -mx-6 px-6">
                             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Financial & Other Details</h3>
                         </div>
@@ -270,7 +264,7 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
 
                         <div className="md:col-span-2">
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Bio</label>
-                            <textarea name="bio" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" rows={2} value={formData.bio} onChange={handleChange} />
+                            <textarea name="about" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" rows={2} value={formData.about} onChange={handleChange} />
                         </div>
                     </div>
 
@@ -284,8 +278,6 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
                     </div>
                 </form>
             </div>
-
-
         </div>
     );
 }
