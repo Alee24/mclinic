@@ -119,20 +119,21 @@ export default function MapViewer() {
         });
     };
 
-    const specialties = ['All', 'General', 'Dentist', 'Cardiologist', 'Pediatrician', 'Optician'];
+    // Derived Specialties from actual data
+    const specialties = ['All', ...Array.from(new Set(doctors.map(d => d.speciality).filter(Boolean))).sort()];
 
     return (
         <div className="relative w-full h-[85vh] min-h-[600px] rounded-3xl overflow-hidden shadow-xl bg-gray-50 border border-gray-200 flex flex-col">
 
             {/* 1. Header Filters (Floating) */}
             <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[1000] max-w-[95%] w-full sm:w-auto">
-                <div className="flex items-center gap-2 p-1.5 bg-white/90 backdrop-blur-xl border border-gray-200 rounded-full shadow-lg overflow-x-auto no-scrollbar">
+                <div className="flex items-center gap-2 p-1.5 bg-white/90 backdrop-blur-xl border border-gray-200 rounded-full shadow-xl overflow-x-auto no-scrollbar">
                     {specialties.map(spec => (
                         <button
                             key={spec}
                             onClick={() => setActiveFilter(spec)}
                             className={`px-4 py-2 rounded-full text-xs font-bold transition whitespace-nowrap ${activeFilter === spec
-                                ? 'bg-blue-600 text-white shadow-md scale-105'
+                                ? 'bg-black text-white shadow-md scale-105'
                                 : 'text-gray-600 hover:bg-gray-100'
                                 }`}
                         >

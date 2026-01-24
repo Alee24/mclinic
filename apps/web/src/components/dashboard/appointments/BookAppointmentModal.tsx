@@ -94,6 +94,7 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
     const [profileComplete, setProfileComplete] = useState(true);
     const [checkingProfile, setCheckingProfile] = useState(true);
     const [showMobileFilters, setShowMobileFilters] = useState(false);
+    const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
 
     // Filters
     const [speciality, setSpeciality] = useState('');
@@ -495,9 +496,25 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
                                 {selectedDoctor ? `Book ${selectedDoctor.fname}` : 'Find a Medic'}
                             </h2>
                             {!selectedDoctor ? (
-                                <p className="text-xs font-bold text-green-600 mt-1 flex items-center gap-1">
-                                    <FiMapPin /> Medics listed from closest to furthest
-                                </p>
+                                <div className="flex items-center gap-4 mt-2">
+                                    <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+                                        <button
+                                            onClick={() => setViewMode('list')}
+                                            className={`px-3 py-1 text-xs font-bold rounded-md transition ${viewMode === 'list' ? 'bg-white dark:bg-black shadow-sm text-black dark:text-white' : 'text-gray-500'}`}
+                                        >
+                                            List View
+                                        </button>
+                                        <button
+                                            onClick={() => setViewMode('map')}
+                                            className={`px-3 py-1 text-xs font-bold rounded-md transition ${viewMode === 'map' ? 'bg-white dark:bg-black shadow-sm text-black dark:text-white' : 'text-gray-500'}`}
+                                        >
+                                            Map View
+                                        </button>
+                                    </div>
+                                    <p className="text-xs font-bold text-green-600 flex items-center gap-1 hidden sm:flex">
+                                        <FiMapPin /> Listed from closest to furthest
+                                    </p>
+                                </div>
                             ) : (
                                 <div className="flex gap-2 mt-2">
                                     {Array.from({ length: totalSteps }).map((_, i) => (
@@ -549,33 +566,55 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
                             </div>
                         </div>
 
-                        {/* List */}
-                        <div className="flex-1 p-4 md:p-6 overflow-y-auto bg-white dark:bg-[#161616]">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-20 md:pb-0">
-                                {loading ? <div className="col-span-2 text-center py-10">Loading Medics...</div> : filteredDoctors.map(doc => (
-                                    <div key={doc.id} onClick={() => setSelectedDoctor(doc)} className="border border-gray-100 dark:border-gray-800 p-4 md:p-5 rounded-2xl hover:bg-green-50/50 dark:hover:bg-[#1A1A1A] cursor-pointer transition-all hover:shadow-lg flex gap-4 items-center group">
-                                        <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-gray-800 overflow-hidden shrink-0 shadow-inner group-hover:scale-105 transition-transform">
-                                            <DoctorAvatar doctor={doc} />
-                                        </div>
-                                        <div>
-                                            <h4 className="font-bold text-gray-900 dark:text-white text-lg leading-tight">{doc.fname} {doc.lname}</h4>
-                                            <p className="text-xs text-primary font-black uppercase tracking-wide mt-0.5">{doc.dr_type || 'Medic'}</p>
-                                            <p className="text-xs text-gray-500 font-medium">{doc.speciality}</p>
-                                            {doc.distance !== undefined && doc.distance < 1000 && (
-                                                <p className="text-xs text-gray-400 mt-2 flex items-center gap-1 font-medium bg-gray-50 dark:bg-gray-800 px-2 py-1 rounded-md w-fit">
-                                                    <FiMapPin size={10} />
-                                                    {doc.distance.toFixed(1)} km away
-                                                </p>
-                                            )}
-                                        </div>
+                        {/* Content Area: List or Map */}
+                        <div className="flex-1 overflow-y-auto bg-white dark:bg-[#161616] relative">
+                            {viewMode === 'list' ? (
+                                <div className="p-4 md:p-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-20 md:pb-0">
+                                        {loading ? <div className="col-span-2 text-center py-10">Loading Medics...</div> : filteredDoctors.map(doc => (
+                                            <div key={doc.id} onClick={() => setSelectedDoctor(doc)} className="border border-gray-100 dark:border-gray-800 p-4 md:p-5 rounded-2xl hover:bg-green-50/50 dark:hover:bg-[#1A1A1A] cursor-pointer transition-all hover:shadow-lg flex gap-4 items-center group">
+                                                <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-gray-800 overflow-hidden shrink-0 shadow-inner group-hover:scale-105 transition-transform">
+                                                    <DoctorAvatar doctor={doc} />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-bold text-gray-900 dark:text-white text-lg leading-tight">{doc.fname} {doc.lname}</h4>
+                                                    <p className="text-xs text-primary font-black uppercase tracking-wide mt-0.5">{doc.dr_type || 'Medic'}</p>
+                                                    <p className="text-xs text-gray-500 font-medium">{doc.speciality}</p>
+                                                    {doc.distance !== undefined && doc.distance < 1000 && (
+                                                        <p className="text-xs text-gray-400 mt-2 flex items-center gap-1 font-medium bg-gray-50 dark:bg-gray-800 px-2 py-1 rounded-md w-fit">
+                                                            <FiMapPin size={10} />
+                                                            {doc.distance.toFixed(1)} km away
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {!loading && filteredDoctors.length === 0 && (
+                                            <div className="col-span-2 text-center py-10 text-gray-500 px-4">
+                                                No medics found matching your criteria. Try adjusting filters.
+                                            </div>
+                                        )}
                                     </div>
-                                ))}
-                                {!loading && filteredDoctors.length === 0 && (
-                                    <div className="col-span-2 text-center py-10 text-gray-500 px-4">
-                                        No medics found matching your criteria. Try adjusting filters.
-                                    </div>
-                                )}
-                            </div>
+                                </div>
+                            ) : (
+                                <div className="h-full w-full">
+                                    <MapContainer center={[userLocation?.lat || -1.2921, userLocation?.lng || 36.8219]} zoom={13} style={{ height: '100%', width: '100%' }}>
+                                        <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+                                        {userLocation && <Marker position={[userLocation.lat, userLocation.lng]} />}
+                                        {filteredDoctors.map(doc => (
+                                            (doc.latitude && doc.longitude) ? (
+                                                <Marker
+                                                    key={doc.id}
+                                                    position={[Number(doc.latitude), Number(doc.longitude)]}
+                                                    eventHandlers={{
+                                                        click: () => setSelectedDoctor(doc)
+                                                    }}
+                                                />
+                                            ) : null
+                                        ))}
+                                    </MapContainer>
+                                </div>
+                            )}
                         </div>
                     </div>
                 ) : (
