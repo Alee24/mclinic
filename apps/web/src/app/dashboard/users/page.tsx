@@ -66,8 +66,30 @@ export default function UsersPage() {
         }
     };
 
+    const handleSyncRoles = async () => {
+        if (!confirm('This will scan all registered Medics and update their User Roles correctly. Continue?')) return;
+
+        setLoading(true);
+        try {
+            const res = await api.post('/doctors/admin/sync-users-from-doctors', {});
+            if (res && res.ok) {
+                const data = await res.json();
+                alert(`Sync Complete!\n\n${data.message}`);
+                fetchUsers(); // Refresh list
+            } else {
+                alert('Failed to sync roles.');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Error syncing roles.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const [editingUser, setEditingUser] = useState<any>(null);
     const [editForm, setEditForm] = useState<{ fname: string; lname: string; email: string; role: string; status: boolean; profilePicture?: File | null }>({ fname: '', lname: '', email: '', role: '', status: true, profilePicture: null });
+
 
     const handleDelete = async (id: number) => {
         if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
@@ -150,6 +172,14 @@ export default function UsersPage() {
                 </h1>
 
                 <div className="flex flex-wrap items-center gap-3">
+                    <button
+                        onClick={handleSyncRoles}
+                        className="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1 border border-blue-100"
+                        title="Fix: Syncs User Roles based on Registered Medics"
+                    >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                        Sync Roles
+                    </button>
                     {/* Role Filter */}
                     <select
                         className="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1A1A1A] outline-none focus:ring-2 focus:ring-primary text-sm font-medium"
