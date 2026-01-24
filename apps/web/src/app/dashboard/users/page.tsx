@@ -174,12 +174,58 @@ export default function UsersPage() {
                 <div className="flex flex-wrap items-center gap-3">
                     <button
                         onClick={handleSyncRoles}
-                        className="bg-primary text-black hover:opacity-90 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2 shadow-lg"
+                        className="bg-green-500 text-white hover:bg-green-600 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2 shadow-lg"
                         title="Fix: Syncs User Roles based on Registered Medics"
                     >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                         Sync Roles
                     </button>
+
+                    {/* Bulk Actions */}
+                    <div className="flex items-center gap-2 border-l pl-3 ml-2 border-gray-300">
+                        {/* Clear All */}
+                        <button
+                            onClick={async () => {
+                                if (!confirm("DANGER: Delete ALL Medics and Patients?")) return;
+                                if (prompt("Type 'DELETE EVERYTHING'") !== "DELETE EVERYTHING") return;
+                                try {
+                                    await api.delete('/doctors/admin/clear-all');
+                                    await api.delete('/patients/admin/clear-all');
+                                    alert("All data cleared.");
+                                    fetchUsers();
+                                } catch (e) { alert("Error"); }
+                            }}
+                            className="bg-red-600 text-white px-3 py-2 rounded-lg font-bold text-xs hover:bg-red-700"
+                        >
+                            Start Fresh
+                        </button>
+
+                        {/* Upload Medics */}
+                        <label className="cursor-pointer bg-gray-800 text-white px-3 py-2 rounded-lg font-bold text-xs hover:bg-black flex items-center gap-1">
+                            <span>Upload Medics</span>
+                            <input type="file" className="hidden" accept=".csv" onChange={async (e) => {
+                                if (!e.target.files?.[0]) return;
+                                const fd = new FormData(); fd.append('file', e.target.files[0]);
+                                await api.post('/doctors/admin/upload-csv', fd);
+                                alert("Uploaded Medics");
+                                fetchUsers();
+                                e.target.value = '';
+                            }} />
+                        </label>
+
+                        {/* Upload Patients */}
+                        <label className="cursor-pointer bg-gray-800 text-white px-3 py-2 rounded-lg font-bold text-xs hover:bg-black flex items-center gap-1">
+                            <span>Upload Patients</span>
+                            <input type="file" className="hidden" accept=".csv" onChange={async (e) => {
+                                if (!e.target.files?.[0]) return;
+                                const fd = new FormData(); fd.append('file', e.target.files[0]);
+                                await api.post('/patients/admin/upload-csv', fd);
+                                alert("Uploaded Patients");
+                                fetchUsers();
+                                e.target.value = '';
+                            }} />
+                        </label>
+                    </div>
                     {/* Role Filter */}
                     <select
                         className="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1A1A1A] outline-none focus:ring-2 focus:ring-primary text-sm font-medium"
