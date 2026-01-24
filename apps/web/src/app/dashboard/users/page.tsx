@@ -206,9 +206,17 @@ export default function UsersPage() {
                             <input type="file" className="hidden" accept=".csv" onChange={async (e) => {
                                 if (!e.target.files?.[0]) return;
                                 const fd = new FormData(); fd.append('file', e.target.files[0]);
-                                await api.post('/doctors/admin/upload-csv', fd);
-                                alert("Uploaded Medics");
-                                fetchUsers();
+                                try {
+                                    const res = await api.post('/doctors/admin/upload-csv', fd);
+                                    if (res && res.ok) {
+                                        const data = await res.json();
+                                        alert(`Uploaded Medics: ${data.count} created.`);
+                                        fetchUsers();
+                                    } else {
+                                        const err = await res.json().catch(() => ({}));
+                                        alert(`Upload Failed: ${err.message || res.statusText}`);
+                                    }
+                                } catch (err: any) { alert(`Error: ${err.message}`); }
                                 e.target.value = '';
                             }} />
                         </label>
@@ -219,9 +227,17 @@ export default function UsersPage() {
                             <input type="file" className="hidden" accept=".csv" onChange={async (e) => {
                                 if (!e.target.files?.[0]) return;
                                 const fd = new FormData(); fd.append('file', e.target.files[0]);
-                                await api.post('/patients/admin/upload-csv', fd);
-                                alert("Uploaded Patients");
-                                fetchUsers();
+                                try {
+                                    const res = await api.post('/patients/admin/upload-csv', fd);
+                                    if (res && res.ok) {
+                                        const data = await res.json();
+                                        alert(`Uploaded Patients: ${data.count} created.`);
+                                        fetchUsers();
+                                    } else {
+                                        const err = await res.json().catch(() => ({}));
+                                        alert(`Upload Failed: ${err.message || res.statusText}`);
+                                    }
+                                } catch (err: any) { alert(`Error: ${err.message}`); }
                                 e.target.value = '';
                             }} />
                         </label>

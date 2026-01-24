@@ -115,11 +115,13 @@ export default function DoctorsPage() {
                 }
                 fetchDoctors();
             } else {
-                alert("Upload failed.");
+                // Try to get error message
+                const errData = res ? await res.json().catch(() => ({})) : {};
+                alert(`Upload failed: ${errData.message || (res ? res.statusText : 'Connection Error')}`);
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            alert("Upload error.");
+            alert(`Upload error: ${err.message}`);
         }
         // Reset input
         e.target.value = '';
