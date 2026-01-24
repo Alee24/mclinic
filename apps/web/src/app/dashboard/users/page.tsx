@@ -183,6 +183,25 @@ export default function UsersPage() {
 
                     {/* Bulk Actions */}
                     <div className="flex items-center gap-2 border-l pl-3 ml-2 border-gray-300">
+                        {/* Reset All Passwords */}
+                        <button
+                            onClick={async () => {
+                                if (!confirm("DANGER: Reset ALL user/medic passwords to 'Mclinic@2026'?")) return;
+                                try {
+                                    const res = await api.post('/users/admin/reset-all-passwords', { password: 'Mclinic@2026' });
+                                    if (res && res.ok) {
+                                        const data = await res.json();
+                                        alert(`Success! Updated ${data.count} users.`);
+                                    } else {
+                                        alert("Failed to reset passwords.");
+                                    }
+                                } catch (e) { alert("Error"); }
+                            }}
+                            className="bg-yellow-500 text-white px-3 py-2 rounded-lg font-bold text-xs hover:bg-yellow-600"
+                        >
+                            Reset Passwords
+                        </button>
+
                         {/* Clear All */}
                         <button
                             onClick={async () => {

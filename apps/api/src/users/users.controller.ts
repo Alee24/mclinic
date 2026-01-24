@@ -9,6 +9,7 @@ import {
   Delete,
   UseInterceptors,
   UploadedFile,
+  Request,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -30,6 +31,14 @@ export class UsersController {
   async countActive() {
     const count = await this.usersService.countActive();
     return { count };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('admin/reset-all-passwords')
+  async resetAllPasswords(@Body('password') password: string, @Request() req: any) {
+    // Default to Mclinic@2026 if not provided
+    const pass = password || 'Mclinic@2026';
+    return this.usersService.resetAllPasswords(pass, req.user.id);
   }
 
   @UseGuards(AuthGuard('jwt'))
