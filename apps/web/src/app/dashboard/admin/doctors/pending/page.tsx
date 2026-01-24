@@ -95,6 +95,30 @@ export default function PendingDoctorsPage() {
         }
     };
 
+    const handleResetAllPasswords = async () => {
+        const confirmed = confirm(
+            'Are you sure you want to reset ALL doctor passwords to the default password "Mclinic@2025"?\n\nThis will affect all registered doctors in the system.'
+        );
+
+        if (!confirmed) return;
+
+        setProcessing(true);
+        try {
+            const res = await api.post('/doctors/admin/reset-all-passwords', {});
+            if (res && res.ok) {
+                const data = await res.json();
+                alert(`Success! ${data.message}\n\nAll doctors can now login with: Mclinic@2025`);
+            } else {
+                alert('Failed to reset passwords');
+            }
+        } catch (error) {
+            console.error('Error resetting passwords:', error);
+            alert('Error resetting passwords');
+        } finally {
+            setProcessing(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
@@ -110,10 +134,23 @@ export default function PendingDoctorsPage() {
                     <h1 className="text-3xl font-bold dark:text-white">Pending Medic Approvals</h1>
                     <p className="text-gray-500 mt-1">Review and approve medic applications</p>
                 </div>
-                <div className="bg-yellow-100 dark:bg-yellow-900/30 px-4 py-2 rounded-lg">
-                    <span className="text-yellow-800 dark:text-yellow-200 font-bold">
-                        {pendingDoctors.length} Pending
-                    </span>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={handleResetAllPasswords}
+                        disabled={processing}
+                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        title="Reset all doctor passwords to default"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                        </svg>
+                        Reset All Passwords
+                    </button>
+                    <div className="bg-yellow-100 dark:bg-yellow-900/30 px-4 py-2 rounded-lg">
+                        <span className="text-yellow-800 dark:text-yellow-200 font-bold">
+                            {pendingDoctors.length} Pending
+                        </span>
+                    </div>
                 </div>
             </div>
 
