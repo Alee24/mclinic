@@ -261,4 +261,19 @@ export class DoctorsController {
   async resetAllPasswords(@Body('password') password?: string) {
     return this.doctorsService.resetAllPasswords(password);
   }
+
+  // DANGER: Clear all doctors
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('admin/clear-all')
+  clearAll() {
+    return this.doctorsService.deleteAll();
+  }
+
+  // Upload CSV
+  @UseGuards(AuthGuard('jwt'))
+  @Post('admin/upload-csv')
+  @UseInterceptors(FileInterceptor('file'))
+  uploadCsv(@UploadedFile() file: Express.Multer.File) {
+    return this.doctorsService.processCsvUpload(file.buffer);
+  }
 }

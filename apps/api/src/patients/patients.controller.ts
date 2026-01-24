@@ -7,9 +7,14 @@ import {
   Request,
   Param,
   Patch,
+  Delete,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { PatientsService } from './patients.service';
 import { AuthGuard } from '@nestjs/passport';
+import { FileInterceptor } from '@nestjs/platform-express';
+import type { Express } from 'express';
 
 @Controller('patients')
 export class PatientsController {
@@ -43,5 +48,16 @@ export class PatientsController {
     console.log(`[PATIENTS_CTRL] Update Request for ID: ${id}`);
     console.log(`[PATIENTS_CTRL] Payload:`, updatePatientDto);
     return this.patientsService.update(+id, updatePatientDto);
+  }
+
+  @Delete('admin/clear-all')
+  clearAll() {
+    return this.patientsService.deleteAll();
+  }
+
+  @Post('admin/upload-csv')
+  @UseInterceptors(FileInterceptor('file'))
+  uploadCsv(@UploadedFile() file: Express.Multer.File) {
+    return this.patientsService.processCsvUpload(file.buffer);
   }
 }

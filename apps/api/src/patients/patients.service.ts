@@ -161,4 +161,66 @@ export class PatientsService {
     // Return the updated user
     return this.findOne(id);
   }
+
+  // DANGER: Clears all patients
+  async deleteAll(): Promise<void> {
+    await this.patientsRepository.clear();
+    // Also delete all users with role patient to keep it clean
+    await this.usersRepository.delete({ role: UserRole.PATIENT });
+  }
+
+  async processCsvUpload(buffer: Buffer): Promise<{ success: boolean; count: number; errors: string[] }> {
+    const content = buffer.toString('utf-8');
+    const lines = content.split(/\r?\n/).filter(line => line.trim());
+    if (lines.length < 2) throw new Error('CSV is empty or missing headers');
+
+    const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, '').toLowerCase());
+    const created = [];
+    const errors = [];
+
+    // Expected headers: fname,lname,email,mobile,dob,sex,blood_group,address
+
+    for (let i = 1; i < lines.length; i++) {
+      try {
+        const row = lines[i];
+        // Simple split handling quotes roughly
+        const values = row.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+
+        const data: any = {};
+        headers.forEach((h, idx) => {
+          data[h] = values[idx];
+        });
+
+        if (!data.fname || !data.email) {
+          // simple skip
+          continue;
+        }
+
+        // Create Patient
+        await this.create({
+          fname: data.fname,
+          lname: data.lname,
+          email: data.email,
+          mobile: data.mobile,
+          dob: data.dob,
+          sex: data.sex || 'Male',
+          address: data.address,
+          city: data.city,
+          // Medical fields for profile update
+          blood_group: data.blood_group,
+          genotype: data.genotype,
+          allergies: data.allergies,
+          medical_history: data.medical_history,
+          password: 'password123' // default
+        });
+
+        created.push(data.email);
+
+      } catch (err) {
+        errors.push(`Line ${i + 1}: ${err.message}`);
+      }
+    }
+
+    return { success: true, count: created.length, errors };
+  }
 }

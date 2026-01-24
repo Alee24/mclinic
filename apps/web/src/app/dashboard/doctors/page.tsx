@@ -73,16 +73,89 @@ export default function DoctorsPage() {
         }
     };
 
+    const handleClearDatabase = async () => {
+        const confirm1 = confirm("DANGER: This will delete ALL medics from the database permanently. Are you sure?");
+        if (!confirm1) return;
+
+        const confirm2 = prompt("To confirm, type 'DELETE ALL MEDICS' in the box below:");
+        if (confirm2 !== "DELETE ALL MEDICS") {
+            alert("Confirmation failed. Deletion cancelled.");
+            return;
+        }
+
+        try {
+            const res = await api.delete('/doctors/admin/clear-all');
+            if (res && res.ok) {
+                alert("Database cleared successfully.");
+                fetchDoctors();
+            } else {
+                alert("Failed to clear database.");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Error clearing database.");
+        }
+    };
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || !e.target.files[0]) return;
+        const file = e.target.files[0];
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const res = await api.post('/doctors/admin/upload-csv', formData);
+            if (res && res.ok) {
+                const data = await res.json();
+                alert(`Upload Complete. Created: ${data.count}. Errors: ${data.errors.length}`);
+                if (data.errors.length > 0) {
+                    console.log("Errors:", data.errors);
+                    alert("Check console for error details.");
+                }
+                fetchDoctors();
+            } else {
+                alert("Upload failed.");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Upload error.");
+        }
+        // Reset input
+        e.target.value = '';
+    };
+
+    const downloadTemplate = () => {
+        const csvContent = "fname,lname,email,mobile,speciality,licenceNo,dr_type\nJohn,Doe,john@example.com,0712345678,General Practice,MED12345,Medic";
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'medics_template.csv';
+        a.click();
+    };
+
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold dark:text-white flex items-center gap-3">
                         <span className="text-primary"><FiShield size={24} /></span> Medic Management
                     </h1>
                     <p className="text-gray-500 text-sm mt-1">Manage professional degrees, licenses and active status.</p>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-3">
+                    <button onClick={downloadTemplate} className="text-sm text-blue-600 hover:underline px-2">Download CSV Template</button>
+                    <label className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 font-bold px-4 py-2 rounded-lg transition cursor-pointer hover:bg-gray-200">
+                        <FiEdit2 /> Upload CSV
+                        <input type="file" accept=".csv" onChange={handleFileUpload} className="hidden" />
+                    </label>
+                    <button
+                        onClick={handleClearDatabase}
+                        className="flex items-center gap-2 bg-red-100 text-red-700 hover:bg-red-200 border border-red-200 font-bold px-4 py-2 rounded-lg transition"
+                    >
+                        Clear All
+                    </button>
                     <button
                         onClick={handleActivateAll}
                         className="flex items-center gap-2 bg-green-100 text-green-700 hover:bg-green-200 border border-green-200 font-bold px-4 py-2 rounded-lg transition"

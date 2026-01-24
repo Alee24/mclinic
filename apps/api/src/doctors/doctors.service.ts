@@ -780,4 +780,67 @@ export class DoctorsService implements OnModuleInit {
             message: `Reset ${allDoctors.length} doctor passwords to: ${newPassword}`
         };
     }
+
+    // DANGER: Clears all doctors
+    async deleteAll(): Promise<void> {
+        await this.doctorsRepository.clear();
+    }
+
+    async processCsvUpload(buffer: Buffer): Promise<{ success: boolean; count: number; errors: string[] }> {
+        const content = buffer.toString('utf-8');
+        const lines = content.split(/\r?\n/).filter(line => line.trim());
+        if (lines.length < 2) throw new Error('CSV is empty or missing headers');
+
+        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, '').toLowerCase());
+        const createdDocs = [];
+        const errors = [];
+
+        // Expected headers: fname,lname,email,mobile,speciality,licenceNo
+
+        for (let i = 1; i < lines.length; i++) {
+            try {
+                // Simple CSV split handling quotes somewhat
+                const row = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+                if (!row) continue;
+
+                // Map values to object manually or use simple split if regex fails
+                const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+
+                const docData: any = {};
+                headers.forEach((h, idx) => {
+                    docData[h] = values[idx];
+                });
+
+                if (!docData.email || !docData.fname) {
+                    errors.push(`Line ${i + 1}: Missing email or first name`);
+                    continue;
+                }
+
+                // Create Doctor
+                const newDoc = await this.create({
+                    fname: docData.fname,
+                    lname: docData.lname,
+                    email: docData.email,
+                    mobile: docData.mobile,
+                    speciality: docData.speciality,
+                    licenceNo: docData.licenceno || docData.licensenumber,
+                    dr_type: docData.dr_type || 'Medic',
+                    password: 'password123', // Default
+                    status: 1,
+                    approvalStatus: 'approved',
+                    Verified_status: 1
+                }, null);
+
+                createdDocs.push(newDoc);
+
+            } catch (err) {
+                errors.push(`Line ${i + 1}: ${err.message}`);
+            }
+        }
+
+        // Sync users
+        await this.syncDoctorsWithUsers();
+
+        return { success: true, count: createdDocs.length, errors };
+    }
 }
