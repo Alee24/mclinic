@@ -262,13 +262,25 @@ export default function MapViewer() {
                             </div>
                         </div>
 
-                        <button
-                            onClick={() => router.push(`/dashboard/doctors/${selectedDoctor.id}`)}
-                            className="w-full py-4 bg-gray-900 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-black transition active:scale-[0.98]"
-                        >
-                            View Profile & Book
-                            <FiNavigation />
-                        </button>
+                        {/* Booking Button Logic: Only Approved & Valid License */}
+                        {(selectedDoctor.approvalStatus === 'approved' || (selectedDoctor.Verified_status === 1 || selectedDoctor.verified_status)) &&
+                            (selectedDoctor.licenseStatus === 'valid' || !selectedDoctor.licenseExpiryDate || new Date(selectedDoctor.licenseExpiryDate) > new Date()) ? (
+                            <button
+                                onClick={() => router.push(`/dashboard/doctors/${selectedDoctor.id}`)}
+                                className="w-full py-4 bg-gray-900 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-black transition active:scale-[0.98] shadow-xl shadow-gray-900/10"
+                            >
+                                View Profile & Book
+                                <FiNavigation />
+                            </button>
+                        ) : (
+                            <div className="w-full py-4 bg-gray-100 text-gray-400 rounded-xl font-bold flex flex-col items-center justify-center gap-1 cursor-not-allowed border border-gray-200">
+                                <div className="flex items-center gap-2">
+                                    <FiX className="text-red-400" />
+                                    <span>Booking Unavailable</span>
+                                </div>
+                                <span className="text-[10px] uppercase tracking-wider">Verification or License Pending</span>
+                            </div>
+                        )}
 
                     </div>
                 </div>
