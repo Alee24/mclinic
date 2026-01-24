@@ -13,6 +13,9 @@ git fetch origin
 git reset --hard origin/main
 git pull origin main
 
+echo "🔒 Making scripts executable..."
+find . -name "*.sh" -exec chmod +x {} \;
+
 echo "📦 Installing Global Dependencies..."
 npm install
 
