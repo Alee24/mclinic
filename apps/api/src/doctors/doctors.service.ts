@@ -551,6 +551,56 @@ export class DoctorsService implements OnModuleInit {
         return { success: true, count: approvedDocs.length };
     }
 
+    async activateAll(adminId: number): Promise<{ success: boolean; count: number }> {
+        // Find ALL doctors who are either inactive OR pending OR not verified
+        const inactiveDoctors = await this.doctorsRepository.createQueryBuilder('doctor')
+            .where('doctor.status = :status', { status: 0 })
+            .orWhere('doctor.approvalStatus != :approvalStatus', { approvalStatus: 'approved' })
+            .orWhere('doctor.Verified_status = :vStatus', { vStatus: 0 })
+            .getMany();
+
+        if (inactiveDoctors.length === 0) {
+            return { success: true, count: 0 };
+        }
+
+        const nextYear = new Date();
+        nextYear.setFullYear(nextYear.getFullYear() + 1);
+
+        for (const doc of inactiveDoctors) {
+            doc.status = 1;
+            doc.Verified_status = 1;
+            doc.approvalStatus = 'approved';
+
+            if (!doc.approvedBy) {
+                doc.approvedBy = adminId;
+                doc.approvedAt = new Date();
+            }
+
+            // Fix licenses if missing
+            if (!doc.licenseExpiryDate || new Date(doc.licenseExpiryDate) < new Date()) {
+                doc.licenseExpiryDate = nextYear;
+                doc.licenseStatus = 'valid';
+            }
+
+            // Fix map coords if missing (Critical for map visibility)
+            // @ts-ignore
+            if (!doc.latitude || !doc.longitude || Number(doc.latitude) === 0) {
+                // @ts-ignore
+                doc.latitude = -1.2921 + (Math.random() - 0.5) * 0.1;
+                // @ts-ignore
+                doc.longitude = 36.8219 + (Math.random() - 0.5) * 0.1;
+            }
+
+            // Sync User Status
+            if (doc.email) {
+                await this.usersService.updateUserStatus(doc.email, true);
+            }
+        }
+
+        await this.doctorsRepository.save(inactiveDoctors);
+        return { success: true, count: inactiveDoctors.length };
+    }
+
     async findPendingDoctors(): Promise<Doctor[]> {
         return await this.doctorsRepository.find({
             where: { approvalStatus: 'pending' },

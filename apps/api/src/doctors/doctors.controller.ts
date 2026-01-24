@@ -243,4 +243,10 @@ export class DoctorsController {
   async approveAllDoctors(@Request() req: any) {
     return this.doctorsService.approveAll(req.user.id);
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('admin/activate-all')
+  async activateAllDoctors(@Request() req: any) {
+    return this.doctorsService.activateAll(req.user.id);
+  }
 }

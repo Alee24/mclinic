@@ -56,6 +56,23 @@ export default function DoctorsPage() {
         if (res && res.ok) fetchDoctors();
     };
 
+    const handleActivateAll = async () => {
+        if (!confirm('This will activate and verify ALL currently inactive medics. Continue?')) return;
+        try {
+            const res = await api.post('/doctors/admin/activate-all', {});
+            if (res && res.ok) {
+                const data = await res.json();
+                alert(`Success! Activated ${data.count} medics.`);
+                fetchDoctors();
+            } else {
+                alert('Failed to activate medics.');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Error activating medics.');
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -65,12 +82,20 @@ export default function DoctorsPage() {
                     </h1>
                     <p className="text-gray-500 text-sm mt-1">Manage professional degrees, licenses and active status.</p>
                 </div>
-                <button
-                    onClick={() => setShowModal(true)}
-                    className="flex items-center gap-2 bg-primary text-black font-bold px-4 py-2 rounded-lg hover:opacity-90 transition"
-                >
-                    <FiPlus /> Add Medic
-                </button>
+                <div className="flex gap-3">
+                    <button
+                        onClick={handleActivateAll}
+                        className="flex items-center gap-2 bg-green-100 text-green-700 hover:bg-green-200 border border-green-200 font-bold px-4 py-2 rounded-lg transition"
+                    >
+                        <FiCheckCircle /> Activate All
+                    </button>
+                    <button
+                        onClick={() => setShowModal(true)}
+                        className="flex items-center gap-2 bg-primary text-black font-bold px-4 py-2 rounded-lg hover:opacity-90 transition"
+                    >
+                        <FiPlus /> Add Medic
+                    </button>
+                </div>
             </div>
 
             <div className="bg-white dark:bg-[#121212] rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
