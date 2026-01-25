@@ -243,6 +243,11 @@ export default function MapViewer() {
                                             ? (selectedDoctor.profile_image.startsWith('http') ? selectedDoctor.profile_image : `${process.env.NEXT_PUBLIC_API_URL || 'https://portal.mclinic.co.ke/api'}/uploads/profiles/${selectedDoctor.profile_image}`)
                                             : `https://ui-avatars.com/api/?name=${selectedDoctor.fname}+${selectedDoctor.lname}&background=random`
                                         }
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.onerror = null;
+                                            target.src = `https://ui-avatars.com/api/?name=${selectedDoctor.fname}+${selectedDoctor.lname}&background=random`;
+                                        }}
                                         className="w-full h-full object-cover"
                                     />
                                 </div>
