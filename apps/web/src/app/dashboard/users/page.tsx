@@ -231,9 +231,11 @@ export default function UsersPage() {
                                         const data = await res.json();
                                         alert(`Uploaded Medics: ${data.count} created.`);
                                         fetchUsers();
-                                    } else {
+                                    } else if (res) {
                                         const err = await res.json().catch(() => ({}));
                                         alert(`Upload Failed: ${err.message || res.statusText}`);
+                                    } else {
+                                        alert('Upload Failed: No response from server');
                                     }
                                 } catch (err: any) { alert(`Error: ${err.message}`); }
                                 e.target.value = '';
@@ -252,9 +254,11 @@ export default function UsersPage() {
                                         const data = await res.json();
                                         alert(`Uploaded Patients: ${data.count} created.`);
                                         fetchUsers();
-                                    } else {
+                                    } else if (res) {
                                         const err = await res.json().catch(() => ({}));
                                         alert(`Upload Failed: ${err.message || res.statusText}`);
+                                    } else {
+                                        alert('Upload Failed: No response from server');
                                     }
                                 } catch (err: any) { alert(`Error: ${err.message}`); }
                                 e.target.value = '';
