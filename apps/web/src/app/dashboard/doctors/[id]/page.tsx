@@ -208,217 +208,237 @@ export default function DoctorDetailsPage() {
 
             {/* Content */}
             <div className="min-h-[400px]">
-                {activeTab === 'profile' && (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                        <div className="lg:col-span-2 space-y-6">
-                            <section className="bg-white dark:bg-[#161616] rounded-xl p-6 border border-gray-100 dark:border-gray-800">
-                                <h3 className="text-lg font-bold dark:text-white mb-4">About Doctor</h3>
-                                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                                    {doctor.bio || doctor.about || 'No detailed biography available for this doctor.'}
-                                </p>
-                            </section>
+                {/* Content */}
+                <div className="min-h-[400px]">
+                    {activeTab === 'profile' && (
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                            <div className="lg:col-span-2 space-y-6">
+                                {(isAdmin || isOwner) ? (
+                                    <>
+                                        <section className="bg-white dark:bg-[#161616] rounded-xl p-6 border border-gray-100 dark:border-gray-800">
+                                            <h3 className="text-lg font-bold dark:text-white mb-4">About Doctor</h3>
+                                            <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                                                {doctor.bio || doctor.about || 'No detailed biography available for this doctor.'}
+                                            </p>
+                                        </section>
 
-                            <section className="bg-white dark:bg-[#161616] rounded-xl p-6 border border-gray-100 dark:border-gray-800">
-                                <h3 className="text-lg font-bold dark:text-white mb-4">Professional Details</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-4 text-sm">
-                                    <div>
-                                        <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Qualification</div>
-                                        <div className="font-medium dark:text-gray-200 text-base">{doctor.qualification}</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Specialty</div>
-                                        <div className="font-medium dark:text-gray-200 text-base">{doctor.dr_type}</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">National ID</div>
-                                        <div className="font-medium dark:text-gray-200 text-base">{doctor.national_id}</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">License No.</div>
-                                        <div className="font-medium dark:text-gray-200 text-base">{doctor.licenceNo || 'N/A'}</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Registration Code</div>
-                                        <div className="font-medium dark:text-gray-200 text-base">{doctor.reg_code || 'N/A'}</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Account Status</div>
-                                        <div className={`font-bold uppercase inline-block px-2 py-0.5 rounded text-xs ${doctor.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                            {doctor.status ? 'Active' : 'Inactive'}
-                                        </div>
-                                    </div>
-                                </div>
-                            </section>
-                        </div>
-                        <div className="space-y-6">
-
-                            {/* NEW: Booking Options (Patients Only) */}
-                            {isPatient && (
-                                <section className="bg-white dark:bg-[#161616] rounded-xl p-6 border border-gray-100 dark:border-gray-800 shadow-sm">
-                                    <h3 className="text-lg font-bold dark:text-white mb-4">Book Appointment</h3>
-                                    <div className="flex flex-col gap-3">
-                                        <button
-                                            onClick={() => {
-                                                setBookingType('PHYSICAL');
-                                                setShowBookingModal(true);
-                                            }}
-                                            className="w-full py-4 bg-black dark:bg-white text-white dark:text-black rounded-xl font-bold hover:opacity-90 transition active:scale-[0.98] flex items-center justify-center gap-2"
-                                        >
-                                            <FiCalendar />
-                                            Book Appointment
-                                        </button>
-
-                                        <button
-                                            onClick={() => {
-                                                setBookingType('VIRTUAL');
-                                                setShowBookingModal(true);
-                                            }}
-                                            className="w-full py-4 bg-blue-50 dark:bg-blue-900/10 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/30 rounded-xl font-bold hover:bg-blue-100 dark:hover:bg-blue-900/20 transition active:scale-[0.98] flex flex-col items-center justify-center gap-0.5"
-                                        >
-                                            <div className="flex items-center gap-2">
-                                                <FiVideo size={18} />
-                                                <span>Book Virtual Consultation</span>
+                                        <section className="bg-white dark:bg-[#161616] rounded-xl p-6 border border-gray-100 dark:border-gray-800">
+                                            <h3 className="text-lg font-bold dark:text-white mb-4">Professional Details</h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-4 text-sm">
+                                                <div>
+                                                    <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Qualification</div>
+                                                    <div className="font-medium dark:text-gray-200 text-base">{doctor.qualification}</div>
+                                                </div>
+                                                <div>
+                                                    <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Specialty</div>
+                                                    <div className="font-medium dark:text-gray-200 text-base">{doctor.dr_type}</div>
+                                                </div>
+                                                <div>
+                                                    <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">National ID</div>
+                                                    <div className="font-medium dark:text-gray-200 text-base">{doctor.national_id}</div>
+                                                </div>
+                                                <div>
+                                                    <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">License No.</div>
+                                                    <div className="font-medium dark:text-gray-200 text-base">{doctor.licenceNo || 'N/A'}</div>
+                                                </div>
+                                                <div>
+                                                    <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Registration Code</div>
+                                                    <div className="font-medium dark:text-gray-200 text-base">{doctor.reg_code || 'N/A'}</div>
+                                                </div>
+                                                <div>
+                                                    <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Account Status</div>
+                                                    <div className={`font-bold uppercase inline-block px-2 py-0.5 rounded text-xs ${doctor.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                                        {doctor.status ? 'Active' : 'Inactive'}
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <span className="text-[10px] opacity-80 font-medium tracking-wide">from KES {doctor.services?.find((s: any) => s.name?.toLowerCase().includes('virtual'))?.price || 900} / session</span>
-                                        </button>
-                                    </div>
-                                    <p className="text-xs text-center text-gray-400 mt-3">
-                                        Secure payment & instant confirmation
-                                    </p>
-                                </section>
-                            )}
-
-                            <section className="bg-white dark:bg-[#161616] rounded-xl p-6 border border-gray-100 dark:border-gray-800">
-                                <h3 className="text-lg font-bold dark:text-white mb-4">Contact Information</h3>
-                                {(isAdmin || isOwner || appointments.some(a => a.patient?.id === user?.id && ['completed', 'approved'].includes(a.status))) ? (
-                                    <div className="space-y-4 text-sm">
-                                        <div className="flex items-start gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 shrink-0"><FiPhone /></div>
-                                            <div>
-                                                <div className="text-xs text-gray-400">Mobile Number</div>
-                                                <div className="font-medium dark:text-gray-200">{doctor.mobile}</div>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-start gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 shrink-0"><FiMail /></div>
-                                            <div>
-                                                <div className="text-xs text-gray-400">Email Address</div>
-                                                <div className="font-medium dark:text-gray-200">{doctor.email}</div>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-start gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 shrink-0"><FiMapPin /></div>
-                                            <div>
-                                                <div className="text-xs text-gray-400">Address / Location</div>
-                                                <div className="font-medium dark:text-gray-200">{doctor.address}</div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                        </section>
+                                    </>
                                 ) : (
-                                    <div className="text-center p-6 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                                        <div className="w-12 h-12 bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-3">
-                                            <FiUser className="text-gray-400" size={24} />
+                                    <section className="bg-white dark:bg-[#161616] rounded-xl p-12 border-2 border-dashed border-gray-200 dark:border-gray-800 flex flex-col items-center justify-center text-center">
+                                        <div className="w-20 h-20 bg-gray-50 dark:bg-gray-900 rounded-full flex items-center justify-center mb-6">
+                                            <FiLock className="text-gray-400" size={32} />
                                         </div>
-                                        <div className="text-sm font-bold text-gray-600 dark:text-gray-300">Contact Details Hidden</div>
-                                        <p className="text-xs text-gray-500 mt-1 mb-3">
-                                            Book and pay for an appointment to view this medic's contact information.
+                                        <h3 className="text-xl font-bold dark:text-white mb-2">Profile Details Locked</h3>
+                                        <p className="text-gray-500 max-w-sm">
+                                            Full medical credentials and biography are hidden for privacy. Please book an appointment to interact with this medic.
                                         </p>
-                                    </div>
+                                    </section>
                                 )}
-                            </section>
-                        </div>
-                    </div>
-                )}
+                            </div>
+                            <div className="space-y-6">
 
-                {/* Appointments Tab - Only visible to Admin/Owner */}
-                {(activeTab === 'appointments' && (isAdmin || isOwner)) && (
-                    <div className="bg-white dark:bg-[#161616] rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                        <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
-                            <h3 className="font-bold dark:text-white">Appointment History</h3>
-                            <span className="text-xs font-bold bg-primary/10 text-primary px-2 py-1 rounded-md">{appointments.length} Records</span>
-                        </div>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left text-sm">
-                                <thead className="bg-gray-50 dark:bg-gray-800/50 text-xs uppercase text-gray-500 font-medium">
-                                    <tr>
-                                        <th className="px-6 py-4">Patient</th>
-                                        <th className="px-6 py-4">Date & Time</th>
-                                        <th className="px-6 py-4">Status</th>
-                                        <th className="px-6 py-4">Fees</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                                    {appointments.length === 0 ? (
-                                        <tr><td colSpan={4} className="px-6 py-8 text-center text-gray-500">No appointments found for this doctor.</td></tr>
+                                {/* Booking Options (Patients Only) */}
+                                {isPatient && (
+                                    <section className="bg-white dark:bg-[#161616] rounded-xl p-8 border-2 border-primary/20 shadow-xl shadow-primary/5">
+                                        <h3 className="text-xl font-black dark:text-white mb-6 flex items-center gap-2">
+                                            <span className="w-2 h-8 bg-primary rounded-full"></span>
+                                            Setup Session
+                                        </h3>
+                                        <div className="flex flex-col gap-4">
+                                            <button
+                                                onClick={() => {
+                                                    setBookingType('PHYSICAL');
+                                                    setShowBookingModal(true);
+                                                }}
+                                                className="w-full py-5 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-black text-sm hover:translate-y-[-2px] transition active:scale-[0.98] flex items-center justify-center gap-3 shadow-xl"
+                                            >
+                                                <FiCalendar size={20} />
+                                                PHYSICAL VISIT
+                                            </button>
+
+                                            <button
+                                                onClick={() => {
+                                                    setBookingType('VIRTUAL');
+                                                    setShowBookingModal(true);
+                                                }}
+                                                className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black text-sm hover:translate-y-[-2px] transition active:scale-[0.98] flex flex-col items-center justify-center gap-0.5 shadow-xl shadow-blue-500/20"
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <FiVideo size={20} />
+                                                    <span>VIRTUAL CALL</span>
+                                                </div>
+                                                <span className="text-[10px] opacity-70 font-bold uppercase tracking-widest">from KES {doctor.services?.find((s: any) => s.name?.toLowerCase().includes('virtual'))?.price || 900} / session</span>
+                                            </button>
+                                        </div>
+                                        <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800 flex items-center gap-3 text-xs text-gray-500 font-bold uppercase tracking-tighter">
+                                            <FiCheckCircle className="text-green-500" size={16} />
+                                            Secure Booking via M-Clinic
+                                        </div>
+                                    </section>
+                                )}
+
+                                <section className="bg-white dark:bg-[#161616] rounded-xl p-6 border border-gray-100 dark:border-gray-800">
+                                    <h3 className="text-lg font-bold dark:text-white mb-4">Contact Information</h3>
+                                    {((isAdmin || isOwner) && doctor) ? (
+                                        <div className="space-y-4 text-sm">
+                                            <div className="flex items-start gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 shrink-0"><FiPhone /></div>
+                                                <div>
+                                                    <div className="text-xs text-gray-400">Mobile Number</div>
+                                                    <div className="font-medium dark:text-gray-200">{doctor.mobile}</div>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-start gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 shrink-0"><FiMail /></div>
+                                                <div>
+                                                    <div className="text-xs text-gray-400">Email Address</div>
+                                                    <div className="font-medium dark:text-gray-200">{doctor.email}</div>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-start gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 shrink-0"><FiMapPin /></div>
+                                                <div>
+                                                    <div className="text-xs text-gray-400">Address / Location</div>
+                                                    <div className="font-medium dark:text-gray-200">{doctor.address}</div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     ) : (
-                                        appointments.map(appt => (
-                                            <tr key={appt.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/50">
-                                                <td className="px-6 py-4">
-                                                    <div className="font-bold text-gray-900 dark:text-white">{appt.patient?.fname || 'Guest'} {appt.patient?.lname || ''}</div>
-                                                    <div className="text-xs text-gray-500">{appt.patient?.email}</div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="text-gray-900 dark:text-white">{new Date(appt.appointment_date).toLocaleDateString()}</div>
-                                                    <div className="text-xs text-gray-500">{appt.appointment_time}</div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${appt.status === 'completed' ? 'bg-green-100 text-green-700' :
-                                                        appt.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                                                            'bg-blue-100 text-blue-700'
-                                                        }`}>
-                                                        {appt.status}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 font-medium text-gray-600 dark:text-gray-400">
-                                                    KES {doctor.fee}
-                                                </td>
-                                            </tr>
-                                        ))
+                                        <div className="text-center p-8 bg-gray-50 dark:bg-gray-900 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
+                                            <div className="w-14 h-14 bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                <FiPhone className="text-gray-400" size={24} />
+                                            </div>
+                                            <div className="text-sm font-black text-gray-700 dark:text-gray-300 uppercase tracking-widest">Contacts Hidden</div>
+                                            <p className="text-[10px] text-gray-500 mt-2 font-bold uppercase">
+                                                Booking is required to unlock direct communication.
+                                            </p>
+                                        </div>
                                     )}
-                                </tbody>
-                            </table>
+                                </section>
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
 
-                {activeTab === 'financials' && (
-                    <div className="bg-white dark:bg-[#161616] rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800 p-8 text-center animate-in fade-in slide-in-from-bottom-2 duration-500">
-                        <div className="max-w-md mx-auto">
-                            <div className="w-16 h-16 bg-green-50 dark:bg-green-900/20 text-green-600 rounded-full flex items-center justify-center text-3xl mb-4 mx-auto">
-                                <FiDollarSign />
+                    {/* Appointments Tab - Only visible to Admin/Owner */}
+                    {(activeTab === 'appointments' && (isAdmin || isOwner)) && (
+                        <div className="bg-white dark:bg-[#161616] rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                            <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
+                                <h3 className="font-bold dark:text-white">Appointment History</h3>
+                                <span className="text-xs font-bold bg-primary/10 text-primary px-2 py-1 rounded-md">{appointments.length} Records</span>
                             </div>
-                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Detailed Financials</h3>
-                            <p className="text-gray-500 mb-6">
-                                View detailed transaction history, payouts, and earnings reports.
-                            </p>
-                            <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 text-left mb-6">
-                                <div className="flex justify-between mb-2">
-                                    <span className="text-gray-500 text-sm">Total Earnings</span>
-                                    <span className="font-bold dark:text-white">KES {doctor.balance}</span>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left text-sm">
+                                    <thead className="bg-gray-50 dark:bg-gray-800/50 text-xs uppercase text-gray-500 font-medium">
+                                        <tr>
+                                            <th className="px-6 py-4">Patient</th>
+                                            <th className="px-6 py-4">Date & Time</th>
+                                            <th className="px-6 py-4">Status</th>
+                                            <th className="px-6 py-4">Fees</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                                        {appointments.length === 0 ? (
+                                            <tr><td colSpan={4} className="px-6 py-8 text-center text-gray-500">No appointments found for this doctor.</td></tr>
+                                        ) : (
+                                            appointments.map(appt => (
+                                                <tr key={appt.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/50">
+                                                    <td className="px-6 py-4">
+                                                        <div className="font-bold text-gray-900 dark:text-white">{appt.patient?.fname || 'Guest'} {appt.patient?.lname || ''}</div>
+                                                        <div className="text-xs text-gray-500">{appt.patient?.email}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="text-gray-900 dark:text-white">{new Date(appt.appointment_date).toLocaleDateString()}</div>
+                                                        <div className="text-xs text-gray-500">{appt.appointment_time}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${appt.status === 'completed' ? 'bg-green-100 text-green-700' :
+                                                            appt.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                                                                'bg-blue-100 text-blue-700'
+                                                            }`}>
+                                                            {appt.status}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 font-medium text-gray-600 dark:text-gray-400">
+                                                        KES {doctor.fee}
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'financials' && (
+                        <div className="bg-white dark:bg-[#161616] rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800 p-8 text-center animate-in fade-in slide-in-from-bottom-2 duration-500">
+                            <div className="max-w-md mx-auto">
+                                <div className="w-16 h-16 bg-green-50 dark:bg-green-900/20 text-green-600 rounded-full flex items-center justify-center text-3xl mb-4 mx-auto">
+                                    <FiDollarSign />
                                 </div>
-                                <div className="flex justify-between">
-                                    <span className="text-gray-500 text-sm">Last Payout</span>
-                                    <span className="font-bold dark:text-white">Never</span>
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Detailed Financials</h3>
+                                <p className="text-gray-500 mb-6">
+                                    View detailed transaction history, payouts, and earnings reports.
+                                </p>
+                                <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 text-left mb-6">
+                                    <div className="flex justify-between mb-2">
+                                        <span className="text-gray-500 text-sm">Total Earnings</span>
+                                        <span className="font-bold dark:text-white">KES {doctor.balance}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500 text-sm">Last Payout</span>
+                                        <span className="font-bold dark:text-white">Never</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    )}
+                </div>
+
+                {/* Booking Modal */}
+                {showBookingModal && (
+                    <BookAppointmentModal
+                        initialDoctor={doctor}
+                        initialType={bookingType}
+                        onClose={() => setShowBookingModal(false)}
+                        onSuccess={() => {
+                            setShowBookingModal(false);
+                            // Refresh if needed
+                        }}
+                    />
                 )}
             </div>
-
-            {/* Booking Modal */}
-            {showBookingModal && (
-                <BookAppointmentModal
-                    initialDoctor={doctor}
-                    initialType={bookingType}
-                    onClose={() => setShowBookingModal(false)}
-                    onSuccess={() => {
-                        setShowBookingModal(false);
-                        // Refresh if needed
-                    }}
-                />
-            )}
-        </div>
-    );
+            );
 }
 
