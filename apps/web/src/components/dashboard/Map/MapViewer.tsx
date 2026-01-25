@@ -114,7 +114,7 @@ export default function MapViewer() {
             html: `
                 <div class="relative transition-all duration-300 ${isSelected ? 'scale-125 z-50' : 'scale-100 hover:scale-110 z-10'}">
                     <div class="w-12 h-12 rounded-full border-2 ${isSelected ? 'border-blue-600 shadow-xl' : 'border-white shadow-lg'} overflow-hidden bg-gray-100">
-                        <img src="${avatarUrl}" class="w-full h-full object-cover" />
+                        <img src="${avatarUrl}" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=${doc.fname}+${doc.lname}&background=random';" />
                     </div>
                     <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}"></div>
                 </div>
@@ -194,20 +194,22 @@ export default function MapViewer() {
                     )}
 
                     {/* Doctor Markers */}
-                    {filteredDoctors.map((doc) => (
-                        <Marker
-                            key={doc.id}
-                            position={[doc.latitude, doc.longitude]}
-                            icon={createMarkerIcon(doc, selectedDoctor?.id === doc.id)}
-                            eventHandlers={{
-                                click: () => {
-                                    setSelectedDoctor(doc);
-                                    // Optional: Fly to doctor
-                                    // mapRef.current?.flyTo([doc.latitude, doc.longitude], 15);
-                                }
-                            }}
-                        />
-                    ))}
+                    {filteredDoctors
+                        .filter(doc => doc.latitude != null && doc.longitude != null && !isNaN(doc.latitude) && !isNaN(doc.longitude))
+                        .map((doc) => (
+                            <Marker
+                                key={doc.id}
+                                position={[doc.latitude, doc.longitude]}
+                                icon={createMarkerIcon(doc, selectedDoctor?.id === doc.id)}
+                                eventHandlers={{
+                                    click: () => {
+                                        setSelectedDoctor(doc);
+                                        // Optional: Fly to doctor
+                                        // mapRef.current?.flyTo([doc.latitude, doc.longitude], 15);
+                                    }
+                                }}
+                            />
+                        ))}
                 </MapContainer>
 
                 {/* 3. Floating Controls (Bottom Right) */}
