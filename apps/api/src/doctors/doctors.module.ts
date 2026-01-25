@@ -12,6 +12,8 @@ import { UsersModule } from '../users/users.module';
 import { EmailModule } from '../email/email.module';
 import { LicenseCheckService } from './services/license-check.service';
 
+import { NckVerificationService } from './nck-verification.service';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -25,7 +27,7 @@ import { LicenseCheckService } from './services/license-check.service';
     ScheduleModule.forRoot(),
   ],
   controllers: [DoctorsController],
-  providers: [DoctorsService, LicenseCheckService],
+  providers: [DoctorsService, LicenseCheckService, NckVerificationService],
   exports: [DoctorsService],
 })
 export class DoctorsModule { }

@@ -276,4 +276,16 @@ export class DoctorsController {
   uploadCsv(@UploadedFile() file: Express.Multer.File) {
     return this.doctorsService.processCsvUpload(file.buffer);
   }
+
+  // NCK Verification
+  @Get('nck/verify/:license')
+  verifyNck(@Param('license') license: string) {
+    return this.doctorsService.verifyByLicense(license);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('admin/nck/verify-all')
+  verifyAllNurses() {
+    return this.doctorsService.verifyAllNurses();
+  }
 }

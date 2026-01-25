@@ -36,7 +36,7 @@ export default function AdminView() {
 
         try {
             const res = await api.post('/doctors/admin/approve-all', {});
-            if (res.ok) {
+            if (res && res.ok) {
                 const data = await res.json();
                 toast.success(`Approved ${data.count} medics successfully!`, { id: toastId });
                 // Simple refresh of stats by reloading or re-fetching. Reload is safer to clear all states.
@@ -49,6 +49,25 @@ export default function AdminView() {
             toast.error('Connection error occurred.', { id: toastId });
         } finally {
             setApproving(false);
+        }
+    };
+
+    const handleVerifyAllNck = async () => {
+        if (!confirm("This will probe the official NCK database for ALL registered nurses/medics to verify their licenses and update their status. Continue?")) return;
+
+        const toastId = toast.loading('Probing NCK database...');
+        try {
+            const res = await api.post('/doctors/admin/nck/verify-all', {});
+            if (res && res.ok) {
+                const data = await res.json();
+                toast.success(`Verification complete! Updated ${data.updated} out of ${data.count} nurses.`, { id: toastId });
+                setTimeout(() => window.location.reload(), 2000);
+            } else {
+                toast.error('NCK Verification failed. The portal might be down.', { id: toastId });
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error('Connection error.', { id: toastId });
         }
     };
 
@@ -197,6 +216,12 @@ export default function AdminView() {
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="font-bold text-gray-900 dark:text-white">Action Items & Verifications</h3>
                     <div className="flex items-center gap-3">
+                        <button
+                            onClick={handleVerifyAllNck}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-600/20 active:scale-95 transition"
+                        >
+                            <FiActivity /> Verify NCK Licenses
+                        </button>
                         {stats.pendingDoctors.length > 0 && (
                             <button
                                 onClick={handleApproveAll}

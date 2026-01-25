@@ -9,6 +9,8 @@ import { EmailService } from '../email/email.service';
 import * as bcrypt from 'bcrypt';
 import * as QRCode from 'qrcode';
 
+import { NckVerificationService } from './nck-verification.service';
+
 @Injectable()
 export class DoctorsService implements OnModuleInit {
     constructor(
@@ -18,6 +20,7 @@ export class DoctorsService implements OnModuleInit {
         private appointmentsRepository: Repository<Appointment>,
         private usersService: UsersService,
         private emailService: EmailService,
+        private nckService: NckVerificationService,
     ) { }
 
     async onModuleInit() {
@@ -925,5 +928,41 @@ export class DoctorsService implements OnModuleInit {
         await this.syncDoctorsWithUsers();
 
         return { success: true, count: createdDocs.length, errors };
+    }
+    async verifyByLicense(licenceNo: string): Promise<any> {
+        return this.nckService.verifyNurse(licenceNo);
+    }
+
+    async verifyAllNurses(): Promise<{ success: boolean; count: number; updated: number }> {
+        const doctors = await this.doctorsRepository.find({
+            where: [
+                { dr_type: 'Nurse' },
+                { dr_type: 'nurse' },
+                { dr_type: 'Medic' },
+                { dr_type: 'medic' }
+            ]
+        });
+
+        let updated = 0;
+        for (const doc of doctors) {
+            if (doc.licenceNo) {
+                try {
+                    const result = await this.nckService.verifyNurse(doc.licenceNo);
+                    if (result.success) {
+                        await this.doctorsRepository.update(doc.id, {
+                            Verified_status: result.status === 'Active' ? 1 : 0,
+                            licenseStatus: result.status?.toLowerCase() === 'active' ? 'valid' : 'expired',
+                            licenseExpiryDate: result.expiryDate,
+                            approvalStatus: result.status === 'Active' ? 'approved' : doc.approvalStatus
+                        });
+                        updated++;
+                    }
+                } catch (e) {
+                    console.error(`Failed to verify doctor ${doc.email}`, e);
+                }
+            }
+        }
+
+        return { success: true, count: doctors.length, updated };
     }
 }
