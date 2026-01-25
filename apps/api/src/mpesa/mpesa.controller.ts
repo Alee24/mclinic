@@ -26,6 +26,7 @@ export class MpesaController {
         );
     }
 
+    @Post('c')
     @Post('callback')
     async handleCallback(@Body() callbackData: any) {
         console.log('M-Pesa Callback Received:', JSON.stringify(callbackData, null, 2));

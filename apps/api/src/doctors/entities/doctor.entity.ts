@@ -35,7 +35,7 @@ export class Doctor {
   @Column({ length: 20, nullable: true })
   dob: string;
 
-  @Column({ length: 50 })
+  @Column({ length: 50, nullable: true })
   reg_code: string;
 
   @Column({ type: 'int', nullable: true })
