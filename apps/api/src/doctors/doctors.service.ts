@@ -933,19 +933,27 @@ export class DoctorsService implements OnModuleInit {
         return this.nckService.verifyNurse(licenceNo);
     }
 
-    async verifyAllNurses(): Promise<{ success: boolean; count: number; updated: number }> {
+    async verifyAllNurses(): Promise<{ success: boolean; count: number; updated: number; current_total: number }> {
+        // Prioritize those not yet verified or with problematic statuses
         const doctors = await this.doctorsRepository.find({
             where: [
-                { dr_type: 'Nurse' },
-                { dr_type: 'nurse' },
-                { dr_type: 'Medic' },
-                { dr_type: 'medic' }
-            ]
+                { dr_type: 'Nurse', Verified_status: 0 },
+                { dr_type: 'nurse', Verified_status: 0 },
+                { dr_type: 'Medic', Verified_status: 0 },
+                { dr_type: 'medic', Verified_status: 0 }
+            ],
+            take: 20 // Process in manageable batches to avoid browser timeout
+        });
+
+        const totalToVerify = await this.doctorsRepository.count({
+            where: { Verified_status: 0 }
         });
 
         let updated = 0;
+
+        // Use a simple loop with small batches
         for (const doc of doctors) {
-            if (doc.licenceNo) {
+            if (doc.licenceNo && doc.licenceNo.length > 3) {
                 try {
                     const result = await this.nckService.verifyNurse(doc.licenceNo);
                     if (result.success) {
@@ -958,11 +966,16 @@ export class DoctorsService implements OnModuleInit {
                         updated++;
                     }
                 } catch (e) {
-                    console.error(`Failed to verify doctor ${doc.email}`, e);
+                    console.error(`Failed to verify ${doc.email}: ${e.message}`);
                 }
             }
         }
 
-        return { success: true, count: doctors.length, updated };
+        return {
+            success: true,
+            count: doctors.length,
+            updated,
+            current_total: totalToVerify
+        };
     }
 }

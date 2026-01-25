@@ -53,21 +53,21 @@ export default function AdminView() {
     };
 
     const handleVerifyAllNck = async () => {
-        if (!confirm("This will probe the official NCK database for ALL registered nurses/medics to verify their licenses and update their status. Continue?")) return;
+        if (!confirm("This will probe the official NCK database for unverified nurses to update their status. (Note: Processes 20 at a time). Continue?")) return;
 
-        const toastId = toast.loading('Probing NCK database...');
+        const toastId = toast.loading('Probing NCK database (Batch of 20)...');
         try {
             const res = await api.post('/doctors/admin/nck/verify-all', {});
             if (res && res.ok) {
                 const data = await res.json();
-                toast.success(`Verification complete! Updated ${data.updated} out of ${data.count} nurses.`, { id: toastId });
+                toast.success(`Batch complete! Verified ${data.updated} nurses. Remaining unverified: ${data.current_total - data.updated}`, { id: toastId });
                 setTimeout(() => window.location.reload(), 2000);
             } else {
-                toast.error('NCK Verification failed. The portal might be down.', { id: toastId });
+                toast.error('NCK Verification failed. The portal might be blocking the request or is down.', { id: toastId });
             }
         } catch (err) {
             console.error(err);
-            toast.error('Connection error.', { id: toastId });
+            toast.error('Connection error or timeout.', { id: toastId });
         }
     };
 

@@ -1,7 +1,7 @@
-
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import * as querystring from 'querystring';
+import * as https from 'https';
 
 export interface NckVerificationResult {
     success: boolean;
@@ -15,15 +15,19 @@ export interface NckVerificationResult {
 @Injectable()
 export class NckVerificationService {
     private readonly baseUrl = 'https://osp.nckenya.go.ke/ajax/public';
+    private readonly httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
     async verifyNurse(searchQuery: string): Promise<NckVerificationResult> {
         try {
+            console.log(`[NCK] Probing for ${searchQuery}...`);
             const payload = querystring.stringify({
                 search_register: '1',
                 search_text: searchQuery
             });
 
             const res = await axios.post(this.baseUrl, payload, {
+                httpsAgent: this.httpsAgent,
+                timeout: 10000, // 10s timeout per request
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
@@ -34,7 +38,7 @@ export class NckVerificationService {
             });
 
             const html = res.data;
-            if (!html || html.includes('No records found')) {
+            if (!html || (typeof html === 'string' && html.includes('No records found'))) {
                 return { success: false };
             }
 
@@ -47,7 +51,7 @@ export class NckVerificationService {
             const name = nameMatch ? nameMatch[1].trim() : null;
 
             // 2. Extract License (Second column)
-            const licenseMatch = html.match(/data-th="License Number">\s*([^<]+)\s*<\/td>/i);
+            const licenseMatch = html.match(/data-th="License Number">\s*([^<]+)\s*<\/td>/i) || html.match(/<td>\s*(\d+)\s*<\/td>/i);
             const licenseNumber = licenseMatch ? licenseMatch[1].trim() : null;
 
             // 3. Extract Status/Date (Third column)
@@ -60,7 +64,12 @@ export class NckVerificationService {
             const dateMatch = html.match(/\d{4}-\d{2}-\d{2}/);
             const expiryDate = dateMatch ? new Date(dateMatch[0]) : undefined;
 
-            if (!name) return { success: false, raw: html };
+            if (!name) {
+                console.log(`[NCK] Could not parse results for ${searchQuery}`);
+                return { success: false, raw: typeof html === 'string' ? html.substring(0, 200) : 'Invalid data' };
+            }
+
+            console.log(`[NCK] Verified ${name} - Status: ${status}`);
 
             return {
                 success: true,
@@ -71,7 +80,7 @@ export class NckVerificationService {
             };
 
         } catch (error) {
-            console.error('NCK Verification Error:', error.message);
+            console.error(`[NCK] Verification Failed for ${searchQuery}:`, error.message);
             return { success: false, raw: error.message };
         }
     }
