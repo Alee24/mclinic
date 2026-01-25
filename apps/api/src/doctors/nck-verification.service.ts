@@ -58,7 +58,7 @@ export class NckVerificationService {
             // 4. Extract Date
             // The date usually follows the span. 2025-07-31
             const dateMatch = html.match(/\d{4}-\d{2}-\d{2}/);
-            const expiryDate = dateMatch ? new Date(dateMatch[0]) : null;
+            const expiryDate = dateMatch ? new Date(dateMatch[0]) : undefined;
 
             if (!name) return { success: false, raw: html };
 
