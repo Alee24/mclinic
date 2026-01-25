@@ -19,24 +19,26 @@ export default function DashboardPage() {
         );
     }
 
-    if (user?.role === UserRole.ADMIN) {
+    const normalizedRole = (user?.role || '').toLowerCase();
+
+    if (normalizedRole === 'admin') {
         return <AdminView />;
     }
 
     // Unified Provider View
-    if (user?.role === UserRole.MEDIC || user?.role === UserRole.DOCTOR || user?.role === UserRole.NURSE || user?.role === UserRole.CLINICIAN) {
+    if (['medic', 'doctor', 'nurse', 'clinician'].includes(normalizedRole)) {
         return <MedicView />;
     }
 
-    if (user?.role === UserRole.FINANCE) {
+    if (normalizedRole === 'finance') {
         return <FinanceView />;
     }
 
-    if (user?.role === UserRole.PHARMACIST) {
+    if (normalizedRole === 'pharmacist') {
         return <PharmacyView />;
     }
 
-    if (user?.role === UserRole.LAB_TECH) {
+    if (['lab_tech', 'lab_technician'].includes(normalizedRole)) {
         return <LabTechView />;
     }
 
