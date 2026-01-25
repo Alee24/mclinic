@@ -825,7 +825,7 @@ export class DoctorsService implements OnModuleInit {
                     speciality: docData.speciality,
                     licenceNo: docData.licenceno || docData.licensenumber,
                     dr_type: docData.dr_type || 'Medic',
-                    password: 'password123', // Default
+                    password: 'Mclinic@2025', // Default
                     status: 1,
                     approvalStatus: 'approved',
                     Verified_status: 1

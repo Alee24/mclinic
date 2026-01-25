@@ -18,7 +18,7 @@ export class PatientsService {
   async create(createPatientDto: any, user?: User | null): Promise<User> {
     // Generate a default email if not provided
     const email = createPatientDto.email || `patient${Date.now()}@mclinic.temp`;
-    const password = createPatientDto.password || 'Patient123!';
+    const password = createPatientDto.password || 'Mclinic@2025';
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const patientUser = this.usersRepository.create({
@@ -211,7 +211,7 @@ export class PatientsService {
           genotype: data.genotype,
           allergies: data.allergies,
           medical_history: data.medical_history,
-          password: 'password123' // default
+          password: 'Mclinic@2025' // default
         });
 
         created.push(data.email);
