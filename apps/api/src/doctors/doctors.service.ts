@@ -844,6 +844,38 @@ export class DoctorsService implements OnModuleInit {
 
                 const newDoc = await this.create(doctorPayload, null);
 
+                // IMMEDIATE SYNC: Ensure User record exists so auth works seamlessly across all types
+                try {
+                    // Check if user exists
+                    let user = await this.usersService.findOne(newDoc.email);
+                    if (!user) {
+                        // Create User Shadow Record
+                        user = await this.usersService.create({
+                            email: newDoc.email,
+                            password: newDoc.password, // Synced Password
+                            fname: newDoc.fname,
+                            lname: newDoc.lname,
+                            role: this.mapDrTypeToUserRole(newDoc.dr_type), // Helper method usage
+                            status: true,
+                        } as any);
+                    } else {
+                        // Update existing user to match doctor details (Source of Truth = Doctor)
+                        await this.usersService.updateByEmail(newDoc.email, {
+                            role: this.mapDrTypeToUserRole(newDoc.dr_type),
+                            fname: newDoc.fname,
+                            lname: newDoc.lname,
+                            password: newDoc.password
+                        });
+                    }
+
+                    // Link them
+                    if (newDoc.user_id !== user.id) {
+                        await this.doctorsRepository.update(newDoc.id, { user_id: user.id });
+                    }
+                } catch (syncErr) {
+                    console.error(`Failed to immediate-sync user for doctor ${newDoc.email}`, syncErr);
+                }
+
                 createdDocs.push(newDoc);
 
             } catch (err) {
