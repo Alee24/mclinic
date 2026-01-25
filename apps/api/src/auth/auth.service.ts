@@ -1,4 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { UserRole } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { DoctorsService } from '../doctors/doctors.service';
 import { MedicalProfilesService } from '../medical-profiles/medical-profiles.service';
@@ -21,29 +22,52 @@ export class AuthService {
     if (userType === 'provider') {
       // 1. Check Doctors table primarily for providers
       const doctor = await this.doctorsService.findByEmail(email);
-      if (doctor && (await bcrypt.compare(pass, doctor.password))) {
-        const role = this.mapDrTypeToRole(doctor.dr_type);
-        const { password, ...result } = doctor;
-        return { ...result, role };
+      if (doctor) {
+        if (await bcrypt.compare(pass, doctor.password)) {
+          const role = this.mapDrTypeToRole(doctor.dr_type);
+          const { password, ...result } = doctor;
+          return { ...result, role };
+        } else {
+          throw new UnauthorizedException('Invalid password. Please try again or reset your password.');
+        }
       }
 
       // 2. Fallback: Check Users table ONLY for 'admin' roles trying to login as provider
       const admin = await this.usersService.findOne(email);
-      if (admin && admin.role === 'admin' && (await bcrypt.compare(pass, admin.password))) {
-        const { password, ...result } = admin;
-        return result;
+      if (admin && admin.role === UserRole.ADMIN) {
+        if (await bcrypt.compare(pass, admin.password)) {
+          const { password, ...result } = admin;
+          return result;
+        } else {
+          throw new UnauthorizedException('Invalid admin password.');
+        }
+      }
+
+      // 3. Soft Detection: Is this a Patient trying to login as Provider?
+      const patientInstead = await this.usersService.findOne(email);
+      if (patientInstead) {
+        throw new UnauthorizedException('This account is registered as a Patient. Please switch to "Patient" login.');
       }
     } else {
       // Patient table (Users)
       const user = await this.usersService.findOne(email);
-      if (user && (await bcrypt.compare(pass, user.password))) {
-        // Patients should only be in the users table
-        const { password, ...result } = user;
-        return result;
+      if (user) {
+        if (await bcrypt.compare(pass, user.password)) {
+          const { password, ...result } = user;
+          return result;
+        } else {
+          throw new UnauthorizedException('Invalid password. Please try again.');
+        }
+      }
+
+      // 3. Soft Detection: Is this a Doctor trying to login as Patient?
+      const doctorInstead = await this.doctorsService.findByEmail(email);
+      if (doctorInstead) {
+        throw new UnauthorizedException('This account is registered as a Healthcare Professional. Please switch to "Provider" login.');
       }
     }
 
-    return null;
+    throw new UnauthorizedException('No account found with this email. Please register to continue.');
   }
 
   private mapDrTypeToRole(drType: string): string {
@@ -58,9 +82,6 @@ export class AuthService {
 
   async login(loginDto: any, ipAddress?: string, location?: string) {
     const validUser = await this.validateUser(loginDto.email, loginDto.password, loginDto.userType);
-    if (!validUser) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
 
     const payload = {
       email: validUser.email,
