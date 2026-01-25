@@ -18,10 +18,8 @@ export class AuthService {
   ) { }
 
   async validateUser(email: string, pass: string, userType: string = 'patient'): Promise<any> {
-    let user: any = null;
-
     if (userType === 'provider') {
-      // 1. Try to find in Doctors table
+      // 1. Check Doctors table primarily for providers
       const doctor = await this.doctorsService.findByEmail(email);
       if (doctor && (await bcrypt.compare(pass, doctor.password))) {
         const role = this.mapDrTypeToRole(doctor.dr_type);
@@ -29,17 +27,17 @@ export class AuthService {
         return { ...result, role };
       }
 
-      // 2. Fallback: If not in Doctors table, check Users table for 'admin' role
-      if (!doctor) {
-        const normalUser = await this.usersService.findOne(email);
-        if (normalUser && normalUser.role === 'admin' && (await bcrypt.compare(pass, normalUser.password))) {
-          const { password, ...result } = normalUser;
-          return { ...result, role: 'admin' };
-        }
+      // 2. Fallback: Check Users table ONLY for 'admin' roles trying to login as provider
+      const admin = await this.usersService.findOne(email);
+      if (admin && admin.role === 'admin' && (await bcrypt.compare(pass, admin.password))) {
+        const { password, ...result } = admin;
+        return result;
       }
     } else {
-      user = await this.usersService.findOne(email);
+      // Patient table (Users)
+      const user = await this.usersService.findOne(email);
       if (user && (await bcrypt.compare(pass, user.password))) {
+        // Patients should only be in the users table
         const { password, ...result } = user;
         return result;
       }
@@ -63,6 +61,7 @@ export class AuthService {
     if (!validUser) {
       throw new UnauthorizedException('Invalid credentials');
     }
+
     const payload = {
       email: validUser.email,
       sub: validUser.id,
@@ -80,14 +79,13 @@ export class AuthService {
       console.error('Failed to send login email:', error);
     }
 
-    // Attach doctorId if medical user
+    // Handle medic vs patient ID consistency for the frontend
     let finalUser = { ...validUser };
-    if (['doctor', 'medic', 'nurse', 'clinician'].includes(validUser.role)) {
-      const doctor = await this.doctorsService.findByEmail(validUser.email);
-      if (doctor) {
-        // @ts-ignore
-        finalUser.doctorId = doctor.id;
-      }
+    if (['doctor', 'medic', 'nurse', 'clinician', 'lab_tech', 'pharmacist'].includes(validUser.role)) {
+      // If result came from doctors table, it already has doc details
+      // Ensure doctorId is set for frontend compatibility
+      // @ts-ignore
+      finalUser.doctorId = validUser.id;
     }
 
     return {
@@ -97,34 +95,37 @@ export class AuthService {
   }
 
   async register(dto: any) {
-    // 1. Create User
-    const user = await this.usersService.create(dto);
+    // 1. Create Patient in Users Table ONLY
+    const userData = {
+      ...dto,
+      role: 'patient',
+      status: true
+    };
+    const user = await this.usersService.create(userData);
 
     // Generate Verification Token
     const verificationToken = randomBytes(32).toString('hex');
     await this.usersService.update(user.id, { verificationToken } as any);
     user.verificationToken = verificationToken;
 
-    // 2. Create Medical Profile if role is patient
-    if (user.role === 'patient') {
-      try {
-        await this.medicalProfilesService.update(user.id, {
-          dob: dto.dob,
-          sex: dto.sex,
-          blood_group: dto.blood_group,
-          genotype: dto.genotype,
-          allergies: dto.allergies,
-          medical_history: dto.medical_history,
-          shif_number: dto.shif_number,
-          insurance_provider: dto.insurance_provider,
-          insurance_policy_no: dto.insurance_policy_no,
-          emergency_contact_name: dto.emergency_contact_name,
-          emergency_contact_phone: dto.emergency_contact_phone,
-          emergency_contact_relation: dto.emergency_contact_relation,
-        });
-      } catch (err) {
-        console.error('Failed to create medical profile during registration', err);
-      }
+    // 2. Create Medical Profile Extension
+    try {
+      await this.medicalProfilesService.update(user.id, {
+        dob: dto.dob,
+        sex: dto.sex,
+        blood_group: dto.blood_group,
+        genotype: dto.genotype,
+        allergies: dto.allergies,
+        medical_history: dto.medical_history,
+        shif_number: dto.shif_number,
+        insurance_provider: dto.insurance_provider,
+        insurance_policy_no: dto.insurance_policy_no,
+        emergency_contact_name: dto.emergency_contact_name,
+        emergency_contact_phone: dto.emergency_contact_phone,
+        emergency_contact_relation: dto.emergency_contact_relation,
+      });
+    } catch (err) {
+      console.error('Failed to create medical profile during registration', err);
     }
 
     // 3. Send Verification Email
@@ -146,57 +147,70 @@ export class AuthService {
   }
 
   async registerDoctor(dto: any) {
-    let role = 'medic'; // Default consolidated role for Doctors, Clinical Officers, etc.
-    if (dto.cadre === 'Nursing') role = 'medic'; // Nurses are also Medics/Providers
+    let role = 'medic';
+    if (dto.cadre === 'Nursing') role = 'medic';
     if (dto.cadre === 'Pharmacy') role = 'pharmacist';
     if (dto.cadre === 'Laboratory') role = 'lab_tech';
     if (dto.cadre === 'Finance') role = 'finance';
 
-    // 1. Create User (Inactive)
-    const user = await this.usersService.create({
-      email: dto.email,
-      password: dto.password,
-      fname: dto.fname,
-      lname: dto.lname,
-      role: role,
-      status: false, // Inactive until approved
-    } as any);
-
-    // 2. Create Doctor Profile (Pending)
+    // 1. Create Doctor Profile ONLY in Doctors Table (Strict Separation)
     const doctor = await this.doctorsService.create(
       {
         ...dto,
         Verified_status: 0,
+        status: 0,
+        approvalStatus: 'pending',
       },
-      user, // Pass the created user object which contains the ID
+      null // No linking user object needed in this separate flow
     );
 
-    // 3. Send welcome email
+    // Create a dummy user object for JSON response consistency
+    const resultUser = {
+      id: doctor.id,
+      email: doctor.email,
+      fname: doctor.fname,
+      lname: doctor.lname,
+      role: role,
+      status: false
+    };
+
+    // 2. Send welcome email
     try {
-      await this.emailService.sendAccountCreationEmail(user, role);
+      await this.emailService.sendAccountCreationEmail(resultUser as any, role);
     } catch (error) {
       console.error('Failed to send welcome email:', error);
     }
 
-    return { user, doctor };
+    return { user: resultUser, doctor };
   }
 
-  async getProfile(userId: number) {
+  async getProfile(userId: number, role?: string) {
+    // If we have a role, we know exactly where to look
+    if (role && ['doctor', 'medic', 'nurse', 'clinician', 'lab_tech', 'pharmacist', 'finance'].includes(role)) {
+      const doctor = await this.doctorsService.findOne(userId);
+      if (doctor) {
+        const { password, ...result } = doctor;
+        const synthRole = this.mapDrTypeToRole(doctor.dr_type);
+        // @ts-ignore
+        return { ...result, role: synthRole, doctorId: doctor.id, profilePicture: doctor.profile_image };
+      }
+    }
+
+    // Default to Users table (Patients/Admins)
     const user = await this.usersService.findById(userId);
     if (user) {
       const { password, ...result } = user;
-
-      // Attach doctorId if medical user
-      if (['doctor', 'medic', 'nurse', 'clinician'].includes(user.role)) {
-        const doctor = await this.doctorsService.findByEmail(user.email);
-        if (doctor) {
-          // @ts-ignore
-          return { ...result, doctorId: doctor.id };
-        }
-      }
-
       return result;
     }
+
+    // Final fallback if role was missing but it's a doctor
+    const doctorFallback = await this.doctorsService.findOne(userId);
+    if (doctorFallback) {
+      const { password, ...result } = doctorFallback;
+      const synthRole = this.mapDrTypeToRole(doctorFallback.dr_type);
+      return { ...result, role: synthRole, doctorId: doctorFallback.id, profilePicture: doctorFallback.profile_image };
+    }
+
     return null;
   }
   async forgotPassword(email: string) {

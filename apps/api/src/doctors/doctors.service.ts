@@ -24,16 +24,16 @@ export class DoctorsService implements OnModuleInit {
     ) { }
 
     async onModuleInit() {
-        console.log('[DoctorsService] Running startup checks...');
-        try {
-            await this.backfillUserIds();
-            await this.syncDoctorsWithUsers();
-            // NEW: Also sync user roles FROM doctors
-            await this.syncUsersFromDoctors();
-        } catch (error) {
-            console.error('[DoctorsService] Startup sync failed:', error);
-            // Don't throw, let the app start
-        }
+        console.log('[DoctorsService] Startup checks bypassed (Strict Separation Active)');
+        // try {
+        //     await this.backfillUserIds();
+        //     await this.syncDoctorsWithUsers();
+        //     // NEW: Also sync user roles FROM doctors
+        //     await this.syncUsersFromDoctors();
+        // } catch (error) {
+        //     console.error('[DoctorsService] Startup sync failed:', error);
+        //     // Don't throw, let the app start
+        // }
     }
 
     private async backfillUserIds() {
