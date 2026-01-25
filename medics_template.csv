@@ -1,0 +1,6 @@
+fname,lname,email,mobile,dr_type,speciality,licenceNo
+Alex,Metto,mettoalex@gmail.com,0712345678,Medic,General Medicine,MED12345
+Jane,Doe,jane.doe@example.com,0722000000,Nurse,Pediatrics,NUR98765
+John,Smith,john.smith@example.com,0733111222,Doctor,Cardiology,DOC55555
+Mary,Wambui,mary.wambui@example.com,0744555666,Clinician,Orthopedics,CLI44444
+Peter,Kamau,peter.kamau@example.com,0755888999,Medic,Emergency,MED22222

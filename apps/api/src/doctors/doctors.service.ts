@@ -816,8 +816,10 @@ export class DoctorsService implements OnModuleInit {
                     continue;
                 }
 
-                // Create Doctor
-                const newDoc = await this.create({
+                // Create Doctor - Dynamic Mapping
+                // Use a known base object but spread docData so ANY field in CSV that matches a DB column gets mapped
+                const doctorPayload = {
+                    ...docData, // Maps all matching fields (e.g. latitude, longitude, fee, balance, slot_type, etc.)
                     fname: docData.fname,
                     lname: docData.lname,
                     email: docData.email,
@@ -825,11 +827,22 @@ export class DoctorsService implements OnModuleInit {
                     speciality: docData.speciality,
                     licenceNo: docData.licenceno || docData.licensenumber,
                     dr_type: docData.dr_type || 'Medic',
-                    password: 'Mclinic@2025', // Default
-                    status: 1,
-                    approvalStatus: 'approved',
-                    Verified_status: 1
-                }, null);
+                    password: docData.password || 'Mclinic@2025',
+
+                    // Essential defaults (can be overridden by CSV if column exists)
+                    status: docData.status ? parseInt(docData.status) : 1,
+                    approvalStatus: docData.approvalstatus || 'approved',
+                    Verified_status: docData.verified_status ? parseInt(docData.verified_status) : 1,
+
+                    // Ensure numeric fields are actually numbers if present
+                    latitude: docData.latitude ? parseFloat(docData.latitude) : undefined,
+                    longitude: docData.longitude ? parseFloat(docData.longitude) : undefined,
+                    fee: docData.fee ? parseInt(docData.fee) : undefined,
+                    balance: docData.balance ? parseFloat(docData.balance) : undefined,
+                    user_id: docData.user_id ? parseInt(docData.user_id) : undefined,
+                };
+
+                const newDoc = await this.create(doctorPayload, null);
 
                 createdDocs.push(newDoc);
 
