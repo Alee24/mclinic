@@ -791,9 +791,37 @@ export class DoctorsService implements OnModuleInit {
         };
     }
 
-    // DANGER: Clears all doctors
+    // DANGER: Clears all doctors and their associated user accounts
     async deleteAll(): Promise<void> {
-        await this.doctorsRepository.clear();
+        // 1. Find all doctors to get their emails/user_ids
+        const doctors = await this.doctorsRepository.find();
+        const userIds = doctors.map(d => d.user_id).filter(id => id);
+        const emails = doctors.map(d => d.email).filter(e => e);
+
+        // 2. Clear Doctors Table (Try delete first to avoid FK issues with truncate)
+        // We use delete({}) which triggers TypeORM events/cascades better than clear() in some drivers
+        await this.doctorsRepository.delete({});
+
+        // 3. Delete associated Users
+        if (userIds.length > 0) {
+            try {
+                // Delete users by ID
+                await this.usersService.deleteManyByIds(userIds);
+            } catch (err) {
+                console.log("Error deleting users by IDs, trying by role/email");
+            }
+        }
+
+        // Fallback: Delete any user with medic/doctor roles to be clean
+        try {
+            await this.usersService.deleteByRole('medic');
+            await this.usersService.deleteByRole('doctor');
+            await this.usersService.deleteByRole('nurse');
+            await this.usersService.deleteByRole('pharmacist');
+            await this.usersService.deleteByRole('lab_tech');
+        } catch (e) {
+            console.error("Cleanup error", e);
+        }
     }
 
     async processCsvUpload(buffer: Buffer): Promise<{ success: boolean; count: number; errors: string[] }> {

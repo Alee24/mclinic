@@ -103,6 +103,15 @@ export class UsersService implements OnModuleInit {
     await this.usersRepository.delete({ email });
   }
 
+  async deleteManyByIds(ids: number[]): Promise<void> {
+    if (ids.length === 0) return;
+    await this.usersRepository.delete({ id: In(ids) });
+  }
+
+  async deleteByRole(role: string): Promise<void> {
+    await this.usersRepository.delete({ role: role as any });
+  }
+
   async findByResetToken(token: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { resetToken: token } });
   }
