@@ -68,8 +68,7 @@ export default function DoctorDetailsPage() {
                 <div className="flex-1">
                     <div className="flex items-center gap-3">
                         <h1 className="text-3xl font-bold dark:text-white">{doctor.fname} {doctor.lname}</h1>
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase border ${doctor.verified_status ? 'bg-green-100 text-green-700 border-green-200' : 'bg-yellow-100 text-yellow-700 border-yellow-200'
-                            }`}>
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase border ${doctor.verified_status ? 'bg-green-100 text-green-700 border-green-200' : 'bg-yellow-100 text-yellow-700 border-yellow-200'}`}>
                             {doctor.verified_status ? 'Verified' : 'Pending Verification'}
                         </span>
                         {/* Online Status */}
@@ -163,7 +162,7 @@ export default function DoctorDetailsPage() {
                     ) : (
                         <button
                             onClick={async () => {
-                                if (!confirm('Activate this doctorAccount?')) return;
+                                if (!confirm('Activate this doctor Account?')) return;
                                 try {
                                     await api.patch(`/doctors/${doctor.id}/activate`, {});
                                     window.location.reload();
@@ -195,10 +194,10 @@ export default function DoctorDetailsPage() {
 
             {/* Tabs */}
             <div className="flex gap-6 border-b border-gray-200 dark:border-gray-800 overflow-x-auto">
-                {['profile', (isAdmin || isOwner) ? 'appointments' : null, (isAdmin || isOwner) ? 'financials' : null].filter(Boolean).map((tab) => (
+                {['profile', (isAdmin || isOwner) ? 'appointments' : null, (isAdmin || isOwner) ? 'financials' : null].filter(Boolean).map((tab: any) => (
                     <button
                         key={tab}
-                        onClick={() => setActiveTab(tab as any)}
+                        onClick={() => setActiveTab(tab)}
                         className={`pb-3 text-sm font-bold capitalize transition whitespace-nowrap ${activeTab === tab ? 'text-primary border-b-2 border-primary' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`}
                     >
                         {tab} Details
@@ -206,7 +205,7 @@ export default function DoctorDetailsPage() {
                 ))}
             </div>
 
-            {/* Content */}
+            {/* Content Container */}
             <div className="min-h-[400px]">
                 {activeTab === 'profile' && (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -245,7 +244,7 @@ export default function DoctorDetailsPage() {
                                             </div>
                                             <div>
                                                 <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Account Status</div>
-                                                <div className={`font-bold uppercase inline-block px-2 py-0.5 rounded text-xs ${doctor.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                                <div className={`font-bold uppercase inline-block px-2 py-0.5 rounded text : ${doctor.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                                                     {doctor.status ? 'Active' : 'Inactive'}
                                                 </div>
                                             </div>
@@ -265,8 +264,6 @@ export default function DoctorDetailsPage() {
                             )}
                         </div>
                         <div className="space-y-6">
-
-                            {/* Booking Options (Patients Only) */}
                             {isPatient && (
                                 <section className="bg-white dark:bg-[#161616] rounded-xl p-8 border-2 border-primary/20 shadow-xl shadow-primary/5">
                                     <h3 className="text-xl font-black dark:text-white mb-6 flex items-center gap-2">
@@ -284,7 +281,6 @@ export default function DoctorDetailsPage() {
                                             <FiCalendar size={20} />
                                             PHYSICAL VISIT
                                         </button>
-
                                         <button
                                             onClick={() => {
                                                 setBookingType('VIRTUAL');
@@ -348,7 +344,7 @@ export default function DoctorDetailsPage() {
                     </div>
                 )}
 
-                {/* Appointments Tab - Only visible to Admin/Owner */}
+                {/* Appointments Tab */}
                 {(activeTab === 'appointments' && (isAdmin || isOwner)) && (
                     <div className="bg-white dark:bg-[#161616] rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800 animate-in fade-in slide-in-from-bottom-2 duration-500">
                         <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
@@ -367,9 +363,11 @@ export default function DoctorDetailsPage() {
                                 </thead>
                                 <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                                     {appointments.length === 0 ? (
-                                        <tr><td colSpan={4} className="px-6 py-8 text-center text-gray-500">No appointments found for this doctor.</td></tr>
+                                        <tr>
+                                            <td colSpan={4} className="px-6 py-8 text-center text-gray-500">No appointments found for this doctor.</td>
+                                        </tr>
                                     ) : (
-                                        appointments.map(appt => (
+                                        appointments.map((appt: any) => (
                                             <tr key={appt.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/50">
                                                 <td className="px-6 py-4">
                                                     <div className="font-bold text-gray-900 dark:text-white">{appt.patient?.fname || 'Guest'} {appt.patient?.lname || ''}</div>
@@ -380,10 +378,7 @@ export default function DoctorDetailsPage() {
                                                     <div className="text-xs text-gray-500">{appt.appointment_time}</div>
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${appt.status === 'completed' ? 'bg-green-100 text-green-700' :
-                                                        appt.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                                                            'bg-blue-100 text-blue-700'
-                                                        }`}>
+                                                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${appt.status === 'completed' ? 'bg-green-100 text-green-700' : appt.status === 'cancelled' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
                                                         {appt.status}
                                                     </span>
                                                 </td>
@@ -399,6 +394,7 @@ export default function DoctorDetailsPage() {
                     </div>
                 )}
 
+                {/* Financials Tab */}
                 {activeTab === 'financials' && (
                     <div className="bg-white dark:bg-[#161616] rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800 p-8 text-center animate-in fade-in slide-in-from-bottom-2 duration-500">
                         <div className="max-w-md mx-auto">
@@ -432,7 +428,6 @@ export default function DoctorDetailsPage() {
                     onClose={() => setShowBookingModal(false)}
                     onSuccess={() => {
                         setShowBookingModal(false);
-                        // Refresh if needed
                     }}
                 />
             )}
