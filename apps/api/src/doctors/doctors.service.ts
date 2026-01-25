@@ -513,6 +513,11 @@ export class DoctorsService implements OnModuleInit {
 
         const savedDoctor = await this.doctorsRepository.save(doctor);
 
+        // Sync with User
+        if (savedDoctor.email) {
+            await this.usersService.updateUserStatus(savedDoctor.email, true);
+        }
+
         // Send approval email
         try {
             await this.emailService.sendDoctorApprovalEmail(savedDoctor, 'approved');
@@ -533,6 +538,11 @@ export class DoctorsService implements OnModuleInit {
         doctor.approvedBy = adminId;
 
         const savedDoctor = await this.doctorsRepository.save(doctor);
+
+        // Sync with User
+        if (savedDoctor.email) {
+            await this.usersService.updateUserStatus(savedDoctor.email, false);
+        }
 
         // Send rejection email
         try {
