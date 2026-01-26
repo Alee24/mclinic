@@ -27,7 +27,7 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
         dr_type: '',
         licenceNo: '',
         reg_code: '',
-        licenceExpiryDate: '',
+        licenseExpiryDate: '',
         hospital_attachment: '',
         qualification: '',
         fee: 0,
@@ -52,7 +52,7 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
                         dr_type: data.dr_type || '',
                         licenceNo: data.licenceNo || '',
                         reg_code: data.reg_code || '',
-                        licenceExpiryDate: data.licenceExpiryDate ? new Date(data.licenceExpiryDate).toISOString().split('T')[0] : '',
+                        licenseExpiryDate: data.licenseExpiryDate ? new Date(data.licenseExpiryDate).toISOString().split('T')[0] : (data.licenceExpiryDate ? new Date(data.licenceExpiryDate).toISOString().split('T')[0] : (data.licenceExpiry ? new Date(data.licenceExpiry).toISOString().split('T')[0] : '')),
                         hospital_attachment: data.hospital_attachment || '',
                         qualification: data.qualification || '',
                         fee: data.fee || 0,
@@ -239,7 +239,7 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
 
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">License Expiry</label>
-                            <input type="date" name="licenceExpiryDate" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.licenceExpiryDate} onChange={handleChange} />
+                            <input type="date" name="licenseExpiryDate" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.licenseExpiryDate} onChange={handleChange} />
                         </div>
 
                         <div>

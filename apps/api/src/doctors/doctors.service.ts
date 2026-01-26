@@ -384,7 +384,16 @@ export class DoctorsService implements OnModuleInit {
             updateDto.password = await bcrypt.hash(updateDto.password, 10);
         }
 
-        await this.doctorsRepository.update(id, updateDto);
+        // Safety: Filter out fields that don't exist in the database schema to prevent crashes
+        const allowedFields = this.doctorsRepository.metadata.columns.map(c => c.propertyName);
+        const filteredDto = Object.keys(updateDto)
+            .filter(key => allowedFields.includes(key))
+            .reduce((obj: any, key) => {
+                obj[key] = updateDto[key];
+                return obj;
+            }, {});
+
+        await this.doctorsRepository.update(id, filteredDto);
         const updatedDoctor = await this.findOne(id);
 
         // Sync with User entity if email exists
