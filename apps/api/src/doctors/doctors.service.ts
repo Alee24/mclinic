@@ -949,20 +949,37 @@ export class DoctorsService implements OnModuleInit {
         if (!cleanLicense) throw new BadRequestException('License number missing or invalid');
 
         const result = await this.nckService.verifyNurse(cleanLicense);
-        if (result.success) {
-            const isWorking = result.status === 'Active' ? 1 : 0;
-            const updateData: any = {
-                Verified_status: isWorking,
-                licenseStatus: result.status?.toLowerCase() === 'active' ? 'valid' : 'expired',
-                licenseExpiryDate: result.expiryDate,
-                approvalStatus: result.status === 'Active' ? 'approved' : doc.approvalStatus
-            };
+
+        const updateData: any = {
+            Verified_status: result.success && result.status === 'Active' ? 1 : 0,
+            licenseStatus: (result.success && result.status?.toLowerCase() === 'active') ? 'valid' : 'expired',
+            licenseExpiryDate: result.success ? result.expiryDate : doc.licenseExpiryDate,
+        };
+
+        if (result.success && result.status === 'Active') {
+            // NCK says they are GOOD
+            updateData.status = 1; // Active
+            updateData.approvalStatus = 'approved';
+            updateData.rejectionReason = null; // Clear any previous suspension reason
 
             await this.doctorsRepository.update(id, updateData);
             return { success: true, medic: await this.findOne(id), nck: result };
-        }
+        } else {
+            // NCK says they are NOT active or record is missing
+            updateData.status = 0; // Inactive
+            updateData.approvalStatus = 'suspended';
+            updateData.rejectionReason = result.success
+                ? `NCK Portal: Record found but status is ${result.status}`
+                : 'NCK Portal: No records found (Wrong License)';
 
-        return { success: false, message: 'No records found on NCK portal', nck: result };
+            await this.doctorsRepository.update(id, updateData);
+            return {
+                success: false,
+                status: 'Suspended',
+                message: updateData.rejectionReason,
+                nck: result
+            };
+        }
     }
 
     async verifyAllNurses(): Promise<{ success: boolean; count: number; updated: number; current_total: number }> {
