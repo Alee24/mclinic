@@ -278,6 +278,12 @@ export class DoctorsController {
   }
 
   // NCK Verification
+  @UseGuards(AuthGuard('jwt'))
+  @Post(':id/verify-nck')
+  verifyNckById(@Param('id') id: string) {
+    return this.doctorsService.verifyAndUpdateMedic(+id);
+  }
+
   @Get('nck/verify/:license')
   verifyNck(@Param('license') license: string) {
     return this.doctorsService.verifyByLicense(license);

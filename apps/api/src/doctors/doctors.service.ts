@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DeepPartial, IsNull } from 'typeorm';
 import { Doctor } from './entities/doctor.entity';
@@ -940,6 +940,28 @@ export class DoctorsService implements OnModuleInit {
     }
     async verifyByLicense(licenceNo: string): Promise<any> {
         return this.nckService.verifyNurse(licenceNo);
+    }
+
+    async verifyAndUpdateMedic(id: number): Promise<any> {
+        const doc = await this.findOne(id);
+        if (!doc) throw new NotFoundException('Medic not found');
+        if (!doc.licenceNo) throw new BadRequestException('License number missing for this medic');
+
+        const result = await this.nckService.verifyNurse(doc.licenceNo);
+        if (result.success) {
+            const isWorking = result.status === 'Active' ? 1 : 0;
+            const updateData: any = {
+                Verified_status: isWorking,
+                licenseStatus: result.status?.toLowerCase() === 'active' ? 'valid' : 'expired',
+                licenseExpiryDate: result.expiryDate,
+                approvalStatus: result.status === 'Active' ? 'approved' : doc.approvalStatus
+            };
+
+            await this.doctorsRepository.update(id, updateData);
+            return { success: true, medic: await this.findOne(id), nck: result };
+        }
+
+        return { success: false, message: 'No records found on NCK portal', nck: result };
     }
 
     async verifyAllNurses(): Promise<{ success: boolean; count: number; updated: number; current_total: number }> {

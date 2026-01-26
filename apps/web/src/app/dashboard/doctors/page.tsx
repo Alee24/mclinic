@@ -5,7 +5,8 @@ import { useAuth, UserRole } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
-import { FiPlus, FiAlertCircle, FiCheckCircle, FiShield, FiEdit2 } from 'react-icons/fi';
+import { FiPlus, FiAlertCircle, FiCheckCircle, FiShield, FiEdit2, FiActivity } from 'react-icons/fi';
+import { toast } from 'react-hot-toast';
 import CreateDoctorModal from '@/components/dashboard/doctors/CreateDoctorModal';
 import EditDoctorModal from '@/components/dashboard/doctors/EditDoctorModal';
 
@@ -54,6 +55,32 @@ export default function DoctorsPage() {
         if (!confirm('Reject/Deactivate this doctor?')) return;
         const res = await api.patch(`/doctors/${id}/verify`, { status: false });
         if (res && res.ok) fetchDoctors();
+    };
+
+    const [verifyingId, setVerifyingId] = useState<number | null>(null);
+
+    const handleNckVerify = async (id: number) => {
+        setVerifyingId(id);
+        const tid = toast.loading('Syncing with NCK Portal...');
+        try {
+            const res = await api.post(`/doctors/${id}/verify-nck`, {});
+            if (res && res.ok) {
+                const data = await res.json();
+                if (data.success) {
+                    toast.success(`Success! Found ${data.nck.name}. Status: ${data.nck.status}`, { id: tid });
+                    fetchDoctors();
+                } else {
+                    toast.error(`Verification Failed: ${data.message}`, { id: tid });
+                }
+            } else {
+                toast.error('Could not connect to NCK portal.', { id: tid });
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error('Sync error occurred.', { id: tid });
+        } finally {
+            setVerifyingId(null);
+        }
     };
 
     const handleActivateAll = async () => {
@@ -235,6 +262,14 @@ export default function DoctorsPage() {
                                                 title="Edit Profile"
                                             >
                                                 <FiEdit2 size={16} />
+                                            </button>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleNckVerify(doc.id); }}
+                                                disabled={verifyingId === doc.id}
+                                                className={`p-2 ${verifyingId === doc.id ? 'animate-pulse text-gray-400' : 'text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20'} rounded-lg transition`}
+                                                title="Sync with NCK Website"
+                                            >
+                                                <FiActivity size={16} />
                                             </button>
                                             {!isVerified && (
                                                 <button

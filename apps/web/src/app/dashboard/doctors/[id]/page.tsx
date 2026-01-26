@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth, UserRole } from '@/lib/auth';
-import { FiUser, FiMapPin, FiAward, FiCheckCircle, FiAlertCircle, FiDollarSign, FiBriefcase, FiClock, FiPhone, FiMail, FiCalendar, FiVideo } from 'react-icons/fi';
+import { FiUser, FiMapPin, FiAward, FiCheckCircle, FiAlertCircle, FiDollarSign, FiBriefcase, FiClock, FiPhone, FiMail, FiCalendar, FiVideo, FiLock } from 'react-icons/fi';
 import BookAppointmentModal from '@/components/dashboard/appointments/BookAppointmentModal';
 
 export default function DoctorDetailsPage() {
@@ -52,8 +52,9 @@ export default function DoctorDetailsPage() {
     if (!doctor) return <div className="p-8 text-center text-red-500">Doctor not found</div>;
 
     const isAdmin = user?.role === UserRole.ADMIN;
-    // Check if the current user is the doctor being viewed
-    const isOwner = user?.role === UserRole.DOCTOR && (user?.doctorId == doctor.id || user?.id === doctor.userId);
+    // Check if the current user is a medic and if it's their own profile
+    const isMedicUser = ['doctor', 'nurse', 'clinician', 'medic', 'pharmacist'].includes(user?.role || '');
+    const isOwner = isMedicUser && (user?.doctorId == doctor.id || user?.id === doctor.user_id);
 
     // Is Patient (able to book)
     const isPatient = user?.role === UserRole.PATIENT;
@@ -68,8 +69,8 @@ export default function DoctorDetailsPage() {
                 <div className="flex-1">
                     <div className="flex items-center gap-3">
                         <h1 className="text-3xl font-bold dark:text-white">{doctor.fname} {doctor.lname}</h1>
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase border ${doctor.verified_status ? 'bg-green-100 text-green-700 border-green-200' : 'bg-yellow-100 text-yellow-700 border-yellow-200'}`}>
-                            {doctor.verified_status ? 'Verified' : 'Pending Verification'}
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase border ${doctor.Verified_status === 1 ? 'bg-green-100 text-green-700 border-green-200' : 'bg-yellow-100 text-yellow-700 border-yellow-200'}`}>
+                            {doctor.Verified_status === 1 ? 'Verified' : 'Pending Verification'}
                         </span>
                         {/* Online Status */}
                         <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase border ${doctor.isWorking ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
@@ -244,7 +245,7 @@ export default function DoctorDetailsPage() {
                                             </div>
                                             <div>
                                                 <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Account Status</div>
-                                                <div className={`font-bold uppercase inline-block px-2 py-0.5 rounded text : ${doctor.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                                <div className={`font-bold uppercase inline-block px-2 py-0.5 rounded text-xs ${doctor.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                                                     {doctor.status ? 'Active' : 'Inactive'}
                                                 </div>
                                             </div>
