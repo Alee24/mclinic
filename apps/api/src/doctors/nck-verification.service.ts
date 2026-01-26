@@ -42,26 +42,24 @@ export class NckVerificationService {
                 return { success: false };
             }
 
-            // Basic HTML parsing without Cheerio
-            // Expected structure: <tr><td>NAME</td><td>LICENSE</td><td>Approved: DATE</td>...</tr>
-
             // 1. Extract Name (First column)
-            // data-th="Name">ALICE KAROKI MBUI</td>
-            const nameMatch = html.match(/data-th="Name">\s*([^<]+)\s*<\/td>/i) || html.match(/<td>\s*([A-Z\s]+)\s*<\/td>/i);
-            const name = nameMatch ? nameMatch[1].trim() : null;
+            // Example: <td style="...">NAME</td> or <td data-th="Name">NAME</td>
+            const nameMatch = html.match(/<td[^>]*data-th="Name"[^>]*>\s*([\s\S]*?)\s*<\/td>/i) ||
+                html.match(/<td[^>]*>\s*([A-Z\s']+)\s*<\/td>/i);
+            const name = nameMatch ? nameMatch[1].replace(/&nbsp;/g, ' ').trim() : null;
 
             // 2. Extract License (Second column)
-            const licenseMatch = html.match(/data-th="License Number">\s*([^<]+)\s*<\/td>/i) || html.match(/<td>\s*(\d+)\s*<\/td>/i);
-            const licenseNumber = licenseMatch ? licenseMatch[1].trim() : null;
+            // We look for the second <td> or one with data-th="License Number"
+            const allTds = html.match(/<td[^>]*>[\s\S]*?<\/td>/gi) || [];
+            const licenseNumber = allTds[1] ? allTds[1].replace(/<[^>]+>/g, '').trim() : null;
 
             // 3. Extract Status/Date (Third column)
-            // <span class='label label-danger'>Status:Inactive</span>  2025-07-31  </td>
-            const statusMatch = html.match(/Status:([^<]+)</i);
+            const statusCol = allTds[2] || '';
+            const statusMatch = statusCol.match(/Status:([^<]+)</i);
             const status = statusMatch ? statusMatch[1].trim() : 'Unknown';
 
             // 4. Extract Date
-            // The date usually follows the span. 2025-07-31
-            const dateMatch = html.match(/\d{4}-\d{2}-\d{2}/);
+            const dateMatch = statusCol.match(/\d{4}-\d{2}-\d{2}/);
             const expiryDate = dateMatch ? new Date(dateMatch[0]) : undefined;
 
             if (!name) {
