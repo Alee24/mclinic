@@ -73,8 +73,8 @@ export default function DoctorDetailsPage() {
                             {doctor.Verified_status === 1 ? 'Verified' : 'Pending Verification'}
                         </span>
                         {/* Online Status */}
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase border ${doctor.isWorking ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
-                            {doctor.isWorking ? 'Online' : 'Offline'}
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase border ${doctor.is_online || doctor.isWorking ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
+                            {doctor.is_online || doctor.isWorking ? 'Online' : 'Offline'}
                         </span>
                     </div>
                     <div className="text-lg text-gray-500 dark:text-gray-400 font-medium mt-1">{doctor.dr_type}</div>
@@ -238,10 +238,6 @@ export default function DoctorDetailsPage() {
                                             <div>
                                                 <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">License No.</div>
                                                 <div className="font-medium dark:text-gray-200 text-base">{doctor.licenceNo || 'N/A'}</div>
-                                            </div>
-                                            <div>
-                                                <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Registration Code</div>
-                                                <div className="font-medium dark:text-gray-200 text-base">{doctor.reg_code || 'N/A'}</div>
                                             </div>
                                             <div>
                                                 <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Account Status</div>
