@@ -945,9 +945,10 @@ export class DoctorsService implements OnModuleInit {
     async verifyAndUpdateMedic(id: number): Promise<any> {
         const doc = await this.findOne(id);
         if (!doc) throw new NotFoundException('Medic not found');
-        if (!doc.licenceNo) throw new BadRequestException('License number missing for this medic');
+        const cleanLicense = doc.licenceNo?.trim();
+        if (!cleanLicense) throw new BadRequestException('License number missing or invalid');
 
-        const result = await this.nckService.verifyNurse(doc.licenceNo);
+        const result = await this.nckService.verifyNurse(cleanLicense);
         if (result.success) {
             const isWorking = result.status === 'Active' ? 1 : 0;
             const updateData: any = {

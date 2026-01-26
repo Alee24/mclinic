@@ -42,23 +42,30 @@ export class NckVerificationService {
                 return { success: false };
             }
 
-            // 1. Extract Name (First column)
-            // Example: <td style="...">NAME</td> or <td data-th="Name">NAME</td>
-            const nameMatch = html.match(/<td[^>]*data-th="Name"[^>]*>\s*([\s\S]*?)\s*<\/td>/i) ||
-                html.match(/<td[^>]*>\s*([A-Z\s']+)\s*<\/td>/i);
-            const name = nameMatch ? nameMatch[1].replace(/&nbsp;/g, ' ').trim() : null;
+            // Improved Extraction Logic:
+            // 1. Zoom into the first <tbody> row
+            const tbodyStart = html.indexOf('<tbody');
+            const tbodyEnd = html.indexOf('</tbody>');
+            const tbodyHtml = tbodyStart !== -1 ? html.substring(tbodyStart, tbodyEnd + 8) : html;
 
-            // 2. Extract License (Second column)
-            // We look for the second <td> or one with data-th="License Number"
-            const allTds = html.match(/<td[^>]*>[\s\S]*?<\/td>/gi) || [];
+            const firstRowMatch = tbodyHtml.match(/<tr[^>]*>([\s\S]*?)<\/tr>/i);
+            const rowHtml = firstRowMatch ? firstRowMatch[1] : tbodyHtml;
+
+            // 2. Extract <td>s from that row
+            const allTds = rowHtml.match(/<td[^>]*>([\s\S]*?)<\/td>/gi) || [];
+
+            // 3. Extract Name (First column)
+            const name = allTds[0] ? allTds[0].replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim() : null;
+
+            // 4. Extract License (Second column)
             const licenseNumber = allTds[1] ? allTds[1].replace(/<[^>]+>/g, '').trim() : null;
 
-            // 3. Extract Status/Date (Third column)
+            // 5. Extract Status/Date (Third column)
             const statusCol = allTds[2] || '';
             const statusMatch = statusCol.match(/Status:([^<]+)</i);
             const status = statusMatch ? statusMatch[1].trim() : 'Unknown';
 
-            // 4. Extract Date
+            // 6. Extract Date
             const dateMatch = statusCol.match(/\d{4}-\d{2}-\d{2}/);
             const expiryDate = dateMatch ? new Date(dateMatch[0]) : undefined;
 
