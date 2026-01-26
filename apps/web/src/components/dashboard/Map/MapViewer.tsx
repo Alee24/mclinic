@@ -67,6 +67,7 @@ export default function MapViewer() {
     const [loading, setLoading] = useState(false);
     const [selectedDoctor, setSelectedDoctor] = useState<any>(null);
     const [activeFilter, setActiveFilter] = useState('All');
+    const [sidebarOpen, setSidebarOpen] = useState(true);
     const mapRef = useRef<L.Map>(null);
     const router = useRouter();
 
@@ -166,28 +167,44 @@ export default function MapViewer() {
                 @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
             ` }} />
 
-            {/* Sidebar */}
-            <div className="w-72 bg-white/95 backdrop-blur-md border-r border-gray-100 flex flex-col z-[1000] overflow-y-auto hidden md:flex">
-                <div className="p-6 border-b border-gray-50">
-                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Medical Radar</h3>
-                    <div className="flex flex-col gap-1.5">
-                        {specialties.map(spec => (
-                            <button
-                                key={spec}
-                                onClick={() => setActiveFilter(spec)}
-                                className={`group flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all ${activeFilter === spec
-                                    ? 'bg-black text-white shadow-xl translate-x-1'
-                                    : 'text-gray-600 hover:bg-gray-50'
-                                    }`}
-                            >
-                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: getDocConfig({ dr_type: spec }).color }}></div>
-                                <span className="flex-1 text-left truncate">{spec}</span>
-                                {activeFilter === spec && <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse"></div>}
-                            </button>
-                        ))}
-                    </div>
+            {/* Collapsible Sidebar */}
+            <div
+                className={`bg-white/95 backdrop-blur-md border-r border-gray-100 flex flex-col z-[1000] overflow-y-auto transition-all duration-300 absolute md:static h-full shadow-2xl md:shadow-none
+                ${sidebarOpen ? 'w-72 translate-x-0' : 'w-0 -translate-x-full md:w-16 md:translate-x-0'}
+                `}
+            >
+                <div className="p-4 md:p-6 border-b border-gray-50 flex items-center justify-between">
+                    <h3 className={`text-xs font-black text-gray-400 uppercase tracking-widest transition-opacity duration-200 ${sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'}`}>Medical Radar</h3>
+                    <button
+                        onClick={() => setSidebarOpen(!sidebarOpen)}
+                        className="p-2 rounded-xl hover:bg-gray-100 text-gray-500 transition-colors"
+                    >
+                        {sidebarOpen ? <FiX size={18} /> : <FiSearch size={24} />}
+                    </button>
                 </div>
-                <div className="mt-auto p-6 bg-gray-50/50">
+
+                <div className={`flex flex-col gap-1.5 p-2 md:p-6 transition-all duration-300 ${!sidebarOpen && 'invisible opacity-0'}`}>
+                    {specialties.map(spec => (
+                        <button
+                            key={spec}
+                            onClick={() => {
+                                setActiveFilter(spec);
+                                // On mobile, close sidebar on selection
+                                if (window.innerWidth < 768) setSidebarOpen(false);
+                            }}
+                            className={`group flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all ${activeFilter === spec
+                                ? 'bg-black text-white shadow-xl translate-x-1'
+                                : 'text-gray-600 hover:bg-gray-50'
+                                }`}
+                        >
+                            <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: getDocConfig({ dr_type: spec }).color }}></div>
+                            <span className="flex-1 text-left truncate whitespace-nowrap">{spec}</span>
+                            {activeFilter === spec && <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse"></div>}
+                        </button>
+                    ))}
+                </div>
+
+                <div className={`mt-auto p-6 bg-gray-50/50 ${!sidebarOpen && 'hidden'}`}>
                     <div className="flex items-center justify-between text-[10px] font-black uppercase text-gray-400 tracking-tighter">
                         <span>Active Units</span>
                         <span className="text-black">{doctors.length}</span>
