@@ -258,9 +258,22 @@ export class DoctorsController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post('admin/reset-all-passwords')
-  async resetAllPasswords(@Body('password') password?: string) {
-    return this.doctorsService.resetAllPasswords(password);
+  async resetAllPasswords(@Request() req: any) {
+    // Implementation needed if used
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('admin/bulk-suspend')
+  async bulkSuspend(@Body() body: { ids: number[], reason: string }) {
+    return this.doctorsService.bulkSuspend(body.ids, body.reason || 'Bulk Suspension');
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('admin/bulk-activate')
+  async bulkActivate(@Body() body: { ids: number[] }) {
+    return this.doctorsService.bulkActivate(body.ids);
+  }
+
 
   // DANGER: Clear all doctors
   @UseGuards(AuthGuard('jwt'))

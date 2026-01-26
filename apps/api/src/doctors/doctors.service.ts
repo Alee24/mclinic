@@ -1057,4 +1057,22 @@ export class DoctorsService implements OnModuleInit {
             current_total: totalToVerify
         };
     }
+
+    async bulkSuspend(ids: number[], reason: string): Promise<any> {
+        if (!ids.length) return { count: 0 };
+        return this.doctorsRepository.update(ids, {
+            status: 0,
+            approvalStatus: 'suspended',
+            rejectionReason: reason
+        });
+    }
+
+    async bulkActivate(ids: number[]): Promise<any> {
+        if (!ids.length) return { count: 0 };
+        return this.doctorsRepository.update(ids, {
+            status: 1,
+            approvalStatus: 'approved',
+            rejectionReason: null as any
+        });
+    }
 }

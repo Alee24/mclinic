@@ -17,6 +17,96 @@ export default function DoctorsPage() {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingDoctorId, setEditingDoctorId] = useState<number | null>(null);
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    const [bulkActionLoading, setBulkActionLoading] = useState(false);
+
+    const toggleSelectAll = () => {
+        if (selectedIds.length === doctors.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(doctors.map(d => d.id));
+        }
+    };
+
+    const toggleSelect = (id: number) => {
+        if (selectedIds.includes(id)) {
+            setSelectedIds(selectedIds.filter(sid => sid !== id));
+        } else {
+            setSelectedIds([...selectedIds, id]);
+        }
+    };
+
+    const handleBulkSuspend = async () => {
+        if (!selectedIds.length) return;
+        const reason = prompt("Enter suspension reason:", "Admin Action");
+        if (!reason) return;
+
+        if (!confirm(`Suspend ${selectedIds.length} medics?`)) return;
+
+        setBulkActionLoading(true);
+        try {
+            await api.post('/doctors/admin/bulk-suspend', { ids: selectedIds, reason });
+            toast.success('Medics suspended');
+            fetchDoctors();
+            setSelectedIds([]);
+        } catch (e) {
+            toast.error('Failed to suspend');
+        } finally {
+            setBulkActionLoading(false);
+        }
+    };
+
+    const handleBulkActivate = async () => {
+        if (!selectedIds.length) return;
+        if (!confirm(`Activate ${selectedIds.length} medics?`)) return;
+
+        setBulkActionLoading(true);
+        try {
+            await api.post('/doctors/admin/bulk-activate', { ids: selectedIds });
+            toast.success('Medics activated');
+            fetchDoctors();
+            setSelectedIds([]);
+        } catch (e) {
+            toast.error('Failed to activate');
+        } finally {
+            setBulkActionLoading(false);
+        }
+    };
+
+    const handleBulkVerifyNCK = async () => {
+        if (!selectedIds.length) return;
+        if (!confirm(`Queuing NCK Verification for ${selectedIds.length} medics. This may take time.`)) return;
+
+        setBulkActionLoading(true);
+        const toastId = toast.loading(`Starting Verification for ${selectedIds.length} medics...`);
+
+        // Process in sequence to avoid overwhelming the server/NCK
+        let successCount = 0;
+        let failCount = 0;
+
+        for (let i = 0; i < selectedIds.length; i++) {
+            const id = selectedIds[i];
+            toast.loading(`Verifying ${i + 1}/${selectedIds.length}...`, { id: toastId });
+            try {
+                const res = await api.post(`/doctors/${id}/verify-nck`, {});
+                if (res && res.ok) {
+                    const data = await res.json();
+                    if (data.success) successCount++;
+                    else failCount++;
+                } else {
+                    failCount++;
+                }
+            } catch (e) {
+                failCount++;
+            }
+        }
+
+        toast.dismiss(toastId);
+        toast.success(`Complete: ${successCount} Verified, ${failCount} Failed/Invalid`, { duration: 5000 });
+        setBulkActionLoading(false);
+        fetchDoctors();
+        setSelectedIds([]);
+    };
 
     const fetchDoctors = async () => {
         try {
@@ -173,7 +263,16 @@ export default function DoctorsPage() {
                     </h1>
                     <p className="text-gray-500 text-sm mt-1">Manage professional degrees, licenses and active status.</p>
                 </div>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-3 items-center">
+                    {selectedIds.length > 0 && (
+                        <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 px-3 py-2 rounded-lg border border-blue-100 dark:border-blue-800 mr-2 animate-in fade-in slide-in-from-right-4">
+                            <span className="text-sm font-bold text-blue-800 dark:text-blue-300 mr-2">{selectedIds.length} Selected</span>
+                            <button onClick={handleBulkActivate} disabled={bulkActionLoading} className="px-3 py-1 bg-green-600 text-white text-xs font-bold rounded hover:bg-green-700 transition">Activate</button>
+                            <button onClick={handleBulkSuspend} disabled={bulkActionLoading} className="px-3 py-1 bg-red-600 text-white text-xs font-bold rounded hover:bg-red-700 transition">Suspend</button>
+                            <button onClick={handleBulkVerifyNCK} disabled={bulkActionLoading} className="px-3 py-1 bg-purple-600 text-white text-xs font-bold rounded hover:bg-purple-700 transition">Verify NCK</button>
+                        </div>
+                    )}
+
                     <button onClick={downloadTemplate} className="text-sm text-blue-600 hover:underline px-2">Download CSV Template</button>
                     <label className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 font-bold px-4 py-2 rounded-lg transition cursor-pointer hover:bg-gray-200">
                         <FiEdit2 /> Upload CSV
@@ -204,6 +303,14 @@ export default function DoctorsPage() {
                 <table className="w-full text-left text-sm">
                     <thead className="bg-gray-50 dark:bg-gray-800/50 text-xs uppercase text-gray-500 font-medium">
                         <tr>
+                            <th className="px-6 py-4 w-10">
+                                <input
+                                    type="checkbox"
+                                    checked={doctors.length > 0 && selectedIds.length === doctors.length}
+                                    onChange={toggleSelectAll}
+                                    className="rounded border-gray-300 text-primary focus:ring-primary"
+                                />
+                            </th>
                             <th className="px-6 py-4">Medic</th>
                             <th className="px-6 py-4">Contact Info</th>
                             <th className="px-6 py-4">Professional</th>
@@ -221,6 +328,14 @@ export default function DoctorsPage() {
                                     onClick={() => router.push(`/dashboard/doctors/${doc.id}`)}
                                     className={`hover:bg-gray-50 dark:hover:bg-gray-800/50 transition cursor-pointer ${!doc.status ? 'opacity-70 grayscale-[0.5]' : ''}`}
                                 >
+                                    <td className="px-6 py-4">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedIds.includes(doc.id)}
+                                            onChange={() => toggleSelect(doc.id)}
+                                            className="rounded border-gray-300 text-primary focus:ring-primary"
+                                        />
+                                    </td>
                                     <td className="px-6 py-4 dark:text-gray-300">
                                         <div className="font-bold text-gray-900 dark:text-white">{doc.fname} {doc.lname}</div>
                                         <div className="text-xs text-gray-500">ID: {doc.id}</div>
@@ -240,7 +355,7 @@ export default function DoctorsPage() {
                                                 {doc.licenceNo && doc.licenceNo !== 'N/A' && (
                                                     <button
                                                         onClick={(e) => { e.stopPropagation(); handleNckVerify(doc.id); }}
-                                                        disabled={verifyingId === doc.id}
+                                                        disabled={verifyingId === doc.id || bulkActionLoading}
                                                         className="text-[9px] bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 px-2 py-0.5 rounded flex items-center gap-1 hover:bg-purple-200 dark:hover:bg-purple-900/50 transition font-black uppercase"
                                                     >
                                                         <FiActivity size={10} />
@@ -258,12 +373,42 @@ export default function DoctorsPage() {
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex flex-col gap-1 items-start">
-                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${isVerified ? 'bg-green-100 text-green-700 border-green-200' :
-                                                'bg-yellow-100 text-yellow-700 border-yellow-200'
-                                                }`}>
-                                                {isVerified ? 'VERIFIED' : 'PENDING'}
-                                            </span>
-                                            {doc.status == 0 && <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest border border-red-500 px-1 rounded">Inactive</span>}
+                                            {(() => {
+                                                const isVerified = doc.Verified_status === 1 || doc.verified_status === true;
+                                                // Suspended if explicitly suspended OR (status is 0 AND not verified)
+                                                const isSuspended = doc.approvalStatus === 'suspended' || (!isVerified && doc.status === 0);
+
+                                                let badgeClass = 'bg-yellow-100 text-yellow-700 border-yellow-200';
+                                                let badgeText = 'PENDING';
+
+                                                if (isVerified) {
+                                                    badgeClass = 'bg-green-100 text-green-700 border-green-200';
+                                                    badgeText = 'VERIFIED';
+                                                } else if (isSuspended) {
+                                                    badgeClass = 'bg-red-100 text-red-700 border-red-200';
+                                                    badgeText = 'UNVERIFIED';
+                                                }
+
+                                                return (
+                                                    <>
+                                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${badgeClass}`}>
+                                                            {badgeText}
+                                                        </span>
+                                                        {/* Show Inactive tag if status is 0 (Login Disabled) */}
+                                                        {doc.status === 0 && (
+                                                            <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest border border-red-500 px-1 rounded">
+                                                                Inactive
+                                                            </span>
+                                                        )}
+                                                        {/* Show Suspension Reason if available */}
+                                                        {doc.rejectionReason && (
+                                                            <span className="text-[9px] text-red-600 max-w-[150px] leading-tight">
+                                                                {doc.rejectionReason}
+                                                            </span>
+                                                        )}
+                                                    </>
+                                                );
+                                            })()}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
@@ -283,7 +428,29 @@ export default function DoctorsPage() {
                                             >
                                                 <FiActivity size={18} />
                                             </button>
-                                            {!isVerified && (
+                                            {isVerified ? (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const r = prompt('Reason for suspension?');
+                                                        if (r) {
+                                                            // We reuse the Verify update endpoint with false, OR better call suspend 
+                                                            // But since we want to be explicit, let's call the single reject endpoint we have or add one.
+                                                            // Existing handleReject does verify=false. Let's reuse that or make a new one.
+                                                            // handleReject calls PATCH /doctors/:id/verify {status: false}
+                                                            // Backend verifyDoctor sets verified_status=0. It doesn't set status=0 or suspend reason.
+                                                            // We need real suspension.
+                                                            api.patch(`/doctors/${doc.id}/suspend`, { reason: r })
+                                                                .then(() => { toast.success('Suspended'); fetchDoctors(); })
+                                                                .catch(() => toast.error('Failed'));
+                                                        }
+                                                    }}
+                                                    className="text-[10px] bg-red-100 text-red-600 font-bold px-2 py-1 rounded hover:opacity-90 transition shadow-sm border border-red-200"
+                                                    title="Suspend Account"
+                                                >
+                                                    Suspend
+                                                </button>
+                                            ) : (
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); handleVerify(doc.id); }}
                                                     className="text-[10px] bg-primary text-black font-bold px-2 py-1 rounded hover:opacity-90 transition shadow-sm"
