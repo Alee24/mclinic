@@ -77,7 +77,7 @@ export default function MapViewer() {
             setLoading(true);
             try {
                 const res = await api.get('/doctors/admin/all');
-                if (res.ok) {
+                if (res && res.ok) {
                     const data = await res.json();
                     setDoctors(data || []);
                     setFilteredDoctors(data || []);
