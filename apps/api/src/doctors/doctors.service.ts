@@ -483,9 +483,11 @@ export class DoctorsService implements OnModuleInit {
         const doctor = await this.findOne(id);
         if (!doctor) throw new Error('Doctor not found');
 
-        doctor.approvalStatus = 'suspended';
-        doctor.rejectionReason = reason; // Reuse rejectionReason for suspension reason
-        doctor.status = 0; // Inactive
+        doctor.approvalStatus = 'pending'; // Revert to pending
+        doctor.Verified_status = 0; // Unverified
+        doctor.rejectionReason = reason;
+        doctor.status = 0; // Inactive / Locked
+
         return this.doctorsRepository.save(doctor);
     }
 
@@ -495,9 +497,10 @@ export class DoctorsService implements OnModuleInit {
 
         doctor.status = status;
 
-        // If activating, ensure approval status is correct if it was suspended
-        if (status === 1 && doctor.approvalStatus === 'suspended') {
+        // If activating, ensure approval status is approved
+        if (status === 1) {
             doctor.approvalStatus = 'approved';
+            doctor.rejectionReason = null as any;
         }
 
         return this.doctorsRepository.save(doctor);
@@ -1058,11 +1061,14 @@ export class DoctorsService implements OnModuleInit {
         };
     }
 
+
+
     async bulkSuspend(ids: number[], reason: string): Promise<any> {
         if (!ids.length) return { count: 0 };
         return this.doctorsRepository.update(ids, {
             status: 0,
-            approvalStatus: 'suspended',
+            Verified_status: 0,
+            approvalStatus: 'pending',
             rejectionReason: reason
         });
     }

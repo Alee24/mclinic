@@ -24,6 +24,12 @@ export class AuthService {
       const doctor = await this.doctorsService.findByEmail(email);
       if (doctor) {
         if (await bcrypt.compare(pass, doctor.password)) {
+          if (!doctor.status || doctor.status === 0) {
+            const msg = doctor.approvalStatus === 'pending'
+              ? 'Account verification pending. Please wait for approval.'
+              : 'Account is suspended or inactive. Contact admin.';
+            throw new UnauthorizedException(msg);
+          }
           const role = this.mapDrTypeToRole(doctor.dr_type);
           const { password, ...result } = doctor;
           return { ...result, role };
