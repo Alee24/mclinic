@@ -739,7 +739,7 @@ export class DoctorsService implements OnModuleInit {
             // relations: ['user'] -- Removed: Doctor entity has no 'user' relation defined
         });
 
-        if (!doctor) throw new Error('Doctor not found');
+        if (!doctor) throw new NotFoundException('Doctor not found');
 
         // STRICT VALIDATION
         const missingFields = [];
@@ -748,7 +748,7 @@ export class DoctorsService implements OnModuleInit {
         if (!doctor.licenseExpiryDate) missingFields.push('License Expiry Date');
 
         if (missingFields.length > 0) {
-            throw new Error(`Cannot generate ID Card. Missing: ${missingFields.join(', ')}. Please update your profile.`);
+            throw new BadRequestException(`Cannot generate ID Card. Missing: ${missingFields.join(', ')}. Please update your profile.`);
         }
 
         // Generate Serial Number: MCK-{YEAR}-{ID}
