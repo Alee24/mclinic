@@ -235,7 +235,19 @@ export default function DoctorsPage() {
                                         <div className="text-xs text-brand-500 font-medium bg-brand-50 dark:bg-brand-900/10 inline-block px-1.5 py-0.5 rounded mb-1">{doc.dr_type}</div>
                                         <div className="text-xs text-gray-500 font-bold">{doc.speciality || doc.qualification}</div>
                                         <div className="text-[10px] text-gray-400 mt-1">
-                                            <div>Lic: {doc.licenceNo || 'N/A'}</div>
+                                            <div className="flex items-center justify-between gap-2">
+                                                <span>Lic: {doc.licenceNo || 'N/A'}</span>
+                                                {doc.licenceNo && doc.licenceNo !== 'N/A' && (
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); handleNckVerify(doc.id); }}
+                                                        disabled={verifyingId === doc.id}
+                                                        className="text-[9px] bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 px-2 py-0.5 rounded flex items-center gap-1 hover:bg-purple-200 dark:hover:bg-purple-900/50 transition font-black uppercase"
+                                                    >
+                                                        <FiActivity size={10} />
+                                                        {verifyingId === doc.id ? 'Syncing...' : 'Verify NCK'}
+                                                    </button>
+                                                )}
+                                            </div>
                                             <div>Reg: {doc.reg_code || 'N/A'}</div>
                                             <div>NID: {doc.national_id || 'N/A'}</div>
                                         </div>
@@ -267,9 +279,9 @@ export default function DoctorsPage() {
                                                 onClick={(e) => { e.stopPropagation(); handleNckVerify(doc.id); }}
                                                 disabled={verifyingId === doc.id}
                                                 className={`p-2 ${verifyingId === doc.id ? 'animate-pulse text-gray-400' : 'text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20'} rounded-lg transition`}
-                                                title="Sync with NCK Website"
+                                                title="Sync with NCK Portal"
                                             >
-                                                <FiActivity size={16} />
+                                                <FiActivity size={18} />
                                             </button>
                                             {!isVerified && (
                                                 <button
