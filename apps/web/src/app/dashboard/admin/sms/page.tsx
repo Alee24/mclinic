@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { FiSend, FiUsers, FiUser, FiActivity, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
-import api from '@/lib/api';
+import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
 import SecureLoader from '@/components/SecureLoader';
 
@@ -27,16 +27,22 @@ export default function AdminSmsPage() {
                 message
             });
 
-            if (res.data.success) {
-                toast.success('Messages processed successfully');
-                setStats(res.data.stats);
-                setMessage(''); // Clear message on success
+            if (res && res.ok) {
+                const data = await res.json();
+                if (data.success) {
+                    toast.success('Messages processed successfully');
+                    setStats(data.stats);
+                    setMessage(''); // Clear message on success
+                } else {
+                    toast.error(data.message || 'Failed to send messages');
+                }
             } else {
-                toast.error(res.data.message || 'Failed to send messages');
+                const errorData = res ? await res.json() : {};
+                toast.error(errorData.message || 'Failed to send messages');
             }
         } catch (error: any) {
             console.error('SMS Send Error:', error);
-            toast.error(error.response?.data?.message || 'An error occurred');
+            toast.error('An error occurred while sending messages');
         } finally {
             setLoading(false);
         }
@@ -57,8 +63,8 @@ export default function AdminSmsPage() {
                     <div
                         onClick={() => setRecipientType('medic')}
                         className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${recipientType === 'medic'
-                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                                : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                            : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
                             }`}
                     >
                         <div className="flex items-center gap-3">
@@ -75,8 +81,8 @@ export default function AdminSmsPage() {
                     <div
                         onClick={() => setRecipientType('patient')}
                         className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${recipientType === 'patient'
-                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                                : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                            : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
                             }`}
                     >
                         <div className="flex items-center gap-3">
@@ -93,8 +99,8 @@ export default function AdminSmsPage() {
                     <div
                         onClick={() => setRecipientType('all')}
                         className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${recipientType === 'all'
-                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                                : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                            : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
                             }`}
                     >
                         <div className="flex items-center gap-3">
