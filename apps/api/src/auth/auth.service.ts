@@ -380,13 +380,54 @@ export class AuthService {
   }
 
   async loginWithOtp(mobile: string, otp: string) {
-    // Check User
-    const user = await this.usersService.findOneByMobile(mobile);
-    if (user && user.otp === otp && new Date(user.otpExpiry) > new Date()) {
-      // Clear OTP
-      await this.usersService.update(user.id, { otp: null, otpExpiry: null } as any);
+    // Check BOTH User and Doctor tables simultaneously
+    const [user, doctor] = await Promise.all([
+      this.usersService.findOneByMobile(mobile),
+      this.doctorsService.findOneByMobile(mobile)
+    ]);
 
-      // Login
+    // Validate User OTP
+    const userOtpValid = user && user.otp === otp && new Date(user.otpExpiry) > new Date();
+
+    // Validate Doctor OTP  
+    // @ts-ignore
+    const doctorOtpValid = doctor && doctor.otp === otp && new Date(doctor.otpExpiry) > new Date();
+
+    // If both have valid OTPs, this shouldn't happen, but prioritize the one that was most recently updated
+    if (userOtpValid && doctorOtpValid) {
+      // Compare OTP expiry times - the one that was set more recently is the intended login
+      const userOtpTime = new Date(user.otpExpiry).getTime();
+      // @ts-ignore
+      const doctorOtpTime = new Date(doctor.otpExpiry).getTime();
+
+      if (doctorOtpTime > userOtpTime) {
+        // Doctor OTP is newer, use doctor login
+        // @ts-ignore
+        await this.doctorsService.update(doctor.id, { otp: null, otpExpiry: null });
+        const synthRole = this.mapDrTypeToRole(doctor.dr_type);
+        const payload = { email: doctor.email, sub: doctor.id, role: synthRole };
+        const { password, ...result } = doctor;
+        // @ts-ignore
+        const finalUser = { ...result, role: synthRole, doctorId: doctor.id };
+        return {
+          access_token: this.jwtService.sign(payload),
+          user: finalUser,
+        };
+      } else {
+        // User OTP is newer, use user login
+        await this.usersService.update(user.id, { otp: null, otpExpiry: null } as any);
+        const payload = { email: user.email, sub: user.id, role: user.role };
+        const { password, ...result } = user;
+        return {
+          access_token: this.jwtService.sign(payload),
+          user: result,
+        };
+      }
+    }
+
+    // Only User has valid OTP
+    if (userOtpValid) {
+      await this.usersService.update(user.id, { otp: null, otpExpiry: null } as any);
       const payload = { email: user.email, sub: user.id, role: user.role };
       const { password, ...result } = user;
       return {
@@ -395,20 +436,15 @@ export class AuthService {
       };
     }
 
-    // Check Doctor
-    const doctor = await this.doctorsService.findOneByMobile(mobile);
-    // @ts-ignore
-    if (doctor && doctor.otp === otp && new Date(doctor.otpExpiry) > new Date()) {
-      // Clear OTP
+    // Only Doctor has valid OTP
+    if (doctorOtpValid) {
       // @ts-ignore
       await this.doctorsService.update(doctor.id, { otp: null, otpExpiry: null });
-
       const synthRole = this.mapDrTypeToRole(doctor.dr_type);
       const payload = { email: doctor.email, sub: doctor.id, role: synthRole };
       const { password, ...result } = doctor;
       // @ts-ignore
       const finalUser = { ...result, role: synthRole, doctorId: doctor.id };
-
       return {
         access_token: this.jwtService.sign(payload),
         user: finalUser,
