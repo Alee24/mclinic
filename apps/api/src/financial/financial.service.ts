@@ -513,7 +513,7 @@ export class FinancialService {
                 }
 
                 // Update Appointment Status
-                let appId = invoice.appointmentId;
+                let appId: number | null = invoice.appointmentId;
                 // Fallback
                 if (!appId && invoice.invoiceNumber && invoice.invoiceNumber.startsWith('INV-')) {
                     const parts = invoice.invoiceNumber.split('-');
