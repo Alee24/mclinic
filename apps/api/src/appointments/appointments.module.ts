@@ -8,12 +8,14 @@ import { Service } from '../services/entities/service.entity';
 import { Invoice } from '../financial/entities/invoice.entity';
 import { FinancialModule } from '../financial/financial.module';
 import { EmailModule } from '../email/email.module';
+import { SmsModule } from '../sms/sms.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Appointment, Service, Invoice]),
     FinancialModule,
     EmailModule,
+    SmsModule,
     DoctorsModule,
   ],
   controllers: [AppointmentsController],

@@ -8,6 +8,7 @@ import { Service } from '../services/entities/service.entity';
 import { Invoice, InvoiceStatus } from '../financial/entities/invoice.entity';
 import { FinancialService } from '../financial/financial.service';
 import { EmailService } from '../email/email.service';
+import { SmsService } from '../sms/sms.service';
 
 @Injectable()
 export class AppointmentsService {
@@ -20,6 +21,7 @@ export class AppointmentsService {
     private invoiceRepository: Repository<Invoice>,
     private financialService: FinancialService,
     private emailService: EmailService,
+    privatesmsService: SmsService,
   ) { }
 
   async create(createAppointmentDto: any): Promise<Appointment> {

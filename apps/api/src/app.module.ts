@@ -32,6 +32,7 @@ import { MpesaModule } from './mpesa/mpesa.module';
 import { SystemSettingsModule } from './system-settings/system-settings.module';
 import { EncryptionModule } from './common/encryption.module';
 import { EmergencyModule } from './emergency/emergency.module';
+import { SmsModule } from './sms/sms.module';
 
 @Module({
   imports: [
@@ -84,6 +85,7 @@ import { EmergencyModule } from './emergency/emergency.module';
     SystemSettingsModule,
     EncryptionModule,
     EmergencyModule,
+    SmsModule,
   ],
   controllers: [AppController],
   providers: [
