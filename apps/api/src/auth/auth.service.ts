@@ -353,27 +353,58 @@ export class AuthService {
   // --- OTP Logic ---
 
   async sendLoginOtp(mobile: string) {
-    // Basic mobile sanitization (assuming strict format or handling +254/07...)
-    // Ideally should normalize logic here.
-
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiry = new Date(Date.now() + 10 * 60000); // 10 mins
 
-    // 1. Try User
-    const user = await this.usersService.findOneByMobile(mobile);
+    // Check BOTH tables simultaneously
+    const [user, doctor] = await Promise.all([
+      this.usersService.findOneByMobile(mobile),
+      this.doctorsService.findOneByMobile(mobile)
+    ]);
+
+    // Helper to mask email
+    const maskEmail = (email: string) => {
+      const [name, domain] = email.split('@');
+      const maskedName = name.length > 2 ? name[0] + '*'.repeat(name.length - 2) + name[name.length - 1] : name;
+      return `${maskedName}@${domain}`;
+    };
+
+    // If both exist, send OTP to both
+    if (user && doctor) {
+      await Promise.all([
+        this.usersService.update(user.id, { otp, otpExpiry: expiry } as any),
+        // @ts-ignore
+        this.doctorsService.update(doctor.id, { otp, otpExpiry: expiry })
+      ]);
+      await this.smsService.sendSms(mobile, `Your M-Clinic Login OTP is ${otp}. Valid for 10 minutes.`);
+      return {
+        message: 'OTP sent to mobile number.',
+        accounts: [
+          { email: maskEmail(user.email), type: 'patient' },
+          { email: maskEmail(doctor.email), type: 'provider' }
+        ]
+      };
+    }
+
+    // Only User exists
     if (user) {
       await this.usersService.update(user.id, { otp, otpExpiry: expiry } as any);
       await this.smsService.sendSms(mobile, `Your M-Clinic Login OTP is ${otp}. Valid for 10 minutes.`);
-      return { message: 'OTP sent to mobile number.' };
+      return {
+        message: 'OTP sent to mobile number.',
+        email: maskEmail(user.email)
+      };
     }
 
-    // 2. Try Doctor
-    const doctor = await this.doctorsService.findOneByMobile(mobile);
+    // Only Doctor exists
     if (doctor) {
       // @ts-ignore
       await this.doctorsService.update(doctor.id, { otp, otpExpiry: expiry });
       await this.smsService.sendSms(mobile, `Your M-Clinic Provider OTP is ${otp}. Valid for 10 minutes.`);
-      return { message: 'OTP sent to mobile number.' };
+      return {
+        message: 'OTP sent to mobile number.',
+        email: maskEmail(doctor.email)
+      };
     }
 
     throw new UnauthorizedException('Mobile number not registered.');

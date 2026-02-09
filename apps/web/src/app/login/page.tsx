@@ -38,7 +38,15 @@ export default function LoginPage() {
             });
             const data = await res.json();
             if (res.ok) {
-                toast.success('OTP sent successfully!');
+                // Show masked email info to user
+                if (data.accounts && data.accounts.length > 0) {
+                    const emailList = data.accounts.map((acc: any) => `${acc.email} (${acc.type})`).join(', ');
+                    toast.success(`OTP sent to ${emailList}`);
+                } else if (data.email) {
+                    toast.success(`OTP sent to ${data.email}`);
+                } else {
+                    toast.success('OTP sent successfully!');
+                }
                 setOtpSent(true);
             } else {
                 toast.error(data.message || 'Failed to send OTP.');
