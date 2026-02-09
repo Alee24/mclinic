@@ -136,7 +136,7 @@ export default function AdminSmsPage() {
                                 disabled={loading || !message.trim()}
                                 className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
                             >
-                                {loading ? <SecureLoader size="sm" color="white" /> : <><FiSend /> Send Broadcast</>}
+                                {loading ? <SecureLoader /> : <><FiSend /> Send Broadcast</>}
                             </button>
                         </div>
                     </div>
