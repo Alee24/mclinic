@@ -288,7 +288,7 @@ export class AppointmentsService {
 
         const appointments = await this.appointmentsRepository.find({
           where: { doctorId: doctor.id },
-          relations: ['patient', 'doctor', 'service'],
+          relations: ['patient', 'doctor', 'service', 'invoice'],
           order: { appointment_date: 'DESC' },
         });
 
