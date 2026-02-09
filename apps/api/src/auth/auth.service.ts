@@ -82,7 +82,7 @@ export class AuthService {
     if (type.includes('clinical')) return 'clinician';
     if (type.includes('lab')) return 'lab_tech';
     if (type.includes('pharm')) return 'pharmacist';
-    if (type.includes('admin')) return 'admin';
+    // Removed admin check - admins should be in users table, not doctors table
     return 'doctor';
   }
 

@@ -4,9 +4,9 @@ const mysql = require('mysql2/promise');
 async function createAdminUser() {
     const connection = await mysql.createConnection({
         host: 'localhost',
-        user: 'm-cl-app',
-        password: 'Mclinic@App2023?',
-        database: 'mclinic'
+        user: 'root',
+        password: '',
+        database: 'mclinicportal'
     });
 
     try {

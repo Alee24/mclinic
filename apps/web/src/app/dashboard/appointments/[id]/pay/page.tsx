@@ -245,13 +245,13 @@ export default function AppointmentPaymentPage() {
 
                                 <button
                                     type="submit"
-                                    disabled={processing}
-                                    className="w-full py-4 bg-[#4CAF50] hover:bg-[#43A047] text-white font-black uppercase tracking-wider rounded-xl shadow-lg shadow-green-500/30 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                                    disabled={processing || waitingForMpesa}
+                                    className="w-full py-4 bg-[#4CAF50] hover:bg-[#43A047] text-white font-black uppercase tracking-wider rounded-xl shadow-lg shadow-green-500/30 transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
                                 >
                                     {waitingForMpesa ? (
                                         <>
                                             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                                            Check your phone...
+                                            Waiting for M-Pesa...
                                         </>
                                     ) : processing ? 'Processing...' : (
                                         <>
@@ -259,6 +259,42 @@ export default function AppointmentPaymentPage() {
                                         </>
                                     )}
                                 </button>
+
+                                {waitingForMpesa && (
+                                    <div className="space-y-3">
+                                        <div className="text-xs text-center text-gray-500 animate-pulse">
+                                            Enter your M-Pesa PIN on your phone to complete payment
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={async () => {
+                                                setProcessing(true);
+                                                try {
+                                                    const res = await api.get(`/appointments/${appointment.id}`);
+                                                    if (res && res.ok) {
+                                                        const data = await res.json();
+                                                        if (data.invoice?.status === 'paid' || data.invoice?.status === 'PAID') {
+                                                            setSuccess(true);
+                                                            setWaitingForMpesa(false);
+                                                        } else {
+                                                            alert('Payment not yet confirmed. Please complete the M-Pesa payment on your phone.');
+                                                        }
+                                                    }
+                                                } catch (e) {
+                                                    console.error(e);
+                                                    alert('Failed to check payment status.');
+                                                } finally {
+                                                    setProcessing(false);
+                                                }
+                                            }}
+                                            disabled={processing}
+                                            className="w-full py-3 bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 font-bold uppercase text-sm rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                                        >
+                                            <FiCheckCircle />
+                                            {processing ? 'Checking...' : 'Check Payment Status'}
+                                        </button>
+                                    </div>
+                                )}
                             </form>
                         ) : (
                             <div className="text-center py-8 text-gray-500 text-sm">

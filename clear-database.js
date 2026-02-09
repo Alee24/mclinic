@@ -5,7 +5,7 @@ async function clearDatabase() {
         host: 'localhost',
         user: 'root',
         password: '',
-        database: 'mclinic'
+        database: 'mclinicportal'
     });
 
     try {

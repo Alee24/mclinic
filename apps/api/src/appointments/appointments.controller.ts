@@ -8,6 +8,7 @@ import {
   UseGuards,
   Request,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { AppointmentsService } from './appointments.service';
 import { AppointmentStatus } from './entities/appointment.entity';
@@ -63,22 +64,61 @@ export class AppointmentsController {
     return this.appointmentsService.findAll();
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Get('patient/:id')
-  findByPatient(@Param('id') id: string) {
-    return this.appointmentsService.findByPatient(+id);
+  async findByPatient(@Param('id') id: string, @Request() req: any) {
+    const requestedPatientId = +id;
+    const currentUserId = req.user.sub || req.user.id;
+    const userRole = req.user.role;
+
+    // Authorization: Only allow if user is viewing their own appointments or is admin/medic
+    if (
+      requestedPatientId !== currentUserId &&
+      userRole !== 'admin' &&
+      !['doctor', 'medic', 'nurse', 'clinician'].includes(userRole)
+    ) {
+      throw new ForbiddenException('You do not have permission to view these appointments');
+    }
+
+    return this.appointmentsService.findByPatient(requestedPatientId);
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Get('doctor/:id')
-  findByDoctor(@Param('id') id: string) {
-    return this.appointmentsService.findByDoctor(+id);
+  async findByDoctor(@Param('id') id: string, @Request() req: any) {
+    const requestedDoctorId = +id;
+    const userRole = req.user.role;
+
+    // Only admin or the doctor themselves can view their appointments
+    // TODO: Add check to verify the requesting user IS this doctor
+    if (userRole !== 'admin' && !['doctor', 'medic', 'nurse', 'clinician'].includes(userRole)) {
+      throw new ForbiddenException('You do not have permission to view these appointments');
+    }
+
+    return this.appointmentsService.findByDoctor(requestedDoctorId);
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Get(':id')
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string, @Request() req: any) {
     const appointment = await this.appointmentsService.findOne(+id);
     if (!appointment) {
       throw new NotFoundException(`Appointment with ID ${id} not found`);
     }
+
+    const currentUserId = req.user.sub || req.user.id;
+    const userRole = req.user.role;
+
+    // Authorization: User must be the patient, the doctor, or admin
+    const isPatient = appointment.patientId === currentUserId;
+    const isDoctor = appointment.doctorId === currentUserId; // Assuming doctorId could match user ID
+    const isAdmin = userRole === 'admin';
+    const isMedic = ['doctor', 'medic', 'nurse', 'clinician'].includes(userRole);
+
+    if (!isPatient && !isAdmin && !isMedic) {
+      throw new ForbiddenException('You do not have permission to view this appointment');
+    }
+
     return appointment;
   }
 

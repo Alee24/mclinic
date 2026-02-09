@@ -85,6 +85,14 @@ export class AppointmentsService {
       console.log(`[DEBUG_FEE] Calculated Fee: ${fee}`);
     }
 
+    // Override Fee for Virtual Sessions to 900 KES
+    if (isVirtual) {
+      fee = 900;
+      console.log(
+        `[CREATE-APPT] Virtual Session detected. Setting consultation fee to 900 KES.`,
+      );
+    }
+
     // Calculate Transport Fee normally first
     let transportFee = 0;
     if (createAppointmentDto.patientLocation) {
