@@ -1,4 +1,4 @@
--- Script to manually credit doctor wallets for paid invoices
+-- Script to manually credit doctor wallets for paid invoice
 -- Run this on your live server after manually marking invoices as PAID
 
 -- Step 1: View invoices that are PAID but may not have credited wallets
@@ -13,7 +13,7 @@ SELECT
     d.fname AS doctor_name,
     u.id AS user_id,
     w.balance AS current_wallet_balance
-FROM invoices inv
+FROM invoice inv
 LEFT JOIN doctors d ON inv.doctorId = d.id
 LEFT JOIN users u ON d.email = u.email
 LEFT JOIN wallets w ON u.id = w.user_id
@@ -27,17 +27,17 @@ LIMIT 20;
 -- Replace {INVOICE_ID} with the actual invoice ID you want to credit
 
 -- For a single invoice:
-SET @invoice_id = 123; -- CHANGE THIS to your invoice ID
-SET @total_amount = (SELECT totalAmount FROM invoices WHERE id = @invoice_id);
+SET @invoice_id = INV-1770646511863-15; -- CHANGE THIS to your invoice ID
+SET @total_amount = (SELECT totalAmount FROM invoice WHERE id = @invoice_id);
 SET @commission = @total_amount * 0.40;
 SET @doctor_share = @total_amount * 0.60;
-SET @doctor_id = (SELECT doctorId FROM invoices WHERE id = @invoice_id);
+SET @doctor_id = (SELECT doctorId FROM invoice WHERE id = @invoice_id);
 SET @doctor_email = (SELECT email FROM doctors WHERE id = @doctor_id);
 SET @user_id = (SELECT id FROM users WHERE email = @doctor_email);
-SET @invoice_number = (SELECT invoiceNumber FROM invoices WHERE id = @invoice_id);
+SET @invoice_number = (SELECT invoiceNumber FROM invoice WHERE id = @invoice_id);
 
 -- Update commission on invoice
-UPDATE invoices 
+UPDATE invoice 
 SET commissionAmount = @commission 
 WHERE id = @invoice_id;
 
@@ -50,11 +50,11 @@ WHERE user_id = @user_id;
 -- Confirm appointment
 UPDATE appointment 
 SET status = 'confirmed'
-WHERE id = (SELECT appointmentId FROM invoices WHERE id = @invoice_id)
+WHERE id = (SELECT appointmentId FROM invoice WHERE id = @invoice_id)
   AND status != 'confirmed';
 
 -- Create transaction record
-INSERT INTO transactions (amount, source, reference, status, invoice_id, createdAt, updatedAt)
+INSERT INTO transaction (amount, source, reference, status, invoice_id, createdAt, updatedAt)
 VALUES (
     @total_amount,
     'MANUAL',
@@ -85,7 +85,7 @@ WHERE w.user_id = @user_id;
 
 -- Uncomment the lines below to run batch processing:
 
-/*
+
 -- Create temporary table for calculations
 CREATE TEMPORARY TABLE temp_credits AS
 SELECT 
@@ -98,7 +98,7 @@ SELECT
     d.email AS doctor_email,
     u.id AS user_id,
     inv.appointmentId
-FROM invoices inv
+FROM invoice inv
 JOIN doctors d ON inv.doctorId = d.id
 JOIN users u ON d.email = u.email
 WHERE inv.status = 'paid'
@@ -107,7 +107,7 @@ WHERE inv.status = 'paid'
   AND (inv.commissionAmount IS NULL OR inv.commissionAmount = 0);
 
 -- Update commissions
-UPDATE invoices inv
+UPDATE invoice inv
 JOIN temp_credits tc ON inv.id = tc.invoice_id
 SET inv.commissionAmount = tc.commission;
 
@@ -128,7 +128,7 @@ SET a.status = 'confirmed'
 WHERE a.status != 'confirmed';
 
 -- Create transaction records
-INSERT INTO transactions (amount, source, reference, status, invoice_id, createdAt, updatedAt)
+INSERT INTO transaction (amount, source, reference, status, invoice_id, createdAt, updatedAt)
 SELECT 
     totalAmount,
     'MANUAL',
@@ -152,4 +152,4 @@ JOIN wallets w ON tc.user_id = w.user_id
 GROUP BY d.id, d.email, d.fname, w.balance;
 
 DROP TEMPORARY TABLE temp_credits;
-*/
+

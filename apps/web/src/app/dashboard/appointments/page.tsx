@@ -220,15 +220,42 @@ export default function AppointmentsPage() {
 
                                             {/* Admin Actions */}
                                             {isAdmin && (
-                                                <button
-                                                    onClick={() => {
-                                                        setSelectedAppointment(apt);
-                                                        setShowDetailsModal(true);
-                                                    }}
-                                                    className="text-xs font-bold px-3 py-1.5 rounded border border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800 transition"
-                                                >
-                                                    View Details
-                                                </button>
+                                                <>
+                                                    {apt.invoice && apt.invoice.status !== 'paid' && apt.invoice.status !== 'PAID' && (
+                                                        <button
+                                                            onClick={async () => {
+                                                                if (!confirm('Confirm payment for this appointment? This will:\n- Mark invoice as PAID\n- Confirm the appointment\n- Credit the doctor\'s wallet (60%)')) return;
+                                                                try {
+                                                                    const res = await api.post(`/financial/invoices/${apt.invoice.id}/confirm-payment`, {
+                                                                        paymentMethod: 'MANUAL',
+                                                                        transactionId: `ADMIN-${Date.now()}`
+                                                                    });
+                                                                    if (res?.ok) {
+                                                                        alert('Payment confirmed successfully! Wallet has been credited.');
+                                                                        fetchData();
+                                                                    } else {
+                                                                        alert('Failed to confirm payment. Please try again.');
+                                                                    }
+                                                                } catch (err) {
+                                                                    console.error(err);
+                                                                    alert('Error confirming payment.');
+                                                                }
+                                                            }}
+                                                            className="text-xs font-bold px-3 py-1.5 rounded bg-green-600 text-white hover:bg-green-700 transition"
+                                                        >
+                                                            ✓ Confirm Payment
+                                                        </button>
+                                                    )}
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedAppointment(apt);
+                                                            setShowDetailsModal(true);
+                                                        }}
+                                                        className="text-xs font-bold px-3 py-1.5 rounded border border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800 transition"
+                                                    >
+                                                        View Details
+                                                    </button>
+                                                </>
                                             )}
                                         </div>
                                     </td>
