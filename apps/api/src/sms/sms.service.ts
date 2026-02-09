@@ -54,9 +54,9 @@ export class SmsService {
 
             const response = await firstValueFrom(
                 this.httpService.post(this.API_URL, payload)
-            );
+            ) as any;
 
-            if (response.data.responses && response.data.responses[0]['response-code'] === 200) {
+            if (response.data && response.data.responses && response.data.responses[0]['response-code'] === 200) {
                 this.logger.log(`SMS sent successfully to ${mobile}`);
                 return true;
             } else {
