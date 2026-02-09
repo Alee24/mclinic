@@ -14,6 +14,10 @@ export default function LoginPage() {
     const { login, user } = useAuth();
     const [loading, setLoading] = useState(false);
     const [userType, setUserType] = useState<UserType>('patient');
+    const [loginMethod, setLoginMethod] = useState<'password' | 'otp'>('password');
+    const [mobile, setMobile] = useState('');
+    const [otp, setOtp] = useState('');
+    const [otpSent, setOtpSent] = useState(false);
 
     // Redirect if already logged in
     useEffect(() => {
@@ -21,6 +25,73 @@ export default function LoginPage() {
             router.push('/dashboard');
         }
     }, [user, router]);
+
+    const handleSendOtp = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://portal.mclinic.co.ke/api';
+            const res = await fetch(`${API_URL}/auth/otp/send`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mobile })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                toast.success('OTP sent successfully!');
+                setOtpSent(true);
+            } else {
+                toast.error(data.message || 'Failed to send OTP.');
+            }
+        } catch (error) {
+            toast.error('Connection failed.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleVerifyOtp = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://portal.mclinic.co.ke/api';
+            const res = await fetch(`${API_URL}/auth/otp/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mobile, otp })
+            });
+
+            if (res && res.ok) {
+                const data = await res.json();
+
+                // Validate user type matches selection (Optional for OTP but good for consistency)
+                const userRole = data.user.role.toLowerCase();
+                const isProvider = ['doctor', 'nurse', 'clinician', 'medic', 'lab_tech', 'admin', 'pharmacist'].includes(userRole);
+
+                if (userType === 'provider' && !isProvider) {
+                    toast.error('This account is registered as a Patient. Please switch to Patient login.');
+                    setLoading(false);
+                    return;
+                }
+
+                if (userType === 'patient' && isProvider && userRole !== 'admin') {
+                    toast.error('This account is registered as a Healthcare Provider. Please switch to Provider login.');
+                    setLoading(false);
+                    return;
+                }
+
+                toast.success(`Welcome back, ${data.user.fname || 'User'}!`);
+                login(data.user, data.access_token);
+            } else {
+                const errorData = await res.json().catch(() => ({}));
+                toast.error(errorData.message || 'Invalid OTP.');
+            }
+        } catch (error) {
+            toast.error('Connection failed.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -193,40 +264,108 @@ export default function LoginPage() {
 
 
 
-                    {/* Login Form */}
-                    <form onSubmit={handleLogin} className="space-y-5">
-                        <div>
-                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">
-                                Email Address
-                            </label>
-                            <input
-                                type="email"
-                                name="email"
-                                required
-                                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:border-green-500 dark:focus:border-green-500 outline-none transition"
-                                placeholder={userType === 'patient' ? 'patient@example.com' : 'doctor@mclinic.com'}
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                    {/* Login Method Toggle */}
+                    <div className="flex justify-center mb-6">
+                        <div className="bg-gray-100 dark:bg-gray-800 p-1 rounded-xl flex">
+                            <button
+                                type="button"
+                                onClick={() => setLoginMethod('password')}
+                                className={`px-4 py-2 rounded-lg text-sm font-bold transition ${loginMethod === 'password'
+                                    ? 'bg-white dark:bg-gray-700 shadow text-gray-900 dark:text-white'
+                                    : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                                    }`}
+                            >
                                 Password
-                            </label>
-                            <input
-                                type="password"
-                                name="password"
-                                required
-                                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:border-green-500 dark:focus:border-green-500 outline-none transition"
-                                placeholder="Enter your password"
-                            />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setLoginMethod('otp')}
+                                className={`px-4 py-2 rounded-lg text-sm font-bold transition ${loginMethod === 'otp'
+                                    ? 'bg-white dark:bg-gray-700 shadow text-gray-900 dark:text-white'
+                                    : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                                    }`}
+                            >
+                                One-Time PIN
+                            </button>
                         </div>
+                    </div>
+
+                    {/* Login Form */}
+                    <form onSubmit={loginMethod === 'password' ? handleLogin : (otpSent ? handleVerifyOtp : handleSendOtp)} className="space-y-5">
+                        {loginMethod === 'password' ? (
+                            <>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                        Email Address
+                                    </label>
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        required
+                                        className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:border-green-500 dark:focus:border-green-500 outline-none transition"
+                                        placeholder={userType === 'patient' ? 'patient@example.com' : 'doctor@mclinic.com'}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                        Password
+                                    </label>
+                                    <input
+                                        type="password"
+                                        name="password"
+                                        required
+                                        className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:border-green-500 dark:focus:border-green-500 outline-none transition"
+                                        placeholder="Enter your password"
+                                    />
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                        Mobile Number
+                                    </label>
+                                    <input
+                                        type="tel"
+                                        name="mobile"
+                                        required
+                                        value={mobile}
+                                        onChange={(e) => setMobile(e.target.value)}
+                                        className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:border-green-500 dark:focus:border-green-500 outline-none transition"
+                                        placeholder="e.g. 0712345678"
+                                    />
+                                </div>
+
+                                {otpSent && (
+                                    <div className="animate-in fade-in slide-in-from-top-2">
+                                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                            Enter OTP
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="otp"
+                                            required
+                                            value={otp}
+                                            onChange={(e) => setOtp(e.target.value)}
+                                            className="w-full px-4 py-3 rounded-xl border-2 border-green-500 bg-green-50/50 dark:bg-green-900/10 dark:text-white outline-none transition text-center text-2xl tracking-widest font-mono"
+                                            placeholder="••••••"
+                                            maxLength={6}
+                                        />
+                                        <p className="text-xs text-center mt-2 text-green-600">OTP sent to {mobile}</p>
+                                    </div>
+                                )}
+                            </>
+                        )}
 
                         <div className="flex justify-between items-center">
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500" />
-                                <span className="text-sm text-gray-600 dark:text-gray-400">Remember me</span>
-                            </label>
-                            <Link href="/forgot-password" className="text-sm text-green-600 hover:text-green-700 font-bold hover:underline">
+                            {loginMethod === 'password' && (
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500" />
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">Remember me</span>
+                                </label>
+                            )}
+                            <Link href="/forgot-password" className={`text-sm text-green-600 hover:text-green-700 font-bold hover:underline ${loginMethod !== 'password' ? 'ml-auto' : ''}`}>
                                 Forgot Password?
                             </Link>
                         </div>
@@ -240,10 +379,13 @@ export default function LoginPage() {
                                 } disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
                             {loading ? (
-                                'Signing in...'
+                                'Processing...'
                             ) : (
                                 <>
-                                    Sign In as {userType === 'patient' ? 'Patient' : 'Provider'}
+                                    {loginMethod === 'password'
+                                        ? `Sign In as ${userType === 'patient' ? 'Patient' : 'Provider'}`
+                                        : (otpSent ? 'Verify & Login' : 'Send One-Time PIN')
+                                    }
                                     <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
                                 </>
                             )}

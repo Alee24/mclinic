@@ -9,6 +9,8 @@ import { Invoice, InvoiceStatus } from '../financial/entities/invoice.entity';
 import { FinancialService } from '../financial/financial.service';
 import { EmailService } from '../email/email.service';
 import { SmsService } from '../sms/sms.service';
+import { User } from '../users/entities/user.entity';
+
 
 @Injectable()
 export class AppointmentsService {
@@ -21,7 +23,7 @@ export class AppointmentsService {
     private invoiceRepository: Repository<Invoice>,
     private financialService: FinancialService,
     private emailService: EmailService,
-    privatesmsService: SmsService,
+    private smsService: SmsService,
   ) { }
 
   async create(createAppointmentDto: any): Promise<Appointment> {
@@ -61,6 +63,7 @@ export class AppointmentsService {
 
     // Calculate Fees
     let fee = 0;
+    let serviceName = 'Consultation';
 
     // Check if a specific service was selected
     if (finalServiceId) {
@@ -69,6 +72,7 @@ export class AppointmentsService {
       });
       if (service) {
         fee = Number(service.price);
+        serviceName = service.name;
       }
 
     } else {
@@ -81,8 +85,10 @@ export class AppointmentsService {
 
       if (drType.includes('nurse') || drType.includes('clinician')) {
         fee = 1500;
+        serviceName = 'Nurse/Clinician Consultation';
       } else {
         fee = Number(doctor.fee || 1500);
+        serviceName = 'Specialist Consultation';
       }
       console.log(`[DEBUG_FEE] Calculated Fee: ${fee}`);
     }
@@ -215,6 +221,43 @@ export class AppointmentsService {
       console.error('Failed to send booking confirmation email:', error);
     }
 
+    // ... (existing invoice logic)
+
+    // Notify Patient via Email (Existing)
+    // await this.emailService.sendAppointmentConfirmation(savedAppointment); // Assuming this exists or will be added
+
+    // --- SMS Notifications ---
+    try {
+      // 1. Fetch Patient Mobile
+      const patientUser = await this.appointmentsRepository.manager
+        .getRepository(User)
+        .findOne({ where: { id: createAppointmentDto.patientId } });
+
+      // 2. Prepare Messages
+      const patientName = patientUser?.fname || 'Patient';
+      const doctorName = doctor.fname ? `Dr. ${doctor.fname} ${doctor.lname}` : 'the Specialist';
+      const formattedDate = new Date(appointmentDate).toDateString();
+      const timeSlot = appointmentTime;
+
+      // SMS to Patient
+      if (patientUser?.mobile) {
+        const msg = `Dear ${patientName}, your appointment with ${doctorName} is confirmed for ${formattedDate} at ${timeSlot}. Ref: #${savedAppointment.id}`;
+        await this.smsService.sendSms(patientUser.mobile, msg);
+      }
+
+      // SMS to Doctor
+      if (doctor.mobile) {
+        const msg = `New Appointment: ${patientName} has booked for ${formattedDate} at ${timeSlot}. Service: ${serviceName || 'Consultation'}.`;
+        await this.smsService.sendSms(doctor.mobile, msg);
+      }
+
+      // Optional: SMS to Admin (if configured in settings, but for now hardcoded or skipped)
+
+    } catch (error) {
+      console.error('[Appointments] Failed to send SMS notifications', error);
+      // Don't block the appointment creation
+    }
+
     return savedAppointment;
   }
 
@@ -271,8 +314,9 @@ export class AppointmentsService {
     console.log(`[Appointments] findAllForUser called. Role: ${user.role}, Email: ${user.email}`);
 
     // Unified Medic Check: If the user is a 'Doctor'/'Medic', try to find their provider profile.
-    if (['medic', 'doctor', 'nurse'].includes(user.role)) {
-      // Generic Provider Check: Try to find a Doctor/Medic profile for this user
+    if (['medic', 'doctor', 'nurse', 'clinician', 'lab_tech', 'pharmacist'].includes(user.role)) {
+      console.log(`[Appointments] Attempting to resolve Medic Profile for User: ${user.email} (Role: ${user.role})`);
+
       // Priority 1: Check by user_id
       let doctor = await this.appointmentsRepository.manager
         .getRepository(Doctor)
@@ -280,13 +324,14 @@ export class AppointmentsService {
 
       // Priority 2: Fallback to email if not found by ID (legacy support for non-backfilled data)
       if (!doctor) {
+        console.log(`[Appointments] No Medic Profile found by user_id. Trying email: ${user.email}`);
         doctor = await this.appointmentsRepository.manager
           .getRepository(Doctor)
           .findOne({ where: { email: user.email } });
       }
 
       if (doctor) {
-        console.log(`[Appointments] Found Medic Profile for ${user.email} (ID: ${doctor.id}). Fetching provider schedule.`);
+        console.log(`[Appointments] Found Medic Profile for ${user.email} -> Doctor ID: ${doctor.id}`);
 
         const appointments = await this.appointmentsRepository.find({
           where: { doctorId: doctor.id },
@@ -294,10 +339,13 @@ export class AppointmentsService {
           order: { appointment_date: 'DESC' },
         });
 
+        console.log(`[Appointments] Fetched ${appointments.length} appointments for Doctor ID ${doctor.id}`);
+
         // Enrich with Patient Medical Data
         const userIds = appointments.map((a) => a.patient?.id).filter(Boolean);
         if (userIds.length > 0) {
           try {
+            // Refactored to use WHERE IN properly
             const profiles = await this.appointmentsRepository.manager
               .getRepository(Patient)
               .createQueryBuilder('patient')
@@ -306,9 +354,11 @@ export class AppointmentsService {
 
             appointments.forEach((a) => {
               if (a.patient) {
+                // Find profile where patient.user_id matches appointment.patient.id (which is user_id in User entity)
+                // Wait, Appointment.patient is a User entity relation. Patient entity has user_id relation.
                 const profile = profiles.find((p) => p.user_id === a.patient.id);
                 if (profile) {
-                  // Attach profile data
+                  // Attach profile data to the patient object for frontend
                   (a.patient as any).blood_group = profile.blood_group;
                   (a.patient as any).sex = profile.sex || a.patient.sex;
                   (a.patient as any).genotype = profile.genotype;
@@ -325,16 +375,13 @@ export class AppointmentsService {
 
         return appointments;
       } else {
-        console.log(`[Appointments] No Medic Profile found for ${user.email} despite having Medic Role.`);
-        // If they are a medic but have no profile, return empty or fallback? 
-        // Better to return empty provider schedule than patient schedule to avoid confusion, 
-        // but previously it fell back. Let's return empty if they are explicitly medic.
+        console.log(`[Appointments] WARNING: No Medic Profile found for ${user.email} despite having Medic Role.`);
         return [];
       }
     }
 
     // Fallback: If no Medic profile found, assume Patient role
-    console.log(`[Appointments] No Medic Profile found for ${user.email}. Fetching as Patient.`);
+    console.log(`[Appointments] User ${user.email} treated as Patient. Fetching by patientId.`);
     return this.appointmentsRepository.find({
       where: { patientId: user.sub || user.id },
       relations: ['doctor', 'service'],

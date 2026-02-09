@@ -201,6 +201,12 @@ export class Doctor {
   @OneToMany(() => DoctorSchedule, (schedule) => schedule.doctor)
   schedules: DoctorSchedule[];
 
+  @Column({ length: 10, nullable: true })
+  otp: string;
+
+  @Column({ type: 'datetime', nullable: true })
+  otpExpiry: Date;
+
   @OneToMany(() => DoctorLicence, (licence) => licence.doctor)
   licences: DoctorLicence[];
 }

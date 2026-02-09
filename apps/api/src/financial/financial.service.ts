@@ -301,16 +301,24 @@ export class FinancialService {
         };
     }
 
-    async getDoctorStats(user: { email: string; id: number }) {
+    async getDoctorStats(user: { email: string; id: number; sub?: number }) {
         const email = user.email.trim();
-        // Find doctor profile to get balance and doctorId
-        const doctor = await this.doctorRepo.findOne({ where: { email } });
+        const userId = user.sub || user.id;
+
+        // Priority 1: Find by User ID
+        let doctor = await this.doctorRepo.findOne({ where: { user_id: userId } });
+
+        // Priority 2: Fallback to Email
         if (!doctor) {
-            console.error(`[FINANCIAL] getDoctorStats: FAILED to find doctor with email '${email}'`);
+            doctor = await this.doctorRepo.findOne({ where: { email } });
+        }
+
+        if (!doctor) {
+            console.error(`[FINANCIAL] getDoctorStats: FAILED to find doctor with email '${email}' or ID ${userId}`);
             throw new NotFoundException('Doctor profile not found');
         }
 
-        console.log(`[FINANCIAL] getDoctorStats: Found doctor ${doctor.email} (ID: ${doctor.id}) for User ID: ${user.id}`);
+        console.log(`[FINANCIAL] getDoctorStats: Found doctor ${doctor.email} (ID: ${doctor.id}) for User ID: ${userId}`);
 
         // 1. Wallet Balance (Source of Truth: Wallet Entity)
         let balance = 0;
@@ -318,6 +326,19 @@ export class FinancialService {
             const wallet = await this.walletsService.getBalanceByEmail(doctor.email);
             balance = Number(wallet.balance);
             if (isNaN(balance)) balance = 0;
+
+            // FIX for Manual DB Updates: 
+            // If wallet is 0 but doctor table has manually added balance, assume legacy/manual override and sync.
+            // This handles the user's specific case where they edited the doctors table directly.
+            const docLegacyBalance = Number(doctor.balance);
+            if (balance === 0 && docLegacyBalance > 0) {
+                console.log(`[FINANCIAL] Detected Manual Balance in Doctor Table (KES ${docLegacyBalance}) vs Wallet (0). Syncing...`);
+                balance = docLegacyBalance;
+
+                // Auto-sync wallet to match manual entry
+                await this.walletsService.setBalanceByEmail(doctor.email, docLegacyBalance);
+            }
+
         } catch (e) {
             console.warn(`[FINANCIAL] No wallet found for ${doctor.email}, using legacy balance.`);
             balance = Number(doctor.balance);

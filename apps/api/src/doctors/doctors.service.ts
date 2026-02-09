@@ -452,6 +452,10 @@ export class DoctorsService implements OnModuleInit {
     async findByEmail(email: string): Promise<Doctor | null> {
         return this.doctorsRepository.findOne({ where: { email } });
     }
+
+    async findOneByMobile(mobile: string): Promise<Doctor | null> {
+        return this.doctorsRepository.findOne({ where: { mobile } });
+    }
     async updateSignature(id: number, filename: string): Promise<Doctor | null> {
         await this.doctorsRepository.update(id, { signatureUrl: filename });
         return this.findOne(id);

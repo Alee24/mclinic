@@ -40,15 +40,18 @@ export default function NotificationSettingsPage() {
             const res = await api.get('/settings');
             if (!res) return;
             const data = await res.json();
-            setSettings(data.filter((s: any) => s.key.startsWith('EMAIL_')));
+            setSettings(data.filter((s: any) => s.key.startsWith('EMAIL_') || s.key.startsWith('sms_')));
 
-            // Initialize SMTP defaults if missing in DB (avoid UI glitches)
-            const requiredKeys = ['EMAIL_SMTP_HOST', 'EMAIL_SMTP_PORT', 'EMAIL_SMTP_USER', 'EMAIL_SMTP_PASS', 'EMAIL_SMTP_FROM_EMAIL', 'EMAIL_SMTP_FROM_NAME'];
+            // Initialize SMTP & SMS defaults if missing in DB
+            const requiredKeys = [
+                'EMAIL_SMTP_HOST', 'EMAIL_SMTP_PORT', 'EMAIL_SMTP_USER', 'EMAIL_SMTP_PASS', 'EMAIL_SMTP_FROM_EMAIL', 'EMAIL_SMTP_FROM_NAME',
+                'sms_api_key', 'sms_partner_id', 'sms_shortcode'
+            ];
             setSettings(prev => {
                 const newSettings = [...prev];
                 requiredKeys.forEach(key => {
                     if (!newSettings.find(s => s.key === key)) {
-                        newSettings.push({ key, value: '', description: 'SMTP Config', isSecure: key.includes('PASS') });
+                        newSettings.push({ key, value: '', description: key.includes('sms') ? 'SMS Config' : 'SMTP Config', isSecure: key.includes('PASS') || key.includes('api_key') });
                     }
                 });
                 return newSettings;
@@ -276,6 +279,78 @@ export default function NotificationSettingsPage() {
                 </div>
             </div>
 
+            {/* SMS Configuration Section */}
+            <div className="bg-white rounded-2xl shadow-sm border p-6">
+                <h2 className="text-lg font-bold flex items-center gap-2 mb-6 text-gray-800 border-b pb-4">
+                    <FiSend className="text-blue-500" /> SMS Gateway Configuration (QuickSMS)
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">API Key</label>
+                            <input
+                                type="password"
+                                value={getSettingValue('sms_api_key')}
+                                onChange={e => handleUpdateValue('sms_api_key', e.target.value)}
+                                placeholder="****************"
+                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">Partner ID</label>
+                            <input
+                                type="text"
+                                value={getSettingValue('sms_partner_id')}
+                                onChange={e => handleUpdateValue('sms_partner_id', e.target.value)}
+                                placeholder="e.g. 1234"
+                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">Shortcode / Sender ID</label>
+                            <input
+                                type="text"
+                                value={getSettingValue('sms_shortcode')}
+                                onChange={e => handleUpdateValue('sms_shortcode', e.target.value)}
+                                placeholder="e.g. MCLINIC"
+                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition"
+                            />
+                        </div>
+                        <div className="pt-6">
+                            <div className="relative flex items-center gap-2">
+                                <input
+                                    type="text"
+                                    placeholder="Test Mobile (e.g. 2547...)"
+                                    id="testMobile"
+                                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none w-full"
+                                />
+                                <button
+                                    onClick={async () => {
+                                        const mobile = (document.getElementById('testMobile') as HTMLInputElement).value;
+                                        if (!mobile) return toast.error('Enter mobile number');
+                                        try {
+                                            setTesting(true);
+                                            await handleSave(); // Save first
+                                            const res = await api.post('/sms/test', { mobile });
+                                            if (res?.ok) toast.success('SMS Sent!');
+                                            else toast.error('Failed to send SMS');
+                                        } catch (e) { toast.error('Error sending SMS'); }
+                                        finally { setTesting(false); }
+                                    }}
+                                    disabled={saving || testing}
+                                    className="bg-gray-100 border border-gray-300 text-gray-700 hover:bg-gray-200 px-4 py-2 rounded-lg font-semibold whitespace-nowrap"
+                                >
+                                    {testing ? 'Sending...' : 'Test SMS'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {/* Notification Toggles */}
             <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
                 <div className="p-6 border-b bg-gray-50 flex items-center justify-between">
@@ -306,6 +381,7 @@ export default function NotificationSettingsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {notificationToggles.map((toggle) => {
                             const enabled = isEnabled(toggle.key);
+                            const smsEnabled = isEnabled(toggle.key + '_SMS');
                             const colorClasses = {
                                 blue: 'bg-blue-50 border-blue-200 text-blue-700',
                                 purple: 'bg-purple-50 border-purple-200 text-purple-700',
@@ -332,16 +408,34 @@ export default function NotificationSettingsPage() {
                                                 <p className="text-xs opacity-80 mt-1">{toggle.description}</p>
                                             </div>
                                         </div>
-                                        <label className="relative inline-flex items-center cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={enabled}
-                                                onChange={(e) => handleUpdateValue(toggle.key, e.target.checked ? 'true' : 'false')}
-                                                disabled={!masterEnabled}
-                                                className="sr-only peer"
-                                            />
-                                            <div className={`w-9 h-5 bg-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all ${enabled ? `peer-checked:bg-${toggle.color}-600` : 'peer-checked:bg-blue-600'} ${!masterEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}></div>
-                                        </label>
+                                        <div className="flex flex-col gap-2 items-end">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[10px] uppercase font-bold text-gray-500">Email</span>
+                                                <label className="relative inline-flex items-center cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={enabled}
+                                                        onChange={(e) => handleUpdateValue(toggle.key, e.target.checked ? 'true' : 'false')}
+                                                        disabled={!masterEnabled}
+                                                        className="sr-only peer"
+                                                    />
+                                                    <div className={`w-9 h-5 bg-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all ${enabled ? `peer-checked:bg-${toggle.color}-600` : 'peer-checked:bg-blue-600'} ${!masterEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}></div>
+                                                </label>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[10px] uppercase font-bold text-gray-500">SMS</span>
+                                                <label className="relative inline-flex items-center cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={smsEnabled}
+                                                        onChange={(e) => handleUpdateValue(toggle.key + '_SMS', e.target.checked ? 'true' : 'false')}
+                                                        disabled={!masterEnabled}
+                                                        className="sr-only peer"
+                                                    />
+                                                    <div className={`w-9 h-5 bg-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all ${smsEnabled ? `peer-checked:bg-green-600` : 'peer-checked:bg-blue-600'} ${!masterEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}></div>
+                                                </label>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             );
@@ -351,7 +445,7 @@ export default function NotificationSettingsPage() {
             </div>
 
             <div className="p-4 bg-gray-50 rounded-lg text-sm text-gray-500 border text-center">
-                Settings are stored securely. Sending emails relies on correct SMTP details.
+                Settings are stored securely. Sending emails/SMS relies on correct Gateway details.
             </div>
         </div>
     );

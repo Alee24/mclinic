@@ -58,6 +58,10 @@ export class UsersService implements OnModuleInit {
     return this.usersRepository.findOne({ where: { email } });
   }
 
+  async findOneByMobile(mobile: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { mobile } });
+  }
+
   async findById(id: number): Promise<User | null> {
     return this.usersRepository.findOne({ where: { id } });
   }

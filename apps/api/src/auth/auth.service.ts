@@ -5,6 +5,7 @@ import { DoctorsService } from '../doctors/doctors.service';
 import { MedicalProfilesService } from '../medical-profiles/medical-profiles.service';
 import { JwtService } from '@nestjs/jwt';
 import { EmailService } from '../email/email.service';
+import { SmsService } from '../sms/sms.service';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 
@@ -16,6 +17,7 @@ export class AuthService {
     private medicalProfilesService: MedicalProfilesService,
     private jwtService: JwtService,
     private emailService: EmailService,
+    private smsService: SmsService,
   ) { }
 
   async validateUser(email: string, pass: string, userType: string = 'patient'): Promise<any> {
@@ -346,5 +348,120 @@ export class AuthService {
       access_token: this.jwtService.sign(payload),
       user,
     };
+  }
+
+  // --- OTP Logic ---
+
+  async sendLoginOtp(mobile: string) {
+    // Basic mobile sanitization (assuming strict format or handling +254/07...)
+    // Ideally should normalize logic here.
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiry = new Date(Date.now() + 10 * 60000); // 10 mins
+
+    // 1. Try User
+    const user = await this.usersService.findOneByMobile(mobile);
+    if (user) {
+      await this.usersService.update(user.id, { otp, otpExpiry: expiry } as any);
+      await this.smsService.sendSms(mobile, `Your M-Clinic Login OTP is ${otp}. Valid for 10 minutes.`);
+      return { message: 'OTP sent to mobile number.' };
+    }
+
+    // 2. Try Doctor
+    const doctor = await this.doctorsService.findOneByMobile(mobile);
+    if (doctor) {
+      // @ts-ignore
+      await this.doctorsService.update(doctor.id, { otp, otpExpiry: expiry });
+      await this.smsService.sendSms(mobile, `Your M-Clinic Provider OTP is ${otp}. Valid for 10 minutes.`);
+      return { message: 'OTP sent to mobile number.' };
+    }
+
+    throw new UnauthorizedException('Mobile number not registered.');
+  }
+
+  async loginWithOtp(mobile: string, otp: string) {
+    // Check User
+    const user = await this.usersService.findOneByMobile(mobile);
+    if (user && user.otp === otp && new Date(user.otpExpiry) > new Date()) {
+      // Clear OTP
+      await this.usersService.update(user.id, { otp: null, otpExpiry: null } as any);
+
+      // Login
+      const payload = { email: user.email, sub: user.id, role: user.role };
+      const { password, ...result } = user;
+      return {
+        access_token: this.jwtService.sign(payload),
+        user: result,
+      };
+    }
+
+    // Check Doctor
+    const doctor = await this.doctorsService.findOneByMobile(mobile);
+    // @ts-ignore
+    if (doctor && doctor.otp === otp && new Date(doctor.otpExpiry) > new Date()) {
+      // Clear OTP
+      // @ts-ignore
+      await this.doctorsService.update(doctor.id, { otp: null, otpExpiry: null });
+
+      const synthRole = this.mapDrTypeToRole(doctor.dr_type);
+      const payload = { email: doctor.email, sub: doctor.id, role: synthRole };
+      const { password, ...result } = doctor;
+      // @ts-ignore
+      const finalUser = { ...result, role: synthRole, doctorId: doctor.id };
+
+      return {
+        access_token: this.jwtService.sign(payload),
+        user: finalUser,
+      };
+    }
+
+    throw new UnauthorizedException('Invalid or expired OTP.');
+  }
+
+  // Re-use same sending logic for reset, but maybe different message?
+  async sendPasswordResetOtp(mobile: string) {
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiry = new Date(Date.now() + 10 * 60000);
+
+    // 1. Try User
+    const user = await this.usersService.findOneByMobile(mobile);
+    if (user) {
+      await this.usersService.update(user.id, { otp, otpExpiry: expiry } as any);
+      await this.smsService.sendSms(mobile, `M-Clinic Password Reset OTP: ${otp}. Do not share this code.`);
+      return { message: 'OTP sent.' };
+    }
+
+    // 2. Try Doctor
+    const doctor = await this.doctorsService.findOneByMobile(mobile);
+    if (doctor) {
+      // @ts-ignore
+      await this.doctorsService.update(doctor.id, { otp, otpExpiry: expiry });
+      await this.smsService.sendSms(mobile, `M-Clinic Password Reset OTP: ${otp}.`);
+      return { message: 'OTP sent.' };
+    }
+
+    throw new UnauthorizedException('Mobile number not found.');
+  }
+
+  async resetPasswordWithOtp(mobile: string, otp: string, newPass: string) {
+    const hashedPassword = await bcrypt.hash(newPass, 10);
+
+    // Check User
+    const user = await this.usersService.findOneByMobile(mobile);
+    if (user && user.otp === otp && new Date(user.otpExpiry) > new Date()) {
+      await this.usersService.update(user.id, { password: hashedPassword, otp: null, otpExpiry: null } as any);
+      return { message: 'Password updated successfully.' };
+    }
+
+    // Check Doctor
+    const doctor = await this.doctorsService.findOneByMobile(mobile);
+    // @ts-ignore
+    if (doctor && doctor.otp === otp && new Date(doctor.otpExpiry) > new Date()) {
+      // @ts-ignore
+      await this.doctorsService.update(doctor.id, { password: hashedPassword, otp: null, otpExpiry: null });
+      return { message: 'Password updated successfully.' };
+    }
+
+    throw new UnauthorizedException('Invalid or expired OTP.');
   }
 }

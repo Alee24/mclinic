@@ -3,7 +3,7 @@
 import React, { useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
-import { FiLock } from 'react-icons/fi';
+import { FiLock, FiSmartphone } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 
@@ -11,17 +11,19 @@ function ResetPasswordForm() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const token = searchParams.get('token');
+    const mobile = searchParams.get('mobile');
 
+    const [otp, setOtp] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
 
-    if (!token) {
+    if (!token && !mobile) {
         return (
             <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
                 <div className="sm:mx-auto sm:w-full sm:max-w-md bg-white p-8 rounded-lg shadow text-center">
                     <h2 className="text-xl font-bold text-red-600 mb-2">Invalid Link</h2>
-                    <p className="text-gray-600 mb-4">This password reset link is invalid or missing a token.</p>
+                    <p className="text-gray-600 mb-4">This password reset link is invalid or missing information.</p>
                     <Link href="/forgot-password" className="text-blue-600 font-medium hover:underline">
                         Request a new link
                     </Link>
@@ -45,13 +47,25 @@ function ResetPasswordForm() {
 
         setLoading(true);
         try {
-            const res = await api.post('/auth/reset-password', { token, password });
-            if (res && res.ok) {
+            let res;
+            if (mobile) {
+                // OTP Flow
+                res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://portal.mclinic.co.ke/api'}/auth/otp/reset-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mobile, otp, newPass: password })
+                });
+            } else {
+                // Token Flow
+                res = await api.post('/auth/reset-password', { token, password });
+            }
+
+            if (res && (res.ok || (res.status === 201 || res.status === 200))) {
                 toast.success('Password reset successfully!');
                 setTimeout(() => router.push('/login'), 2000);
             } else {
                 const data = res ? await res.json().catch(() => ({})) : {};
-                toast.error(data.message || 'Failed to reset password. Link may have expired.');
+                toast.error(data.message || 'Failed to reset password. Code/Link may have expired.');
             }
         } catch (e) {
             toast.error('Something went wrong.');
@@ -68,11 +82,41 @@ function ResetPasswordForm() {
                 <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
                     Set new password
                 </h2>
+                {mobile && (
+                    <p className="text-center text-sm text-gray-500 mt-2">
+                        Enter the code sent to {mobile}
+                    </p>
+                )}
             </div>
 
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
                 <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
                     <form className="space-y-6" onSubmit={handleSubmit}>
+
+                        {mobile && (
+                            <div>
+                                <label htmlFor="otp" className="block text-sm font-medium text-gray-700">
+                                    One-Time Password (OTP)
+                                </label>
+                                <div className="mt-1 relative rounded-md shadow-sm">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <FiSmartphone className="text-gray-400" />
+                                    </div>
+                                    <input
+                                        id="otp"
+                                        name="otp"
+                                        type="text"
+                                        required
+                                        value={otp}
+                                        onChange={(e) => setOtp(e.target.value)}
+                                        className="appearance-none block w-full pl-10 px-3 py-2 border border-blue-300 bg-blue-50 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm tracking-widest font-mono"
+                                        placeholder="123456"
+                                        maxLength={6}
+                                    />
+                                </div>
+                            </div>
+                        )}
+
                         <div>
                             <label htmlFor="pass" className="block text-sm font-medium text-gray-700">
                                 New Password

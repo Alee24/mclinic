@@ -62,4 +62,25 @@ export class AuthController {
   async resendVerification(@Body() body: { email: string }) {
     return this.authService.resendVerificationEmail(body.email);
   }
+
+  // --- OTP Endpoints ---
+  @Post('otp/send')
+  async sendOtp(@Body() body: { mobile: string }) {
+    return this.authService.sendLoginOtp(body.mobile);
+  }
+
+  @Post('otp/login')
+  async loginOtp(@Body() body: { mobile: string; otp: string }) {
+    return this.authService.loginWithOtp(body.mobile, body.otp);
+  }
+
+  @Post('otp/reset-password-request')
+  async requestResetOtp(@Body() body: { mobile: string }) {
+    return this.authService.sendPasswordResetOtp(body.mobile);
+  }
+
+  @Post('otp/reset-password')
+  async resetPasswordWithOtp(@Body() body: { mobile: string; otp: string; newPass: string }) {
+    return this.authService.resetPasswordWithOtp(body.mobile, body.otp, body.newPass);
+  }
 }

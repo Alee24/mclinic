@@ -104,4 +104,9 @@ export class User {
 
   @Column({ type: 'timestamp', nullable: true })
   deletionScheduledAt: Date | null;
+  @Column({ nullable: true })
+  otp: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  otpExpiry: Date;
 }
