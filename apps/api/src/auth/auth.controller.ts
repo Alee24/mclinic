@@ -69,18 +69,23 @@ export class AuthController {
     return this.authService.sendLoginOtp(body.mobile);
   }
 
+  @Post('check-accounts')
+  async checkAccounts(@Body() body: { mobile: string }) {
+    return this.authService.checkAccountsByMobile(body.mobile);
+  }
+
   @Post('otp/login')
   async loginOtp(@Body() body: { mobile: string; otp: string }) {
     return this.authService.loginWithOtp(body.mobile, body.otp);
   }
 
   @Post('otp/reset-password-request')
-  async requestResetOtp(@Body() body: { mobile: string }) {
-    return this.authService.sendPasswordResetOtp(body.mobile);
+  async requestResetOtp(@Body() body: { mobile: string; accountType?: string; accountId?: number }) {
+    return this.authService.sendPasswordResetOtp(body.mobile, body.accountType, body.accountId);
   }
 
   @Post('otp/reset-password')
-  async resetPasswordWithOtp(@Body() body: { mobile: string; otp: string; newPass: string }) {
-    return this.authService.resetPasswordWithOtp(body.mobile, body.otp, body.newPass);
+  async resetPasswordWithOtp(@Body() body: { mobile: string; otp: string; newPass: string; accountType?: string; accountId?: number }) {
+    return this.authService.resetPasswordWithOtp(body.mobile, body.otp, body.newPass, body.accountType, body.accountId);
   }
 }

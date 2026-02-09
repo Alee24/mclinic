@@ -350,6 +350,47 @@ export class AuthService {
     };
   }
 
+  // Helper to mask email
+  private maskEmail(email: string): string {
+    const [name, domain] = email.split('@');
+    const maskedName = name.length > 2 ? name[0] + '*'.repeat(name.length - 2) + name[name.length - 1] : name;
+    return `${maskedName}@${domain}`;
+  }
+
+  // Check all accounts linked to a mobile number
+  async checkAccountsByMobile(mobile: string) {
+    const [user, doctor] = await Promise.all([
+      this.usersService.findOneByMobile(mobile),
+      this.doctorsService.findOneByMobile(mobile)
+    ]);
+
+    const accounts = [];
+
+    if (user) {
+      accounts.push({
+        id: user.id,
+        email: this.maskEmail(user.email),
+        type: 'patient',
+        accountType: 'user'
+      });
+    }
+
+    if (doctor) {
+      accounts.push({
+        id: doctor.id,
+        email: this.maskEmail(doctor.email),
+        type: 'provider',
+        accountType: 'doctor'
+      });
+    }
+
+    if (accounts.length === 0) {
+      throw new UnauthorizedException('No accounts found for this mobile number.');
+    }
+
+    return { accounts };
+  }
+
   // --- OTP Logic ---
 
   async sendLoginOtp(mobile: string) {
@@ -485,12 +526,41 @@ export class AuthService {
     throw new UnauthorizedException('Invalid or expired OTP.');
   }
 
+
   // Re-use same sending logic for reset, but maybe different message?
-  async sendPasswordResetOtp(mobile: string) {
+  async sendPasswordResetOtp(mobile: string, accountType?: string, accountId?: number) {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiry = new Date(Date.now() + 10 * 60000);
 
-    // Check BOTH tables simultaneously
+    // If specific account is selected
+    if (accountType && accountId) {
+      if (accountType === 'user') {
+        const user = await this.usersService.findById(accountId);
+        if (!user || user.mobile !== mobile) {
+          throw new UnauthorizedException('Account not found or mobile mismatch.');
+        }
+        await this.usersService.update(user.id, { otp, otpExpiry: expiry } as any);
+        await this.smsService.sendSms(mobile, `M-Clinic Password Reset OTP: ${otp}. Do not share this code.`);
+        return {
+          message: 'OTP sent.',
+          email: this.maskEmail(user.email)
+        };
+      } else if (accountType === 'doctor') {
+        const doctor = await this.doctorsService.findOne(accountId);
+        if (!doctor || doctor.mobile !== mobile) {
+          throw new UnauthorizedException('Account not found or mobile mismatch.');
+        }
+        // @ts-ignore
+        await this.doctorsService.update(doctor.id, { otp, otpExpiry: expiry });
+        await this.smsService.sendSms(mobile, `M-Clinic Password Reset OTP: ${otp}.`);
+        return {
+          message: 'OTP sent.',
+          email: this.maskEmail(doctor.email)
+        };
+      }
+    }
+
+    // Legacy flow: Check BOTH tables simultaneously
     const [user, doctor] = await Promise.all([
       this.usersService.findOneByMobile(mobile),
       this.doctorsService.findOneByMobile(mobile)
@@ -544,10 +614,37 @@ export class AuthService {
     throw new UnauthorizedException('Mobile number not found.');
   }
 
-  async resetPasswordWithOtp(mobile: string, otp: string, newPass: string) {
+  async resetPasswordWithOtp(mobile: string, otp: string, newPass: string, accountType?: string, accountId?: number) {
     const hashedPassword = await bcrypt.hash(newPass, 10);
 
-    // Check BOTH tables simultaneously
+    // If specific account is selected
+    if (accountType && accountId) {
+      if (accountType === 'user') {
+        const user = await this.usersService.findById(accountId);
+        if (!user || user.mobile !== mobile) {
+          throw new UnauthorizedException('Account not found or mobile mismatch.');
+        }
+        if (user.otp !== otp || new Date(user.otpExpiry) <= new Date()) {
+          throw new UnauthorizedException('Invalid or expired OTP.');
+        }
+        await this.usersService.update(user.id, { password: hashedPassword, otp: null, otpExpiry: null } as any);
+        return { message: 'Password updated successfully.' };
+      } else if (accountType === 'doctor') {
+        const doctor = await this.doctorsService.findOne(accountId);
+        if (!doctor || doctor.mobile !== mobile) {
+          throw new UnauthorizedException('Account not found or mobile mismatch.');
+        }
+        // @ts-ignore
+        if (doctor.otp !== otp || new Date(doctor.otpExpiry) <= new Date()) {
+          throw new UnauthorizedException('Invalid or expired OTP.');
+        }
+        // @ts-ignore
+        await this.doctorsService.update(doctor.id, { password: hashedPassword, otp: null, otpExpiry: null });
+        return { message: 'Password updated successfully.' };
+      }
+    }
+
+    // Legacy flow: Check BOTH tables simultaneously
     const [user, doctor] = await Promise.all([
       this.usersService.findOneByMobile(mobile),
       this.doctorsService.findOneByMobile(mobile)
