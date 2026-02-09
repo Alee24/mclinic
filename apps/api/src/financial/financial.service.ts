@@ -388,9 +388,10 @@ export class FinancialService {
         };
     }
 
-    // M-Pesa Callback Handler
+    // M-Pesa Callback Handler (Legacy / Fallback)
     async handleMpesaCallback(callbackData: any) {
         try {
+            console.log('[FINANCIAL] handleMpesaCallback received data');
             const callback = callbackData?.Body?.stkCallback;
             if (!callback) return { success: false };
 
@@ -402,7 +403,10 @@ export class FinancialService {
                 const receiptNumber = metadata.find((item: any) => item.Name === 'MpesaReceiptNumber')?.Value;
                 const amount = metadata.find((item: any) => item.Name === 'Amount')?.Value;
 
+                console.log(`[FINANCIAL] M-Pesa Callback Success: Amount=${amount}, Receipt=${receiptNumber}`);
+
                 // Find pending invoice with matching amount
+                // ideally check checkoutRequestID if we had it, but searching by amount matches legacy behavior
                 const invoice = await this.invoiceRepo.findOne({
                     where: {
                         totalAmount: amount,
@@ -411,203 +415,133 @@ export class FinancialService {
                 });
 
                 if (invoice) {
-                    // Update invoice status
-                    invoice.status = InvoiceStatus.PAID;
-
-                    // Activate Ambulance Subscription if linked
-                    if (invoice.invoiceNumber && invoice.invoiceNumber.startsWith('AMB-SUB-')) {
-                        const parts = invoice.invoiceNumber.split('-');
-                        // AMB-SUB-{subId}-{timestamp}
-                        const subId = parts[2];
-                        if (subId) {
-                            try {
-                                await this.invoiceRepo.query('UPDATE ambulance_subscriptions SET status = ? WHERE id = ?', ['active', subId]);
-                                console.log(`[FINANCIAL] Activated Ambulance Subscription #${subId}`);
-                            } catch (e) {
-                                console.error(`[FINANCIAL] Failed to activate subscription #${subId}:`, e);
-                            }
-                        }
-                    }
-
-                    if (invoice.doctorId) {
-                        // Strict Check: ONLY credit for Bookings/Appointments
-                        const isAppointmentInvoice = invoice.invoiceNumber?.startsWith('INV-') || invoice.appointmentId;
-
-                        if (isAppointmentInvoice) {
-                            // Try to parse app ID
-                            const parts = invoice.invoiceNumber.split('-');
-                            const appId = parts.length > 2 ? parseInt(parts[2]) : null;
-
-                            let doctorShare = 0;
-                            let commission = 0;
-
-                            if (appId) {
-                                // Hack for now: We will fetch the appointment using the doctorRepo manager (since it's connected)
-                                const app = await this.doctorRepo.manager.createQueryBuilder('appointment', 'a')
-                                    .where('a.id = :id', { id: appId })
-                                    .getOne();
-
-                                if (app) {
-                                    // @ts-ignore
-                                    const fee = Number(app.fee || 0);
-                                    // @ts-ignore
-                                    const transport = Number(app.transportFee || 0);
-
-                                    commission = fee * 0.40;
-                                    doctorShare = (fee * 0.60) + transport;
-                                } else {
-                                    // Fallback
-                                    const total = Number(invoice.totalAmount);
-                                    commission = total * 0.40;
-                                    doctorShare = total * 0.60;
-                                }
-                            } else {
-                                const total = Number(invoice.totalAmount);
-                                commission = total * 0.40;
-                                doctorShare = total * 0.60;
-                            }
-
-                            invoice.commissionAmount = commission;
-
-                            // NEW WALLET CREDIT
-                            const doctor = await this.doctorRepo.findOne({ where: { id: invoice.doctorId } });
-                            if (doctor && doctor.email) {
-                                await this.walletsService.creditByEmail(doctor.email, doctorShare, `Credit for Invoice #${invoice.invoiceNumber}`);
-                            }
-                        } else {
-                            console.log(`[FINANCIAL] Skipped Wallet Credit for Non-Appointment Invoice #${invoice.invoiceNumber}`);
-                        }
-                    }
-
-                    await this.invoiceRepo.save(invoice);
-
-                    // Create transaction record
-                    const transaction = this.txRepo.create({
-                        amount,
-                        source: 'MPESA',
-                        reference: receiptNumber,
-                        status: TransactionStatus.COMPLETED,
-                        invoice: invoice,
-                        invoiceId: invoice.id
-                    });
-                    await this.txRepo.save(transaction);
-
-                    console.log(`[MPESA] Payment confirmed for Invoice #${invoice.invoiceNumber}`);
+                    console.log(`[FINANCIAL] Matched Invoice #${invoice.invoiceNumber} (ID: ${invoice.id}). Confirming payment...`);
+                    // Reuse the ROBUST confirm method!
+                    return await this.confirmInvoicePayment(invoice.id, 'MPESA', receiptNumber);
+                } else {
+                    console.warn(`[FINANCIAL] No matching PENDING invoice found for amount ${amount}`);
                 }
             } else {
                 console.log(`[MPESA] Payment failed: ${callback.ResultDesc}`);
             }
 
             return { success: true };
-        } catch (error) {
-            console.error('[MPESA] Callback error:', error);
+        } catch (e) {
+            console.error('[FINANCIAL] handleMpesaCallback error:', e);
             return { success: false };
         }
     }
 
+            return { success: true };
+        } catch (error) {
+    console.error('[MPESA] Callback error:', error);
+    return { success: false };
+}
+    }
+
     // Process Payment (Direct from Frontend)
     async processPayment(appointmentId: number, amount: number, phoneNumber: string) {
-        // ... (Invoice finding logic) ...
-        let invoice = await this.invoiceRepo.createQueryBuilder('inv')
-            .where('inv.invoiceNumber LIKE :suffix', { suffix: `%-${appointmentId}` })
-            .getOne();
-        if (!invoice) throw new NotFoundException('Invoice not found for this appointment');
+    // ... (Invoice finding logic) ...
+    let invoice = await this.invoiceRepo.createQueryBuilder('inv')
+        .where('inv.invoiceNumber LIKE :suffix', { suffix: `%-${appointmentId}` })
+        .getOne();
+    if (!invoice) throw new NotFoundException('Invoice not found for this appointment');
 
-        invoice.status = InvoiceStatus.PAID;
-        await this.invoiceRepo.save(invoice);
+    invoice.status = InvoiceStatus.PAID;
+    await this.invoiceRepo.save(invoice);
 
-        // Credit Doctor Balance Immediately
-        if (invoice.doctorId) {
-            // Strict Check: ONLY credit for Bookings/Appointments
-            const isAppointmentInvoice = invoice.invoiceNumber?.startsWith('INV-') || invoice.appointmentId;
+    // Credit Doctor Balance Immediately
+    if (invoice.doctorId) {
+        // Strict Check: ONLY credit for Bookings/Appointments
+        const isAppointmentInvoice = invoice.invoiceNumber?.startsWith('INV-') || invoice.appointmentId;
 
-            if (isAppointmentInvoice) {
-                // Logic: 60% to Doctor (Standard)
-                // Note: For processPayment (direct), we might want to do the same robust check as above, 
-                // but usually direct payment is only for appointments via that endpoint.
-                const doctorShare = amount * 0.60;
-                const commission = amount * 0.40;
+        if (isAppointmentInvoice) {
+            // Logic: 60% to Doctor (Standard)
+            // Note: For processPayment (direct), we might want to do the same robust check as above, 
+            // but usually direct payment is only for appointments via that endpoint.
+            const doctorShare = amount * 0.60;
+            const commission = amount * 0.40;
 
-                invoice.commissionAmount = commission;
-                await this.invoiceRepo.save(invoice);
+            invoice.commissionAmount = commission;
+            await this.invoiceRepo.save(invoice);
 
-                // DEPRECATED: await this.doctorRepo.increment({ id: invoice.doctorId }, 'balance', doctorShare);
-                const doctor = await this.doctorRepo.findOne({ where: { id: invoice.doctorId } });
-                if (doctor && doctor.email) {
-                    await this.walletsService.creditByEmail(doctor.email, doctorShare, `Payment for Appointment #${appointmentId}`);
-                }
+            // DEPRECATED: await this.doctorRepo.increment({ id: invoice.doctorId }, 'balance', doctorShare);
+            const doctor = await this.doctorRepo.findOne({ where: { id: invoice.doctorId } });
+            if (doctor && doctor.email) {
+                await this.walletsService.creditByEmail(doctor.email, doctorShare, `Payment for Appointment #${appointmentId}`);
             }
         }
-
-        // Record Transaction as COMPLETED (Funds Available)
-        const transaction = this.txRepo.create({
-            amount: amount,
-            source: 'MPESA',
-            reference: `MPE${Date.now()}`,
-            status: TransactionStatus.COMPLETED, // Funds Available Immediately
-            invoice: invoice,
-            invoiceId: invoice.id
-        });
-        await this.txRepo.save(transaction);
-
-        // Update Appointment Status to CONFIRMED
-        await this.doctorRepo.manager.update('appointment', { id: appointmentId }, { status: 'confirmed' });
-
-        return { success: true, message: 'Payment processed successfully' };
     }
+
+    // Record Transaction as COMPLETED (Funds Available)
+    const transaction = this.txRepo.create({
+        amount: amount,
+        source: 'MPESA',
+        reference: `MPE${Date.now()}`,
+        status: TransactionStatus.COMPLETED, // Funds Available Immediately
+        invoice: invoice,
+        invoiceId: invoice.id
+    });
+    await this.txRepo.save(transaction);
+
+    // Update Appointment Status to CONFIRMED
+    await this.doctorRepo.manager.update('appointment', { id: appointmentId }, { status: 'confirmed' });
+
+    return { success: true, message: 'Payment processed successfully' };
+}
 
     // Manual Payment Confirmation
-    async confirmInvoicePayment(invoiceId: number, paymentMethod: string, transactionId?: string) {
-        const invoice = await this.invoiceRepo.findOne({ where: { id: invoiceId } });
-        if (!invoice) throw new NotFoundException('Invoice not found');
-        if (invoice.status === InvoiceStatus.PAID) throw new BadRequestException('Invoice already paid');
+    async confirmInvoicePayment(invoiceId: number, paymentMethod: string, transactionId ?: string) {
+    const invoice = await this.invoiceRepo.findOne({ where: { id: invoiceId } });
+    if (!invoice) throw new NotFoundException('Invoice not found');
+    if (invoice.status === InvoiceStatus.PAID) throw new BadRequestException('Invoice already paid');
 
-        invoice.status = InvoiceStatus.PAID;
-        await this.invoiceRepo.save(invoice);
+    invoice.status = InvoiceStatus.PAID;
+    await this.invoiceRepo.save(invoice);
 
-        // Credit Doctor Balance Immediately
-        if (invoice.doctorId) {
-            // Strict Check: ONLY credit for Bookings/Appointments
-            const isAppointmentInvoice = invoice.invoiceNumber?.startsWith('INV-') || invoice.appointmentId;
+    // Credit Doctor Balance Immediately
+    if (invoice.doctorId) {
+        // Strict Check: ONLY credit for Bookings/Appointments
+        const isAppointmentInvoice = invoice.invoiceNumber?.startsWith('INV-') || invoice.appointmentId;
 
-            if (isAppointmentInvoice) {
-                const total = Number(invoice.totalAmount);
-                const doctorShare = total * 0.60;
-                const commission = total * 0.40;
+        if (isAppointmentInvoice) {
+            const total = Number(invoice.totalAmount);
+            const doctorShare = total * 0.60;
+            const commission = total * 0.40;
 
-                invoice.commissionAmount = commission;
-                await this.invoiceRepo.save(invoice);
+            invoice.commissionAmount = commission;
+            await this.invoiceRepo.save(invoice);
 
-                // DEPRECATED: await this.doctorRepo.increment({ id: invoice.doctorId }, 'balance', doctorShare);
-                const doctor = await this.doctorRepo.findOne({ where: { id: invoice.doctorId } });
-                if (doctor && doctor.email) {
-                    await this.walletsService.creditByEmail(doctor.email, doctorShare, `Manual Payment for Invoice #${invoiceId}`);
-                }
-            } else {
-                console.log(`[FINANCIAL] Skipped Wallet Credit for Non-Appointment Manual Payment Invoice #${invoice.invoiceNumber}`);
+            // DEPRECATED: await this.doctorRepo.increment({ id: invoice.doctorId }, 'balance', doctorShare);
+            const doctor = await this.doctorRepo.findOne({ where: { id: invoice.doctorId } });
+            if (doctor && doctor.email) {
+                await this.walletsService.creditByEmail(doctor.email, doctorShare, `Manual Payment for Invoice #${invoiceId}`);
             }
-        }
-
-        // Create transaction record as COMPLETED
-        const transaction = this.txRepo.create({
-            amount: invoice.totalAmount,
-            source: paymentMethod.toUpperCase(),
-            reference: transactionId || `MAN${Date.now()}`,
-            status: TransactionStatus.COMPLETED, // Funds Available Immediately
-            invoice: invoice,
-            invoiceId: invoice.id
-        });
-        await this.txRepo.save(transaction);
-
-        // Check for Ambulance Subscription
-        if (invoice.invoiceNumber && invoice.invoiceNumber.startsWith('AMB-SUB-')) {
-            const parts = invoice.invoiceNumber.split('-');
-            const subId = parts[2];
-            if (subId) {
-                await this.invoiceRepo.query('UPDATE ambulance_subscriptions SET status = ? WHERE id = ?', ['active', subId]);
-            }
+        } else {
+            console.log(`[FINANCIAL] Skipped Wallet Credit for Non-Appointment Manual Payment Invoice #${invoice.invoiceNumber}`);
         }
     }
+
+    // Create transaction record as COMPLETED
+    const transaction = this.txRepo.create({
+        amount: invoice.totalAmount,
+        source: paymentMethod.toUpperCase(),
+        reference: transactionId || `MAN${Date.now()}`,
+        status: TransactionStatus.COMPLETED, // Funds Available Immediately
+        invoice: invoice,
+        invoiceId: invoice.id
+    });
+    await this.txRepo.save(transaction);
+
+    // Check for Ambulance Subscription
+    if (invoice.invoiceNumber && invoice.invoiceNumber.startsWith('AMB-SUB-')) {
+        const parts = invoice.invoiceNumber.split('-');
+        const subId = parts[2];
+        if (subId) {
+            await this.invoiceRepo.query('UPDATE ambulance_subscriptions SET status = ? WHERE id = ?', ['active', subId]);
+        }
+    }
+}
         else {
     // Updated Logic: Use invoice.appointmentId directly if available
     let appId = invoice.appointmentId;
