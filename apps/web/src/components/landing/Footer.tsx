@@ -39,7 +39,7 @@ export default function Footer() {
                     <div>
                         <h3 className="font-bold mb-4">Contact Us</h3>
                         <div className="space-y-2 text-sm text-gray-400">
-                            <p className="flex items-center gap-2"><FiPhone /> +254 700 448 448</p>
+                            <p className="flex items-center gap-2"><FiPhone /> 0700 448 448</p>
                             <p className="flex items-center gap-2"><FiMail /> info@mclinic.co.ke</p>
                             <p className="flex items-center gap-2"><FiMapPin /> Nairobi, Kenya</p>
                         </div>

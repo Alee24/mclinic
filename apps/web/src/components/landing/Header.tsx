@@ -22,7 +22,7 @@ export default function Header() {
             <div className="bg-gradient-to-r from-[#1D2B36] to-[#2a3f4f] text-white text-xs py-3 px-6 hidden lg:flex justify-between items-center">
                 <div className="flex items-center gap-6">
                     <span className="flex items-center gap-2 hover:text-[#00C65E] transition cursor-pointer">
-                        <FiPhone className="text-[#00C65E]" /> +254 700 448 448
+                        <FiPhone className="text-[#00C65E]" /> 0700 448 448
                     </span>
                     <span className="flex items-center gap-2 hover:text-[#00C65E] transition cursor-pointer">
                         <FiMail className="text-[#00C65E]" /> info@mclinic.co.ke

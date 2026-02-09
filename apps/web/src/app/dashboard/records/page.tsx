@@ -144,7 +144,7 @@ export default function MedicalRecordsPage() {
             doc.setFont('helvetica', 'normal');
             doc.text('Virtual Healthcare Services', 20, 26);
             doc.text('Nairobi, Kenya', 20, 31);
-            doc.text('support@mclinic.co.ke | +254 700 000 000', 20, 36);
+            doc.text('support@mclinic.co.ke | 0700 448 448', 20, 36);
 
             // Horizontal Line
             doc.setDrawColor(200);

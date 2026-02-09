@@ -110,6 +110,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                             ]}
                                             pathname={pathname}
                                         />
+                                        <NavGroup
+                                            label="Communication"
+                                            icon={<FiMessageSquare />}
+                                            active={pathname?.startsWith('/dashboard/admin/sms')}
+                                            items={[
+                                                { href: '/dashboard/admin/sms', label: 'Broadcast SMS' }
+                                            ]}
+                                            pathname={pathname}
+                                        />
                                     </div>
 
                                     {/* Clinical Operations */}

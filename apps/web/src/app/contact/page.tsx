@@ -33,7 +33,7 @@ export default function ContactPage() {
                                 <div>
                                     <h3 className="font-bold text-[#1D2B36] text-lg">Call Us</h3>
                                     <p className="text-gray-600 mb-1">Speak directly to our support team.</p>
-                                    <a href="tel:+254700448448" className="text-blue-600 font-bold text-xl hover:underline">+254 700 448 448</a>
+                                    <a href="tel:0700448448" className="text-blue-600 font-bold text-xl hover:underline">0700 448 448</a>
                                 </div>
                             </div>
 

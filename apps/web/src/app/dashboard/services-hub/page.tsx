@@ -107,12 +107,12 @@ export default function ServicesHubPage() {
                         </a>
 
                         {/* Call */}
-                        <div className="bg-white/10 backdrop-blur-md border border-white/10 p-6 rounded-2xl hover:bg-white/20 transition text-center group cursor-pointer" onClick={() => alert('Call +254 700 000 000')}>
+                        <div className="bg-white/10 backdrop-blur-md border border-white/10 p-6 rounded-2xl hover:bg-white/20 transition text-center group cursor-pointer" onClick={() => alert('Call 0700 448 448')}>
                             <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center text-2xl mx-auto mb-4 group-hover:scale-110 transition-transform">
                                 📞
                             </div>
                             <h3 className="font-bold text-lg mb-1">Call Helpline</h3>
-                            <p className="text-xs text-gray-300">+254 700 000 000</p>
+                            <p className="text-xs text-gray-300">0700 448 448</p>
                         </div>
                     </div>
                 </div>

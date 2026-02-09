@@ -243,7 +243,7 @@ export default function PatientView() {
                         Support
                     </Link>
                     <a
-                        href="tel:+254700448448"
+                        href="tel:0700448448"
                         className="flex items-center justify-center gap-2 py-2 text-gray-500 dark:text-gray-400 hover:text-donezo-dark dark:hover:text-white font-bold text-xs transition bg-gray-50 dark:bg-transparent dark:hover:bg-gray-800 rounded-xl"
                     >
                         <FiPhone className="text-sm" />

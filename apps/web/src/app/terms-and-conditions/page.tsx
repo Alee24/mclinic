@@ -43,8 +43,8 @@ export default function TermsAndConditionsPage() {
                                         key={section.id}
                                         onClick={() => setActiveSection(section.id)}
                                         className={`w-full text-left px-4 py-3 rounded-xl transition-all flex items-center gap-3 ${activeSection === section.id
-                                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
-                                                : 'hover:bg-gray-100 text-gray-600'
+                                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
+                                            : 'hover:bg-gray-100 text-gray-600'
                                             }`}
                                     >
                                         <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${activeSection === section.id ? 'bg-white/20' : 'bg-blue-100 text-blue-600'
@@ -411,7 +411,7 @@ export default function TermsAndConditionsPage() {
                                         </p>
                                         <div className="space-y-2 text-sm">
                                             <p><strong>Email:</strong> <a href="mailto:info@mclinic.co.ke" className="text-blue-600 hover:underline">info@mclinic.co.ke</a></p>
-                                            <p><strong>Phone:</strong> <a href="tel:+254700448448" className="text-blue-600 hover:underline">+254 700 448 448</a></p>
+                                            <p><strong>Phone:</strong> <a href="tel:0700448448" className="text-blue-600 hover:underline">0700 448 448</a></p>
                                             <p><strong>Address:</strong> M-Clinic Kenya, Nairobi, Kenya</p>
                                         </div>
                                     </div>
