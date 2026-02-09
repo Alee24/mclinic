@@ -12,7 +12,7 @@ export enum PaymentProvider {
   PAYPAL = 'paypal',
 }
 
-@Entity()
+@Entity('payment_config')
 export class PaymentConfig {
   @PrimaryGeneratedColumn()
   id: number;
