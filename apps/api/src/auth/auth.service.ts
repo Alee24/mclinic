@@ -459,21 +459,55 @@ export class AuthService {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiry = new Date(Date.now() + 10 * 60000);
 
-    // 1. Try User
-    const user = await this.usersService.findOneByMobile(mobile);
+    // Check BOTH tables simultaneously
+    const [user, doctor] = await Promise.all([
+      this.usersService.findOneByMobile(mobile),
+      this.doctorsService.findOneByMobile(mobile)
+    ]);
+
+    // Helper to mask email
+    const maskEmail = (email: string) => {
+      const [name, domain] = email.split('@');
+      const maskedName = name.length > 2 ? name[0] + '*'.repeat(name.length - 2) + name[name.length - 1] : name;
+      return `${maskedName}@${domain}`;
+    };
+
+    // If both exist, send OTP to both (they'll need to use the correct one)
+    if (user && doctor) {
+      await Promise.all([
+        this.usersService.update(user.id, { otp, otpExpiry: expiry } as any),
+        // @ts-ignore
+        this.doctorsService.update(doctor.id, { otp, otpExpiry: expiry })
+      ]);
+      await this.smsService.sendSms(mobile, `M-Clinic Password Reset OTP: ${otp}. Do not share this code.`);
+      return {
+        message: 'OTP sent.',
+        accounts: [
+          { email: maskEmail(user.email), type: 'patient' },
+          { email: maskEmail(doctor.email), type: 'provider' }
+        ]
+      };
+    }
+
+    // Only User exists
     if (user) {
       await this.usersService.update(user.id, { otp, otpExpiry: expiry } as any);
       await this.smsService.sendSms(mobile, `M-Clinic Password Reset OTP: ${otp}. Do not share this code.`);
-      return { message: 'OTP sent.' };
+      return {
+        message: 'OTP sent.',
+        email: maskEmail(user.email)
+      };
     }
 
-    // 2. Try Doctor
-    const doctor = await this.doctorsService.findOneByMobile(mobile);
+    // Only Doctor exists
     if (doctor) {
       // @ts-ignore
       await this.doctorsService.update(doctor.id, { otp, otpExpiry: expiry });
       await this.smsService.sendSms(mobile, `M-Clinic Password Reset OTP: ${otp}.`);
-      return { message: 'OTP sent.' };
+      return {
+        message: 'OTP sent.',
+        email: maskEmail(doctor.email)
+      };
     }
 
     throw new UnauthorizedException('Mobile number not found.');
@@ -482,17 +516,45 @@ export class AuthService {
   async resetPasswordWithOtp(mobile: string, otp: string, newPass: string) {
     const hashedPassword = await bcrypt.hash(newPass, 10);
 
-    // Check User
-    const user = await this.usersService.findOneByMobile(mobile);
-    if (user && user.otp === otp && new Date(user.otpExpiry) > new Date()) {
+    // Check BOTH tables simultaneously
+    const [user, doctor] = await Promise.all([
+      this.usersService.findOneByMobile(mobile),
+      this.doctorsService.findOneByMobile(mobile)
+    ]);
+
+    // Validate User OTP
+    const userOtpValid = user && user.otp === otp && new Date(user.otpExpiry) > new Date();
+
+    // Validate Doctor OTP
+    // @ts-ignore
+    const doctorOtpValid = doctor && doctor.otp === otp && new Date(doctor.otpExpiry) > new Date();
+
+    // If both have valid OTPs, update the one with the newer OTP (most recent request)
+    if (userOtpValid && doctorOtpValid) {
+      const userOtpTime = new Date(user.otpExpiry).getTime();
+      // @ts-ignore
+      const doctorOtpTime = new Date(doctor.otpExpiry).getTime();
+
+      if (doctorOtpTime > userOtpTime) {
+        // Doctor OTP is newer, update doctor password
+        // @ts-ignore
+        await this.doctorsService.update(doctor.id, { password: hashedPassword, otp: null, otpExpiry: null });
+        return { message: 'Password updated successfully for provider account.' };
+      } else {
+        // User OTP is newer, update user password
+        await this.usersService.update(user.id, { password: hashedPassword, otp: null, otpExpiry: null } as any);
+        return { message: 'Password updated successfully for patient account.' };
+      }
+    }
+
+    // Only User has valid OTP
+    if (userOtpValid) {
       await this.usersService.update(user.id, { password: hashedPassword, otp: null, otpExpiry: null } as any);
       return { message: 'Password updated successfully.' };
     }
 
-    // Check Doctor
-    const doctor = await this.doctorsService.findOneByMobile(mobile);
-    // @ts-ignore
-    if (doctor && doctor.otp === otp && new Date(doctor.otpExpiry) > new Date()) {
+    // Only Doctor has valid OTP
+    if (doctorOtpValid) {
       // @ts-ignore
       await this.doctorsService.update(doctor.id, { password: hashedPassword, otp: null, otpExpiry: null });
       return { message: 'Password updated successfully.' };

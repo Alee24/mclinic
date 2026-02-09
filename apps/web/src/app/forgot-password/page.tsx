@@ -33,7 +33,18 @@ export default function ForgotPasswordPage() {
             try {
                 const res = await api.post('/auth/otp/reset-password-request', { mobile: identifier });
                 if (res) {
-                    toast.success('OTP sent successfully.');
+                    const data = res.data;
+
+                    // Show masked email info to user
+                    if (data.accounts && data.accounts.length > 0) {
+                        const emailList = data.accounts.map((acc: any) => `${acc.email} (${acc.type})`).join(', ');
+                        toast.success(`OTP sent to ${emailList}`);
+                    } else if (data.email) {
+                        toast.success(`OTP sent to ${data.email}`);
+                    } else {
+                        toast.success('OTP sent successfully.');
+                    }
+
                     router.push(`/reset-password?mobile=${encodeURIComponent(identifier)}`);
                 }
             } catch (e: any) {
@@ -95,8 +106,8 @@ export default function ForgotPasswordPage() {
                             type="button"
                             onClick={() => { setMethod('email'); setIdentifier(''); }}
                             className={`flex-1 py-3 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 ${method === 'email'
-                                    ? 'bg-white dark:bg-gray-700 shadow text-gray-900 dark:text-white'
-                                    : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                                ? 'bg-white dark:bg-gray-700 shadow text-gray-900 dark:text-white'
+                                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                                 }`}
                         >
                             <FiMail className="text-lg" /> Via Email
@@ -105,8 +116,8 @@ export default function ForgotPasswordPage() {
                             type="button"
                             onClick={() => { setMethod('mobile'); setIdentifier(''); }}
                             className={`flex-1 py-3 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 ${method === 'mobile'
-                                    ? 'bg-white dark:bg-gray-700 shadow text-gray-900 dark:text-white'
-                                    : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                                ? 'bg-white dark:bg-gray-700 shadow text-gray-900 dark:text-white'
+                                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                                 }`}
                         >
                             <FiSmartphone className="text-lg" /> Via SMS
