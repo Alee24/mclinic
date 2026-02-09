@@ -12,6 +12,8 @@ function ResetPasswordForm() {
     const router = useRouter();
     const token = searchParams.get('token');
     const mobile = searchParams.get('mobile');
+    const accountType = searchParams.get('accountType');
+    const accountId = searchParams.get('accountId');
 
     const [otp, setOtp] = useState('');
     const [password, setPassword] = useState('');
@@ -49,11 +51,16 @@ function ResetPasswordForm() {
         try {
             let res;
             if (mobile) {
-                // OTP Flow
+                // OTP Flow - include account selection if provided
+                const body: any = { mobile, otp, newPass: password };
+                if (accountType && accountId) {
+                    body.accountType = accountType;
+                    body.accountId = parseInt(accountId);
+                }
                 res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://portal.mclinic.co.ke/api'}/auth/otp/reset-password`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ mobile, otp, newPass: password })
+                    body: JSON.stringify(body)
                 });
             } else {
                 // Token Flow

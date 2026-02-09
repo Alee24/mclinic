@@ -4,8 +4,15 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import Link from 'next/link';
-import { FiMail, FiArrowLeft, FiSmartphone, FiArrowRight, FiCheckCircle } from 'react-icons/fi';
+import { FiMail, FiArrowLeft, FiSmartphone, FiArrowRight, FiCheckCircle, FiUser } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+
+interface Account {
+    id: number;
+    email: string;
+    type: string;
+    accountType: string;
+}
 
 export default function ForgotPasswordPage() {
     const router = useRouter();
@@ -14,11 +21,36 @@ export default function ForgotPasswordPage() {
     const [loading, setLoading] = useState(false);
     const [sent, setSent] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    // New state for account selection
+    const [step, setStep] = useState<'input' | 'selection' | 'complete'>('input');
+    const [accounts, setAccounts] = useState<Account[]>([]);
+    const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
+
+    const handleCheckAccounts = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
 
-        if (method === 'email') {
+        if (method === 'mobile') {
+            try {
+                const res = await api.post('/auth/check-accounts', { mobile: identifier });
+                if (res && res.data.accounts) {
+                    setAccounts(res.data.accounts);
+                    if (res.data.accounts.length === 1) {
+                        // Only one account, auto-select and proceed
+                        await sendOtpToAccount(res.data.accounts[0]);
+                    } else {
+                        // Multiple accounts, show selection screen
+                        setStep('selection');
+                    }
+                }
+            } catch (e: any) {
+                const msg = e.response?.data?.message || 'No accounts found.';
+                toast.error(msg);
+            } finally {
+                setLoading(false);
+            }
+        } else {
+            // Email flow (unchanged)
             try {
                 await api.post('/auth/forgot-password', { email: identifier });
                 setSent(true);
@@ -28,35 +60,41 @@ export default function ForgotPasswordPage() {
             } finally {
                 setLoading(false);
             }
-        } else {
-            // Mobile OTP Flow
-            try {
-                const res = await api.post('/auth/otp/reset-password-request', { mobile: identifier });
-                if (res) {
-                    const data = res.data;
-
-                    // Show masked email info to user
-                    if (data.accounts && data.accounts.length > 0) {
-                        const emailList = data.accounts.map((acc: any) => `${acc.email} (${acc.type})`).join(', ');
-                        toast.success(`OTP sent to ${emailList}`);
-                    } else if (data.email) {
-                        toast.success(`OTP sent to ${data.email}`);
-                    } else {
-                        toast.success('OTP sent successfully.');
-                    }
-
-                    router.push(`/reset-password?mobile=${encodeURIComponent(identifier)}`);
-                }
-            } catch (e: any) {
-                const msg = e.response?.data?.message || e.message || 'Failed to send OTP.';
-                toast.error(msg);
-            } finally {
-                setLoading(false);
-            }
         }
-    }
+    };
 
-    if (sent && method === 'email') {
+    const sendOtpToAccount = async (account: Account) => {
+        setLoading(true);
+        try {
+            const res = await api.post('/auth/otp/reset-password-request', {
+                mobile: identifier,
+                accountType: account.accountType,
+                accountId: account.id
+            });
+            if (res) {
+                toast.success(`OTP sent to ${account.email}`);
+                router.push(`/reset-password?mobile=${encodeURIComponent(identifier)}&accountType=${account.accountType}&accountId=${account.id}`);
+            }
+        } catch (e: any) {
+            const msg = e.response?.data?.message || e.message || 'Failed to send OTP.';
+            toast.error(msg);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleAccountSelect = (account: Account) => {
+        setSelectedAccount(account);
+    };
+
+    const handleContinueWithAccount = () => {
+        if (selectedAccount) {
+            sendOtpToAccount(selectedAccount);
+        }
+    };
+
+    // Success screen for email method
+    if (sent) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-[#050505] dark:via-[#0a0a0a] dark:to-[#050505] p-4">
                 <div className="max-w-md w-full bg-white dark:bg-[#121212] rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-800 p-8 text-center">
@@ -79,6 +117,87 @@ export default function ForgotPasswordPage() {
         )
     }
 
+    // Account selection screen
+    if (step === 'selection') {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-[#050505] dark:via-[#0a0a0a] dark:to-[#050505] p-4">
+                <div className="max-w-lg w-full bg-white dark:bg-[#121212] rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-800 p-8 md:p-12">
+
+                    {/* Header */}
+                    <div className="text-center mb-10">
+                        <Link href="/" className="inline-flex items-center gap-2 mb-6 group">
+                            <div className="w-10 h-10 bg-green-600 text-white rounded-xl flex items-center justify-center font-bold text-xl shadow-lg group-hover:scale-110 transition-transform">
+                                M
+                            </div>
+                            <span className="font-bold text-xl text-gray-900 dark:text-white">M-Clinic</span>
+                        </Link>
+                        <h2 className="text-3xl font-black text-gray-900 dark:text-white mb-2">
+                            Select Account
+                        </h2>
+                        <p className="text-gray-500 dark:text-gray-400">
+                            Multiple accounts found for <strong>{identifier}</strong>
+                        </ p>
+                    </div>
+
+                    {/* Account Cards */}
+                    <div className="space-y-4 mb-8">
+                        {accounts.map((account) => (
+                            <button
+                                key={`${account.accountType}-${account.id}`}
+                                onClick={() => handleAccountSelect(account)}
+                                className={`w-full p-6 rounded-2xl border-2 transition-all text-left ${selectedAccount?.id === account.id && selectedAccount?.accountType === account.accountType
+                                        ? 'border-green-500 bg-green-50 dark:bg-green-900/20 shadow-lg'
+                                        : 'border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-700'
+                                    }`}
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${account.type === 'patient'
+                                            ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600'
+                                            : 'bg-purple-100 dark:bg-purple-900/30 text-purple-600'
+                                        }`}>
+                                        <FiUser className="text-2xl" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h3 className="font-bold text-lg text-gray-900 dark:text-white capitalize">
+                                            {account.type} Account
+                                        </h3>
+                                        <p className="text-gray-600 dark:text-gray-400">
+                                            {account.email}
+                                        </p>
+                                    </div>
+                                    {selectedAccount?.id === account.id && selectedAccount?.accountType === account.accountType && (
+                                        <FiCheckCircle className="text-2xl text-green-600" />
+                                    )}
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Continue Button */}
+                    <button
+                        onClick={handleContinueWithAccount}
+                        disabled={!selectedAccount || loading}
+                        className="w-full py-4 rounded-xl font-bold text-white bg-green-600 hover:bg-green-700 shadow-green-500/30 shadow-lg transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed group"
+                    >
+                        {loading ? 'Sending OTP...' : 'Send OTP'}
+                        {!loading && <FiArrowRight className="group-hover:translate-x-1 transition-transform" />}
+                    </button>
+
+                    {/* Back */}
+                    <div className="mt-8 text-center">
+                        <button
+                            onClick={() => { setStep('input'); setAccounts([]); setSelectedAccount(null); }}
+                            className="inline-flex items-center gap-2 font-bold text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition"
+                        >
+                            <FiArrowLeft /> Back
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Main input screen
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-[#050505] dark:via-[#0a0a0a] dark:to-[#050505] p-4">
             <div className="max-w-lg w-full bg-white dark:bg-[#121212] rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-800 p-8 md:p-12">
@@ -125,7 +244,7 @@ export default function ForgotPasswordPage() {
                     </div>
                 </div>
 
-                <form className="space-y-6" onSubmit={handleSubmit}>
+                <form className="space-y-6" onSubmit={handleCheckAccounts}>
                     <div>
                         <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">
                             {method === 'email' ? 'Email Address' : 'Mobile Number'}
@@ -147,7 +266,7 @@ export default function ForgotPasswordPage() {
                         disabled={loading}
                         className="w-full py-4 rounded-xl font-bold text-white bg-green-600 hover:bg-green-700 shadow-green-500/30 shadow-lg transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed group"
                     >
-                        {loading ? 'Processing...' : (method === 'email' ? 'Send Reset Link' : 'Send One-Time PIN')}
+                        {loading ? 'Processing...' : (method === 'email' ? 'Send Reset Link' : 'Check Accounts')}
                         {!loading && <FiArrowRight className="group-hover:translate-x-1 transition-transform" />}
                     </button>
                 </form>
