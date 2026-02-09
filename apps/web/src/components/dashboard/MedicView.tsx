@@ -1,112 +1,36 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { api } from '@/lib/api';
-import { FiCalendar, FiUsers, FiClock, FiActivity, FiDollarSign, FiPlus, FiCheckCircle } from 'react-icons/fi';
+import { useState } from 'react';
+import { FiActivity, FiPlus } from 'react-icons/fi';
 import { useAuth } from '@/lib/auth';
-import Link from 'next/link';
 import ApprovalStatusBanner from '../ApprovalStatusBanner';
 import DoctorIdCard from '../DoctorIdCard';
-
 import EditMedicProfileModal from './doctors/EditMedicProfileModal';
 import ViewAppointmentDetailsModal from './appointments/ViewAppointmentDetailsModal';
+import { useMedicDashboard } from '@/hooks/useMedicDashboard';
+import MedicStats from './medic/MedicStats';
+import UpcomingAppointments from './medic/UpcomingAppointments';
+import QuickActions from './medic/QuickActions';
 
 export default function DoctorView() {
     const { user } = useAuth();
-    const [stats, setStats] = useState({
-        totalPatients: 0,
-        appointmentsToday: 0,
-        pendingReports: 0,
-        earningsAmount: 0,
-        upcomingAppointments: [] as any[]
-    });
-
-    const [isOnline, setIsOnline] = useState(false);
-    const [profileWarning, setProfileWarning] = useState(false);
-    const [doctorProfile, setDoctorProfile] = useState<any>(null); // Store full doctor profile
+    const {
+        doctorProfile,
+        stats,
+        upcomingAppointments,
+        isOnline,
+        toggleOnlineStatus,
+        loading,
+        refresh
+    } = useMedicDashboard();
 
     // Modal States
     const [showEditProfileModal, setShowEditProfileModal] = useState(false);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
 
-    useEffect(() => {
-        const fetchDoctorData = async () => {
-            try {
-                // Fetch Doctor Profile
-                if (user?.email) {
-                    const profileRes = await api.get('/doctors/profile/me');
-                    if (profileRes && profileRes.ok) {
-                        const myDoc = await profileRes.json();
-                        if (myDoc) {
-                            setDoctorProfile(myDoc);
-                            setIsOnline(myDoc.is_online === 1);
-
-                            if (!myDoc.about || !myDoc.speciality || !myDoc.qualification || !myDoc.address) {
-                                setProfileWarning(true);
-                            } else {
-                                setProfileWarning(false);
-                            }
-                        }
-                    }
-                }
-
-                // Fetch Appointments
-                const aptRes = await api.get('/appointments');
-                let appointments = [];
-                if (aptRes?.ok) {
-                    appointments = await aptRes.json();
-                }
-
-                // Fetch Financials
-                const finRes = await api.get('/financial/stats');
-                let financials = { balance: 0, earningsAmount: 0 };
-                if (finRes?.ok) {
-                    financials = await finRes.json();
-                }
-
-                setStats(prev => ({
-                    ...prev,
-                    appointmentsToday: appointments.filter((a: any) => {
-                        return new Date(a.appointment_date).toDateString() === new Date().toDateString();
-                    }).length,
-                    upcomingAppointments: appointments.slice(0, 5),
-                    earningsAmount: financials.balance || 0
-                }));
-            } catch (err) {
-                console.error(err);
-            }
-        };
-        fetchDoctorData();
-    }, [user, showEditProfileModal]); // Re-fetch when modal closes (profile updated)
-
-    const handleToggleOnline = async () => {
-        const newStatus = !isOnline;
-
-        if (newStatus) {
-            // Going Online - Get Location
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(async (pos) => {
-                    const { latitude, longitude } = pos.coords;
-                    await updateStatusAPI(newStatus ? 1 : 0, latitude, longitude);
-                }, (err) => {
-                    alert('Location access is required to go online.');
-                });
-            } else {
-                alert('Geolocation is not supported by this browser.');
-            }
-        } else {
-            // Going Offline
-            await updateStatusAPI(0);
-        }
-    };
-
-    const updateStatusAPI = async (status: number, lat?: number, lng?: number) => {
-        if (doctorProfile) {
-            await api.patch(`/doctors/${doctorProfile.id}/online-status`, { status, latitude: lat, longitude: lng });
-            setIsOnline(status === 1);
-        }
-    };
+    // Profile Warning Logic
+    const profileWarning = doctorProfile && (!doctorProfile.about || !doctorProfile.speciality || !doctorProfile.qualification || !doctorProfile.address);
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -156,7 +80,7 @@ export default function DoctorView() {
                             {isOnline ? 'ONLINE' : 'OFFLINE'}
                         </span>
                         <button
-                            onClick={handleToggleOnline}
+                            onClick={toggleOnlineStatus}
                             className={`w-12 h-6 rounded-full p-1 transition-colors duration-300 ${isOnline ? 'bg-green-500' : 'bg-gray-300'}`}
                         >
                             <div className={`w-4 h-4 rounded-full bg-white shadow-md transform transition-transform duration-300 ${isOnline ? 'translate-x-6' : 'translate-x-0'}`} />
@@ -200,21 +124,7 @@ export default function DoctorView() {
                 </div>
             ) : (
                 <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <Link href="/dashboard/finance/transactions">
-                            <MedicStatCard label="Wallet Balance" value={`KES ${stats.earningsAmount.toLocaleString()}`} icon={<FiDollarSign />} color="green" />
-                        </Link>
-                        <Link href="/dashboard/appointments">
-                            <MedicStatCard label="Today's Appointments" value={stats.appointmentsToday} icon={<FiCalendar />} color="blue" />
-                        </Link>
-                        {/* Changed from Reviews to My Patients for better utility */}
-                        <Link href="/dashboard/patients">
-                            <MedicStatCard label="My Patients" value={doctorProfile?.patients_count || "View"} icon={<FiUsers />} color="purple" />
-                        </Link>
-                        <Link href="/dashboard/appointments">
-                            <MedicStatCard label="Pending Reports" value={stats.pendingReports} icon={<FiClock />} color="orange" />
-                        </Link>
-                    </div>
+                    <MedicStats stats={stats} profile={doctorProfile} loading={loading} />
 
                     {/* ID Card Generation Section - Only for Approved Doctors */}
                     {doctorProfile && doctorProfile.approvalStatus === 'approved' && (
@@ -228,124 +138,39 @@ export default function DoctorView() {
                     )}
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div className="lg:col-span-2 bg-white dark:bg-[#161616] rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
-                            <div className="flex justify-between items-center mb-6">
-                                <h3 className="font-bold text-lg dark:text-white">Upcoming Appointments</h3>
-                                <Link href="/dashboard/appointments" className="text-sm font-bold text-donezo-dark hover:underline">View Schedule</Link>
-                            </div>
-                            <div className="space-y-4">
-                                {stats.upcomingAppointments.length === 0 ? (
-                                    <div className="py-12 text-center text-gray-400 italic">No appointments found.</div>
-                                ) : stats.upcomingAppointments.map((apt, i) => (
-                                    <div
-                                        key={apt.id}
-                                        onClick={() => {
-                                            setSelectedAppointment(apt);
-                                            setShowDetailsModal(true);
-                                        }}
-                                        className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50/50 dark:bg-black/20 border border-gray-100 dark:border-gray-800/50 hover:border-donezo-dark/30 transition-colors group cursor-pointer"
-                                    >
-                                        <div className="w-12 h-12 rounded-xl bg-white dark:bg-gray-800 flex items-center justify-center font-bold text-donezo-dark shadow-sm group-hover:bg-donezo-dark group-hover:text-white transition-colors capitalize">
-                                            {apt.patient?.fname?.[0] || 'P'}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h4 className="font-bold text-gray-900 dark:text-white">{apt.patient?.fname || 'Guest Patient'}</h4>
-                                            <p className="text-xs text-gray-500 font-medium">{apt.appointment_time} • {new Date(apt.appointment_date).toDateString()}</p>
-                                        </div>
-                                        <div className="flex flex-col items-end gap-1.5">
-                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${apt.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
-                                                }`}>
-                                                {apt.status}
-                                            </span>
-                                            <button className="text-[10px] font-bold text-donezo-dark hover:underline">View Details</button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Quick Actions & Telemedicine */}
-
-
-                        <div className="space-y-6">
-                            {/* Quick Workflows */}
-                            <div className="bg-white dark:bg-[#161616] rounded-3xl p-6 border border-gray-100 dark:border-gray-800">
-                                <h3 className="font-bold text-lg dark:text-white mb-4">Quick Actions</h3>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <Link href="/dashboard/pharmacy" className="p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/30 hover:scale-105 transition-transform text-center group">
-                                        <div className="w-10 h-10 mx-auto bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-2 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                                            💊
-                                        </div>
-                                        <div className="text-xs font-bold text-blue-800 dark:text-blue-300">Pharmacy</div>
-                                    </Link>
-                                    <Link href="/dashboard/lab" className="p-4 bg-purple-50 dark:bg-purple-900/10 rounded-xl border border-purple-100 dark:border-purple-900/30 hover:scale-105 transition-transform text-center group">
-                                        <div className="w-10 h-10 mx-auto bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mb-2 group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                                            🔬
-                                        </div>
-                                        <div className="text-xs font-bold text-purple-800 dark:text-purple-300">Lab Request</div>
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
+                        <UpcomingAppointments
+                            appointments={upcomingAppointments}
+                            loading={loading}
+                            onSelect={(apt) => {
+                                setSelectedAppointment(apt);
+                                setShowDetailsModal(true);
+                            }}
+                        />
+                        <QuickActions />
                     </div>
-
                 </>
-            )
-            }
+            )}
 
             {/* Modals */}
-            {
-                showEditProfileModal && doctorProfile && (
-                    <EditMedicProfileModal
-                        doctor={doctorProfile}
-                        onClose={() => setShowEditProfileModal(false)}
-                        onSuccess={() => {
-                            // Trigger re-fetch via dependency array if needed, but handled by useEffect based on showEditProfileModal possibly?
-                            // Actually I added showEditProfileModal as deep dependency so it should re-fetch when modal closes if I toggle it?
-                            // Wait, I toggled it to false. 
-                            // Let's rely on standard re-fetch or I can manually trigger.
-                            // For now reliance on setDoctorProfile might need manual update or re-fetch.
-                            // The dependency [user, showEditProfileModal] will trigger when modal closes?
-                            // Only if showEditProfileModal changes. It changes from true to false. So yes.
-                        }}
-                    />
-                )
-            }
+            {showEditProfileModal && doctorProfile && (
+                <EditMedicProfileModal
+                    doctor={doctorProfile}
+                    onClose={() => setShowEditProfileModal(false)}
+                    onSuccess={() => {
+                        refresh(); // Refresh data after profile update
+                    }}
+                />
+            )}
 
-            {
-                showDetailsModal && selectedAppointment && (
-                    <ViewAppointmentDetailsModal
-                        appointment={selectedAppointment}
-                        onClose={() => setShowDetailsModal(false)}
-                    />
-                )
-            }
-
+            {showDetailsModal && selectedAppointment && (
+                <ViewAppointmentDetailsModal
+                    appointment={selectedAppointment}
+                    onClose={() => setShowDetailsModal(false)}
+                />
+            )}
 
             <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800 text-center">
-                <p className="text-xs text-gray-400">
-                    By using this platform, you agree to our <Link href="/legal/terms" className="text-donezo-dark hover:underline">Terms of Service</Link> and <Link href="/legal/privacy" className="text-donezo-dark hover:underline">Privacy Policy</Link>.
-                </p>
-            </div>
-        </div >
-    );
-}
-
-function MedicStatCard({ label, value, icon, color }: any) {
-    const colors: any = {
-        green: 'bg-green-50 text-green-600 dark:bg-green-900/20',
-        blue: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20',
-        purple: 'bg-purple-50 text-purple-600 dark:bg-purple-900/20',
-        orange: 'bg-orange-50 text-orange-600 dark:bg-orange-900/20',
-    };
-    return (
-        <div className="bg-white dark:bg-[#161616] p-6 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-4 group hover:border-primary/50 transition-all cursor-pointer h-full">
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl transition-transform group-hover:scale-110 duration-500 ${colors[color] || 'bg-gray-50'}`}>
-                {icon}
-            </div>
-            <div>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{label}</p>
-                <p className="text-2xl font-black text-gray-900 dark:text-white leading-tight">{value}</p>
+                {/* Footer content can stay or be removed if layout handles it */}
             </div>
         </div>
     );

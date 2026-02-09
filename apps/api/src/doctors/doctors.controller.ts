@@ -33,6 +33,20 @@ export class DoctorsController {
     return this.doctorsService.findByEmail(req.user.email);
   }
 
+  @UseGuards(AuthGuard('jwt'))
+  @Get('dashboard-stats')
+  async getDashboardStats(@Request() req: any) {
+    const doctor = await this.doctorsService.findByEmail(req.user.email);
+    if (!doctor) {
+      return {
+        appointmentsToday: 0,
+        totalPatients: 0,
+        pendingReports: 0
+      };
+    }
+    return this.doctorsService.getDashboardStats(doctor.id);
+  }
+
   @Get()
   findAll(
     @Query('search') search?: string,

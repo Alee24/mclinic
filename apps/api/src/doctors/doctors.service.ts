@@ -23,6 +23,39 @@ export class DoctorsService implements OnModuleInit {
         private nckService: NckVerificationService,
     ) { }
 
+    async getDashboardStats(doctorId: number) {
+        // 1. Today's Appointments
+        const todayStr = new Date().toISOString().split('T')[0];
+        const appointmentsToday = await this.appointmentsRepository.createQueryBuilder('appointment')
+            .where('appointment.doctorId = :doctorId', { doctorId })
+            .andWhere('appointment.appointment_date = :today', { today: todayStr })
+            .getCount();
+
+        // 2. Total Patients (Unique)
+        const uniquePatients = await this.appointmentsRepository
+            .createQueryBuilder('appointment')
+            .select('COUNT(DISTINCT appointment.patientId)', 'count')
+            .where('appointment.doctorId = :doctorId', { doctorId })
+            .getRawOne();
+        const totalPatients = parseInt(uniquePatients.count || '0');
+
+        // 3. Pending Reports (Completed appointments with NO medical record)
+        // We assume 'medical_record' is the table name as per Entity definition
+        const pendingReports = await this.appointmentsRepository
+            .createQueryBuilder('appointment')
+            .leftJoin('medical_record', 'mr', 'mr.appointmentId = appointment.id')
+            .where('appointment.doctorId = :doctorId', { doctorId })
+            .andWhere('appointment.status = :status', { status: 'completed' })
+            .andWhere('mr.id IS NULL')
+            .getCount();
+
+        return {
+            appointmentsToday,
+            totalPatients,
+            pendingReports
+        };
+    }
+
     async onModuleInit() {
         console.log('[DoctorsService] Startup checks bypassed (Strict Separation Active)');
         // try {
