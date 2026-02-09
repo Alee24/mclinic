@@ -1,4 +1,5 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common';
+
 import { UserRole } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { DoctorsService } from '../doctors/doctors.service';
@@ -385,7 +386,7 @@ export class AuthService {
     }
 
     if (accounts.length === 0) {
-      throw new UnauthorizedException('No accounts found for this mobile number.');
+      throw new NotFoundException('No accounts found for this mobile number.');
     }
 
     return { accounts };

@@ -33,28 +33,37 @@ export default function ForgotPasswordPage() {
         if (method === 'mobile') {
             try {
                 const res = await api.post('/auth/check-accounts', { mobile: identifier });
-                if (res && res.data.accounts) {
-                    setAccounts(res.data.accounts);
-                    if (res.data.accounts.length === 1) {
-                        // Only one account, auto-select and proceed
-                        await sendOtpToAccount(res.data.accounts[0]);
-                    } else {
-                        // Multiple accounts, show selection screen
-                        setStep('selection');
+                if (res && res.ok) {
+                    const data = await res.json();
+                    if (data.accounts) {
+                        setAccounts(data.accounts);
+                        if (data.accounts.length === 1) {
+                            // Only one account, auto-select and proceed
+                            await sendOtpToAccount(data.accounts[0]);
+                        } else {
+                            // Multiple accounts, show selection screen
+                            setStep('selection');
+                        }
                     }
+                } else {
+                    const errorData = res ? await res.json() : {};
+                    toast.error(errorData.message || 'No accounts found.');
                 }
             } catch (e: any) {
-                const msg = e.response?.data?.message || 'No accounts found.';
-                toast.error(msg);
+                toast.error('Connection failed.');
             } finally {
                 setLoading(false);
             }
         } else {
             // Email flow (unchanged)
             try {
-                await api.post('/auth/forgot-password', { email: identifier });
-                setSent(true);
-                toast.success('Reset link sent if email exists.');
+                const res = await api.post('/auth/forgot-password', { email: identifier });
+                if (res && res.ok) {
+                    setSent(true);
+                    toast.success('Reset link sent if email exists.');
+                } else {
+                    toast.error('Something went wrong.');
+                }
             } catch (e) {
                 toast.error('Something went wrong.');
             } finally {
@@ -71,13 +80,16 @@ export default function ForgotPasswordPage() {
                 accountType: account.accountType,
                 accountId: account.id
             });
-            if (res) {
+
+            if (res && res.ok) {
                 toast.success(`OTP sent to ${account.email}`);
                 router.push(`/reset-password?mobile=${encodeURIComponent(identifier)}&accountType=${account.accountType}&accountId=${account.id}`);
+            } else {
+                const errorData = res ? await res.json() : {};
+                toast.error(errorData.message || 'Failed to send OTP.');
             }
         } catch (e: any) {
-            const msg = e.response?.data?.message || e.message || 'Failed to send OTP.';
-            toast.error(msg);
+            toast.error('Connection failed.');
         } finally {
             setLoading(false);
         }
@@ -146,14 +158,14 @@ export default function ForgotPasswordPage() {
                                 key={`${account.accountType}-${account.id}`}
                                 onClick={() => handleAccountSelect(account)}
                                 className={`w-full p-6 rounded-2xl border-2 transition-all text-left ${selectedAccount?.id === account.id && selectedAccount?.accountType === account.accountType
-                                        ? 'border-green-500 bg-green-50 dark:bg-green-900/20 shadow-lg'
-                                        : 'border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-700'
+                                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20 shadow-lg'
+                                    : 'border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-700'
                                     }`}
                             >
                                 <div className="flex items-center gap-4">
                                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${account.type === 'patient'
-                                            ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600'
-                                            : 'bg-purple-100 dark:bg-purple-900/30 text-purple-600'
+                                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600'
+                                        : 'bg-purple-100 dark:bg-purple-900/30 text-purple-600'
                                         }`}>
                                         <FiUser className="text-2xl" />
                                     </div>
