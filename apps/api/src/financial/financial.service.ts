@@ -320,7 +320,7 @@ export class FinancialService {
             throw new NotFoundException('Doctor profile not found');
         }
 
-        console.log(`[FINANCIAL] getDoctorStats: Found provider ${doctor.email} (ID: ${doctor.id}, Role: ${user.role}) for User ID: ${userId}`);
+        console.log(`[FINANCIAL] getDoctorStats: Found provider ${doctor.email} (ID: ${doctor.id}, Role: ${doctor.dr_type}) for User ID: ${userId}`);
 
         // 1. Wallet Balance (Source of Truth: Wallet Entity)
         let balance = 0;
