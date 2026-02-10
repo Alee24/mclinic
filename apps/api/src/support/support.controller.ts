@@ -9,7 +9,7 @@ export class SupportController {
 
     // Public endpoint for "Need Help?" form
     @Post()
-    create(@Body() body: { email?: string; mobile?: string; message: string }) {
+    create(@Body() body: { name?: string; email?: string; mobile?: string; message: string }) {
         return this.supportService.create(body);
     }
 
