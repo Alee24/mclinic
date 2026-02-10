@@ -24,6 +24,10 @@ async function repair() {
     });
 
     try {
+        console.log("Step 0: Disabling foreign key checks...");
+        await connection.execute('SET FOREIGN_KEY_CHECKS = 0');
+        console.log("✓ Foreign key checks disabled.");
+
         console.log("Step 1: Clearing corrupted 'doctors' tablespace...");
         try {
             await connection.execute('ALTER TABLE doctors DISCARD TABLESPACE');
@@ -127,6 +131,10 @@ async function repair() {
             console.log("Then run this script again.\n");
         }
     } finally {
+        try {
+            await connection.execute('SET FOREIGN_KEY_CHECKS = 1');
+            console.log("✓ Foreign key checks re-enabled.");
+        } catch (e) { }
         await connection.end();
     }
 }
