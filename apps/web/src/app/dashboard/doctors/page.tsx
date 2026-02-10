@@ -130,6 +130,22 @@ export default function DoctorsPage() {
         }
     };
 
+    const handleSync = async () => {
+        const tid = toast.loading('Syncing medics from users table...');
+        try {
+            const res = await api.post('/doctors/admin/sync', {});
+            if (res && res.ok) {
+                const data = await res.json();
+                toast.success(data.message || 'Sync complete!', { id: tid });
+                fetchDoctors();
+            } else {
+                toast.error('Sync failed.', { id: tid });
+            }
+        } catch (err) {
+            toast.error('Sync error.', { id: tid });
+        }
+    };
+
     useEffect(() => {
         if (user && user.role === UserRole.ADMIN) {
             fetchDoctors();
@@ -282,6 +298,12 @@ export default function DoctorsPage() {
                     )}
 
                     <button onClick={downloadTemplate} className="text-sm text-blue-600 hover:underline px-2">Download CSV Template</button>
+                    <button
+                        onClick={handleSync}
+                        className="flex items-center gap-2 bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-200 font-bold px-4 py-2 rounded-lg transition"
+                    >
+                        <FiActivity /> Sync from Users
+                    </button>
                     <label className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 font-bold px-4 py-2 rounded-lg transition cursor-pointer hover:bg-gray-200">
                         <FiEdit2 /> Upload CSV
                         <input type="file" accept=".csv" onChange={handleFileUpload} className="hidden" />
