@@ -12,7 +12,7 @@ import { Speciality } from '../../specialities/entities/speciality.entity';
 import { DoctorSchedule } from '../../doctor-schedules/entities/doctor-schedule.entity';
 import { DoctorLicence } from '../../doctor-licences/entities/doctor-licence.entity';
 
-@Entity('medics')
+@Entity('doctors')
 export class Doctor {
   @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })
   id: number;
