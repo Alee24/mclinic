@@ -10,6 +10,9 @@ import * as bcrypt from 'bcrypt';
 import * as QRCode from 'qrcode';
 
 import { NckVerificationService } from './nck-verification.service';
+import * as fs from 'fs';
+import * as path from 'path';
+import axios from 'axios';
 
 @Injectable()
 export class DoctorsService implements OnModuleInit {
@@ -1010,44 +1013,52 @@ export class DoctorsService implements OnModuleInit {
             licenseExpiryDate: result.success ? result.expiryDate : doc.licenseExpiryDate,
         };
 
-        if (result.success && result.status === 'Active') {
-            // NCK says they are GOOD
+        if (result.success) {
+            // Record exists - User wants them activated
             updateData.status = 1; // Active
             updateData.approvalStatus = 'approved';
-            updateData.rejectionReason = null; // Clear any previous suspension reason
+            updateData.rejectionReason = result.status !== 'Active' ? `Note: NCK Status is ${result.status}` : null;
+            updateData.Verified_status = 1;
+            updateData.licenseStatus = result.status?.toLowerCase() === 'active' ? 'valid' : 'expired';
 
             // Auto-update Qualifications if found
             if (result.qualifications) {
                 updateData.qualification = result.qualifications;
             }
 
-            // Auto-update Profile Picture if found (and it's not the default avatar)
+            // Auto-update Profile Picture if found
             if (result.imageUrl && result.imageUrl.startsWith('http')) {
-                // We should ideally download this to our server to avoid hotlinking issues
-                // For now, we update the URL. NOTE: This might need a downloader helper if NCK blocks hotlinking.
-                // updateData.profile_image = result.imageUrl; 
-
-                // TODO: Implement image download logic here if needed. 
-                // Given the instructions, we'll try to use it directly or suggest a download utility.
-                // Since user asked to "pull the photo... and save it", hotlinking is risky.
-                // However, without a dedicated download utility ready in this function scope, we will save the URL 
-                // and rely on the frontend or a separate job to cache it, OR we implement a quick download here.
-
-                // Implementing quick download:
                 try {
-                    // Check if we have file writing capability here (we do via fs).
-                    // We need to import fs and path, or just use the current module context?
-                    // Given context limitations, let's stick to saving the URL for now, 
-                    // but cleaner would be to download.
-
-                    updateData.profile_image = result.imageUrl;
+                    const localPath = await this.downloadProfileImage(result.imageUrl, id);
+                    if (localPath) {
+                        updateData.profile_image = localPath;
+                    }
                 } catch (e) {
                     console.error('Failed to process NCK image', e);
+                    updateData.profile_image = result.imageUrl;
                 }
             }
 
+            // Auto-update Name if found
+            if (result.name) {
+                const { fname, lname } = this.parseNckName(result.name);
+                updateData.fname = fname;
+                updateData.lname = lname;
+            }
+
             await this.doctorsRepository.update(id, updateData);
-            return { success: true, medic: await this.findOne(id), nck: result };
+
+            // Sync with User account if exists (Very important for login consistency)
+            const updatedDoc = await this.findOne(id);
+            if (updatedDoc && updatedDoc.email) {
+                try {
+                    await this.usersService.syncUserFromDoctor(updatedDoc);
+                } catch (syncErr) {
+                    console.error(`[DoctorsService] Failed to sync user for verified medic ${updatedDoc.email}`, syncErr);
+                }
+            }
+
+            return { success: true, medic: updatedDoc, nck: result };
         } else {
             // NCK says they are NOT active or record is missing
             updateData.status = 0; // Inactive
@@ -1088,14 +1099,9 @@ export class DoctorsService implements OnModuleInit {
         for (const doc of doctors) {
             if (doc.licenceNo && doc.licenceNo.length > 3) {
                 try {
-                    const result = await this.nckService.verifyNurse(doc.licenceNo);
-                    if (result.success) {
-                        await this.doctorsRepository.update(doc.id, {
-                            Verified_status: result.status === 'Active' ? 1 : 0,
-                            licenseStatus: result.status?.toLowerCase() === 'active' ? 'valid' : 'expired',
-                            licenseExpiryDate: result.expiryDate,
-                            approvalStatus: result.status === 'Active' ? 'approved' : doc.approvalStatus
-                        });
+                    // Call the main verification method which now contains all logic (activation, name sync, image sync)
+                    const res = await this.verifyAndUpdateMedic(doc.id);
+                    if (res && res.success) {
                         updated++;
                     }
                 } catch (e) {
@@ -1131,5 +1137,53 @@ export class DoctorsService implements OnModuleInit {
             approvalStatus: 'approved',
             rejectionReason: null as any
         });
+    }
+
+    private async downloadProfileImage(url: string, doctorId: number): Promise<string | null> {
+        try {
+            const destDir = path.resolve(process.cwd(), 'uploads', 'profiles');
+            if (!fs.existsSync(destDir)) {
+                fs.mkdirSync(destDir, { recursive: true });
+            }
+
+            const filename = `nck-${doctorId}-${Date.now()}.jpg`;
+            const destPath = path.join(destDir, filename);
+
+            const response = await axios({
+                url,
+                method: 'GET',
+                responseType: 'stream',
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                }
+            });
+
+            const writer = fs.createWriteStream(destPath);
+            response.data.pipe(writer);
+
+            return new Promise((resolve, reject) => {
+                writer.on('finish', () => resolve(filename));
+                writer.on('error', reject);
+            });
+        } catch (error) {
+            console.error('[DoctorsService] Error downloading NCK profile image:', error.message);
+            return null;
+        }
+    }
+
+    private parseNckName(fullName: string): { fname: string; lname: string } {
+        if (!fullName) return { fname: '', lname: '' };
+
+        const parts = fullName.trim().split(/\s+/);
+        if (parts.length === 1) {
+            return { fname: parts[0], lname: '' };
+        }
+
+        // Usually: First Name, Middle Name(s), Last Name
+        // We'll take first part as fname and the rest as lname
+        const fname = parts[0];
+        const lname = parts.slice(1).join(' ');
+
+        return { fname, lname };
     }
 }

@@ -218,4 +218,20 @@ export class UsersService implements OnModuleInit {
       daysRemaining
     };
   }
+
+  async syncUserFromDoctor(doctor: any): Promise<void> {
+    if (!doctor.email) return;
+    const user = await this.usersRepository.findOne({ where: { email: doctor.email } });
+    if (!user) return;
+
+    const updates: any = {};
+    if (doctor.fname) updates.fname = doctor.fname;
+    if (doctor.lname) updates.lname = doctor.lname;
+    if (doctor.profile_image) updates.profilePicture = doctor.profile_image;
+    if (doctor.Verified_status !== undefined) updates.status = doctor.Verified_status === 1;
+
+    if (Object.keys(updates).length > 0) {
+      await this.usersRepository.update(user.id, updates);
+    }
+  }
 }
