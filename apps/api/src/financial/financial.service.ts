@@ -136,7 +136,7 @@ export class FinancialService {
             // But patientId in appointment refers to User ID usually.
             query.where('invoice.customerEmail = :email', { email: user.email })
                 .orWhere('appointment.patientId = :userId', { userId: user.id }); // Assuming user.id in JWT is valid
-        } else if (user.role === 'doctor' || user.role === 'medic') {
+        } else if (['doctor', 'medic', 'nurse', 'clinician'].includes(user.role?.toLowerCase())) {
             const doctor = await this.doctorRepo.findOne({ where: { email: user.email } });
             if (doctor) {
                 query.where('invoice.doctorId = :doctorId', { doctorId: doctor.id });
@@ -188,7 +188,7 @@ export class FinancialService {
 
     async getStats(user?: { role: string; email: string; id: number }) {
         console.log(`[FINANCIAL] getStats service called with role: '${user?.role}'`);
-        if (user && (user.role?.toLowerCase() === 'doctor' || user.role?.toLowerCase() === 'medic')) {
+        if (user && ['doctor', 'medic', 'nurse', 'clinician'].includes(user.role?.toLowerCase())) {
             return this.getDoctorStats(user);
         }
 
@@ -320,7 +320,7 @@ export class FinancialService {
             throw new NotFoundException('Doctor profile not found');
         }
 
-        console.log(`[FINANCIAL] getDoctorStats: Found doctor ${doctor.email} (ID: ${doctor.id}) for User ID: ${userId}`);
+        console.log(`[FINANCIAL] getDoctorStats: Found provider ${doctor.email} (ID: ${doctor.id}, Role: ${user.role}) for User ID: ${userId}`);
 
         // 1. Wallet Balance (Source of Truth: Wallet Entity)
         let balance = 0;
