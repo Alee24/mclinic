@@ -34,7 +34,22 @@ export async function fetchWithAuth(endpoint: string, options: RequestInit = {})
 }
 
 export const api = {
-    get: (endpoint: string) => fetchWithAuth(endpoint, { method: 'GET' }),
+    get: (endpoint: string, params?: Record<string, any>) => {
+        let url = endpoint;
+        if (params) {
+            const searchParams = new URLSearchParams();
+            Object.entries(params).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && value !== '') {
+                    searchParams.append(key, value.toString());
+                }
+            });
+            const queryString = searchParams.toString();
+            if (queryString) {
+                url += (url.includes('?') ? '&' : '?') + queryString;
+            }
+        }
+        return fetchWithAuth(url, { method: 'GET' });
+    },
     post: (endpoint: string, body: any) => fetchWithAuth(endpoint, {
         method: 'POST',
         body: body instanceof FormData ? body : JSON.stringify(body)
