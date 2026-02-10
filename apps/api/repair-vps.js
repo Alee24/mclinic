@@ -1,56 +1,46 @@
 const mysql = require('mysql2/promise');
 const dotenv = require('dotenv');
-dotenv.config();
+const path = require('path');
+const fs = require('fs');
+
+// Load env from current directory or parent
+const envPath = path.resolve(__dirname, '.env');
+if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+} else {
+    dotenv.config();
+}
 
 async function repair() {
+    const dbName = process.env.DB_NAME || "m_clinic";
+    console.log(`Starting repair for database: ${dbName}`);
+
     const connection = await mysql.createConnection({
         host: process.env.DB_HOST || "localhost",
         user: process.env.DB_USER || "root",
         password: process.env.DB_PASSWORD || "",
-        database: process.env.DB_NAME || "m_clinic"
+        database: dbName
     });
 
     try {
-        console.log(`Targeting database: ${process.env.DB_NAME || "m_clinic"}`);
+        console.log("Step 1: Attempting to clear corrupted 'doctors' tablespace...");
+        try {
+            // Force discard if it exists in any state
+            await connection.execute('ALTER TABLE doctors DISCARD TABLESPACE');
+            console.log("- Successfully discarded existing tablespace.");
+        } catch (e) {
+            console.log("- No existing tablespace to discard or table missing from engine. Continuing...");
+        }
 
-        console.log("Attempt 1: Drop if exists...");
+        console.log("Step 2: Dropping old table definition...");
         try {
             await connection.execute('DROP TABLE IF EXISTS doctors');
-            console.log("Standard drop command executed.");
+            console.log("- Dropped table successfully.");
         } catch (e) {
-            console.log("Standard drop failed:", e.message);
+            console.log("- Drop command failed (expected if extremely corrupted):", e.message);
         }
 
-        console.log("Attempt 2: Create a dummy table to take over the tablespace...");
-        try {
-            await connection.execute(`
-                CREATE TABLE doctors (
-                    id BIGINT PRIMARY KEY
-                ) ENGINE=InnoDB
-            `);
-            console.log("Dummy table created.");
-        } catch (e) {
-            console.log("Create dummy failed:", e.message);
-            if (e.message.includes("exists")) {
-                console.log("Ghost tablespace confirmed. Attempting to discard...");
-                try {
-                    await connection.execute('ALTER TABLE doctors DISCARD TABLESPACE');
-                    console.log("Tablespace discarded via ALTER.");
-                } catch (e2) {
-                    console.log("Discard failed:", e2.message);
-                }
-            }
-        }
-
-        console.log("Attempt 3: Final Drop...");
-        try {
-            await connection.execute('DROP TABLE IF EXISTS doctors');
-            console.log("Final drop successful.");
-        } catch (e) {
-            console.log("Final drop failed:", e.message);
-        }
-
-        console.log("Attempt 4: Recreating full doctors table schema...");
+        console.log("Step 3: Recreating 'doctors' table with original schema...");
         const ddl = `
         CREATE TABLE \`doctors\` (
           \`id\` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -113,14 +103,21 @@ async function repair() {
           \`resetToken\` varchar(100) DEFAULT NULL,
           \`resetTokenExpiry\` datetime DEFAULT NULL,
           PRIMARY KEY (\`id\`),
-          UNIQUE KEY \`IDX_DOCTOR_EMAIL\` (\`email\`)
+          UNIQUE KEY \`IDX_2832138eb3e9d8e8b7941cb\` (\`email\`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         `;
+
         await connection.execute(ddl);
-        console.log("Doctors table recreated successfully!");
+        console.log("- Table 'doctors' successfully recreated.");
 
     } catch (error) {
-        console.error("Repair failed fatal:", error.message);
+        console.error("!!! REPAIR FAILED !!!");
+        console.error(error.message);
+        if (error.message.includes("exists")) {
+            console.log("\nTIP: If the tablespace still exists, you MUST manually delete the file:");
+            console.log(`rm /var/lib/mysql/${dbName}/doctors.ibd`);
+            console.log("Then run this script again.");
+        }
     } finally {
         await connection.end();
     }
