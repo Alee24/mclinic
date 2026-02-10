@@ -13,7 +13,8 @@ if (fs.existsSync(envPath)) {
 
 async function repair() {
     const dbName = process.env.DB_NAME || "m_clinic";
-    console.log(`Starting repair for database: ${dbName}`);
+    console.log(`\n=== M-CLINIC VPS REPAIR TOOL ===`);
+    console.log(`Targeting database: ${dbName}\n`);
 
     const connection = await mysql.createConnection({
         host: process.env.DB_HOST || "localhost",
@@ -23,24 +24,23 @@ async function repair() {
     });
 
     try {
-        console.log("Step 1: Attempting to clear corrupted 'doctors' tablespace...");
+        console.log("Step 1: Clearing corrupted 'doctors' tablespace...");
         try {
-            // Force discard if it exists in any state
             await connection.execute('ALTER TABLE doctors DISCARD TABLESPACE');
-            console.log("- Successfully discarded existing tablespace.");
+            console.log("✓ Discarded tablespace.");
         } catch (e) {
-            console.log("- No existing tablespace to discard or table missing from engine. Continuing...");
+            console.log("! Discard skipped (Table might not exist in engine yet).");
         }
 
-        console.log("Step 2: Dropping old table definition...");
+        console.log("Step 2: Dropping existing table structure...");
         try {
             await connection.execute('DROP TABLE IF EXISTS doctors');
-            console.log("- Dropped table successfully.");
+            console.log("✓ Dropped table definition.");
         } catch (e) {
-            console.log("- Drop command failed (expected if extremely corrupted):", e.message);
+            console.log("! Drop failed (expected if extremely corrupted):", e.message);
         }
 
-        console.log("Step 3: Recreating 'doctors' table with original schema...");
+        console.log("Step 3: Recreating 'doctors' table...");
         const ddl = `
         CREATE TABLE \`doctors\` (
           \`id\` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -103,20 +103,28 @@ async function repair() {
           \`resetToken\` varchar(100) DEFAULT NULL,
           \`resetTokenExpiry\` datetime DEFAULT NULL,
           PRIMARY KEY (\`id\`),
-          UNIQUE KEY \`IDX_2832138eb3e9d8e8b7941cb\` (\`email\`)
+          UNIQUE KEY \`IDX_DOCTOR_EMAIL\` (\`email\`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         `;
 
         await connection.execute(ddl);
-        console.log("- Table 'doctors' successfully recreated.");
+        console.log("✓ Table 'doctors' successfully recreated.");
+
+        console.log("\nStep 4: Cleaning up temp migration tables (if any)...");
+        try {
+            await connection.execute('DROP TABLE IF EXISTS medics');
+            console.log("✓ Dropped temp 'medics' table.");
+        } catch (e) { }
+
+        console.log("\n✅ REPAIR COMPLETE! You can now log in as a Provider.");
 
     } catch (error) {
-        console.error("!!! REPAIR FAILED !!!");
+        console.error("\n❌ REPAIR FAILED:");
         console.error(error.message);
         if (error.message.includes("exists")) {
-            console.log("\nTIP: If the tablespace still exists, you MUST manually delete the file:");
+            console.log("\n[CRITICAL] Tablespace is still locked. Please run:");
             console.log(`rm /var/lib/mysql/${dbName}/doctors.ibd`);
-            console.log("Then run this script again.");
+            console.log("Then run this script again.\n");
         }
     } finally {
         await connection.end();

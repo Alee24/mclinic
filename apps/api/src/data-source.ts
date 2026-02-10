@@ -9,7 +9,7 @@ export const AppDataSource = new DataSource({
     port: parseInt(process.env.DB_PORT || '3306'),
     username: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'mclinicportal',
+    database: process.env.DB_NAME || 'm_clinic',
     synchronize: false,
     logging: false,
     entities: [__dirname + '/**/*.entity{.ts,.js}'],
