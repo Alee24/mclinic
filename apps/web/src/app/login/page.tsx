@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import Link from 'next/link';
-import { FiUser, FiHeart, FiArrowRight } from 'react-icons/fi';
+import { FiUser, FiHeart, FiArrowRight, FiMessageSquare } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
 
 type UserType = 'patient' | 'provider';
@@ -409,6 +409,15 @@ export default function LoginPage() {
                                 }`}
                         >
                             Register as {userType === 'patient' ? 'Patient' : 'Provider'}
+                        </Link>
+                    </div>
+
+                    <div className="mt-4 text-center">
+                        <Link
+                            href="/support"
+                            className="text-sm font-medium text-gray-400 hover:text-green-600 transition flex items-center justify-center gap-1.5"
+                        >
+                            <FiMessageSquare /> Need Help? Contact Support
                         </Link>
                     </div>
                 </div>
