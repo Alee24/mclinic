@@ -32,6 +32,18 @@ export default function DoctorView() {
     // Profile Warning Logic
     const profileWarning = doctorProfile && (!doctorProfile.about || !doctorProfile.speciality || !doctorProfile.qualification || !doctorProfile.address);
 
+    // Dynamic Prefix Logic
+    const getPrefix = () => {
+        if (!doctorProfile?.dr_type) return 'Medic';
+        const type = doctorProfile.dr_type.toLowerCase();
+        if (type.includes('doctor') || type.includes('specialist')) return 'Dr.';
+        if (type.includes('nurse')) return 'Nurse';
+        if (type.includes('clinician')) return 'Clinician';
+        return 'Medic';
+    };
+
+    const prefix = getPrefix();
+
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {profileWarning && (
@@ -64,7 +76,7 @@ export default function DoctorView() {
 
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
                 <div>
-                    <h1 className="text-3xl font-bold dark:text-white">Welcome back, {user?.role === 'medic' ? 'Dr./Medic' : ''} {user?.fname}</h1>
+                    <h1 className="text-3xl font-bold dark:text-white">Welcome back, {prefix} {user?.fname}</h1>
                     <p className="text-gray-500 font-medium tracking-tight">You have {stats.appointmentsToday} appointments scheduled for today.</p>
                 </div>
 
@@ -91,7 +103,7 @@ export default function DoctorView() {
                     {stats.appointmentsToday > 0 && (
                         <button
                             onClick={() => {
-                                const roomName = `Dr-${user?.fname}-${user?.id}`;
+                                const roomName = `${prefix.replace('.', '')}-${user?.fname}-${user?.id}`;
                                 const url = `https://virtual.mclinic.co.ke/${roomName}`;
                                 window.open(url, '_blank');
                             }}
