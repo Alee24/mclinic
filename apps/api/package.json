@@ -21,6 +21,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "typeorm": "typeorm-ts-node-commonjs",
     "migration:run": "typeorm-ts-node-commonjs migration:run -d src/data-source.ts",
+    "migration:run:prod": "npx typeorm migration:run -d dist/data-source.js",
     "migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/data-source.ts"
   },
   "dependencies": {
