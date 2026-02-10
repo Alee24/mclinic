@@ -113,9 +113,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                         <NavGroup
                                             label="Communication"
                                             icon={<FiMessageSquare />}
-                                            active={pathname?.startsWith('/dashboard/admin/sms')}
+                                            active={pathname?.startsWith('/dashboard/admin/sms') || pathname?.startsWith('/dashboard/admin/support')}
                                             items={[
-                                                { href: '/dashboard/admin/sms', label: 'Broadcast SMS' }
+                                                { href: '/dashboard/admin/sms', label: 'Broadcast SMS' },
+                                                { href: '/dashboard/admin/support', label: 'Support Inbox' }
                                             ]}
                                             pathname={pathname}
                                         />

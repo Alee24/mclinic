@@ -14,7 +14,7 @@ interface Account {
     accountType: string;
 }
 
-type StepString = 'method' | 'input' | 'selection' | 'success';
+type StepString = 'method' | 'input' | 'selection' | 'success' | 'support';
 
 export default function ForgotPasswordPage() {
     const router = useRouter();
@@ -154,14 +154,14 @@ export default function ForgotPasswordPage() {
                                 key={`${account.accountType}-${account.id}`}
                                 onClick={() => setSelectedAccount(account)}
                                 className={`w-full p-6 rounded-2xl border-2 transition-all text-left group ${selectedAccount?.id === account.id && selectedAccount?.accountType === account.accountType
-                                        ? 'border-green-500 bg-green-50 dark:bg-green-900/20 shadow-lg'
-                                        : 'border-gray-100 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-700 bg-white dark:bg-gray-800'
+                                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20 shadow-lg'
+                                    : 'border-gray-100 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-700 bg-white dark:bg-gray-800'
                                     }`}
                             >
                                 <div className="flex items-center gap-4">
                                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl ${account.type === 'patient'
-                                            ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600'
-                                            : 'bg-purple-100 dark:bg-purple-900/30 text-purple-600'
+                                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600'
+                                        : 'bg-purple-100 dark:bg-purple-900/30 text-purple-600'
                                         }`}>
                                         <FiUser />
                                     </div>
@@ -243,8 +243,8 @@ export default function ForgotPasswordPage() {
                             type="submit"
                             disabled={loading}
                             className={`w-full py-4 rounded-xl font-bold text-white shadow-lg transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed group ${method === 'email'
-                                    ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/30'
-                                    : 'bg-green-600 hover:bg-green-700 shadow-green-500/30'
+                                ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/30'
+                                : 'bg-green-600 hover:bg-green-700 shadow-green-500/30'
                                 }`}
                         >
                             {loading ? 'Processing...' : 'Continue'}
@@ -258,6 +258,73 @@ export default function ForgotPasswordPage() {
                             className="text-sm font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white transition"
                         >
                             Choose another method
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // 5. Support Form Screen
+    if (step === 'support') {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-[#050505] dark:via-[#0a0a0a] dark:to-[#050505] p-4">
+                <div className="max-w-lg w-full bg-white dark:bg-[#121212] rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-800 p-8 md:p-12 animate-in fade-in zoom-in-95 duration-300">
+                    <div className="text-center mb-8">
+                        <Link href="/login" className="inline-flex items-center gap-2 mb-6 opacity-50 hover:opacity-100 transition">
+                            <FiArrowLeft /> Back to Login
+                        </Link>
+                        <h2 className="text-3xl font-black text-gray-900 dark:text-white mb-2">Need Help?</h2>
+                        <p className="text-gray-500 dark:text-gray-400">
+                            Tell us your issue and we'll contact you shortly.
+                        </p>
+                    </div>
+
+                    <form onSubmit={async (e) => {
+                        e.preventDefault();
+                        setLoading(true);
+                        const formData = new FormData(e.currentTarget);
+                        const data = {
+                            email: formData.get('email'),
+                            mobile: formData.get('mobile'),
+                            message: formData.get('message')
+                        };
+                        try {
+                            // Assuming public endpoint /support exists as per plan
+                            await api.post('/support', data);
+                            toast.success('Support request sent! We will contact you soon.');
+                            setStep('method');
+                        } catch (err) {
+                            toast.error('Failed to send request. Please try again.');
+                        } finally {
+                            setLoading(false);
+                        }
+                    }} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Email (Optional)</label>
+                            <input name="email" type="email" className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" placeholder="you@example.com" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Mobile Number (Optional)</label>
+                            <input name="mobile" type="tel" className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" placeholder="0700 000 000" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Message</label>
+                            <textarea name="message" required rows={4} className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Describe your issue..."></textarea>
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full py-4 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-blue-500/30 shadow-lg transition flex items-center justify-center gap-2 disabled:opacity-50"
+                        >
+                            {loading ? 'Sending...' : 'Submit Request'}
+                        </button>
+                    </form>
+
+                    <div className="mt-6 text-center">
+                        <button onClick={() => setStep('method')} className="text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white">
+                            Cancel
                         </button>
                     </div>
                 </div>
@@ -285,6 +352,15 @@ export default function ForgotPasswordPage() {
                     {/* Decorative */}
                     <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/10 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
                     <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2"></div>
+
+                    <div className="relative z-10 pt-8">
+                        <button
+                            onClick={() => setStep('support')}
+                            className="text-sm text-gray-400 hover:text-white transition flex items-center gap-2"
+                        >
+                            <FiInfo /> Having double trouble? Contact Support
+                        </button>
+                    </div>
                 </div>
 
                 {/* Selection Side */}
@@ -328,6 +404,15 @@ export default function ForgotPasswordPage() {
                         <p className="text-xs text-gray-500 dark:text-gray-400">
                             <strong>Tip:</strong> Use the SMS method if you want faster access via your mobile device. Email links may take a few minutes to arrive.
                         </p>
+                    </div>
+
+                    <div className="md:hidden mt-6 text-center">
+                        <button
+                            onClick={() => setStep('support')}
+                            className="text-sm text-blue-600 font-medium"
+                        >
+                            Need help? Contact Support
+                        </button>
                     </div>
                 </div>
             </div>

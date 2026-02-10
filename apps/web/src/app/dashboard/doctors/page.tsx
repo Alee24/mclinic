@@ -19,6 +19,9 @@ export default function DoctorsPage() {
     const [editingDoctorId, setEditingDoctorId] = useState<number | null>(null);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [bulkActionLoading, setBulkActionLoading] = useState(false);
+    const [drTypeFilter, setDrTypeFilter] = useState('');
+    const [verifiedFilter, setVerifiedFilter] = useState('');
+    const [statusFilter, setStatusFilter] = useState('');
 
     const toggleSelectAll = () => {
         if (selectedIds.length === doctors.length) {
@@ -110,7 +113,12 @@ export default function DoctorsPage() {
 
     const fetchDoctors = async () => {
         try {
-            const res = await api.get('/doctors/admin/all');
+            const params: any = {};
+            if (drTypeFilter) params.dr_type = drTypeFilter;
+            if (verifiedFilter !== '') params.verified_status = verifiedFilter;
+            if (statusFilter !== '') params.status = statusFilter;
+
+            const res = await api.get('/doctors/admin/all', params);
             if (res && res.ok) {
                 const data = await res.json();
                 setDoctors(data);
@@ -128,7 +136,7 @@ export default function DoctorsPage() {
         } else {
             setLoading(false);
         }
-    }, [user]);
+    }, [user, drTypeFilter, verifiedFilter, statusFilter]);
 
     if (user?.role !== UserRole.ADMIN) {
         if (loading) return null; // Avoid flashing access denied while checking auth
@@ -297,6 +305,62 @@ export default function DoctorsPage() {
                         <FiPlus /> Add Medic
                     </button>
                 </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-4 bg-gray-50 dark:bg-gray-800/20 p-4 rounded-xl border border-gray-200 dark:border-gray-800">
+                <div className="flex flex-col gap-1">
+                    <label className="text-xs font-bold text-gray-500 uppercase">Profession</label>
+                    <select
+                        value={drTypeFilter}
+                        onChange={(e) => setDrTypeFilter(e.target.value)}
+                        className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:ring-primary outline-none"
+                    >
+                        <option value="">All Professions</option>
+                        <option value="Specialist">Specialist</option>
+                        <option value="Nurse">Nurse</option>
+                        <option value="Clinical Officer">Clinical Officer</option>
+                        <option value="Lab Technician">Lab Technician</option>
+                        <option value="Pharmacist">Pharmacist</option>
+                        <option value="Medic">Medic</option>
+                    </select>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                    <label className="text-xs font-bold text-gray-500 uppercase">Verification Status</label>
+                    <select
+                        value={verifiedFilter}
+                        onChange={(e) => setVerifiedFilter(e.target.value)}
+                        className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:ring-primary outline-none"
+                    >
+                        <option value="">All Statuses</option>
+                        <option value="1">Verified</option>
+                        <option value="0">Unverified / Pending</option>
+                    </select>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                    <label className="text-xs font-bold text-gray-500 uppercase">Account Status</label>
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:ring-primary outline-none"
+                    >
+                        <option value="">All Accounts</option>
+                        <option value="1">Active / Login Enabled</option>
+                        <option value="0">Inactive / Locked</option>
+                    </select>
+                </div>
+
+                <button
+                    onClick={() => {
+                        setDrTypeFilter('');
+                        setVerifiedFilter('');
+                        setStatusFilter('');
+                    }}
+                    className="mt-auto px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition font-medium"
+                >
+                    Reset Filters
+                </button>
             </div>
 
             <div className="bg-white dark:bg-[#121212] rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">

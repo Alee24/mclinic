@@ -11,6 +11,7 @@ import { Doctor } from '../doctors/entities/doctor.entity';
 import { Patient } from '../patients/entities/patient.entity';
 import { WalletsService } from '../wallets/wallets.service';
 import { MpesaService } from '../mpesa/mpesa.service';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class FinancialService {
@@ -29,6 +30,7 @@ export class FinancialService {
         private doctorRepo: Repository<Doctor>,
         private walletsService: WalletsService,
         private mpesaService: MpesaService,
+        private notificationService: NotificationService,
     ) { }
 
     // --- Config Management ---
@@ -323,26 +325,30 @@ export class FinancialService {
         // 1. Wallet Balance (Source of Truth: Wallet Entity)
         let balance = 0;
         try {
+            console.log(`[FINANCIAL] getDoctorStats: Checking wallet for ${doctor.email}`);
             const wallet = await this.walletsService.getBalanceByEmail(doctor.email);
             balance = Number(wallet.balance);
             if (isNaN(balance)) balance = 0;
 
+            console.log(`[FINANCIAL] getDoctorStats: Wallet balance for ${doctor.email} is ${balance}`);
+
             // FIX for Manual DB Updates: 
             // If wallet is 0 but doctor table has manually added balance, assume legacy/manual override and sync.
-            // This handles the user's specific case where they edited the doctors table directly.
             const docLegacyBalance = Number(doctor.balance);
             if (balance === 0 && docLegacyBalance > 0) {
-                console.log(`[FINANCIAL] Detected Manual Balance in Doctor Table (KES ${docLegacyBalance}) vs Wallet (0). Syncing...`);
+                console.log(`[FINANCIAL] getDoctorStats: Detected Manual Balance in Doctor Table (KES ${docLegacyBalance}) vs Wallet (0). Syncing...`);
                 balance = docLegacyBalance;
 
                 // Auto-sync wallet to match manual entry
                 await this.walletsService.setBalanceByEmail(doctor.email, docLegacyBalance);
+                console.log(`[FINANCIAL] getDoctorStats: Wallet synced for ${doctor.email}`);
             }
 
         } catch (e) {
-            console.warn(`[FINANCIAL] No wallet found for ${doctor.email}, using legacy balance.`);
+            console.warn(`[FINANCIAL] getDoctorStats: No wallet found for ${doctor.email}, using legacy balance from doctors table.`);
             balance = Number(doctor.balance);
             if (isNaN(balance)) balance = 0;
+            console.log(`[FINANCIAL] getDoctorStats: Legacy balance for ${doctor.email} is ${balance}`);
         }
 
         // 2. Pending Clearance
@@ -444,6 +450,11 @@ export class FinancialService {
                 }
             } else {
                 console.log(`[MPESA] Payment failed: ${callback.ResultDesc}`);
+                // Notify Admin of Failure
+                await this.notificationService.notifyAdmin(
+                    'payment_failure',
+                    `Payment Failed: ${callback.ResultDesc} (Mpesa)`
+                );
             }
 
             return { success: true };

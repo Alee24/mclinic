@@ -77,8 +77,12 @@ export class DoctorsController {
   }
 
   @Get('admin/all')
-  findAllAdmin() {
-    return this.doctorsService.findAll();
+  findAllAdmin(
+    @Query('dr_type') drType?: string,
+    @Query('verified_status') verifiedStatus?: string,
+    @Query('status') status?: string,
+  ) {
+    return this.doctorsService.findAll(drType, verifiedStatus, status);
   }
 
   @Post('admin/sync')

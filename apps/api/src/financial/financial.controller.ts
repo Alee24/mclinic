@@ -102,6 +102,7 @@ export class FinancialController {
     return this.financialService.deleteInvoice(Number(id));
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Get('stats')
   async getStats(@Req() req: any) {
     const user = req.user || null;

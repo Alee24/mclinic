@@ -207,6 +207,12 @@ export class Doctor {
   @Column({ type: 'datetime', nullable: true })
   otpExpiry: Date;
 
+  @Column({ length: 100, nullable: true })
+  resetToken: string;
+
+  @Column({ type: 'datetime', nullable: true })
+  resetTokenExpiry: Date;
+
   @OneToMany(() => DoctorLicence, (licence) => licence.doctor)
   licences: DoctorLicence[];
 }

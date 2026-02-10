@@ -386,8 +386,22 @@ export class DoctorsService implements OnModuleInit {
         return enrichedDocs;
     }
 
-    async findAll(): Promise<Doctor[]> {
-        return this.doctorsRepository.find();
+    async findAll(drType?: string, verifiedStatus?: string, status?: string): Promise<Doctor[]> {
+        const query = this.doctorsRepository.createQueryBuilder('doctor');
+
+        if (drType) {
+            query.andWhere('doctor.dr_type = :drType', { drType });
+        }
+
+        if (verifiedStatus !== undefined && verifiedStatus !== '') {
+            query.andWhere('doctor.Verified_status = :verifiedStatus', { verifiedStatus: parseInt(verifiedStatus) });
+        }
+
+        if (status !== undefined && status !== '') {
+            query.andWhere('doctor.status = :status', { status: parseInt(status) });
+        }
+
+        return query.getMany();
     }
 
     async findOne(id: number): Promise<Doctor | null> {

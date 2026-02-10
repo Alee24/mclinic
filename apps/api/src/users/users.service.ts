@@ -1,9 +1,10 @@
-import { Injectable, ConflictException, OnModuleInit } from '@nestjs/common';
+import { Injectable, ConflictException, OnModuleInit, NotFoundException } from '@nestjs/common';
 import { In } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DeepPartial } from 'typeorm';
 import { User, UserRole } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import { NotificationService } from '../notification/notification.service';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -11,6 +12,7 @@ export class UsersService implements OnModuleInit {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    private notificationService: NotificationService
   ) { }
 
   async onModuleInit() {
@@ -51,7 +53,21 @@ export class UsersService implements OnModuleInit {
       password: hashedPassword,
     });
 
-    return this.usersRepository.save(user);
+    const savedUser = await this.usersRepository.save(user);
+
+    // Notify Admin
+    try {
+      if (this.notificationService) {
+        await this.notificationService.notifyAdmin(
+          'signup',
+          `New User Signup: ${savedUser.fname} ${savedUser.lname} (${savedUser.email})`
+        );
+      }
+    } catch (e) {
+      console.error('Failed to notify admin of signup', e);
+    }
+
+    return savedUser;
   }
 
   async findOne(email: string): Promise<User | null> {

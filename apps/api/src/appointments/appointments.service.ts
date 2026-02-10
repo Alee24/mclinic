@@ -9,6 +9,7 @@ import { Invoice, InvoiceStatus } from '../financial/entities/invoice.entity';
 import { FinancialService } from '../financial/financial.service';
 import { EmailService } from '../email/email.service';
 import { SmsService } from '../sms/sms.service';
+import { NotificationService } from '../notification/notification.service';
 import { User } from '../users/entities/user.entity';
 
 
@@ -24,6 +25,7 @@ export class AppointmentsService {
     private financialService: FinancialService,
     private emailService: EmailService,
     private smsService: SmsService,
+    private notificationService: NotificationService,
   ) { }
 
   async create(createAppointmentDto: any): Promise<Appointment> {
@@ -251,7 +253,11 @@ export class AppointmentsService {
         await this.smsService.sendSms(doctor.mobile, msg);
       }
 
-      // Optional: SMS to Admin (if configured in settings, but for now hardcoded or skipped)
+      // Notify Admin
+      await this.notificationService.notifyAdmin(
+        'booking',
+        `New Appointment: ${patientName} with ${doctorName} on ${formattedDate} @ ${timeSlot}.`
+      );
 
     } catch (error) {
       console.error('[Appointments] Failed to send SMS notifications', error);

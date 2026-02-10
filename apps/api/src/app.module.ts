@@ -33,6 +33,8 @@ import { SystemSettingsModule } from './system-settings/system-settings.module';
 import { EncryptionModule } from './common/encryption.module';
 import { EmergencyModule } from './emergency/emergency.module';
 import { SmsModule } from './sms/sms.module';
+import { SupportModule } from './support/support.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -86,6 +88,8 @@ import { SmsModule } from './sms/sms.module';
     EncryptionModule,
     EmergencyModule,
     SmsModule,
+    SupportModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [
