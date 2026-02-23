@@ -229,21 +229,6 @@ export class EmailService {
         });
     }
 
-    async sendDoctorApprovalEmail(doctor: any, status: 'approved' | 'rejected', reason?: string) {
-        await this.sendMailWithContext({
-            to: doctor.email,
-            subject: status === 'approved' ? 'Account Approved - M-Clinic Health' : 'Account Application Update',
-            template: './doctor-approval',
-            context: {
-                name: `Dr. ${doctor.fname} ${doctor.lname}`,
-                status: status,
-                reason: reason || '',
-                dashboardUrl: `${this.frontendUrl}/dashboard`,
-                supportEmail: process.env.SMTP_FROM_EMAIL || 'support@mclinic.co.ke',
-            },
-        });
-    }
-
     async sendPrescriptionReadyEmail(patient: any, prescription: any, doctor: any) {
         if ((await this.settingsService.get('EMAIL_PRESCRIPTION_READY')) === 'false') return;
 
@@ -278,19 +263,6 @@ export class EmailService {
         });
     }
 
-    async sendPasswordResetEmail(user: any, resetToken: string) {
-        await this.sendMailWithContext({
-            to: user.email,
-            subject: 'Password Reset Request - M-Clinic Health',
-            template: './password-reset',
-            context: {
-                name: `${user.fname} ${user.lname}`,
-                resetUrl: `${this.frontendUrl}/reset-password?token=${resetToken}`,
-                expiryTime: '1 hour',
-            },
-        });
-    }
-
     async sendAppointmentCancellationEmail(user: any, appointment: any, reason: string) {
         await this.sendMailWithContext({
             to: user.email,
@@ -302,53 +274,6 @@ export class EmailService {
                 appointmentTime: appointment.appointment_time,
                 reason: reason,
                 bookNewUrl: `${this.frontendUrl}/dashboard/appointments`,
-            },
-        });
-    }
-
-    async sendLicenseExpiryWarning(doctor: any, daysRemaining: number) {
-        if ((await this.settingsService.get('EMAIL_LICENSE_EXPIRY_WARNING')) === 'false') return;
-
-        await this.sendMailWithContext({
-            to: doctor.email,
-            subject: `License Expiry Warning - ${daysRemaining} Days Remaining`,
-            template: './license-expiry-warning',
-            context: {
-                name: `Dr. ${doctor.fname} ${doctor.lname}`,
-                daysRemaining: daysRemaining,
-                expiryDate: new Date(doctor.licenseExpiryDate).toLocaleDateString(),
-                licenseNumber: doctor.licenceNo || doctor.reg_code,
-                renewUrl: `${this.frontendUrl}/dashboard/profile`,
-            },
-        });
-    }
-
-    async sendLicenseExpiredNotification(doctor: any) {
-        if ((await this.settingsService.get('EMAIL_LICENSE_EXPIRY_WARNING')) === 'false') return;
-
-        await this.sendMailWithContext({
-            to: doctor.email,
-            subject: 'Account Deactivated - License Expired',
-            template: './license-expired',
-            context: {
-                name: `Dr. ${doctor.fname} ${doctor.lname}`,
-                expiryDate: new Date(doctor.licenseExpiryDate).toLocaleDateString(),
-                licenseNumber: doctor.licenceNo || doctor.reg_code,
-                renewUrl: `${this.frontendUrl}/dashboard/profile`,
-                supportEmail: process.env.SMTP_FROM_EMAIL || 'support@mclinic.co.ke',
-            },
-        });
-    }
-
-    async sendAccountReactivatedEmail(doctor: any) {
-        await this.sendMailWithContext({
-            to: doctor.email,
-            subject: 'Account Reactivated - License Renewed',
-            template: './account-reactivated',
-            context: {
-                name: `Dr. ${doctor.fname} ${doctor.lname}`,
-                newExpiryDate: new Date(doctor.licenseExpiryDate).toLocaleDateString(),
-                dashboardUrl: `${this.frontendUrl}/dashboard`,
             },
         });
     }

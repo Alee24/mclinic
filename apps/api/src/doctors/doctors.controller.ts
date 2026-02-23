@@ -201,34 +201,6 @@ export class DoctorsController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Post(':id/approve')
-  async approveDoctor(
-    @Param('id') id: string,
-    @Request() req: any,
-  ) {
-    return this.doctorsService.approveDoctor(+id, req.user.id);
-  }
-
-  @UseGuards(AuthGuard('jwt'))
-  @Post(':id/reject')
-  async rejectDoctor(
-    @Param('id') id: string,
-    @Body('reason') reason: string,
-    @Request() req: any,
-  ) {
-    return this.doctorsService.rejectDoctor(+id, req.user.id, reason);
-  }
-
-  @UseGuards(AuthGuard('jwt'))
-  @Patch(':id/renew-license')
-  async renewLicense(
-    @Param('id') id: string,
-    @Body('expiryDate') expiryDate: string,
-  ) {
-    return this.doctorsService.renewLicense(+id, new Date(expiryDate));
-  }
-
-  @UseGuards(AuthGuard('jwt'))
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.doctorsService.remove(+id);
@@ -251,6 +223,7 @@ export class DoctorsController {
   deactivate(@Param('id') id: string) {
     return this.doctorsService.updateStatus(+id, 0);
   }
+
   @UseGuards(AuthGuard('jwt'))
   @Get(':id/id-card')
   async generateIdCard(@Param('id') id: string) {
@@ -260,44 +233,6 @@ export class DoctorsController {
       console.error('Error generating ID card:', error);
       throw error;
     }
-  }
-
-  @UseGuards(AuthGuard('jwt'))
-  @Post('admin/approve-all')
-  async approveAllDoctors(@Request() req: any) {
-    return this.doctorsService.approveAll(req.user.id);
-  }
-
-  @UseGuards(AuthGuard('jwt'))
-  @Post('admin/activate-all')
-  async activateAllDoctors(@Request() req: any) {
-    return this.doctorsService.activateAll(req.user.id);
-  }
-
-  @UseGuards(AuthGuard('jwt'))
-  @Post('admin/reset-all-passwords')
-  async resetAllPasswords(@Request() req: any) {
-    // Implementation needed if used
-  }
-
-  @UseGuards(AuthGuard('jwt'))
-  @Post('admin/bulk-suspend')
-  async bulkSuspend(@Body() body: { ids: number[], reason: string }) {
-    return this.doctorsService.bulkSuspend(body.ids, body.reason || 'Bulk Suspension');
-  }
-
-  @UseGuards(AuthGuard('jwt'))
-  @Post('admin/bulk-activate')
-  async bulkActivate(@Body() body: { ids: number[] }) {
-    return this.doctorsService.bulkActivate(body.ids);
-  }
-
-
-  // DANGER: Clear all doctors
-  @UseGuards(AuthGuard('jwt'))
-  @Delete('admin/clear-all')
-  clearAll() {
-    return this.doctorsService.deleteAll();
   }
 
   // Upload CSV

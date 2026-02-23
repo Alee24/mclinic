@@ -91,22 +91,12 @@ export class User {
   @CreateDateColumn()
   createdAt: Date;
 
-  @Column({ nullable: true })
-  resetToken: string;
-
-  @Column({ type: 'timestamp', nullable: true })
-  resetTokenExpiry: Date; // Keep as timestamp for easy comparison
-
   @UpdateDateColumn()
   updatedAt: Date;
+
   @Column({ type: 'timestamp', nullable: true })
   deletionRequestedAt: Date | null;
 
   @Column({ type: 'timestamp', nullable: true })
   deletionScheduledAt: Date | null;
-  @Column({ nullable: true })
-  otp: string;
-
-  @Column({ type: 'timestamp', nullable: true })
-  otpExpiry: Date;
 }

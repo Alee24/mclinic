@@ -23,25 +23,20 @@ export class AuthService {
 
   async validateUser(email: string, pass: string, userType: string = 'patient'): Promise<any> {
     if (userType === 'provider') {
-      // 1. Check Doctors table primarily for providers
       const doctor = await this.doctorsService.findByEmail(email);
       if (doctor) {
         if (await bcrypt.compare(pass, doctor.password)) {
           if (!doctor.status || doctor.status === 0) {
-            const msg = doctor.approvalStatus === 'pending'
-              ? 'Account verification pending. Please wait for approval.'
-              : 'Account is suspended or inactive. Contact admin.';
-            throw new UnauthorizedException(msg);
+            throw new UnauthorizedException('Account is suspended or inactive. Contact admin.');
           }
           const role = this.mapDrTypeToRole(doctor.dr_type);
           const { password, ...result } = doctor;
           return { ...result, role };
         } else {
-          throw new UnauthorizedException('Invalid password. Please try again or reset your password.');
+          throw new UnauthorizedException('Invalid password. Please try again.');
         }
       }
 
-      // 2. Fallback: Check Users table ONLY for 'admin' roles trying to login as provider
       const admin = await this.usersService.findOne(email);
       if (admin && admin.role === UserRole.ADMIN) {
         if (await bcrypt.compare(pass, admin.password)) {
@@ -52,13 +47,11 @@ export class AuthService {
         }
       }
 
-      // 3. Soft Detection: Is this a Patient trying to login as Provider?
       const patientInstead = await this.usersService.findOne(email);
       if (patientInstead) {
         throw new UnauthorizedException('This account is registered as a Patient. Please switch to "Patient" login.');
       }
     } else {
-      // Patient table (Users)
       const user = await this.usersService.findOne(email);
       if (user) {
         if (await bcrypt.compare(pass, user.password)) {
@@ -69,7 +62,6 @@ export class AuthService {
         }
       }
 
-      // 3. Soft Detection: Is this a Doctor trying to login as Patient?
       const doctorInstead = await this.doctorsService.findByEmail(email);
       if (doctorInstead) {
         throw new UnauthorizedException('This account is registered as a Healthcare Professional. Please switch to "Provider" login.');
@@ -85,7 +77,6 @@ export class AuthService {
     if (type.includes('clinical')) return 'clinician';
     if (type.includes('lab')) return 'lab_tech';
     if (type.includes('pharm')) return 'pharmacist';
-    // Removed admin check - admins should be in users table, not doctors table
     return 'doctor';
   }
 
@@ -98,7 +89,6 @@ export class AuthService {
       role: validUser.role,
     };
 
-    // Send login notification email
     try {
       await this.emailService.sendLoginAttemptEmail(
         validUser,
@@ -109,11 +99,8 @@ export class AuthService {
       console.error('Failed to send login email:', error);
     }
 
-    // Handle medic vs patient ID consistency for the frontend
     let finalUser = { ...validUser };
     if (['doctor', 'medic', 'nurse', 'clinician', 'lab_tech', 'pharmacist'].includes(validUser.role)) {
-      // If result came from doctors table, it already has doc details
-      // Ensure doctorId is set for frontend compatibility
       // @ts-ignore
       finalUser.doctorId = validUser.id;
     }
@@ -125,7 +112,6 @@ export class AuthService {
   }
 
   async register(dto: any) {
-    // 1. Create Patient in Users Table ONLY
     const userData = {
       ...dto,
       role: 'patient',
@@ -133,12 +119,10 @@ export class AuthService {
     };
     const user = await this.usersService.create(userData);
 
-    // Generate Verification Token
     const verificationToken = randomBytes(32).toString('hex');
     await this.usersService.update(user.id, { verificationToken } as any);
     user.verificationToken = verificationToken;
 
-    // 2. Create Medical Profile Extension
     try {
       await this.medicalProfilesService.update(user.id, {
         dob: dto.dob,
@@ -158,14 +142,12 @@ export class AuthService {
       console.error('Failed to create medical profile during registration', err);
     }
 
-    // 3. Send Verification Email
     try {
       await this.emailService.sendVerificationEmail(user, verificationToken);
     } catch (error) {
       console.error('Failed to send verification email:', error);
     }
 
-    // Generate auto-login token
     const payload = {
       email: user.email,
       sub: user.id,
@@ -183,18 +165,15 @@ export class AuthService {
     if (dto.cadre === 'Laboratory') role = 'lab_tech';
     if (dto.cadre === 'Finance') role = 'finance';
 
-    // 1. Create Doctor Profile ONLY in Doctors Table (Strict Separation)
     const doctor = await this.doctorsService.create(
       {
         ...dto,
         Verified_status: 0,
         status: 0,
-        approvalStatus: 'pending',
       },
-      null // No linking user object needed in this separate flow
+      null
     );
 
-    // Create a dummy user object for JSON response consistency
     const resultUser = {
       id: doctor.id,
       email: doctor.email,
@@ -204,7 +183,6 @@ export class AuthService {
       status: false
     };
 
-    // 2. Send welcome email
     try {
       await this.emailService.sendAccountCreationEmail(resultUser as any, role);
     } catch (error) {
@@ -215,7 +193,6 @@ export class AuthService {
   }
 
   async getProfile(userId: number, role?: string) {
-    // If we have a role, we know exactly where to look
     if (role && ['doctor', 'medic', 'nurse', 'clinician', 'lab_tech', 'pharmacist', 'finance'].includes(role)) {
       const doctor = await this.doctorsService.findOne(userId);
       if (doctor) {
@@ -226,14 +203,12 @@ export class AuthService {
       }
     }
 
-    // Default to Users table (Patients/Admins)
     const user = await this.usersService.findById(userId);
     if (user) {
       const { password, ...result } = user;
       return result;
     }
 
-    // Final fallback if role was missing but it's a doctor
     const doctorFallback = await this.doctorsService.findOne(userId);
     if (doctorFallback) {
       const { password, ...result } = doctorFallback;
@@ -242,37 +217,6 @@ export class AuthService {
     }
 
     return null;
-  }
-  async forgotPassword(email: string) {
-    const user = await this.usersService.findOne(email);
-    if (user) {
-      const resetToken = randomBytes(32).toString('hex');
-      const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
-
-      await this.usersService.update(user.id, { resetToken, resetTokenExpiry } as any);
-      await this.emailService.sendPasswordResetEmail(user, resetToken);
-    }
-    return { message: 'If the email exists, a reset link has been sent.' };
-  }
-
-  async resetPassword(token: string, newPass: string) {
-    const user = await this.usersService.findByResetToken(token);
-    if (!user) {
-      throw new UnauthorizedException('Invalid token.');
-    }
-
-    if (user.resetTokenExpiry < new Date()) {
-      throw new UnauthorizedException('Token expired.');
-    }
-
-    const hashedPassword = await bcrypt.hash(newPass, 10);
-    await this.usersService.update(user.id, {
-      password: hashedPassword,
-      resetToken: null,
-      resetTokenExpiry: null,
-    } as any);
-
-    return { message: 'Password updated successfully.' };
   }
 
   async validateGoogleUser(details: any) {
@@ -330,7 +274,6 @@ export class AuthService {
     const token = randomBytes(32).toString('hex');
     await this.usersService.update(user.id, { verificationToken: token } as any);
 
-    // Send Email
     try {
       await this.emailService.sendVerificationEmail(user, token);
     } catch (e) {
@@ -348,347 +291,6 @@ export class AuthService {
     return {
       access_token: this.jwtService.sign(payload),
       user,
-    };
-  }
-
-  // Helper to mask email
-  private maskEmail(email: string): string {
-    const [name, domain] = email.split('@');
-    const maskedName = name.length > 2 ? name[0] + '*'.repeat(name.length - 2) + name[name.length - 1] : name;
-    return `${maskedName}@${domain}`;
-  }
-
-  // Check all accounts linked to a mobile number
-  async checkAccountsByMobile(mobile: string) {
-    const [user, doctor] = await Promise.all([
-      this.usersService.findOneByMobile(mobile),
-      this.doctorsService.findOneByMobile(mobile)
-    ]);
-
-    const accounts = [];
-
-    if (user) {
-      accounts.push({
-        id: user.id,
-        email: this.maskEmail(user.email),
-        type: 'patient',
-        accountType: 'user'
-      });
     }
-
-    if (doctor) {
-      accounts.push({
-        id: doctor.id,
-        email: this.maskEmail(doctor.email),
-        type: 'provider',
-        accountType: 'doctor'
-      });
-    }
-
-    if (accounts.length === 0) {
-      throw new NotFoundException('No accounts found for this mobile number.');
-    }
-
-    return { accounts };
-  }
-
-  // --- OTP Logic ---
-
-  async sendLoginOtp(mobile: string) {
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiry = new Date(Date.now() + 10 * 60000); // 10 mins
-
-    // Check BOTH tables simultaneously
-    const [user, doctor] = await Promise.all([
-      this.usersService.findOneByMobile(mobile),
-      this.doctorsService.findOneByMobile(mobile)
-    ]);
-
-    // Helper to mask email
-    const maskEmail = (email: string) => {
-      const [name, domain] = email.split('@');
-      const maskedName = name.length > 2 ? name[0] + '*'.repeat(name.length - 2) + name[name.length - 1] : name;
-      return `${maskedName}@${domain}`;
-    };
-
-    // If both exist, send OTP to both
-    if (user && doctor) {
-      await Promise.all([
-        this.usersService.update(user.id, { otp, otpExpiry: expiry } as any),
-        // @ts-ignore
-        this.doctorsService.update(doctor.id, { otp, otpExpiry: expiry })
-      ]);
-      await this.smsService.sendSms(mobile, `Your M-Clinic Login OTP is ${otp}. Valid for 10 minutes.`);
-      return {
-        message: 'OTP sent to mobile number.',
-        accounts: [
-          { email: maskEmail(user.email), type: 'patient' },
-          { email: maskEmail(doctor.email), type: 'provider' }
-        ]
-      };
-    }
-
-    // Only User exists
-    if (user) {
-      await this.usersService.update(user.id, { otp, otpExpiry: expiry } as any);
-      await this.smsService.sendSms(mobile, `Your M-Clinic Login OTP is ${otp}. Valid for 10 minutes.`);
-      return {
-        message: 'OTP sent to mobile number.',
-        email: maskEmail(user.email)
-      };
-    }
-
-    // Only Doctor exists
-    if (doctor) {
-      // @ts-ignore
-      await this.doctorsService.update(doctor.id, { otp, otpExpiry: expiry });
-      await this.smsService.sendSms(mobile, `Your M-Clinic Provider OTP is ${otp}. Valid for 10 minutes.`);
-      return {
-        message: 'OTP sent to mobile number.',
-        email: maskEmail(doctor.email)
-      };
-    }
-
-    throw new UnauthorizedException('Mobile number not registered.');
-  }
-
-  async loginWithOtp(mobile: string, otp: string) {
-    // Check BOTH User and Doctor tables simultaneously
-    const [user, doctor] = await Promise.all([
-      this.usersService.findOneByMobile(mobile),
-      this.doctorsService.findOneByMobile(mobile)
-    ]);
-
-    // Validate User OTP
-    const userOtpValid = user && user.otp === otp && new Date(user.otpExpiry) > new Date();
-
-    // Validate Doctor OTP  
-    // @ts-ignore
-    const doctorOtpValid = doctor && doctor.otp === otp && new Date(doctor.otpExpiry) > new Date();
-
-    // If both have valid OTPs, this shouldn't happen, but prioritize the one that was most recently updated
-    if (userOtpValid && doctorOtpValid) {
-      // Compare OTP expiry times - the one that was set more recently is the intended login
-      const userOtpTime = new Date(user.otpExpiry).getTime();
-      // @ts-ignore
-      const doctorOtpTime = new Date(doctor.otpExpiry).getTime();
-
-      if (doctorOtpTime > userOtpTime) {
-        // Doctor OTP is newer, use doctor login
-        // @ts-ignore
-        await this.doctorsService.update(doctor.id, { otp: null, otpExpiry: null });
-        const synthRole = this.mapDrTypeToRole(doctor.dr_type);
-        const payload = { email: doctor.email, sub: doctor.id, role: synthRole };
-        const { password, ...result } = doctor;
-        // @ts-ignore
-        const finalUser = { ...result, role: synthRole, doctorId: doctor.id };
-        return {
-          access_token: this.jwtService.sign(payload),
-          user: finalUser,
-        };
-      } else {
-        // User OTP is newer, use user login
-        await this.usersService.update(user.id, { otp: null, otpExpiry: null } as any);
-        const payload = { email: user.email, sub: user.id, role: user.role };
-        const { password, ...result } = user;
-        return {
-          access_token: this.jwtService.sign(payload),
-          user: result,
-        };
-      }
-    }
-
-    // Only User has valid OTP
-    if (userOtpValid) {
-      await this.usersService.update(user.id, { otp: null, otpExpiry: null } as any);
-      const payload = { email: user.email, sub: user.id, role: user.role };
-      const { password, ...result } = user;
-      return {
-        access_token: this.jwtService.sign(payload),
-        user: result,
-      };
-    }
-
-    // Only Doctor has valid OTP
-    if (doctorOtpValid) {
-      // @ts-ignore
-      await this.doctorsService.update(doctor.id, { otp: null, otpExpiry: null });
-      const synthRole = this.mapDrTypeToRole(doctor.dr_type);
-      const payload = { email: doctor.email, sub: doctor.id, role: synthRole };
-      const { password, ...result } = doctor;
-      // @ts-ignore
-      const finalUser = { ...result, role: synthRole, doctorId: doctor.id };
-      return {
-        access_token: this.jwtService.sign(payload),
-        user: finalUser,
-      };
-    }
-
-    throw new UnauthorizedException('Invalid or expired OTP.');
-  }
-
-
-  // Re-use same sending logic for reset, but maybe different message?
-  async sendPasswordResetOtp(mobile: string, accountType?: string, accountId?: number) {
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiry = new Date(Date.now() + 10 * 60000);
-
-    // If specific account is selected
-    if (accountType && accountId) {
-      if (accountType === 'user') {
-        const user = await this.usersService.findById(accountId);
-        if (!user || user.mobile !== mobile) {
-          throw new UnauthorizedException('Account not found or mobile mismatch.');
-        }
-        await this.usersService.update(user.id, { otp, otpExpiry: expiry } as any);
-        await this.smsService.sendSms(mobile, `M-Clinic Password Reset OTP: ${otp}. Do not share this code.`);
-        return {
-          message: 'OTP sent.',
-          email: this.maskEmail(user.email)
-        };
-      } else if (accountType === 'doctor') {
-        const doctor = await this.doctorsService.findOne(accountId);
-        if (!doctor || doctor.mobile !== mobile) {
-          throw new UnauthorizedException('Account not found or mobile mismatch.');
-        }
-        // @ts-ignore
-        await this.doctorsService.update(doctor.id, { otp, otpExpiry: expiry });
-        await this.smsService.sendSms(mobile, `M-Clinic Password Reset OTP: ${otp}.`);
-        return {
-          message: 'OTP sent.',
-          email: this.maskEmail(doctor.email)
-        };
-      }
-    }
-
-    // Legacy flow: Check BOTH tables simultaneously
-    const [user, doctor] = await Promise.all([
-      this.usersService.findOneByMobile(mobile),
-      this.doctorsService.findOneByMobile(mobile)
-    ]);
-
-    // Helper to mask email
-    const maskEmail = (email: string) => {
-      const [name, domain] = email.split('@');
-      const maskedName = name.length > 2 ? name[0] + '*'.repeat(name.length - 2) + name[name.length - 1] : name;
-      return `${maskedName}@${domain}`;
-    };
-
-    // If both exist, send OTP to both (they'll need to use the correct one)
-    if (user && doctor) {
-      await Promise.all([
-        this.usersService.update(user.id, { otp, otpExpiry: expiry } as any),
-        // @ts-ignore
-        this.doctorsService.update(doctor.id, { otp, otpExpiry: expiry })
-      ]);
-      await this.smsService.sendSms(mobile, `M-Clinic Password Reset OTP: ${otp}. Do not share this code.`);
-      return {
-        message: 'OTP sent.',
-        accounts: [
-          { email: maskEmail(user.email), type: 'patient' },
-          { email: maskEmail(doctor.email), type: 'provider' }
-        ]
-      };
-    }
-
-    // Only User exists
-    if (user) {
-      await this.usersService.update(user.id, { otp, otpExpiry: expiry } as any);
-      await this.smsService.sendSms(mobile, `M-Clinic Password Reset OTP: ${otp}. Do not share this code.`);
-      return {
-        message: 'OTP sent.',
-        email: maskEmail(user.email)
-      };
-    }
-
-    // Only Doctor exists
-    if (doctor) {
-      // @ts-ignore
-      await this.doctorsService.update(doctor.id, { otp, otpExpiry: expiry });
-      await this.smsService.sendSms(mobile, `M-Clinic Password Reset OTP: ${otp}.`);
-      return {
-        message: 'OTP sent.',
-        email: maskEmail(doctor.email)
-      };
-    }
-
-    throw new UnauthorizedException('Mobile number not found.');
-  }
-
-  async resetPasswordWithOtp(mobile: string, otp: string, newPass: string, accountType?: string, accountId?: number) {
-    const hashedPassword = await bcrypt.hash(newPass, 10);
-
-    // If specific account is selected
-    if (accountType && accountId) {
-      if (accountType === 'user') {
-        const user = await this.usersService.findById(accountId);
-        if (!user || user.mobile !== mobile) {
-          throw new UnauthorizedException('Account not found or mobile mismatch.');
-        }
-        if (user.otp !== otp || new Date(user.otpExpiry) <= new Date()) {
-          throw new UnauthorizedException('Invalid or expired OTP.');
-        }
-        await this.usersService.update(user.id, { password: hashedPassword, otp: null, otpExpiry: null } as any);
-        return { message: 'Password updated successfully.' };
-      } else if (accountType === 'doctor') {
-        const doctor = await this.doctorsService.findOne(accountId);
-        if (!doctor || doctor.mobile !== mobile) {
-          throw new UnauthorizedException('Account not found or mobile mismatch.');
-        }
-        // @ts-ignore
-        if (doctor.otp !== otp || new Date(doctor.otpExpiry) <= new Date()) {
-          throw new UnauthorizedException('Invalid or expired OTP.');
-        }
-        // @ts-ignore
-        await this.doctorsService.update(doctor.id, { password: hashedPassword, otp: null, otpExpiry: null });
-        return { message: 'Password updated successfully.' };
-      }
-    }
-
-    // Legacy flow: Check BOTH tables simultaneously
-    const [user, doctor] = await Promise.all([
-      this.usersService.findOneByMobile(mobile),
-      this.doctorsService.findOneByMobile(mobile)
-    ]);
-
-    // Validate User OTP
-    const userOtpValid = user && user.otp === otp && new Date(user.otpExpiry) > new Date();
-
-    // Validate Doctor OTP
-    // @ts-ignore
-    const doctorOtpValid = doctor && doctor.otp === otp && new Date(doctor.otpExpiry) > new Date();
-
-    // If both have valid OTPs, update the one with the newer OTP (most recent request)
-    if (userOtpValid && doctorOtpValid) {
-      const userOtpTime = new Date(user.otpExpiry).getTime();
-      // @ts-ignore
-      const doctorOtpTime = new Date(doctor.otpExpiry).getTime();
-
-      if (doctorOtpTime > userOtpTime) {
-        // Doctor OTP is newer, update doctor password
-        // @ts-ignore
-        await this.doctorsService.update(doctor.id, { password: hashedPassword, otp: null, otpExpiry: null });
-        return { message: 'Password updated successfully for provider account.' };
-      } else {
-        // User OTP is newer, update user password
-        await this.usersService.update(user.id, { password: hashedPassword, otp: null, otpExpiry: null } as any);
-        return { message: 'Password updated successfully for patient account.' };
-      }
-    }
-
-    // Only User has valid OTP
-    if (userOtpValid) {
-      await this.usersService.update(user.id, { password: hashedPassword, otp: null, otpExpiry: null } as any);
-      return { message: 'Password updated successfully.' };
-    }
-
-    // Only Doctor has valid OTP
-    if (doctorOtpValid) {
-      // @ts-ignore
-      await this.doctorsService.update(doctor.id, { password: hashedPassword, otp: null, otpExpiry: null });
-      return { message: 'Password updated successfully.' };
-    }
-
-    throw new UnauthorizedException('Invalid or expired OTP.');
   }
 }

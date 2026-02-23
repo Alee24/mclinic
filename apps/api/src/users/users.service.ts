@@ -132,10 +132,6 @@ export class UsersService implements OnModuleInit {
     await this.usersRepository.delete({ role: role as any });
   }
 
-  async findByResetToken(token: string): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { resetToken: token } });
-  }
-
   async findByVerificationToken(token: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { verificationToken: token } });
   }
@@ -151,19 +147,11 @@ export class UsersService implements OnModuleInit {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     // Update all users except the one triggering the action (Admin)
-    // using QueryBuilder for efficiency
     const result = await this.usersRepository.createQueryBuilder()
       .update(User)
       .set({ password: hashedPassword })
       .where("id != :id", { id: excludeId })
       .execute();
-
-    // Also update Doctors table to keep in sync (legacy)
-    // Ideally we only use Users table for auth, but let's be safe
-    // This might be slow if separate, but QueryBuilder is fast.
-    // For doctors we can't easily filter by excludeId if they aren't linked perfectly, 
-    // but typically Admin isn't in doctors table or has a different ID. 
-    // Let's rely on User table being the source of truth for Login.
 
     return { success: true, count: result.affected || 0 };
   }

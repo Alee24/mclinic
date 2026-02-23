@@ -21,14 +21,10 @@ export class DoctorApprovalGuard implements CanActivate {
             throw new ForbiddenException('Doctor profile not found');
         }
 
-        // Check approval status
-        if (doctor.approvalStatus !== 'approved') {
-            throw new ForbiddenException('Your account is pending approval. You can only update your profile at this time.');
-        }
-
-        // Check license status
-        if (doctor.licenseStatus === 'expired') {
-            throw new ForbiddenException('Your license has expired. Please renew to access this feature.');
+        // For now, if the doctor profile exists, we allow basic access.
+        // Status checks are handled in AuthService/DoctorsService if needed.
+        if (!doctor.status || doctor.status === 0) {
+            throw new ForbiddenException('Your account is currently inactive. Please contact support.');
         }
 
         return true;

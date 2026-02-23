@@ -10,7 +10,6 @@ import { DoctorLicence } from '../doctor-licences/entities/doctor-licence.entity
 import { Appointment } from '../appointments/entities/appointment.entity';
 import { UsersModule } from '../users/users.module';
 import { EmailModule } from '../email/email.module';
-import { LicenseCheckService } from './services/license-check.service';
 
 import { NckVerificationService } from './nck-verification.service';
 
@@ -27,7 +26,7 @@ import { NckVerificationService } from './nck-verification.service';
     ScheduleModule.forRoot(),
   ],
   controllers: [DoctorsController],
-  providers: [DoctorsService, LicenseCheckService, NckVerificationService],
+  providers: [DoctorsService, NckVerificationService],
   exports: [DoctorsService],
 })
 export class DoctorsModule { }

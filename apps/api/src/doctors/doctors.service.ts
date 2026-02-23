@@ -132,7 +132,6 @@ export class DoctorsService implements OnModuleInit {
                 doctor = this.doctorsRepository.create({
                     ...docData,
                     Verified_status: 1,
-                    approvalStatus: 'approved',
                     fee: 1500,
                 });
                 await this.doctorsRepository.save(doctor);
@@ -225,10 +224,8 @@ export class DoctorsService implements OnModuleInit {
         const doctor = this.doctorsRepository.create({
             ...dto,
             user_id: user ? user.id : null, // Save user_id if provided
-            status: 0, // Inactive until approved
+            status: 0, // Inactive until verified
             Verified_status: 0,
-            approvalStatus: 'pending', // Default to pending
-            licenseStatus: 'valid', // Assume valid initially
         } as unknown as DeepPartial<Doctor>);
         return this.doctorsRepository.save(doctor);
     }
@@ -240,9 +237,8 @@ export class DoctorsService implements OnModuleInit {
         const query = this.doctorsRepository.createQueryBuilder('doctor');
 
         if (!includeAll) {
-            query.where('doctor.approvalStatus = :approvalStatus', { approvalStatus: 'approved' })
-                .andWhere('doctor.status = :status', { status: 1 })
-                .andWhere('(doctor.licenseExpiryDate > CURDATE() OR doctor.licenseExpiryDate IS NULL)');
+            query.where('doctor.Verified_status = :verified', { verified: 1 })
+                .andWhere('doctor.status = :status', { status: 1 });
         }
 
         const doctors = await query.getMany();
@@ -312,11 +308,8 @@ export class DoctorsService implements OnModuleInit {
         const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
         const query = this.doctorsRepository.createQueryBuilder('doctor')
-            .where('doctor.approvalStatus = :approvalStatus', { approvalStatus: 'approved' })
-            .andWhere('doctor.licenseStatus = :licenseStatus', { licenseStatus: 'valid' })
-            .andWhere('doctor.status = :status', { status: 1 })
-            // Strict License Date Check: Expiry must be in the future OR Null (if not yet set but approved manually)
-            .andWhere('(doctor.licenseExpiryDate > :currentDate OR doctor.licenseExpiryDate IS NULL)', { currentDate });
+            .where('doctor.Verified_status = :verified', { verified: 1 })
+            .andWhere('doctor.status = :status', { status: 1 });
 
         // Only enforce Online check if NOT specifically asked to include offline
         if (!includeOffline) {
@@ -537,10 +530,8 @@ export class DoctorsService implements OnModuleInit {
         const doctor = await this.findOne(id);
         if (!doctor) throw new Error('Doctor not found');
 
-        doctor.approvalStatus = 'pending'; // Revert to pending
-        doctor.Verified_status = 0; // Unverified
-        doctor.rejectionReason = reason;
-        doctor.status = 0; // Inactive / Locked
+        doctor.Verified_status = 0;
+        doctor.status = 0;
 
         return this.doctorsRepository.save(doctor);
     }
@@ -550,347 +541,37 @@ export class DoctorsService implements OnModuleInit {
         if (!doctor) throw new Error('Doctor not found');
 
         doctor.status = status;
-
-        // If activating, ensure approval status is approved
-        if (status === 1) {
-            doctor.approvalStatus = 'approved';
-            doctor.rejectionReason = null as any;
-        }
-
         return this.doctorsRepository.save(doctor);
-    }
-
-    // ==================== APPROVAL WORKFLOW ====================
-
-    async approveDoctor(id: number, adminId: number): Promise<Doctor> {
-        const doctor = await this.doctorsRepository.findOne({ where: { id } });
-        if (!doctor) throw new Error('Doctor not found');
-
-        doctor.approvalStatus = 'approved';
-        doctor.Verified_status = 1;
-        doctor.status = 1;
-        doctor.approvedAt = new Date();
-        doctor.approvedBy = adminId;
-
-        // Ensure License Expiry is set (Default 1 year if missing)
-        if (!doctor.licenseExpiryDate) {
-            const nextYear = new Date();
-            nextYear.setFullYear(nextYear.getFullYear() + 1);
-            doctor.licenseExpiryDate = nextYear;
-            doctor.licenseStatus = 'valid';
-        }
-
-        const savedDoctor = await this.doctorsRepository.save(doctor);
-
-        // Sync with User
-        if (savedDoctor.email) {
-            await this.usersService.updateUserStatus(savedDoctor.email, true);
-        }
-
-        // Send approval email
-        try {
-            await this.emailService.sendDoctorApprovalEmail(savedDoctor, 'approved');
-        } catch (error) {
-            console.error('Failed to send approval email:', error);
-        }
-
-        return savedDoctor;
-    }
-
-    async rejectDoctor(id: number, adminId: number, reason: string): Promise<Doctor> {
-        const doctor = await this.doctorsRepository.findOne({ where: { id } });
-        if (!doctor) throw new Error('Doctor not found');
-
-        doctor.approvalStatus = 'rejected';
-        doctor.rejectionReason = reason;
-        doctor.status = 0;
-        doctor.approvedBy = adminId;
-
-        const savedDoctor = await this.doctorsRepository.save(doctor);
-
-        // Sync with User
-        if (savedDoctor.email) {
-            await this.usersService.updateUserStatus(savedDoctor.email, false);
-        }
-
-        // Send rejection email
-        try {
-            await this.emailService.sendDoctorApprovalEmail(savedDoctor, 'rejected', reason);
-        } catch (error) {
-            console.error('Failed to send rejection email:', error);
-        }
-
-        return savedDoctor;
-    }
-
-    async approveAll(adminId: number): Promise<{ success: boolean; count: number }> {
-        const pendingDoctors = await this.doctorsRepository.find({
-            where: { approvalStatus: 'pending' },
-        });
-
-        if (pendingDoctors.length === 0) {
-            return { success: true, count: 0 };
-        }
-
-        const approvedDocs: Doctor[] = [];
-        const nextYear = new Date();
-        nextYear.setFullYear(nextYear.getFullYear() + 1);
-
-        for (const doctor of pendingDoctors) {
-            doctor.approvalStatus = 'approved';
-            doctor.Verified_status = 1;
-            doctor.status = 1;
-            doctor.approvedAt = new Date();
-            doctor.approvedBy = adminId;
-
-            // Auto License
-            if (!doctor.licenseExpiryDate) {
-                doctor.licenseExpiryDate = nextYear;
-                doctor.licenseStatus = 'valid';
-            }
-
-            // Auto-assign random Nairobi location if missing (for map visibility)
-            // @ts-ignore
-            if (!doctor.latitude || !doctor.longitude || Number(doctor.latitude) === 0) {
-                // @ts-ignore
-                doctor.latitude = -1.2921 + (Math.random() - 0.5) * 0.1;
-                // @ts-ignore
-                doctor.longitude = 36.8219 + (Math.random() - 0.5) * 0.1;
-            }
-
-            // Sync with User if exists
-            if (doctor.email) {
-                await this.usersService.updateUserStatus(doctor.email, true);
-            }
-
-            approvedDocs.push(doctor);
-        }
-
-        await this.doctorsRepository.save(approvedDocs);
-
-        // Send emails asynchronously
-        approvedDocs.forEach(async (doc) => {
-            try {
-                await this.emailService.sendDoctorApprovalEmail(doc, 'approved');
-            } catch (e) {
-                console.error(`Failed to send approval email to ${doc.email}`, e);
-            }
-        });
-
-        return { success: true, count: approvedDocs.length };
-    }
-
-    async activateAll(adminId: number): Promise<{ success: boolean; count: number }> {
-        // Find ALL doctors who are either inactive OR pending OR not verified
-        const inactiveDoctors = await this.doctorsRepository.createQueryBuilder('doctor')
-            .where('doctor.status = :status', { status: 0 })
-            .orWhere('doctor.approvalStatus != :approvalStatus', { approvalStatus: 'approved' })
-            .orWhere('doctor.Verified_status = :vStatus', { vStatus: 0 })
-            .getMany();
-
-        if (inactiveDoctors.length === 0) {
-            return { success: true, count: 0 };
-        }
-
-        const nextYear = new Date();
-        nextYear.setFullYear(nextYear.getFullYear() + 1);
-
-        for (const doc of inactiveDoctors) {
-            doc.status = 1;
-            doc.Verified_status = 1;
-            doc.approvalStatus = 'approved';
-
-            if (!doc.approvedBy) {
-                doc.approvedBy = adminId;
-                doc.approvedAt = new Date();
-            }
-
-            // Fix licenses if missing
-            if (!doc.licenseExpiryDate || new Date(doc.licenseExpiryDate) < new Date()) {
-                doc.licenseExpiryDate = nextYear;
-                doc.licenseStatus = 'valid';
-            }
-
-            // Fix map coords if missing (Critical for map visibility)
-            // @ts-ignore
-            if (!doc.latitude || !doc.longitude || Number(doc.latitude) === 0) {
-                // @ts-ignore
-                doc.latitude = -1.2921 + (Math.random() - 0.5) * 0.1;
-                // @ts-ignore
-                doc.longitude = 36.8219 + (Math.random() - 0.5) * 0.1;
-            }
-
-            // Sync User Status
-            if (doc.email) {
-                await this.usersService.updateUserStatus(doc.email, true);
-            }
-        }
-
-        await this.doctorsRepository.save(inactiveDoctors);
-        return { success: true, count: inactiveDoctors.length };
     }
 
     async findPendingDoctors(): Promise<Doctor[]> {
         return await this.doctorsRepository.find({
-            where: { approvalStatus: 'pending' },
+            where: { Verified_status: 0 },
             order: { created_at: 'DESC' },
         });
     }
 
-    async checkLicenseStatus(): Promise<void> {
-        const doctors = await this.doctorsRepository.find({ where: { approvalStatus: 'approved' } });
-        const now = new Date();
-        const sevenDaysFromNow = new Date();
-        sevenDaysFromNow.setDate(now.getDate() + 7);
-
-        for (const doctor of doctors) {
-            if (!doctor.licenseExpiryDate) continue;
-            const expiryDate = new Date(doctor.licenseExpiryDate);
-
-            if (expiryDate < now && doctor.licenseStatus !== 'expired') {
-                doctor.licenseStatus = 'expired';
-                doctor.status = 0;
-                doctor.lastLicenseCheck = new Date();
-                await this.doctorsRepository.save(doctor);
-            } else if (expiryDate <= sevenDaysFromNow && doctor.licenseStatus !== 'expiring_soon') {
-                doctor.licenseStatus = 'expiring_soon';
-                doctor.lastLicenseCheck = new Date();
-                await this.doctorsRepository.save(doctor);
-            }
-        }
-    }
-
-    async getExpiringSoonLicenses(): Promise<Doctor[]> {
-        return await this.doctorsRepository.find({
-            where: { licenseStatus: 'expiring_soon' },
-        });
-    }
-
-    async renewLicense(id: number, newExpiryDate: Date): Promise<Doctor> {
-        const doctor = await this.doctorsRepository.findOne({ where: { id } });
-        if (!doctor) throw new Error('Doctor not found');
-
-        doctor.licenseExpiryDate = newExpiryDate;
-        doctor.licenseStatus = 'valid';
-        doctor.status = 1;
-        doctor.lastLicenseCheck = new Date();
-
-        const savedDoctor = await this.doctorsRepository.save(doctor);
-
-        // Send reactivation email
-        try {
-            await this.emailService.sendAccountReactivatedEmail(savedDoctor);
-        } catch (error) {
-            console.error('Failed to send reactivation email:', error);
-        }
-
-        return savedDoctor;
-    }
-
     async generateIdCard(id: number) {
-        const doctor = await this.doctorsRepository.findOne({
-            where: { id },
-            // relations: ['user'] -- Removed: Doctor entity has no 'user' relation defined
-        });
-
+        const doctor = await this.findOne(id);
         if (!doctor) throw new NotFoundException('Doctor not found');
 
-        // STRICT VALIDATION
-        const missingFields = [];
-        if (!doctor.profile_image) missingFields.push('Profile Photo');
-        if (!doctor.licenceNo) missingFields.push('License Number');
-        if (!doctor.licenseExpiryDate) missingFields.push('License Expiry Date');
-
-        if (missingFields.length > 0) {
-            throw new BadRequestException(`Cannot generate ID Card. Missing: ${missingFields.join(', ')}. Please update your profile.`);
-        }
-
-        // Generate Serial Number: MCK-{YEAR}-{ID}
-        // Pad ID with zeros to 3 digits (e.g. 005)
         const paddedId = id.toString().padStart(3, '0');
         const serialNumber = `MCK-${new Date().getFullYear()}-${paddedId}`;
-
-        // Verification URL
         const verificationUrl = `https://mclinic.co.ke/verify/doctor/${doctor.id}`;
-
-        // Generate QR Code
         const qrCodeDataUrl = await QRCode.toDataURL(verificationUrl);
 
         return {
-            doctor: {
-                id: doctor.id,
-                name: `${doctor.fname} ${doctor.lname}`,
-                email: doctor.email,
-                mobile: doctor.mobile,
-                speciality: doctor.speciality,
-                drType: doctor.dr_type,
-                licenseNumber: doctor.licenceNo,
-                licenseExpiry: doctor.licenseExpiryDate,
-                profileImage: doctor.profile_image ? `${process.env.API_URL || 'https://portal.mclinic.co.ke/api'}/uploads/profiles/${doctor.profile_image}` : null
-            },
-            serialNumber,
-            qrCode: qrCodeDataUrl,
-            verificationUrl,
-            issuedDate: new Date()
-        };
-    }
-
-    async resetAllPasswords(newPassword: string = 'Mclinic@2025'): Promise<{ success: boolean; count: number; message: string }> {
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-        const allDoctors = await this.doctorsRepository.find();
-
-        for (const doctor of allDoctors) {
-            doctor.password = hashedPassword;
-            // Also sync with User entity
-            if (doctor.email) {
-                try {
-                    await this.usersService.updateByEmail(doctor.email, { password: hashedPassword });
-                } catch (err) {
-                    console.error(`Failed to sync password for ${doctor.email}`, err);
-                }
-            }
-        }
-
-        await this.doctorsRepository.save(allDoctors);
-
-        return {
             success: true,
-            count: allDoctors.length,
-            message: `Reset ${allDoctors.length} doctor passwords to: ${newPassword}`
+            data: {
+                serialNumber,
+                name: `DR. ${doctor.fname} ${doctor.lname}`,
+                qualification: doctor.qualification,
+                speciality: doctor.dr_type,
+                licenseNo: doctor.licenceNo,
+                photo: doctor.profile_image,
+                qrCode: qrCodeDataUrl,
+            },
         };
-    }
-
-    // DANGER: Clears all doctors and their associated user accounts
-    async deleteAll(): Promise<void> {
-        // 1. Find all doctors to get their emails/user_ids
-        const doctors = await this.doctorsRepository.find();
-        const userIds = doctors.map(d => d.user_id).filter(id => id);
-        const emails = doctors.map(d => d.email).filter(e => e);
-
-        // 2. Clear Doctors Table (Try delete first to avoid FK issues with truncate)
-        // We use delete({}) which triggers TypeORM events/cascades better than clear() in some drivers
-        await this.doctorsRepository.delete({});
-
-        // 3. Delete associated Users
-        if (userIds.length > 0) {
-            try {
-                // Delete users by ID
-                await this.usersService.deleteManyByIds(userIds);
-            } catch (err) {
-                console.log("Error deleting users by IDs, trying by role/email");
-            }
-        }
-
-        // Fallback: Delete any user with medic/doctor roles to be clean
-        try {
-            await this.usersService.deleteByRole('medic');
-            await this.usersService.deleteByRole('doctor');
-            await this.usersService.deleteByRole('nurse');
-            await this.usersService.deleteByRole('pharmacist');
-            await this.usersService.deleteByRole('lab_tech');
-        } catch (e) {
-            console.error("Cleanup error", e);
-        }
     }
 
     async processCsvUpload(buffer: Buffer): Promise<{ success: boolean; count: number; errors: string[] }> {
@@ -902,99 +583,35 @@ export class DoctorsService implements OnModuleInit {
         const createdDocs = [];
         const errors = [];
 
-        // Expected headers: fname,lname,email,mobile,speciality,licenceNo
-
         for (let i = 1; i < lines.length; i++) {
             try {
-                // Simple CSV split handling quotes somewhat
-                const row = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
-                if (!row) continue;
-
-                // Map values to object manually or use simple split if regex fails
                 const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
-
                 const docData: any = {};
-                headers.forEach((h, idx) => {
-                    docData[h] = values[idx];
-                });
+                headers.forEach((h, idx) => { docData[h] = values[idx]; });
 
                 if (!docData.email || !docData.fname) {
                     errors.push(`Line ${i + 1}: Missing email or first name`);
                     continue;
                 }
 
-                // Create Doctor - Dynamic Mapping
-                // Use a known base object but spread docData so ANY field in CSV that matches a DB column gets mapped
                 const doctorPayload = {
-                    ...docData, // Maps all matching fields (e.g. latitude, longitude, fee, balance, slot_type, etc.)
-                    fname: docData.fname,
-                    lname: docData.lname,
-                    email: docData.email,
-                    mobile: docData.mobile,
-                    speciality: docData.speciality,
+                    ...docData,
                     licenceNo: docData.licenceno || docData.licensenumber,
                     dr_type: docData.dr_type || 'Medic',
                     password: docData.password || 'Mclinic@2025',
-
-                    // Essential defaults (can be overridden by CSV if column exists)
                     status: docData.status ? parseInt(docData.status) : 1,
-                    approvalStatus: docData.approvalstatus || 'approved',
                     Verified_status: docData.verified_status ? parseInt(docData.verified_status) : 1,
-
-                    // Ensure numeric fields are actually numbers if present
-                    latitude: docData.latitude ? parseFloat(docData.latitude) : undefined,
-                    longitude: docData.longitude ? parseFloat(docData.longitude) : undefined,
-                    fee: docData.fee ? parseInt(docData.fee) : undefined,
-                    balance: docData.balance ? parseFloat(docData.balance) : undefined,
-                    user_id: docData.user_id ? parseInt(docData.user_id) : undefined,
                 };
 
                 const newDoc = await this.create(doctorPayload, null);
-
-                // IMMEDIATE SYNC: Ensure User record exists so auth works seamlessly across all types
-                try {
-                    // Check if user exists
-                    let user = await this.usersService.findOne(newDoc.email);
-                    if (!user) {
-                        // Create User Shadow Record
-                        user = await this.usersService.create({
-                            email: newDoc.email,
-                            password: newDoc.password, // Synced Password
-                            fname: newDoc.fname,
-                            lname: newDoc.lname,
-                            role: this.mapDrTypeToUserRole(newDoc.dr_type), // Helper method usage
-                            status: true,
-                        } as any);
-                    } else {
-                        // Update existing user to match doctor details (Source of Truth = Doctor)
-                        await this.usersService.updateByEmail(newDoc.email, {
-                            role: this.mapDrTypeToUserRole(newDoc.dr_type),
-                            fname: newDoc.fname,
-                            lname: newDoc.lname,
-                            password: newDoc.password
-                        });
-                    }
-
-                    // Link them
-                    if (newDoc.user_id !== user.id) {
-                        await this.doctorsRepository.update(newDoc.id, { user_id: user.id });
-                    }
-                } catch (syncErr) {
-                    console.error(`Failed to immediate-sync user for doctor ${newDoc.email}`, syncErr);
-                }
-
                 createdDocs.push(newDoc);
-
             } catch (err) {
                 errors.push(`Line ${i + 1}: ${err.message}`);
             }
         }
-
-        // Sync users
-        await this.syncDoctorsWithUsers();
-
         return { success: true, count: createdDocs.length, errors };
     }
+
     async verifyByLicense(licenceNo: string): Promise<any> {
         return this.nckService.verifyNurse(licenceNo);
     }
@@ -1009,10 +626,10 @@ export class DoctorsService implements OnModuleInit {
 
         const updateData: any = {
             Verified_status: result.success && result.status === 'Active' ? 1 : 0,
-            licenseStatus: (result.success && result.status?.toLowerCase() === 'active') ? 'valid' : 'expired',
-            licenseExpiryDate: result.success ? result.expiryDate : doc.licenseExpiryDate,
+            status: result.success && result.status === 'Active' ? 1 : 0,
         };
 
+<<<<<<< HEAD
         if (result.success) {
             // Record exists - User wants them activated
             updateData.status = 1; // Active
@@ -1046,6 +663,11 @@ export class DoctorsService implements OnModuleInit {
                 updateData.lname = lname;
             }
 
+=======
+        if (result.success && result.status === 'Active') {
+            if (result.qualifications) updateData.qualification = result.qualifications;
+            if (result.imageUrl) updateData.profile_image = result.imageUrl;
+>>>>>>> 519a8a9 (feat: add African images to homepage, medic guide page, fix DB schema alignment, port config 5054/5454)
             await this.doctorsRepository.update(id, updateData);
 
             // Sync with User account if exists (Very important for login consistency)
@@ -1060,33 +682,18 @@ export class DoctorsService implements OnModuleInit {
 
             return { success: true, medic: updatedDoc, nck: result };
         } else {
-            // NCK says they are NOT active or record is missing
-            updateData.status = 0; // Inactive
-            updateData.approvalStatus = 'suspended';
-            updateData.rejectionReason = result.success
-                ? `NCK Portal: Record found but status is ${result.status}`
-                : 'NCK Portal: No records found (Wrong License)';
-
             await this.doctorsRepository.update(id, updateData);
-            return {
-                success: false,
-                status: 'Suspended',
-                message: updateData.rejectionReason,
-                nck: result
-            };
+            return { success: false, message: 'NCK verification failed or inactive.' };
         }
     }
 
     async verifyAllNurses(): Promise<{ success: boolean; count: number; updated: number; current_total: number }> {
-        // Prioritize those not yet verified or with problematic statuses
         const doctors = await this.doctorsRepository.find({
             where: [
                 { dr_type: 'Nurse', Verified_status: 0 },
-                { dr_type: 'nurse', Verified_status: 0 },
-                { dr_type: 'Medic', Verified_status: 0 },
-                { dr_type: 'medic', Verified_status: 0 }
+                { dr_type: 'Medic', Verified_status: 0 }
             ],
-            take: 20 // Process in manageable batches to avoid browser timeout
+            take: 20
         });
 
         const totalToVerify = await this.doctorsRepository.count({
@@ -1094,14 +701,21 @@ export class DoctorsService implements OnModuleInit {
         });
 
         let updated = 0;
-
-        // Use a simple loop with small batches
         for (const doc of doctors) {
             if (doc.licenceNo && doc.licenceNo.length > 3) {
                 try {
+<<<<<<< HEAD
                     // Call the main verification method which now contains all logic (activation, name sync, image sync)
                     const res = await this.verifyAndUpdateMedic(doc.id);
                     if (res && res.success) {
+=======
+                    const result = await this.nckService.verifyNurse(doc.licenceNo);
+                    if (result.success) {
+                        await this.doctorsRepository.update(doc.id, {
+                            Verified_status: result.status === 'Active' ? 1 : 0,
+                            status: result.status === 'Active' ? 1 : 0,
+                        });
+>>>>>>> 519a8a9 (feat: add African images to homepage, medic guide page, fix DB schema alignment, port config 5054/5454)
                         updated++;
                     }
                 } catch (e) {
@@ -1117,6 +731,7 @@ export class DoctorsService implements OnModuleInit {
             current_total: totalToVerify
         };
     }
+<<<<<<< HEAD
 
 
 
@@ -1186,4 +801,6 @@ export class DoctorsService implements OnModuleInit {
 
         return { fname, lname };
     }
+=======
+>>>>>>> 519a8a9 (feat: add African images to homepage, medic guide page, fix DB schema alignment, port config 5054/5454)
 }

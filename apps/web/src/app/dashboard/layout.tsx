@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ReactNode, useEffect, useState } from 'react';
-import { FiGrid, FiList, FiCalendar, FiBarChart2, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiSearch, FiBell, FiMail, FiMap, FiPackage, FiFileText, FiDatabase, FiPlusCircle, FiUser, FiTruck, FiCheckCircle, FiActivity, FiMenu, FiX, FiTrash2, FiMessageSquare } from 'react-icons/fi';
+import { FiGrid, FiList, FiCalendar, FiBarChart2, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiSearch, FiBell, FiMail, FiMap, FiPackage, FiFileText, FiDatabase, FiPlusCircle, FiUser, FiTruck, FiCheckCircle, FiActivity, FiMenu, FiX, FiTrash2, FiMessageSquare, FiBook } from 'react-icons/fi';
 import { useAuth, UserRole } from '@/lib/auth';
 import UserAvatar from '@/components/dashboard/UserAvatar';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -197,6 +197,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                         <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">Personal</div>
                                         <NavItem href="/dashboard/finance/transactions" icon={<FiBarChart2 />} label="Wallet & Earnings" active={pathname === '/dashboard/finance/transactions'} />
                                         <NavItem href="/dashboard/profile" icon={<FiUser />} label="My Profile" active={pathname === '/dashboard/profile'} />
+                                        <NavItem href="/dashboard/doctors/guide" icon={<FiBook />} label="Guide & Help" active={pathname === '/dashboard/doctors/guide'} />
                                     </div>
                                 </>
                             )}
