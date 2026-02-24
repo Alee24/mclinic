@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DeepPartial } from 'typeorm';
+import { Repository, DeepPartial, In, Not } from 'typeorm';
 import { Appointment, AppointmentStatus } from './entities/appointment.entity';
 import { Doctor } from '../doctors/entities/doctor.entity';
 import { Patient } from '../patients/entities/patient.entity';
@@ -340,7 +340,10 @@ export class AppointmentsService {
         console.log(`[Appointments] Found Medic Profile for ${user.email} -> Doctor ID: ${doctor.id}`);
 
         const appointments = await this.appointmentsRepository.find({
-          where: { doctorId: doctor.id },
+          where: {
+            doctorId: doctor.id,
+            status: Not(AppointmentStatus.PENDING), // Medics only see non-pending appointments
+          },
           relations: ['patient', 'doctor', 'service', 'invoice'],
           order: { appointment_date: 'DESC' },
         });

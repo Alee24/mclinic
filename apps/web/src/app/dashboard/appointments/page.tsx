@@ -27,6 +27,11 @@ export default function AppointmentsPage() {
             const aptRes = await api.get('/appointments');
             if (aptRes?.ok) {
                 let data = await aptRes.json();
+                // Medics only see confirmed/completed/missed appointments — filter out pending
+                const isMedic = user?.role === 'doctor' || user?.role === 'medic' || user?.role === 'nurse' || user?.role === 'clinician';
+                if (isMedic) {
+                    data = data.filter((apt: any) => apt.status !== 'pending');
+                }
                 setAppointments(data);
             }
         } catch (err) {
@@ -198,7 +203,7 @@ export default function AppointmentsPage() {
                                                             )}
                                                         </div>
                                                     )}
-                                                    {(apt.status === 'pending' || apt.status === 'confirmed') && (
+                                                    {apt.status === 'confirmed' && (
                                                         <button
                                                             onClick={() => updateStatus(apt.id, 'missed')}
                                                             className="text-xs font-bold px-2 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200"
