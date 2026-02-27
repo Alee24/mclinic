@@ -41,11 +41,12 @@ export default function Header() {
             {/* Navbar */}
             <nav className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white/95 backdrop-blur-md shadow-lg py-3' : 'bg-white py-5'}`}>
                 <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
-                    <Link href="/" className="text-2xl font-black tracking-tight text-[#1D2B36] flex items-center gap-2 group">
-                        <div className="w-10 h-10 bg-gradient-to-br from-[#C2003F] to-[#FF4D6D] rounded-2xl flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
-                            M
-                        </div>
-                        <span className="bg-gradient-to-r from-[#1D2B36] to-[#C2003F] bg-clip-text text-transparent">M-Clinic</span>
+                    <Link href="/" className="flex items-center gap-2 group">
+                        <img
+                            src="https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png"
+                            alt="M-Clinic Kenya"
+                            className="h-10 w-auto object-contain group-hover:scale-105 transition-transform"
+                        />
                     </Link>
 
                     {/* Desktop Menu */}

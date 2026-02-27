@@ -71,12 +71,12 @@ export default function DoctorIdCard({ doctorId }: IdCardProps) {
                 <div className="border-4 border-primary rounded-xl p-6 bg-gradient-to-br from-white to-gray-50 relative overflow-hidden">
                     {/* Watermark/Background Decoration */}
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-5 pointer-events-none">
-                        <img src="/mclinic-logo-full.png" alt="Watermark" className="w-64 grayscale" />
+                        <img src="https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png" alt="Watermark" className="w-64 grayscale" />
                     </div>
 
                     {/* Header */}
                     <div className="flex items-center justify-between border-b-2 border-primary pb-4 mb-6 relative z-10">
-                        <img src="/mclinic-logo-full.png" alt="M-Clinic Kenya" className="h-12 object-contain" />
+                        <img src="https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png" alt="M-Clinic Kenya" className="h-12 object-contain" />
                         <div className="text-right">
                             <h1 className="text-xl font-bold text-primary">MEDICAL ID</h1>
                             <p className="text-xs text-gray-600 font-mono">{idCardData.serialNumber}</p>

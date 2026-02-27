@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { FiX, FiPlus, FiTrash2, FiSearch, FiCheck } from 'react-icons/fi';
 import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
 import toast from 'react-hot-toast';
 
 interface PrescribeMedicationModalProps {
@@ -17,6 +18,7 @@ export default function PrescribeMedicationModal({ appointment, onClose, onSucce
     const [selectedMeds, setSelectedMeds] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    const { user } = useAuth();
 
     useEffect(() => {
         const fetchMeds = async () => {
@@ -101,6 +103,26 @@ export default function PrescribeMedicationModal({ appointment, onClose, onSucce
             setSubmitting(false);
         }
     };
+
+    if (user?.role === 'nurse') {
+        return (
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                <div className="bg-white dark:bg-[#1A1A1A] w-full max-w-md rounded-3xl p-8 text-center shadow-2xl">
+                    <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <FiX className="text-red-600 size-8" />
+                    </div>
+                    <h2 className="text-xl font-black mb-2 dark:text-white">Unauthorized Access</h2>
+                    <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">Nurses are not authorized to prescribe medications or access the prescription portal. Please consult a Clinical Officer or Doctor.</p>
+                    <button
+                        onClick={onClose}
+                        className="w-full py-3 bg-primary text-black rounded-xl font-black hover:opacity-90 transition-opacity"
+                    >
+                        Close Portal
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     const filteredMeds = medications.filter(m =>
         m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||

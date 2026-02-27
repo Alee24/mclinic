@@ -66,7 +66,7 @@ export default function PatientLabResultsPage() {
             const doc = new jsPDF();
 
             // --- Assets ---
-            const logoData = await getDataUrl('/logo.png').catch(() => null);
+            const logoData = await getDataUrl('https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png').catch(() => null);
 
             // --- Header ---
             if (logoData) {

@@ -52,15 +52,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-[#121212] flex flex-col p-6 border-r border-gray-100 dark:border-gray-800 transition-transform duration-300 ease-in-out md:relative md:translate-x-0
                 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
             `}>
-                {/* Logo */}
-                {/* Logo */}
                 <div className="flex items-center justify-between mb-10 px-2">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-donezo-dark rounded-full flex items-center justify-center text-white font-bold text-lg">
-                            M
-                        </div>
-                        <span className="text-xl font-bold text-gray-900 dark:text-white">M-Clinic</span>
-                    </div>
+                    <Link href="/dashboard">
+                        <img
+                            src="https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png"
+                            alt="M-Clinic Kenya"
+                            className="h-9 w-auto object-contain"
+                        />
+                    </Link>
                     <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
                         <FiX size={24} />
                     </button>
@@ -293,6 +292,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         <div className="absolute -top-5 -left-5 w-20 h-20 bg-white/5 rounded-full blur-lg"></div>
                     </div>
                 )}
+
+                <div className="mt-auto pt-6 border-t border-gray-100 dark:border-gray-800 text-[10px] text-gray-400 text-center opacity-60">
+                    Developed by | <a href="https://kkdes.co.ke/" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 transition-colors underline underline-offset-4">KKDES</a>
+                </div>
             </aside >
 
             {/* Main Content */}

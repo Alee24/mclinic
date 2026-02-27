@@ -119,7 +119,7 @@ export default function MedicalRecordsPage() {
             const verificationUrl = `https://www.mclinic.co.ke/verify?id=${serialNumber}`;
 
             // --- Load Assets ---
-            const logoData = await getDataUrl('/logo.png').catch(() => null);
+            const logoData = await getDataUrl('https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png').catch(() => null);
             const qrData = await QRCode.toDataURL(verificationUrl);
 
             // --- Header Section ---

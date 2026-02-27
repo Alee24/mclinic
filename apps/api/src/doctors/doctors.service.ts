@@ -629,7 +629,14 @@ export class DoctorsService implements OnModuleInit {
             status: result.success && result.status === 'Active' ? 1 : 0,
         };
 
-<<<<<<< HEAD
+        // Set can_prescribe based on dr_type
+        const prescribableRoles = ['Clinical Officer', 'Specialist', 'Doctor'];
+        if (prescribableRoles.includes(doc.dr_type)) {
+            updateData.can_prescribe = 1;
+        } else {
+            updateData.can_prescribe = 0;
+        }
+
         if (result.success) {
             // Record exists - User wants them activated
             updateData.status = 1; // Active
@@ -663,11 +670,6 @@ export class DoctorsService implements OnModuleInit {
                 updateData.lname = lname;
             }
 
-=======
-        if (result.success && result.status === 'Active') {
-            if (result.qualifications) updateData.qualification = result.qualifications;
-            if (result.imageUrl) updateData.profile_image = result.imageUrl;
->>>>>>> 519a8a9 (feat: add African images to homepage, medic guide page, fix DB schema alignment, port config 5054/5454)
             await this.doctorsRepository.update(id, updateData);
 
             // Sync with User account if exists (Very important for login consistency)
@@ -704,18 +706,9 @@ export class DoctorsService implements OnModuleInit {
         for (const doc of doctors) {
             if (doc.licenceNo && doc.licenceNo.length > 3) {
                 try {
-<<<<<<< HEAD
                     // Call the main verification method which now contains all logic (activation, name sync, image sync)
                     const res = await this.verifyAndUpdateMedic(doc.id);
                     if (res && res.success) {
-=======
-                    const result = await this.nckService.verifyNurse(doc.licenceNo);
-                    if (result.success) {
-                        await this.doctorsRepository.update(doc.id, {
-                            Verified_status: result.status === 'Active' ? 1 : 0,
-                            status: result.status === 'Active' ? 1 : 0,
-                        });
->>>>>>> 519a8a9 (feat: add African images to homepage, medic guide page, fix DB schema alignment, port config 5054/5454)
                         updated++;
                     }
                 } catch (e) {
@@ -731,7 +724,6 @@ export class DoctorsService implements OnModuleInit {
             current_total: totalToVerify
         };
     }
-<<<<<<< HEAD
 
 
 
@@ -801,6 +793,4 @@ export class DoctorsService implements OnModuleInit {
 
         return { fname, lname };
     }
-=======
->>>>>>> 519a8a9 (feat: add African images to homepage, medic guide page, fix DB schema alignment, port config 5054/5454)
 }

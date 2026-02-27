@@ -75,12 +75,11 @@ export class PharmacyService {
         const doctor = await this.doctorsService.findOne(data.doctorId);
         if (!doctor) throw new NotFoundException('Doctor not found');
 
-        // 2. Role Restriction (Kenyan Law: Nurses/Clinicians restrictions)
-        // Adjust logic based on exact titles. Assuming 'Doctor' title or specific specialties.
-        // For now, blocking 'Nurse' explicitly if mentioned in requirements.
-        const restrictedRoles = ['Nurse', 'Clinician'];
-        if (restrictedRoles.includes(doctor.dr_type)) {
-            throw new NotFoundException('User role not authorized to prescribe medications.');
+        // 2. Prescription Authority Logic
+        // Clinical Officers and Doctors can prescribe if their can_prescribe flag is set.
+        // Nurses are restricted by default.
+        if (doctor.can_prescribe !== 1) {
+            throw new NotFoundException('User role not authorized to prescribe medications or lacks prescription powers.');
         }
 
         const prescription = this.prescriptionRepo.create({

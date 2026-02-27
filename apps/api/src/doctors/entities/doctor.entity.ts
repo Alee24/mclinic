@@ -47,6 +47,12 @@ export class Doctor {
   @Column({ length: 50, default: 'Pending' })
   approved_status: string;
 
+  @Column({ length: 20, default: 'pending' })
+  approvalStatus: string;
+
+  @Column({ type: 'text', nullable: true })
+  rejectionReason: string;
+
   @Column({ length: 255, nullable: true })
   password: string;
 
@@ -171,7 +177,6 @@ export class Doctor {
   @OneToMany(() => DoctorSchedule, (schedule) => schedule.doctor)
   schedules: DoctorSchedule[];
 
-<<<<<<< HEAD
   @Column({ length: 10, nullable: true })
   otp: string;
 
@@ -184,8 +189,9 @@ export class Doctor {
   @Column({ type: 'datetime', nullable: true })
   resetTokenExpiry: Date;
 
-=======
->>>>>>> 519a8a9 (feat: add African images to homepage, medic guide page, fix DB schema alignment, port config 5054/5454)
+  @Column({ type: 'tinyint', default: 0 })
+  can_prescribe: number;
+
   @OneToMany(() => DoctorLicence, (licence) => licence.doctor)
   licences: DoctorLicence[];
 }

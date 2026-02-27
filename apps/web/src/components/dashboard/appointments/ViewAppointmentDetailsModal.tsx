@@ -248,12 +248,14 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
                                 >
                                     <FiFileText /> Add Record
                                 </button>
-                                <button
-                                    onClick={() => setShowPrescribeModal(true)}
-                                    className="px-4 py-2 bg-primary text-black rounded-xl font-bold text-sm hover:opacity-90 transition-opacity flex items-center gap-2"
-                                >
-                                    <FiShoppingBag /> Prescribe
-                                </button>
+                                {user?.role !== 'nurse' && (
+                                    <button
+                                        onClick={() => setShowPrescribeModal(true)}
+                                        className="px-4 py-2 bg-primary text-black rounded-xl font-bold text-sm hover:opacity-90 transition-opacity flex items-center gap-2"
+                                    >
+                                        <FiShoppingBag /> Prescribe
+                                    </button>
+                                )}
                             </div>
                         )}
                     </div>

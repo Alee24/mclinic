@@ -2,6 +2,7 @@ import { Dialog, Transition, Tab } from '@headlessui/react';
 import { Fragment, useState, useEffect } from 'react';
 import { FiX, FiSave, FiBriefcase, FiUpload, FiUser, FiFileText, FiMapPin } from 'react-icons/fi';
 import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
 import toast from 'react-hot-toast';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434';
@@ -17,6 +18,8 @@ function classNames(...classes: string[]) {
 }
 
 export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: EditMedicProfileModalProps) {
+    const { user } = useAuth();
+    const isNurse = user?.role === 'nurse';
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         regulatory_body: '',
@@ -306,41 +309,50 @@ export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: Ed
                                                     </div>
                                                 </div>
 
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                    {/* Signature */}
-                                                    <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-gray-800 text-center">
-                                                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">Digital Signature</label>
-                                                        <div className="relative group w-full h-32 bg-white dark:bg-black rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 flex items-center justify-center overflow-hidden mb-3">
-                                                            {sigPreview ? (
-                                                                <img src={sigPreview} alt="Signature" className="h-full object-contain" />
-                                                            ) : (
-                                                                <span className="text-gray-400 text-xs">No signature</span>
-                                                            )}
-                                                            <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'signature')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                                                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                                                <FiUpload className="text-white text-2xl" />
+                                                {!isNurse && (
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-100 dark:border-gray-800">
+                                                        {/* Signature */}
+                                                        <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-gray-800 text-center">
+                                                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">Digital Signature</label>
+                                                            <div className="relative group w-full h-32 bg-white dark:bg-black rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 flex items-center justify-center overflow-hidden mb-3">
+                                                                {sigPreview ? (
+                                                                    <img src={sigPreview} alt="Signature" className="h-full object-contain" />
+                                                                ) : (
+                                                                    <span className="text-gray-400 text-xs">No signature</span>
+                                                                )}
+                                                                <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'signature')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                                                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                                                    <FiUpload className="text-white text-2xl" />
+                                                                </div>
                                                             </div>
+                                                            <p className="text-[10px] text-gray-500">Required for prescriptions</p>
                                                         </div>
-                                                        <p className="text-[10px] text-gray-500">Required for prescriptions</p>
-                                                    </div>
 
-                                                    {/* Stamp */}
-                                                    <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-gray-800 text-center">
-                                                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">Official Stamp</label>
-                                                        <div className="relative group w-full h-32 bg-white dark:bg-black rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 flex items-center justify-center overflow-hidden mb-3">
-                                                            {stampPreview ? (
-                                                                <img src={stampPreview} alt="Stamp" className="h-full object-contain" />
-                                                            ) : (
-                                                                <span className="text-gray-400 text-xs">No stamp</span>
-                                                            )}
-                                                            <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'stamp')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                                                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                                                <FiUpload className="text-white text-2xl" />
+                                                        {/* Stamp */}
+                                                        <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-gray-800 text-center">
+                                                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">Official Stamp</label>
+                                                            <div className="relative group w-full h-32 bg-white dark:bg-black rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 flex items-center justify-center overflow-hidden mb-3">
+                                                                {stampPreview ? (
+                                                                    <img src={stampPreview} alt="Stamp" className="h-full object-contain" />
+                                                                ) : (
+                                                                    <span className="text-gray-400 text-xs">No stamp</span>
+                                                                )}
+                                                                <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'stamp')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                                                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                                                    <FiUpload className="text-white text-2xl" />
+                                                                </div>
                                                             </div>
+                                                            <p className="text-[10px] text-gray-500">Required for official documents</p>
                                                         </div>
-                                                        <p className="text-[10px] text-gray-500">Required for official documents</p>
                                                     </div>
-                                                </div>
+                                                )}
+                                                {isNurse && (
+                                                    <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-xl border border-yellow-100 dark:border-yellow-900/20">
+                                                        <p className="text-sm text-yellow-800 dark:text-yellow-200 font-medium">
+                                                            Note: Stamp and Signature portals are restricted for nursing profiles.
+                                                        </p>
+                                                    </div>
+                                                )}
                                             </div>
                                         </Tab.Panel>
                                     </Tab.Panels>
