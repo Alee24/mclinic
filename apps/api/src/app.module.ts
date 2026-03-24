@@ -53,7 +53,7 @@ import { NotificationModule } from './notification/notification.module';
         password: configService.get('DB_PASSWORD', ''),
         database: configService.get('DB_NAME', 'mclinicportal'),
         autoLoadEntities: true,
-        synchronize: true, // TEMP: auto-add missing columns — will disable after deploy
+        synchronize: false, // Disabled — schema is up to date
         extra: {
           connectionLimit: 10,
           connectTimeout: 60000,
