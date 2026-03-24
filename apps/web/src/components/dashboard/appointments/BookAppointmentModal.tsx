@@ -531,7 +531,7 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
                             <h2 className="text-2xl font-black dark:text-white leading-tight">
                                 {selectedDoctor ? `Book ${selectedDoctor.fname}` : 'Find a Medic'}
                             </h2>
-                            {!selectedDoctor ? (
+                            {!selectedDoctor && (
                                 <div className="flex items-center gap-4 mt-2">
                                     <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
                                         <button
@@ -551,20 +551,22 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
                                         <FiMapPin /> Listed from closest to furthest
                                     </p>
                                 </div>
-                            ) : (
-                        <div className="flex items-center gap-3">
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-3 ml-4">
                             {selectedDoctor && (
                                 <div className="flex items-center gap-2 pr-2 border-r border-gray-100 dark:border-gray-800">
                                     <button
                                         onClick={() => currentStep === 1 ? setSelectedDoctor(null) : setCurrentStep(s => s - 1)}
-                                        className="h-10 px-4 rounded-xl font-bold text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition text-sm flex items-center gap-2"
+                                        className="h-10 px-4 rounded-xl font-bold text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition text-xs flex items-center gap-2"
                                     >
                                         <FiArrowLeft /> Back
                                     </button>
                                     <button
                                         onClick={() => currentStep === 4 ? handleBook() : setCurrentStep(s => s + 1)}
                                         disabled={submitting || (currentStep === 2 && (!bookingDate || !bookingTime))}
-                                        className="h-10 px-6 bg-primary text-black rounded-xl font-black shadow-lg hover:shadow-xl transition-all disabled:opacity-50 text-sm flex items-center gap-2"
+                                        className="h-10 px-6 bg-primary text-black rounded-xl font-black shadow-lg hover:shadow-xl transition-all disabled:opacity-50 text-xs flex items-center gap-2"
                                     >
                                         {submitting ? '...' : currentStep === 4 ? 'Finish' : 'Continue'}
                                         <FiArrowRight />
