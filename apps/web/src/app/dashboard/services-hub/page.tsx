@@ -24,6 +24,13 @@ export default function ServicesHubPage() {
             href: '/dashboard/pharmacy'
         },
         {
+            title: 'Virtual Consultation',
+            description: 'Speak to a doctor via video call from anywhere, anytime.',
+            icon: <FiActivity />,
+            color: 'bg-indigo-600',
+            action: () => router.push('/dashboard/appointments?book=true&type=VIRTUAL')
+        },
+        {
             title: 'Lab & Diagnostics',
             description: 'View your lab results or book a new test.',
             icon: <FiActivity />,

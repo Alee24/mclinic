@@ -161,7 +161,13 @@ export default function CreateDoctorModal({ onClose, onSuccess }: CreateDoctorMo
 
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Hospital Affiliation</label>
-                            <input name="hospitalAffiliation" className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.hospitalAffiliation} onChange={handleChange} />
+                            <input list="hospitals" name="hospitalAffiliation" className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.hospitalAffiliation} onChange={handleChange} />
+                            <datalist id="hospitals">
+                                <option value="Wallal Hospital" />
+                                <option value="Optica" />
+                                <option value="City Eye" />
+                                <option value="AAR Health Care" />
+                            </datalist>
                         </div>
 
                         <div className="md:col-span-2">

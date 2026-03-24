@@ -5,6 +5,7 @@ import { api } from '@/lib/api';
 import { useAuth, UserRole } from '@/lib/auth';
 import { FiVideo } from 'react-icons/fi';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import ViewAppointmentDetailsModal from '@/components/dashboard/appointments/ViewAppointmentDetailsModal';
 import RateDoctorModal from '@/components/dashboard/appointments/RateDoctorModal';
 import CreateAppointmentModal from '@/components/dashboard/appointments/CreateAppointmentModal';
@@ -12,13 +13,25 @@ import BookAppointmentModal from '@/components/dashboard/appointments/BookAppoin
 
 export default function AppointmentsPage() {
     const { user } = useAuth();
+    const searchParams = useSearchParams();
     const [appointments, setAppointments] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [showBookModal, setShowBookModal] = useState(false);
+    const [initialType, setInitialType] = useState<'PHYSICAL' | 'VIRTUAL'>('PHYSICAL');
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [showRateModal, setShowRateModal] = useState(false);
     const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
+
+    useEffect(() => {
+        const book = searchParams.get('book');
+        const type = searchParams.get('type');
+        if (book === 'true') {
+            if (type === 'VIRTUAL') setInitialType('VIRTUAL');
+            else setInitialType('PHYSICAL');
+            setShowBookModal(true);
+        }
+    }, [searchParams]);
 
     const fetchData = async (isPolling = false) => {
         // ... (existing)
@@ -285,6 +298,7 @@ export default function AppointmentsPage() {
             {showBookModal && (
                 <BookAppointmentModal
                     onClose={() => setShowBookModal(false)}
+                    initialType={initialType}
                     onSuccess={() => {
                         setShowBookModal(false);
                         fetchData();

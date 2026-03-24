@@ -76,6 +76,9 @@ export class Appointment {
   @Column({ type: 'text', nullable: true })
   reason: string;
 
+  @Column({ default: false })
+  isVirtual: boolean;
+
   // --- Enhanced Booking Fields ---
 
   @Column({ default: true })

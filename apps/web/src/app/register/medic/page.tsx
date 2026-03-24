@@ -313,7 +313,13 @@ export default function MedicRegisterPage() {
                             <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-500">
                                 <div>
                                     <label className="label">Current Hospital Attachment</label>
-                                    <input name="hospital_attachment" value={formData.hospital_attachment} onChange={handleChange} className="input-field" placeholder="Primary Workplace" />
+                                    <input list="hospitals" name="hospital_attachment" value={formData.hospital_attachment} onChange={handleChange} className="input-field" placeholder="Primary Workplace" />
+                                    <datalist id="hospitals">
+                                        <option value="Wallal Hospital" />
+                                        <option value="Optica" />
+                                        <option value="City Eye" />
+                                        <option value="AAR Health Care" />
+                                    </datalist>
                                 </div>
 
                                 <div>

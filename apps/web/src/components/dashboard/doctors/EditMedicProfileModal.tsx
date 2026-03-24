@@ -255,7 +255,13 @@ export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: Ed
                                                     </div>
                                                     <div>
                                                         <label className="block text-xs font-bold text-gray-500 mb-1">Current Hospital Attachment</label>
-                                                        <input type="text" name="hospital_attachment" value={formData.hospital_attachment} onChange={handleChange} className="w-full p-3 rounded-lg border border-gray-200 dark:bg-black dark:border-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                                                        <input list="hospitals" type="text" name="hospital_attachment" value={formData.hospital_attachment} onChange={handleChange} className="w-full p-3 rounded-lg border border-gray-200 dark:bg-black dark:border-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                                                        <datalist id="hospitals">
+                                                            <option value="Wallal Hospital" />
+                                                            <option value="Optica" />
+                                                            <option value="City Eye" />
+                                                            <option value="AAR Health Care" />
+                                                        </datalist>
                                                     </div>
                                                 </div>
 

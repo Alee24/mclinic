@@ -143,6 +143,7 @@ export class AppointmentsService {
       appointment_date: appointmentDate,
       appointment_time: appointmentTime,
       serviceId: finalServiceId,
+      isVirtual,
       fee,
       transportFee,
       meetingId,

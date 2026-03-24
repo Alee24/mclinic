@@ -115,6 +115,7 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
         age: '',
         relation: 'Family Member'
     });
+    const [consultationType, setConsultationType] = useState<'PHYSICAL' | 'VIRTUAL'>('PHYSICAL');
 
     // Step 3: Schedule
     const [bookingDate, setBookingDate] = useState('');
@@ -133,7 +134,10 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
         if (initialDoctor) {
             setSelectedDoctor(initialDoctor);
         }
-    }, [initialDoctor]);
+        if (initialType) {
+            setConsultationType(initialType);
+        }
+    }, [initialDoctor, initialType]);
 
     useEffect(() => {
         fixLeafletIcons();
@@ -231,7 +235,7 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
     };
 
     const getDisplayFee = (doc: Doctor) => {
-        if (initialType === 'VIRTUAL') return 900;
+        if (consultationType === 'VIRTUAL') return 900;
         const type = (doc.dr_type || '').toLowerCase();
         if (type.includes('nurse') || type.includes('clinician')) return 1500;
         return doc.fee;
@@ -271,7 +275,7 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
         setSubmitting(true);
 
         try {
-            const isVirtual = initialType === 'VIRTUAL' || selectedService?.id === 'VIRTUAL_DOC' || selectedService?.id === 'VIRTUAL_NURSE' || selectedService?.name?.toLowerCase().includes('virtual');
+            const isVirtual = consultationType === 'VIRTUAL' || selectedService?.id === 'VIRTUAL_DOC' || selectedService?.id === 'VIRTUAL_NURSE' || selectedService?.name?.toLowerCase().includes('virtual');
 
             const payload = {
                 doctorId: selectedDoctor.id,
@@ -362,6 +366,28 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
                                 </select>
                             </div>
                         )}
+                        <h3 className="text-xl font-bold dark:text-white mt-8">Consultation Type</h3>
+                        <div className="flex gap-4">
+                            <button
+                                type="button"
+                                onClick={() => setConsultationType('PHYSICAL')}
+                                className={`flex-1 py-4 rounded-xl border-2 font-bold transition-all flex items-center justify-center gap-2 ${consultationType === 'PHYSICAL'
+                                    ? 'border-blue-500 bg-blue-50 text-blue-600'
+                                    : 'border-gray-100 dark:border-gray-800 bg-white dark:bg-[#121212] text-gray-500'}`}
+                            >
+                                <FiUser /> Physical Visit
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setConsultationType('VIRTUAL')}
+                                className={`flex-1 py-4 rounded-xl border-2 font-bold transition-all flex items-center justify-center gap-2 ${consultationType === 'VIRTUAL'
+                                    ? 'border-indigo-500 bg-indigo-50 text-indigo-600'
+                                    : 'border-gray-100 dark:border-gray-800 bg-white dark:bg-[#121212] text-gray-500'}`}
+                            >
+                                <FiVideo /> Virtual Call
+                            </button>
+                        </div>
+
                         <h3 className="text-xl font-bold dark:text-white mt-8">Reason for Visit</h3>
                         <textarea
                             rows={3}
@@ -471,8 +497,12 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
                                 <span className="font-bold dark:text-white">{bookingDate} at {bookingTime}</span>
                             </div>
                             <div className="flex justify-between">
+                                <span className="text-gray-500">Consultation</span>
+                                <span className="font-bold dark:text-white capitalize">{consultationType.toLowerCase()} Visit</span>
+                            </div>
+                            <div className="flex justify-between">
                                 <span className="text-gray-500">Service</span>
-                                <span className="font-bold dark:text-white">{selectedService?.name || 'Consultation'}</span>
+                                <span className="font-bold dark:text-white">{selectedService?.name || 'General Consultation'}</span>
                             </div>
                             <div className="flex justify-between border-t border-gray-200 dark:border-gray-800 pt-4 mt-2">
                                 <span className="text-gray-500 font-bold">Estimated Cost</span>
