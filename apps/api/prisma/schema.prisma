@@ -165,6 +165,7 @@ model Doctor {
   lastLicenseCheck    DateTime? @db.DateTime(0)
   approvedAt          DateTime? @db.DateTime(0)
   approvedBy          BigInt?   @db.UnsignedBigInt
+  can_prescribe       Int       @default(0) @db.TinyInt
 
   schedules    DoctorSchedule[]
   licences     DoctorLicence[]
@@ -229,6 +230,7 @@ model Appointment {
   homeAddress          String?
   createdAt            DateTime  @default(now()) @db.DateTime(6)
   updatedAt            DateTime  @default(now()) @updatedAt @db.DateTime(6)
+  isVirtual            Boolean   @default(false)
 
   review Review?
 
