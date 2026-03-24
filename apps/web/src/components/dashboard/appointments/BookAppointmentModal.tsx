@@ -366,13 +366,16 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
                                 </select>
                             </div>
                         )}
-                        <h3 className="text-xl font-bold dark:text-white mt-8">Consultation Type</h3>
-                        <div className="flex gap-4">
+                        <h3 className="text-lg font-bold dark:text-white mt-4 flex items-center gap-2">
+                            <span className="w-1.5 h-6 bg-primary rounded-full"></span>
+                            Consultation Type
+                        </h3>
+                        <div className="flex gap-3">
                             <button
                                 type="button"
                                 onClick={() => setConsultationType('PHYSICAL')}
-                                className={`flex-1 py-4 rounded-xl border-2 font-bold transition-all flex items-center justify-center gap-2 ${consultationType === 'PHYSICAL'
-                                    ? 'border-blue-500 bg-blue-50 text-blue-600'
+                                className={`flex-1 py-3 rounded-xl border-2 font-bold transition-all flex items-center justify-center gap-2 ${consultationType === 'PHYSICAL'
+                                    ? 'border-blue-500 bg-blue-50/50 text-blue-600'
                                     : 'border-gray-100 dark:border-gray-800 bg-white dark:bg-[#121212] text-gray-500'}`}
                             >
                                 <FiUser /> Physical Visit
@@ -380,19 +383,22 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
                             <button
                                 type="button"
                                 onClick={() => setConsultationType('VIRTUAL')}
-                                className={`flex-1 py-4 rounded-xl border-2 font-bold transition-all flex items-center justify-center gap-2 ${consultationType === 'VIRTUAL'
-                                    ? 'border-indigo-500 bg-indigo-50 text-indigo-600'
+                                className={`flex-1 py-3 rounded-xl border-2 font-bold transition-all flex items-center justify-center gap-2 ${consultationType === 'VIRTUAL'
+                                    ? 'border-primary bg-primary/10 text-primary'
                                     : 'border-gray-100 dark:border-gray-800 bg-white dark:bg-[#121212] text-gray-500'}`}
                             >
                                 <FiVideo /> Virtual Call
                             </button>
                         </div>
 
-                        <h3 className="text-xl font-bold dark:text-white mt-8">Reason for Visit</h3>
+                        <h3 className="text-lg font-bold dark:text-white mt-4 flex items-center gap-2">
+                            <span className="w-1.5 h-6 bg-primary rounded-full"></span>
+                            Reason for Visit
+                        </h3>
                         <textarea
-                            rows={3}
+                            rows={2}
                             placeholder="Briefly describe symptoms..."
-                            className="w-full p-4 rounded-xl border dark:border-gray-700 bg-white dark:bg-[#121212] outline-none resize-none"
+                            className="w-full p-4 rounded-xl border dark:border-gray-700 bg-white dark:bg-[#121212] outline-none resize-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
                             value={bookingNote}
                             onChange={(e) => setBookingNote(e.target.value)}
                         />
@@ -516,7 +522,7 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
 
     return (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-2 md:p-4">
-            <div className={`bg-white dark:bg-[#1A1A1A] w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh] h-full md:h-auto`}>
+            <div className={`bg-white dark:bg-[#1A1A1A] w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] h-full ${selectedDoctor ? 'md:h-[600px]' : 'md:h-auto'}`}>
 
                 {/* Header */}
                 <div className="p-4 md:p-6 border-b border-gray-100 dark:border-gray-800">
@@ -546,17 +552,44 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
                                     </p>
                                 </div>
                             ) : (
-                                <div className="flex gap-2 mt-2">
-                                    {Array.from({ length: totalSteps }).map((_, i) => (
-                                        <div key={i} className={`h-1.5 w-8 rounded-full transition-all ${currentStep > i ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-800'}`} />
-                                    ))}
+                        <div className="flex items-center gap-3">
+                            {selectedDoctor && (
+                                <div className="flex items-center gap-2 pr-2 border-r border-gray-100 dark:border-gray-800">
+                                    <button
+                                        onClick={() => currentStep === 1 ? setSelectedDoctor(null) : setCurrentStep(s => s - 1)}
+                                        className="h-10 px-4 rounded-xl font-bold text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition text-sm flex items-center gap-2"
+                                    >
+                                        <FiArrowLeft /> Back
+                                    </button>
+                                    <button
+                                        onClick={() => currentStep === 4 ? handleBook() : setCurrentStep(s => s + 1)}
+                                        disabled={submitting || (currentStep === 2 && (!bookingDate || !bookingTime))}
+                                        className="h-10 px-6 bg-primary text-black rounded-xl font-black shadow-lg hover:shadow-xl transition-all disabled:opacity-50 text-sm flex items-center gap-2"
+                                    >
+                                        {submitting ? '...' : currentStep === 4 ? 'Finish' : 'Continue'}
+                                        <FiArrowRight />
+                                    </button>
                                 </div>
                             )}
+                            <button onClick={onClose} className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition bg-gray-50 dark:bg-gray-800/50">
+                                <FiX size={20} className="dark:text-white" />
+                            </button>
                         </div>
-                        <button onClick={onClose} className="p-2 ml-4 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition bg-gray-50 dark:bg-gray-800/50">
-                            <FiX size={24} className="dark:text-white" />
-                        </button>
                     </div>
+
+                    {selectedDoctor && (
+                        <div className="mt-4 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+                            {['Patient Info', 'Select Schedule', 'Final Review', 'Done'].map((step, idx) => (
+                                <div key={idx} className="flex items-center gap-2 shrink-0">
+                                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${currentStep > idx ? 'bg-primary/20 text-primary' : currentStep === idx + 1 ? 'bg-primary text-black' : 'bg-gray-100 dark:bg-gray-800 text-gray-400'}`}>
+                                        <span className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center">{idx + 1}</span>
+                                        {step}
+                                    </div>
+                                    {idx < 3 && <div className="w-4 h-[1px] bg-gray-200 dark:bg-gray-800" />}
+                                </div>
+                            ))}
+                        </div>
+                    )}
 
                     {/* Mobile Filter Toggle */}
                     {!selectedDoctor && (
@@ -648,26 +681,15 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
                         </div>
                     </div>
                 ) : (
-                    <div className="flex-1 flex flex-col">
-                        <div className="flex-1 overflow-y-auto p-6 md:p-12">
+                    <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+                        <div className="flex-1 overflow-y-auto p-4 md:p-8">
                             <div className="max-w-2xl mx-auto">
                                 {renderStepContent()}
                             </div>
                         </div>
-                        <div className="p-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-[#121212] flex justify-between">
-                            <button
-                                onClick={() => currentStep === 1 ? setSelectedDoctor(null) : setCurrentStep(s => s - 1)}
-                                className="px-6 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800 transition"
-                            >
-                                Back
-                            </button>
-                            <button
-                                onClick={() => currentStep === 4 ? handleBook() : setCurrentStep(s => s + 1)}
-                                disabled={submitting || (currentStep === 2 && (!bookingDate || !bookingTime))}
-                                className="px-8 py-3 bg-primary text-black rounded-xl font-black shadow-lg hover:shadow-xl hover:translate-y-[-2px] transition-all disabled:opacity-50 disabled:transform-none"
-                            >
-                                {submitting ? 'Processing...' : currentStep === 4 ? 'Confirm Booking' : 'Continue'}
-                            </button>
+                        {/* Footer - Only for summary info on mobile if needed, nav moved to header */}
+                        <div className="p-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-[#121212] flex justify-center md:hidden">
+                           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">M-Clinic Virtual Health</p>
                         </div>
                     </div>
                 )}
