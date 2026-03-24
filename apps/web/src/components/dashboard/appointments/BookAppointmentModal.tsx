@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
-import { FiX, FiSearch, FiMapPin, FiUser, FiDollarSign, FiCalendar, FiClock, FiArrowRight, FiArrowLeft, FiCheckCircle, FiActivity, FiFilter, FiVideo } from 'react-icons/fi';
+import { FiX, FiSearch, FiMapPin, FiUser, FiDollarSign, FiCalendar, FiClock, FiArrowRight, FiArrowLeft, FiCheckCircle, FiActivity, FiFilter } from 'react-icons/fi';
 import { useAuth } from '@/lib/auth';
 import CompleteProfileModal from '../CompleteProfileModal';
 

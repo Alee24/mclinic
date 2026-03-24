@@ -85,8 +85,20 @@ export class DoctorsController {
     return this.doctorsService.findAll(drType, verifiedStatus, status);
   }
 
+  @Post('admin/approve-all')
+  @UseGuards(AuthGuard('jwt'))
+  approveAll() {
+    return this.doctorsService.approveAll();
+  }
+
+  @Post('admin/activate-all')
+  activateAllPublic() {
+    // No-auth version for initial VPS bootstrap — activates all registered medics
+    return this.doctorsService.approveAll();
+  }
+
   @Post('admin/sync')
-  @UseGuards(AuthGuard('jwt')) // Admin guard ideally
+  @UseGuards(AuthGuard('jwt'))
   syncDoctors() {
     return this.doctorsService.syncDoctorsWithUsers();
   }

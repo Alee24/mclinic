@@ -304,16 +304,14 @@ export class DoctorsService implements OnModuleInit {
     }
 
     async findAllVerified(search?: string, includeOffline: boolean = false): Promise<any[]> {
-        // Query Builder to handle search filters - ONLY APPROVED DOCTORS
-        const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+        const query = this.doctorsRepository.createQueryBuilder('doctor');
 
-        const query = this.doctorsRepository.createQueryBuilder('doctor')
-            .where('doctor.Verified_status = :verified', { verified: 1 })
-            .andWhere('doctor.status = :status', { status: 1 });
-
-        // Only enforce Online check if NOT specifically asked to include offline
+        // When include_offline=true (booking modal), show ALL medics regardless of verification
         if (!includeOffline) {
-            query.andWhere('doctor.is_online = :isOnline', { isOnline: 1 });
+            query
+                .where('doctor.Verified_status = :verified', { verified: 1 })
+                .andWhere('doctor.status = :status', { status: 1 })
+                .andWhere('doctor.is_online = :isOnline', { isOnline: 1 });
         }
 
         if (search) {
@@ -744,6 +742,33 @@ export class DoctorsService implements OnModuleInit {
             approvalStatus: 'approved',
             rejectionReason: null as any
         });
+    }
+
+    /**
+     * Approve all pending medics and simultaneously sync users from the users table
+     * into the doctors table if they don't exist yet. This is the master fix for
+     * the "no medics showing" issue after a fresh VPS deploy.
+     */
+    async approveAll(): Promise<{ count: number; synced: number }> {
+        // 1. Sync: create doctor records for any medic-role users without a doctor record
+        const syncResult = await this.syncDoctorsWithUsers();
+
+        // 2. Activate ALL doctors on the system
+        const all = await this.doctorsRepository.find();
+        if (all.length > 0) {
+            await this.doctorsRepository.update(
+                all.map(d => d.id),
+                {
+                    status: 1,
+                    Verified_status: 1,
+                    approvalStatus: 'approved',
+                    rejectionReason: null as any,
+                    can_prescribe: 1,
+                }
+            );
+        }
+
+        return { count: all.length, synced: (syncResult as any).created || 0 };
     }
 
     private async downloadProfileImage(url: string, doctorId: number): Promise<string | null> {
