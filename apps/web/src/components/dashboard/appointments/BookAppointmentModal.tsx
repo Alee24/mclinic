@@ -323,26 +323,29 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
             case 1:
                 return (
                     <div className="space-y-6">
-                        <h3 className="text-xl font-bold dark:text-white">Who is this visit for?</h3>
-                        <div className="flex gap-4">
+                        <h3 className="text-base font-bold dark:text-white flex items-center gap-2">
+                            <span className="w-1.5 h-5 bg-primary rounded-full"></span>
+                            Who is this visit for?
+                        </h3>
+                        <div className="flex gap-4 mt-2">
                             <button
                                 type="button"
                                 onClick={() => setIsForSelf(true)}
-                                className={`flex-1 py-6 rounded-2xl border-2 font-bold transition-all ${isForSelf
+                                className={`flex-1 py-3 rounded-xl border-2 font-bold transition-all ${isForSelf
                                     ? 'border-primary bg-primary/10 text-primary'
                                     : 'border-gray-100 dark:border-gray-800 bg-white dark:bg-[#121212] text-gray-500'}`}
                             >
-                                <span className="block text-2xl mb-2">👤</span>
+                                <span className="block text-xl mb-1">👤</span>
                                 Myself
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setIsForSelf(false)}
-                                className={`flex-1 py-6 rounded-2xl border-2 font-bold transition-all ${!isForSelf
+                                className={`flex-1 py-3 rounded-xl border-2 font-bold transition-all ${!isForSelf
                                     ? 'border-primary bg-primary/10 text-primary'
                                     : 'border-gray-100 dark:border-gray-800 bg-white dark:bg-[#121212] text-gray-500'}`}
                             >
-                                <span className="block text-2xl mb-2">👥</span>
+                                <span className="block text-xl mb-1">👥</span>
                                 Someone Else
                             </button>
                         </div>
@@ -366,33 +369,33 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
                                 </select>
                             </div>
                         )}
-                        <h3 className="text-lg font-bold dark:text-white mt-4 flex items-center gap-2">
-                            <span className="w-1.5 h-6 bg-primary rounded-full"></span>
+                        <h3 className="text-base font-bold dark:text-white mt-4 flex items-center gap-2">
+                            <span className="w-1.5 h-5 bg-primary rounded-full"></span>
                             Consultation Type
                         </h3>
-                        <div className="flex gap-3">
+                        <div className="flex gap-3 mt-2">
                             <button
                                 type="button"
                                 onClick={() => setConsultationType('PHYSICAL')}
-                                className={`flex-1 py-3 rounded-xl border-2 font-bold transition-all flex items-center justify-center gap-2 ${consultationType === 'PHYSICAL'
+                                className={`flex-1 py-2 rounded-lg border-2 font-bold transition-all flex items-center justify-center gap-2 text-sm ${consultationType === 'PHYSICAL'
                                     ? 'border-blue-500 bg-blue-50/50 text-blue-600'
                                     : 'border-gray-100 dark:border-gray-800 bg-white dark:bg-[#121212] text-gray-500'}`}
                             >
-                                <FiUser /> Physical Visit
+                                <FiUser size={14} /> Physical Visit
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setConsultationType('VIRTUAL')}
-                                className={`flex-1 py-3 rounded-xl border-2 font-bold transition-all flex items-center justify-center gap-2 ${consultationType === 'VIRTUAL'
+                                className={`flex-1 py-2 rounded-lg border-2 font-bold transition-all flex items-center justify-center gap-2 text-sm ${consultationType === 'VIRTUAL'
                                     ? 'border-primary bg-primary/10 text-primary'
                                     : 'border-gray-100 dark:border-gray-800 bg-white dark:bg-[#121212] text-gray-500'}`}
                             >
-                                <FiVideo /> Virtual Call
+                                <FiVideo size={14} /> Virtual Call
                             </button>
                         </div>
 
-                        <h3 className="text-lg font-bold dark:text-white mt-4 flex items-center gap-2">
-                            <span className="w-1.5 h-6 bg-primary rounded-full"></span>
+                        <h3 className="text-base font-bold dark:text-white mt-4 flex items-center gap-2">
+                            <span className="w-1.5 h-5 bg-primary rounded-full"></span>
                             Reason for Visit
                         </h3>
                         <textarea
@@ -406,8 +409,8 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
                 );
             case 2:
                 return (
-                    <div className="space-y-6">
-                        <h3 className="text-xl font-bold dark:text-white">Select Date</h3>
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-bold dark:text-white">Select Date</h3>
                         <input
                             type="date"
                             min={new Date().toISOString().split('T')[0]}
@@ -415,7 +418,7 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
                             value={bookingDate}
                             onChange={(e) => setBookingDate(e.target.value)}
                         />
-                        <h3 className="text-xl font-bold dark:text-white mt-4">Select Time</h3>
+                        <h3 className="text-lg font-bold dark:text-white mt-2">Select Time</h3>
                         {!bookingDate ? <p className="text-gray-500">Select a date first</p> : (
                             <div className="grid grid-cols-4 gap-2 max-h-60 overflow-y-auto">
                                 {Array.from({ length: 24 }).map((_, i) => {
