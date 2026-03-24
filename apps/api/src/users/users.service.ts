@@ -83,7 +83,7 @@ export class UsersService implements OnModuleInit {
   }
 
   async findAll(): Promise<User[]> {
-    return this.usersRepository.find();
+    return this.usersRepository.find({ order: { createdAt: 'DESC' } });
   }
 
   async countActive(): Promise<number> {

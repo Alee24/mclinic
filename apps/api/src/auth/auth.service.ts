@@ -105,6 +105,17 @@ export class AuthService {
       finalUser.doctorId = validUser.id;
     }
 
+    // Update Last Access
+    try {
+      if (['doctor', 'medic', 'nurse', 'clinician', 'lab_tech', 'pharmacist'].includes(validUser.role)) {
+        await this.doctorsService.update(validUser.id, { lastAccess: new Date() });
+      } else {
+        await this.usersService.update(validUser.id, { lastAccess: new Date() });
+      }
+    } catch (e) {
+      console.error('Failed to update last access:', e);
+    }
+
     return {
       access_token: this.jwtService.sign(payload),
       user: finalUser,

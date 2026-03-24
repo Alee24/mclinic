@@ -99,4 +99,7 @@ export class User {
 
   @Column({ type: 'timestamp', nullable: true })
   deletionScheduledAt: Date | null;
+
+  @Column({ type: 'timestamp', nullable: true })
+  lastAccess: Date;
 }

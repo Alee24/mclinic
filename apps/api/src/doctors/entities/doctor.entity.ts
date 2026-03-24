@@ -194,4 +194,7 @@ export class Doctor {
 
   @OneToMany(() => DoctorLicence, (licence) => licence.doctor)
   licences: DoctorLicence[];
+
+  @Column({ type: 'timestamp', nullable: true })
+  lastAccess: Date;
 }

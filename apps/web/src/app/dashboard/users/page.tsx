@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { useAuth, UserRole } from '@/lib/auth';
-import { FiUsers, FiLock, FiSearch, FiEdit2, FiTrash2, FiCheck, FiX, FiShield } from 'react-icons/fi';
+import { FiUsers, FiLock, FiSearch, FiEdit2, FiTrash2, FiCheck, FiX, FiShield, FiCalendar, FiClock } from 'react-icons/fi';
+import { formatDistanceToNow, format } from 'date-fns';
 
 export default function UsersPage() {
     const { user, loading: authLoading } = useAuth();
@@ -313,6 +314,8 @@ export default function UsersPage() {
                             <tr className="border-b border-gray-100 dark:border-gray-800">
                                 <th className="p-4 font-bold text-sm text-gray-500 uppercase">User</th>
                                 <th className="p-4 font-bold text-sm text-gray-500 uppercase">Role</th>
+                                <th className="p-4 font-bold text-sm text-gray-500 uppercase">Registered</th>
+                                <th className="p-4 font-bold text-sm text-gray-500 uppercase">Last Access</th>
                                 <th className="p-4 font-bold text-sm text-gray-500 uppercase">Status</th>
                                 <th className="p-4 font-bold text-sm text-gray-500 uppercase text-right">Actions</th>
                             </tr>
@@ -357,6 +360,26 @@ export default function UsersPage() {
                                                 }`}>
                                                 {user.role}
                                             </span>
+                                        </td>
+                                        <td className="p-4">
+                                            <div className="flex flex-col">
+                                                <div className="text-xs font-bold dark:text-gray-300 flex items-center gap-1.5 uppercase tracking-wider">
+                                                    <FiCalendar className="text-gray-400" />
+                                                    {user.createdAt ? format(new Date(user.createdAt), 'MMM dd, yyyy') : 'N/A'}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="p-4">
+                                            <div className="flex flex-col">
+                                                {user.lastAccess ? (
+                                                    <div className="text-xs font-bold text-blue-500 flex items-center gap-1.5 uppercase tracking-wider">
+                                                        <FiClock className="animate-pulse" />
+                                                        {formatDistanceToNow(new Date(user.lastAccess), { addSuffix: true })}
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-xs text-gray-400 font-medium italic">Never accessed</span>
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="p-4">
                                             <span className={`flex items-center gap-1.5 text-xs font-bold ${user.status ? 'text-green-500' : 'text-red-500'}`}>
