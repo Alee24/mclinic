@@ -4,7 +4,7 @@ module.exports = {
             name: 'mclinic-api',
             script: 'dist/main.js',
             cwd: '/var/www/mclinicportal/apps/api',
-            interpreter: '/root/.nvm/versions/node/v20.20.0/bin/node',
+            interpreter: 'node',
             env: {
                 NODE_ENV: 'production',
                 PORT: 7899,
@@ -31,7 +31,7 @@ module.exports = {
         },
         {
             name: 'mclinic-web',
-            script: '/root/.nvm/versions/node/v20.20.0/bin/npm',
+            script: 'npm',
             args: 'start',
             cwd: '/var/www/mclinicportal/apps/web',
             env: {
