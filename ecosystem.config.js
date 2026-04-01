@@ -7,13 +7,14 @@ module.exports = {
             interpreter: '/root/.nvm/versions/node/v20.20.0/bin/node',
             env: {
                 NODE_ENV: 'production',
-                PORT: 5456,
+                PORT: 7899,
                 DB_HOST: 'localhost',
                 DB_PORT: 3306,
                 DB_USER: 'm-cl-app',
                 DB_PASSWORD: 'Mclinic@App2023?',
                 DB_NAME: 'mclinicportal',
                 DATABASE_URL: 'mysql://m-cl-app:Mclinic%40App2023%3F@localhost:3306/mclinicportal',
+                MPESA_CALLBACK_URL: 'https://portal.mclinic.co.ke/api/payments/mpesa/callback',
                 JWT_SECRET: 'MCL_PROD_XyZ9_RANDOM_SECRET_KEY_2025',
                 JWT_EXPIRES_IN: '7d',
                 FRONTEND_URL: 'https://portal.mclinic.co.ke',
@@ -34,7 +35,7 @@ module.exports = {
             args: 'start',
             cwd: '/var/www/mclinicportal/apps/web',
             env: {
-                PORT: 5055,
+                PORT: 7898,
                 NODE_ENV: 'production',
                 NEXT_PUBLIC_API_URL: 'https://portal.mclinic.co.ke/api'
             },

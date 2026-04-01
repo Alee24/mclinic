@@ -8,8 +8,8 @@ echo "=============================================="
 
 # Configuration
 APP_DIR="/var/www/mclinicportal"
-API_PORT=5456
-WEB_PORT=5055
+API_PORT=7899
+WEB_PORT=7898
 
 # Colors for output
 GREEN='\033[0;32m'
