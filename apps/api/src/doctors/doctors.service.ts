@@ -807,15 +807,39 @@ export class DoctorsService implements OnModuleInit {
         if (!fullName) return { fname: '', lname: '' };
 
         const parts = fullName.trim().split(/\s+/);
-        if (parts.length === 1) {
-            return { fname: parts[0], lname: '' };
-        }
-
-        // Usually: First Name, Middle Name(s), Last Name
-        // We'll take first part as fname and the rest as lname
-        const fname = parts[0];
-        const lname = parts.slice(1).join(' ');
-
+        const fname = parts[0] || 'Medical';
+        const lname = parts.slice(1).join(' ') || 'Professional';
         return { fname, lname };
+    }
+
+    /**
+     * SYNC SINGLE DOCTOR TO USER (Restored for Build)
+     * Ensuring that every doctor found during login has a corresponding entry in the 'users' table.
+     */
+    async syncSingleDoctorToUser(email: string): Promise<User | null> {
+        const doctor = await this.doctorsRepository.findOne({ where: { email } });
+        if (!doctor) return null;
+
+        let user = await this.usersService.findOne(email);
+        const drRole = this.mapDrTypeToUserRole(doctor.dr_type);
+
+        const userData: any = {
+            email: doctor.email,
+            password: doctor.password,
+            fname: doctor.fname,
+            lname: doctor.lname,
+            mobile: doctor.mobile,
+            role: drRole,
+            status: true,
+            emailVerifiedAt: new Date(),
+            profilePicture: doctor.profile_image
+        };
+
+        if (user) {
+            await this.usersService.update(user.id, userData);
+            return this.usersService.findById(user.id);
+        } else {
+            return this.usersService.create(userData);
+        }
     }
 }
