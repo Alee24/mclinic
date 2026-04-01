@@ -67,6 +67,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased transition-colors duration-300`}
       >
+        {/* @ts-ignore */}
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
