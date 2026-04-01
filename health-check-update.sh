@@ -8,8 +8,8 @@ echo "=============================================="
 
 # Configuration
 APP_DIR="/var/www/mclinicportal"
-API_PORT=5454
-WEB_PORT=5054
+API_PORT=5456
+WEB_PORT=5055
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -115,6 +115,11 @@ npm install prisma@5.10.2 @prisma/client@5.10.2 --save-exact
 
 echo ""
 echo "Updating database schema..."
+cd "$APP_DIR/apps/api"
+# Explicitly load .env for Prisma
+if [ -f .env ]; then
+  export $(grep -v '^#' .env | xargs)
+fi
 npx prisma generate --schema=prisma/schema.prisma
 npx prisma db push --schema=prisma/schema.prisma --skip-generate
 

@@ -7,7 +7,7 @@ module.exports = {
             interpreter: '/root/.nvm/versions/node/v20.20.0/bin/node',
             env: {
                 NODE_ENV: 'production',
-                PORT: 5454,
+                PORT: 5456,
                 DB_HOST: 'localhost',
                 DB_PORT: 3306,
                 DB_USER: 'm-cl-app',
@@ -34,7 +34,7 @@ module.exports = {
             args: 'start',
             cwd: '/var/www/mclinicportal/apps/web',
             env: {
-                PORT: 5054,
+                PORT: 5055,
                 NODE_ENV: 'production',
                 NEXT_PUBLIC_API_URL: 'https://portal.mclinic.co.ke/api'
             },
