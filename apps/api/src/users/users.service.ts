@@ -16,23 +16,31 @@ export class UsersService implements OnModuleInit {
   ) { }
 
   async onModuleInit() {
-    await this.migrateRoles();
+    try {
+      await this.migrateRoles();
+    } catch (e) {
+      console.error('[UsersService] onModuleInit migration failed:', e);
+    }
   }
 
   // MIGRATION: Auto-convert old doctor/nurse/clinician roles to 'medic'
   private async migrateRoles() {
-    console.log('[UsersService] Checking for roles to migrate to "medic"...');
-    const candidates = await this.usersRepository.find({
-      where: { role: In([UserRole.DOCTOR, UserRole.NURSE, UserRole.CLINICIAN]) }
-    });
+    try {
+      console.log('[UsersService] Checking for roles to migrate to "medic"...');
+      const candidates = await this.usersRepository.find({
+        where: { role: In([UserRole.DOCTOR, UserRole.NURSE, UserRole.CLINICIAN]) }
+      });
 
-    if (candidates.length > 0) {
-      console.log(`[UsersService] Found ${candidates.length} users with legacy roles. Migrating to 'medic'...`);
-      for (const user of candidates) {
-        user.role = UserRole.MEDIC;
-        await this.usersRepository.save(user);
+      if (candidates.length > 0) {
+        console.log(`[UsersService] Found ${candidates.length} users with legacy roles. Migrating to 'medic'...`);
+        for (const user of candidates) {
+          user.role = UserRole.MEDIC;
+          await this.usersRepository.save(user);
+        }
+        console.log('[UsersService] Migration complete.');
       }
-      console.log('[UsersService] Migration complete.');
+    } catch (e) {
+      console.error('[UsersService] migrateRoles failed (likely schema mismatch):', e);
     }
   }
 
