@@ -123,7 +123,9 @@ export default function AdminPharmacyPage() {
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold dark:text-white flex items-center gap-3">
-                        <FiPackage className="text-primary" /> Pharmacy Inventory
+                        <span className="text-primary">
+                            <FiPackage />
+                        </span> Pharmacy Inventory
                     </h1>
                     <p className="text-gray-500 font-medium">Manage stock, prices, and medication details.</p>
                 </div>
@@ -175,7 +177,9 @@ export default function AdminPharmacyPage() {
             <div className="bg-white dark:bg-[#1A1A1A] rounded-3xl border border-gray-100 dark:border-gray-800 overflow-hidden">
                 <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex gap-4">
                     <div className="relative flex-1">
-                        <FiSearch className="absolute left-4 top-3.5 text-gray-400" />
+                        <span className="absolute left-4 top-3.5 text-gray-400">
+                            <FiSearch />
+                        </span>
                         <input
                             type="text"
                             placeholder="Search inventory..."
