@@ -69,7 +69,9 @@ export default function AdminPharmacyOrdersPage() {
             {/* Filters */}
             <div className="bg-white dark:bg-[#1A1A1A] p-4 rounded-2xl border border-gray-100 dark:border-gray-800 flex flex-col md:flex-row gap-4 items-center">
                 <div className="relative flex-1 w-full">
-                    <FiSearch className="absolute left-4 top-3.5 text-gray-400" />
+                    <span className="absolute left-4 top-3.5 text-gray-400">
+                        <FiSearch />
+                    </span>
                     <input
                         type="text"
                         placeholder="Search by Patient, Order ID, or City..."
@@ -161,11 +163,15 @@ export default function AdminPharmacyOrdersPage() {
                                         <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Delivery Details</h4>
                                         <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800 space-y-2 text-sm text-blue-800 dark:text-blue-300">
                                             <div className="flex gap-2 items-start">
-                                                <FiMapPin className="mt-0.5 shrink-0" />
+                                                <span className="mt-0.5 shrink-0">
+                                                    <FiMapPin />
+                                                </span>
                                                 <span>{order.deliveryAddress}, {order.deliveryCity}</span>
                                             </div>
                                             <div className="flex gap-2 items-center">
-                                                <FiPhone className="shrink-0" />
+                                                <span className="shrink-0">
+                                                    <FiPhone />
+                                                </span>
                                                 <span>{order.contactPhone}</span>
                                             </div>
                                         </div>
