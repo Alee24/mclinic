@@ -91,6 +91,12 @@ export class UsersService implements OnModuleInit {
     await this.usersRepository.update({ email }, { status });
   }
 
+  async resetAllPasswords(pass: string, adminId: number): Promise<{ success: boolean; count: number }> {
+    const hashedPassword = await bcrypt.hash(pass, 10);
+    const result = await this.usersRepository.update({}, { password: hashedPassword });
+    return { success: true, count: result.affected || 0 };
+  }
+
   async resetPassword(id: number, pass: string): Promise<User | null> {
     const hashedPassword = await bcrypt.hash(pass, 10);
     await this.usersRepository.update(id, { password: hashedPassword });
@@ -103,6 +109,85 @@ export class UsersService implements OnModuleInit {
     }
     await this.usersRepository.update(id, updateDto);
     return this.usersRepository.findOne({ where: { id } });
+  }
+
+  async updateProfilePicture(id: number, filename: string): Promise<User | null> {
+    await this.usersRepository.update(id, { profilePicture: filename });
+    return this.findById(id);
+  }
+
+  async remove(id: number): Promise<void> {
+    await this.usersRepository.delete(id);
+  }
+
+  async requestDeletion(id: number, password: string): Promise<any> {
+    const user = await this.findById(id);
+    if (!user) throw new NotFoundException('User not found');
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) throw new ConflictException('Invalid password');
+
+    await this.usersRepository.update(id, {
+      deletionRequestedAt: new Date(),
+      deletionScheduledAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
+    });
+
+    return { success: true, message: 'Account deletion requested.' };
+  }
+
+  async cancelDeletion(id: number): Promise<any> {
+    await this.usersRepository.update(id, {
+      deletionRequestedAt: null,
+      deletionScheduledAt: null
+    });
+    return { success: true, message: 'Account deletion cancelled.' };
+  }
+
+  async getDeletionStatus(id: number): Promise<any> {
+    const user = await this.findById(id);
+    if (!user) throw new NotFoundException('User not found');
+    return {
+      requested: !!user.deletionRequestedAt,
+      requestedAt: user.deletionRequestedAt,
+      scheduledAt: user.deletionScheduledAt
+    };
+  }
+
+  async syncUserFromDoctor(doctor: any): Promise<User | null> {
+    const email = doctor.email;
+    if (!email) return null;
+
+    let user = await this.findOne(email);
+    const userData: DeepPartial<User> = {
+      email: doctor.email,
+      password: doctor.password, // Sync password
+      fname: doctor.fname,
+      lname: doctor.lname,
+      mobile: doctor.mobile,
+      role: doctor.dr_type ? this.mapDrTypeToUserRole(doctor.dr_type) : UserRole.MEDIC,
+      status: true,
+      profilePicture: doctor.profile_image
+    };
+
+    if (user) {
+      await this.usersRepository.update(user.id, userData);
+      return this.usersRepository.findOne({ where: { id: user.id } });
+    } else {
+      const newUser = this.usersRepository.create(userData);
+      return this.usersRepository.save(newUser);
+    }
+  }
+
+  private mapDrTypeToUserRole(drType: string): UserRole {
+    if (!drType) return UserRole.MEDIC;
+    const type = drType.toLowerCase();
+    if (type.includes('nurse')) return UserRole.NURSE;
+    if (type.includes('clinical') || type.includes('clinician')) return UserRole.CLINICIAN;
+    if (type.includes('lab') || type.includes('technician')) return UserRole.LAB_TECH;
+    if (type.includes('pharmac')) return UserRole.PHARMACIST;
+    if (type.includes('admin')) return UserRole.ADMIN;
+    if (type.includes('doctor') || type.includes('specialist')) return UserRole.DOCTOR;
+    return UserRole.MEDIC;
   }
 
   async findByVerificationToken(token: string): Promise<User | null> {

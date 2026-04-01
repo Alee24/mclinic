@@ -2,7 +2,7 @@ import { Injectable, OnModuleInit, NotFoundException, BadRequestException } from
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DeepPartial, IsNull } from 'typeorm';
 import { Doctor } from './entities/doctor.entity';
-import { User } from '../users/entities/user.entity';
+import { User, UserRole } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { Appointment } from '../appointments/entities/appointment.entity';
 import { EmailService } from '../email/email.service';
@@ -181,7 +181,7 @@ export class DoctorsService implements OnModuleInit {
             const correctRole = this.mapDrTypeToUserRole(doctor.dr_type);
 
             // Only update if role is different
-            if (user.role !== correctRole) {
+            if ((user.role as string) !== (correctRole as string)) {
                 console.log(`[DoctorsService] Updating ${doctor.email}: ${user.role} -> ${correctRole}`);
                 await this.usersService.updateByEmail(doctor.email, { role: correctRole });
                 updatedCount++;
@@ -195,18 +195,18 @@ export class DoctorsService implements OnModuleInit {
         };
     }
 
-    private mapDrTypeToUserRole(drType: string): string {
-        if (!drType) return 'medic';
+    private mapDrTypeToUserRole(drType: string): UserRole {
+        if (!drType) return UserRole.MEDIC;
 
         const type = drType.toLowerCase();
-        if (type.includes('nurse')) return 'nurse';
-        if (type.includes('clinical') || type.includes('clinician')) return 'clinician';
-        if (type.includes('lab') || type.includes('technician')) return 'lab_tech';
-        if (type.includes('pharmac')) return 'pharmacist';
-        if (type.includes('admin')) return 'admin';
-        if (type.includes('doctor') || type.includes('specialist')) return 'doctor';
+        if (type.includes('nurse')) return UserRole.NURSE;
+        if (type.includes('clinical') || type.includes('clinician')) return UserRole.CLINICIAN;
+        if (type.includes('lab') || type.includes('technician')) return UserRole.LAB_TECH;
+        if (type.includes('pharmac')) return UserRole.PHARMACIST;
+        if (type.includes('admin')) return UserRole.ADMIN;
+        if (type.includes('doctor') || type.includes('specialist')) return UserRole.DOCTOR;
 
-        return 'medic'; // Default for medical staff
+        return UserRole.MEDIC; // Default for medical staff
     }
 
     async create(createDoctorDto: any, user: User | null): Promise<Doctor> {
