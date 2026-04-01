@@ -37,12 +37,16 @@ export default function SecureLoader({ text = "Establishing Secure Connection" }
 
                 {/* Center Icon */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                    <FiShield className="text-3xl text-[#00C65E] animate-pulse" />
+                    <div className="text-3xl text-[#00C65E] animate-pulse">
+                        <FiShield />
+                    </div>
                 </div>
 
                 {/* Floating Lock */}
                 <div className="absolute -top-2 -right-2 bg-white dark:bg-black p-1.5 rounded-full border border-gray-100 dark:border-gray-800 shadow-sm animate-bounce">
-                    <FiLock className="text-xs text-[#00C65E]" />
+                    <div className="text-xs text-[#00C65E]">
+                        <FiLock />
+                    </div>
                 </div>
             </div>
 

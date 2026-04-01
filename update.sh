@@ -3,9 +3,9 @@ set -e
 
 # Configuration
 APP_DIR="/var/www/mclinicportal"
-BRANCH="fix/medic-smtp-updates"
+BRANCH="main"
 
-echo "🚀 Starting Server Update..."
+echo "🚀 Starting Server Update (Force Mode)..."
 
 # Navigate to App Directory
 if [ -d "$APP_DIR" ]; then
@@ -15,10 +15,9 @@ else
     exit 1
 fi
 
-echo "📥 Pulling latest changes from branch: $BRANCH..."
+echo "📥 Syncing latest changes from branch: $BRANCH..."
 git fetch origin
-git checkout "$BRANCH"
-git pull origin "$BRANCH"
+git reset --hard "origin/$BRANCH"
 
 # --- 1. Update API ---
 echo "🛠️  Updating API..."
@@ -27,7 +26,7 @@ npm install --legacy-peer-deps
 npm run build
 
 echo "🔄 Restarting API Service..."
-pm2 restart mclinic-api || PORT=3434 pm2 start dist/main.js --name mclinic-api --update-env
+pm2 restart mclinic-api --update-env || PORT=5454 pm2 start dist/main.js --name mclinic-api
 
 # --- 2. Update Web ---
 echo "🛠️  Updating Web Frontend..."
@@ -35,12 +34,11 @@ cd ../../apps/web
 npm install --legacy-peer-deps
 
 echo "🏗️  Building Next.js Application..."
-# Ensure API URL is set for build
 export NEXT_PUBLIC_API_URL="https://portal.mclinic.co.ke/api"
 npm run build
 
 echo "🔄 Restarting Web Service..."
-PORT=3034 pm2 restart mclinic-web --update-env || PORT=3034 pm2 start npm --name mclinic-web -- start
+pm2 restart mclinic-web --update-env || PORT=5054 pm2 start npm --name mclinic-web -- start
 
 # --- 3. Finalize ---
 echo "✅ Update Complete!"

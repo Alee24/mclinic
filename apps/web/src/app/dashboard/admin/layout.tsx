@@ -34,7 +34,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         return (
             <div className="flex flex-col items-center justify-center h-[60vh] text-center p-8 space-y-4">
                 <div className="bg-red-100 dark:bg-red-900/20 p-4 rounded-full">
-                    <FiShield className="w-12 h-12 text-red-500" />
+                    <div className="w-12 h-12 text-red-500">
+                        <FiShield />
+                    </div>
                 </div>
                 <h2 className="text-2xl font-bold dark:text-white">Access Denied</h2>
                 <p className="text-gray-500 max-w-md">

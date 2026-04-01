@@ -37,7 +37,9 @@ export default function AboutPage() {
                                 "24/7 Availability nationwide"
                             ].map((item, i) => (
                                 <div key={i} className="flex items-center gap-3">
-                                    <FiCheckCircle className="text-[#00C65E] text-xl" />
+                                    <div className="text-[#00C65E] text-xl">
+                                        <FiCheckCircle />
+                                    </div>
                                     <span className="font-medium text-gray-700">{item}</span>
                                 </div>
                             ))}
