@@ -1,6 +1,4 @@
 import { Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common';
-import { DataSource } from 'typeorm';
-
 import { UserRole } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { DoctorsService } from '../doctors/doctors.service';
@@ -20,98 +18,56 @@ export class AuthService {
     private jwtService: JwtService,
     private emailService: EmailService,
     private smsService: SmsService,
-    private dataSource: DataSource,
   ) { }
 
-  /**
-   * THE ULTIMATE USER RESOLVER (Re-Applied after Revert)
-   * Guaranteed to pick users from the 'users' table using multiple columns and raw SQL fallbacks.
-   */
-  async validateUser(identifier: string, pass: string, userType: string = 'patient'): Promise<any> {
-    const cleanId = (identifier || '').trim();
-    const lowerId = cleanId.toLowerCase();
-    const isEmail = lowerId.includes('@');
+  async validateUser(email: string, pass: string, userType: string = 'patient'): Promise<any> {
+    if (userType === 'provider') {
+      const doctor = await this.doctorsService.findByEmail(email);
+      if (doctor) {
+        if (await bcrypt.compare(pass, doctor.password)) {
+          if (!doctor.status || doctor.status === 0) {
+            throw new UnauthorizedException('Account is suspended or inactive. Contact admin.');
+          }
+          const role = this.mapDrTypeToRole(doctor.dr_type);
+          const { password, ...result } = doctor;
+          return { ...result, role };
+        } else {
+          throw new UnauthorizedException('Invalid password. Please try again.');
+        }
+      }
 
-    console.log(`[AuthLookup] Forced Search for: ${cleanId} (${isEmail ? 'Email' : 'Mobile'})`);
+      const admin = await this.usersService.findOne(email);
+      if (admin && admin.role === UserRole.ADMIN) {
+        if (await bcrypt.compare(pass, admin.password)) {
+          const { password, ...result } = admin;
+          return result;
+        } else {
+          throw new UnauthorizedException('Invalid admin password.');
+        }
+      }
 
-    // 1. ATTEMPT SERVICE LOOKUP (Cleanest way)
-    let user: any = null;
-    let doctor: any = null;
-
-    if (isEmail) {
-      user = await this.usersService.findOne(lowerId);
-      doctor = await this.doctorsService.findByEmail(lowerId);
+      const patientInstead = await this.usersService.findOne(email);
+      if (patientInstead) {
+        throw new UnauthorizedException('This account is registered as a Patient. Please switch to "Patient" login.');
+      }
     } else {
-      user = await this.usersService.findOneByMobile(cleanId);
-      doctor = await this.doctorsService.findOneByMobile(cleanId);
-    }
+      const user = await this.usersService.findOne(email);
+      if (user) {
+        if (await bcrypt.compare(pass, user.password)) {
+          const { password, ...result } = user;
+          return result;
+        } else {
+          throw new UnauthorizedException('Invalid password. Please try again.');
+        }
+      }
 
-    // 2. ATTEMPT DATA SOURCE BRUTE FORCE (Bypass any caching or repository naming issues)
-    if (!user) {
-      const qUsers = isEmail ? 
-        'SELECT * FROM users WHERE LOWER(TRIM(email)) = ? OR email = ? LIMIT 1' : 
-        'SELECT * FROM users WHERE mobile = ? OR TRIM(mobile) = ? LIMIT 1';
-      const results = await this.dataSource.query(qUsers, [lowerId, cleanId]);
-      if (results && results.length > 0) user = results[0];
-    }
-
-    if (!doctor) {
-      const qDocs = isEmail ? 
-        'SELECT * FROM doctors WHERE LOWER(TRIM(email)) = ? OR email = ? LIMIT 1' : 
-        'SELECT * FROM doctors WHERE mobile = ? OR TRIM(mobile) = ? LIMIT 1';
-      const results = await this.dataSource.query(qDocs, [lowerId, cleanId]);
-      if (results && results.length > 0) doctor = results[0];
-    }
-
-    // 3. ACCOUNT EXISTENCE CHECK
-    if (!user && !doctor) {
-       throw new UnauthorizedException(`Login failed: No account linked to "${identifier}" found in system records. Please register to continue.`);
-    }
-
-    // 4. AUTHENTICATION (PASSWORD CHECK)
-    let authenticated = false;
-
-    // Strategy A: Check Users table (Preferred Source of Truth)
-    if (user && user.password && await bcrypt.compare(pass, user.password)) {
-      authenticated = true;
-    } 
-    // Strategy B: Check Doctors table (Backup for legacy records)
-    else if (doctor && doctor.password && await bcrypt.compare(pass, doctor.password)) {
-      authenticated = true;
-      if (!user) {
-        // Auto-heal by creating the missing users table record now
-        user = await this.doctorsService.syncSingleDoctorToUser(doctor.email || identifier);
-      } else {
-        // Sync password to users table
-        await this.usersService.update(user.id, { password: doctor.password });
+      const doctorInstead = await this.doctorsService.findByEmail(email);
+      if (doctorInstead) {
+        throw new UnauthorizedException('This account is registered as a Healthcare Professional. Please switch to "Provider" login.');
       }
     }
 
-    if (!authenticated) {
-      throw new UnauthorizedException('Login failed: Invalid password. Please try again.');
-    }
-
-    // 5. ACCOUNT STATUS & ROLE ENFORCEMENT
-    if (user && !user.status && (!doctor || doctor.Verified_status !== 1)) {
-        throw new UnauthorizedException('Account access is suspended or restricted. Contact support.');
-    }
-
-    const professionalRoles = ['doctor', 'nurse', 'clinician', 'lab_tech', 'pharmacist', 'medic', 'finance', 'admin'];
-    
-    // Auto-fix roles if mismatch for provider portal
-    if (userType === 'provider' && !professionalRoles.includes(user.role)) {
-       if (doctor) {
-         const correctRole = this.mapDrTypeToRole(doctor.dr_type);
-         await this.usersService.update(user.id, { role: correctRole as any });
-         user.role = correctRole;
-       } else {
-         throw new UnauthorizedException('This account is registered for Patients. Please use the Patient login portal.');
-       }
-    }
-
-    const { password: _, ...result } = user as any;
-    if (doctor) result.doctorId = doctor.id;
-    return result;
+    throw new UnauthorizedException('No account found with this email. Please register to continue.');
   }
 
   private mapDrTypeToRole(drType: string): string {
@@ -125,56 +81,215 @@ export class AuthService {
 
   async login(loginDto: any, ipAddress?: string, location?: string) {
     const validUser = await this.validateUser(loginDto.email, loginDto.password, loginDto.userType);
-    const payload = { email: validUser.email, sub: validUser.id, role: validUser.role };
+
+    const payload = {
+      email: validUser.email,
+      sub: validUser.id,
+      role: validUser.role,
+    };
 
     try {
-      await this.usersService.update(validUser.id, { lastAccess: new Date() } as any);
-      if (validUser.doctorId) await this.doctorsService.update(validUser.doctorId, { lastAccess: new Date() } as any);
-    } catch (e) {}
+      await this.emailService.sendLoginAttemptEmail(
+        validUser,
+        ipAddress || 'Unknown',
+        location || 'Unknown'
+      );
+    } catch (error) {
+      console.error('Failed to send login email:', error);
+    }
 
-    return { access_token: this.jwtService.sign(payload), user: validUser };
+    let finalUser = { ...validUser };
+    if (['doctor', 'medic', 'nurse', 'clinician', 'lab_tech', 'pharmacist'].includes(validUser.role)) {
+      // @ts-ignore
+      finalUser.doctorId = validUser.id;
+    }
+
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: finalUser,
+    };
   }
 
   async register(dto: any) {
-    const user = await this.usersService.create({ ...dto, role: 'patient', status: true });
-    const token = randomBytes(32).toString('hex');
-    await this.usersService.update(user.id, { verificationToken: token } as any);
-    try { await this.medicalProfilesService.update(user.id, { dob: dto.dob, sex: dto.sex }); } catch (e) {}
-    try { await this.emailService.sendVerificationEmail(user, token); } catch (e) {}
-    return { user, access_token: this.jwtService.sign({ email: user.email, sub: user.id, role: user.role }) };
+    const userData = {
+      ...dto,
+      role: 'patient',
+      status: true
+    };
+    const user = await this.usersService.create(userData);
+
+    const verificationToken = randomBytes(32).toString('hex');
+    await this.usersService.update(user.id, { verificationToken } as any);
+    user.verificationToken = verificationToken;
+
+    try {
+      await this.medicalProfilesService.update(user.id, {
+        dob: dto.dob,
+        sex: dto.sex,
+        blood_group: dto.blood_group,
+        genotype: dto.genotype,
+        allergies: dto.allergies,
+        medical_history: dto.medical_history,
+        shif_number: dto.shif_number,
+        insurance_provider: dto.insurance_provider,
+        insurance_policy_no: dto.insurance_policy_no,
+        emergency_contact_name: dto.emergency_contact_name,
+        emergency_contact_phone: dto.emergency_contact_phone,
+        emergency_contact_relation: dto.emergency_contact_relation,
+      });
+    } catch (err) {
+      console.error('Failed to create medical profile during registration', err);
+    }
+
+    try {
+      await this.emailService.sendVerificationEmail(user, verificationToken);
+    } catch (error) {
+      console.error('Failed to send verification email:', error);
+    }
+
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      role: user.role,
+    };
+    const access_token = this.jwtService.sign(payload);
+
+    return { user, access_token };
   }
 
   async registerDoctor(dto: any) {
-    const role = this.mapDrTypeToRole(dto.dr_type || dto.cadre || 'Medic');
-    let user = await this.usersService.findOne(dto.email);
-    if (!user) user = await this.usersService.create({ ...dto, role: role as any, status: false });
-    const doctor = await this.doctorsService.create({ ...dto, user_id: user.id, status: 0 }, user);
-    try { await this.emailService.sendAccountCreationEmail(user, role); } catch (e) {}
-    return { user, doctor };
+    let role = 'medic';
+    if (dto.cadre === 'Nursing') role = 'medic';
+    if (dto.cadre === 'Pharmacy') role = 'pharmacist';
+    if (dto.cadre === 'Laboratory') role = 'lab_tech';
+    if (dto.cadre === 'Finance') role = 'finance';
+
+    const doctor = await this.doctorsService.create(
+      {
+        ...dto,
+        Verified_status: 0,
+        status: 0,
+      },
+      null
+    );
+
+    const resultUser = {
+      id: doctor.id,
+      email: doctor.email,
+      fname: doctor.fname,
+      lname: doctor.lname,
+      role: role,
+      status: false
+    };
+
+    try {
+      await this.emailService.sendAccountCreationEmail(resultUser as any, role);
+    } catch (error) {
+      console.error('Failed to send welcome email:', error);
+    }
+
+    return { user: resultUser, doctor };
   }
 
   async getProfile(userId: number, role?: string) {
+    if (role && ['doctor', 'medic', 'nurse', 'clinician', 'lab_tech', 'pharmacist', 'finance'].includes(role)) {
+      const doctor = await this.doctorsService.findOne(userId);
+      if (doctor) {
+        const { password, ...result } = doctor;
+        const synthRole = this.mapDrTypeToRole(doctor.dr_type);
+        // @ts-ignore
+        return { ...result, role: synthRole, doctorId: doctor.id, profilePicture: doctor.profile_image };
+      }
+    }
+
     const user = await this.usersService.findById(userId);
-    if (!user) return null;
-    const { password, ...result } = user;
-    const doc = await this.doctorsService.findByUserId(userId);
-    if (doc) return { ...doc, ...result, doctorId: doc.id };
-    return result;
+    if (user) {
+      const { password, ...result } = user;
+      return result;
+    }
+
+    const doctorFallback = await this.doctorsService.findOne(userId);
+    if (doctorFallback) {
+      const { password, ...result } = doctorFallback;
+      const synthRole = this.mapDrTypeToRole(doctorFallback.dr_type);
+      return { ...result, role: synthRole, doctorId: doctorFallback.id, profilePicture: doctorFallback.profile_image };
+    }
+
+    return null;
+  }
+
+  async validateGoogleUser(details: any) {
+    let user = await this.usersService.findOne(details.email);
+
+    if (user) {
+      if (!user.googleId) {
+        user.googleId = details.googleId;
+        user.emailVerifiedAt = new Date();
+        if (!user.profilePicture) user.profilePicture = details.picture;
+        await this.usersService.update(user.id, { googleId: user.googleId, emailVerifiedAt: user.emailVerifiedAt, profilePicture: user.profilePicture } as any);
+      }
+      return user;
+    }
+
+    const password = await bcrypt.hash(randomBytes(16).toString('hex'), 10);
+
+    user = await this.usersService.create({
+      email: details.email,
+      password: password,
+      fname: details.firstName,
+      lname: details.lastName,
+      role: 'patient',
+      status: true,
+      googleId: details.googleId,
+      emailVerifiedAt: new Date(),
+      profilePicture: details.picture
+    } as any);
+
+    try {
+      await this.emailService.sendAccountCreationEmail(user, 'patient');
+    } catch (e) {
+      console.error('Failed to send welcome email for Google User', e);
+    }
+
+    return user;
   }
 
   async verifyEmail(token: string) {
     const user = await this.usersService.findByVerificationToken(token);
-    if (!user) throw new UnauthorizedException('Invalid verification token');
-    await this.usersService.update(user.id, { emailVerifiedAt: new Date(), verificationToken: null } as any);
+    if (!user) throw new UnauthorizedException('Invalid or expired verification token');
+
+    user.emailVerifiedAt = new Date();
+    user.verificationToken = null as any;
+    await this.usersService.update(user.id, { emailVerifiedAt: user.emailVerifiedAt, verificationToken: null } as any);
+
     return { message: 'Email verified successfully' };
   }
 
   async resendVerificationEmail(email: string) {
     const user = await this.usersService.findOne(email);
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new UnauthorizedException('User not found');
+    if (user.emailVerifiedAt) return { message: 'Email already verified' };
+
     const token = randomBytes(32).toString('hex');
     await this.usersService.update(user.id, { verificationToken: token } as any);
-    await this.emailService.sendVerificationEmail(user, token);
+
+    try {
+      await this.emailService.sendVerificationEmail(user, token);
+    } catch (e) {
+      console.error('Failed to send verification email', e);
+    }
     return { message: 'Verification email sent' };
+  }
+
+  async loginWithGoogle(user: any) {
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      role: user.role,
+    };
+    return {
+      access_token: this.jwtService.sign(payload),
+      user,
+    }
   }
 }

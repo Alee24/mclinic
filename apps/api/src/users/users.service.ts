@@ -22,9 +22,6 @@ export class UsersService implements OnModuleInit {
   // MIGRATION: Auto-convert old doctor/nurse/clinician roles to 'medic'
   private async migrateRoles() {
     console.log('[UsersService] Checking for roles to migrate to "medic"...');
-    // We want to find anyone who Is NOT 'medic', 'patient', 'admin', 'lab_tech' 
-    // OR specifically is 'doctor', 'nurse', 'clinician'.
-    // Let's be specific to avoid accidents.
     const candidates = await this.usersRepository.find({
       where: { role: In([UserRole.DOCTOR, UserRole.NURSE, UserRole.CLINICIAN]) }
     });
@@ -83,7 +80,7 @@ export class UsersService implements OnModuleInit {
   }
 
   async findAll(): Promise<User[]> {
-    return this.usersRepository.find({ order: { createdAt: 'DESC' } });
+    return this.usersRepository.find();
   }
 
   async countActive(): Promise<number> {
@@ -99,127 +96,35 @@ export class UsersService implements OnModuleInit {
     await this.usersRepository.update(id, { password: hashedPassword });
     return this.usersRepository.findOne({ where: { id } });
   }
-  async update(id: number, updateUserDto: any): Promise<User> {
-    const user = await this.usersRepository.findOne({ where: { id } });
-    if (!user) {
-      throw new Error(`User #${id} not found`);
+
+  async update(id: number, updateDto: DeepPartial<User>): Promise<User | null> {
+    if (updateDto.password) {
+      updateDto.password = await bcrypt.hash(updateDto.password, 10);
     }
-    this.usersRepository.merge(user, updateUserDto);
-    return this.usersRepository.save(user);
-  }
-
-  async updateByEmail(email: string, updateUserDto: any): Promise<User | null> {
-    const user = await this.usersRepository.findOne({ where: { email } });
-    if (!user) return null;
-    this.usersRepository.merge(user, updateUserDto);
-    return this.usersRepository.save(user);
-  }
-
-  async remove(id: number): Promise<void> {
-    await this.usersRepository.delete(id);
-  }
-
-  async removeByEmail(email: string): Promise<void> {
-    await this.usersRepository.delete({ email });
-  }
-
-  async deleteManyByIds(ids: number[]): Promise<void> {
-    if (ids.length === 0) return;
-    await this.usersRepository.delete({ id: In(ids) });
-  }
-
-  async deleteByRole(role: string): Promise<void> {
-    await this.usersRepository.delete({ role: role as any });
+    await this.usersRepository.update(id, updateDto);
+    return this.usersRepository.findOne({ where: { id } });
   }
 
   async findByVerificationToken(token: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { verificationToken: token } });
   }
 
-  async updateProfilePicture(id: number, filename: string): Promise<User> {
-    const user = await this.usersRepository.findOne({ where: { id } });
-    if (!user) throw new Error('User not found');
-    user.profilePicture = filename;
-    return this.usersRepository.save(user);
+  async findByToken(token: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { resetToken: token } });
   }
 
-  async resetAllPasswords(newPassword: string, excludeId: number): Promise<{ success: boolean; count: number }> {
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    // Update all users except the one triggering the action (Admin)
-    const result = await this.usersRepository.createQueryBuilder()
-      .update(User)
-      .set({ password: hashedPassword })
-      .where("id != :id", { id: excludeId })
-      .execute();
-
-    return { success: true, count: result.affected || 0 };
+  async updateByEmail(email: string, updateDto: DeepPartial<User>): Promise<void> {
+    if (updateDto.password) {
+      updateDto.password = await bcrypt.hash(updateDto.password, 10);
+    }
+    await this.usersRepository.update({ email }, updateDto);
   }
 
-  async requestDeletion(id: number, password: string): Promise<User> {
-    const user = await this.usersRepository.findOne({ where: { id } });
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      throw new Error('Invalid password');
-    }
-
-    user.deletionRequestedAt = new Date();
-    // Schedule for 7 days later
-    const scheduledDate = new Date();
-    scheduledDate.setDate(scheduledDate.getDate() + 7);
-    user.deletionScheduledAt = scheduledDate;
-
-    return this.usersRepository.save(user);
+  async removeByEmail(email: string): Promise<void> {
+    await this.usersRepository.delete({ email });
   }
 
-  async cancelDeletion(id: number): Promise<User> {
-    const user = await this.usersRepository.findOne({ where: { id } });
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    user.deletionRequestedAt = null as any;
-    user.deletionScheduledAt = null as any;
-
-    return this.usersRepository.save(user);
-  }
-
-  async getDeletionStatus(id: number) {
-    const user = await this.usersRepository.findOne({ where: { id } });
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    const isRequested = !!user.deletionRequestedAt;
-    const daysRemaining = isRequested && user.deletionScheduledAt
-      ? Math.ceil((user.deletionScheduledAt.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
-      : 0;
-
-    return {
-      hasPendingDeletion: isRequested,
-      requestedAt: user.deletionRequestedAt,
-      scheduledFor: user.deletionScheduledAt,
-      daysRemaining
-    };
-  }
-
-  async syncUserFromDoctor(doctor: any): Promise<void> {
-    if (!doctor.email) return;
-    const user = await this.usersRepository.findOne({ where: { email: doctor.email } });
-    if (!user) return;
-
-    const updates: any = {};
-    if (doctor.fname) updates.fname = doctor.fname;
-    if (doctor.lname) updates.lname = doctor.lname;
-    if (doctor.profile_image) updates.profilePicture = doctor.profile_image;
-    if (doctor.Verified_status !== undefined) updates.status = doctor.Verified_status === 1;
-
-    if (Object.keys(updates).length > 0) {
-      await this.usersRepository.update(user.id, updates);
-    }
+  async findAllByMobile(mobile: string): Promise<User[]> {
+      return this.usersRepository.find({ where: { mobile } });
   }
 }
