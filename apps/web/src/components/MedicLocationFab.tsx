@@ -5,11 +5,22 @@ import { useState, useEffect } from 'react';
 import { FiMapPin, FiWifi } from 'react-icons/fi';
 import { api } from '@/lib/api';
 import { toast } from 'react-hot-toast';
+import { useMedicDashboard } from '@/hooks/useMedicDashboard';
 
 export default function MedicLocationFab() {
     const { user } = useAuth();
+    const { isOnline, toggleOnlineStatus, doctorProfile } = useMedicDashboard();
     const [status, setStatus] = useState<'offline' | 'locating' | 'online'>('offline');
     const [isVisible, setIsVisible] = useState(false);
+
+    // Sync local status with dashboard state
+    useEffect(() => {
+        if (isOnline) {
+            setStatus('online');
+        } else {
+            setStatus('offline');
+        }
+    }, [isOnline]);
 
     // Only show for medics
     const isMedic = user && (
@@ -21,77 +32,22 @@ export default function MedicLocationFab() {
 
     useEffect(() => {
         if (isMedic) {
-            // Reset to offline on mount (login/refresh) as requested ("always start at off state")
-            setStatus('offline');
             setIsVisible(true);
         } else {
             setIsVisible(false);
         }
     }, [user, isMedic]);
 
-    const handleGoOnline = () => {
-        if (!navigator.geolocation) {
-            toast.error('Geolocation is not supported by your browser');
-            return;
+    const handleToggle = async () => {
+        if (!isOnline) {
+            // Going Online
+            setStatus('locating');
+            await toggleOnlineStatus();
+        } else {
+            // Going Offline
+            await toggleOnlineStatus();
+            setStatus('offline');
         }
-
-        setStatus('locating');
-        toast.loading('Acquiring location...', { id: 'loc-status' });
-
-        navigator.geolocation.getCurrentPosition(
-            async (position) => {
-                const { latitude, longitude } = position.coords;
-
-                try {
-                    // We need the doctorId. 
-                    // Usually available in user object if Login response attached it (doctorId), 
-                    // or we fetch profile. 
-                    // Let's assume user.doctorId exists or we fetch /doctors/profile/me to be safe.
-
-                    let doctorId = (user as any).doctorId;
-
-                    if (!doctorId) {
-                        const res = await api.get('/doctors/profile/me');
-                        if (res && res.ok) {
-                            const doc = await res.json();
-                            doctorId = doc.id;
-                        }
-                    }
-
-                    if (!doctorId) {
-                        throw new Error('Doctor profile not found');
-                    }
-
-                    const res = await api.patch(`/doctors/${doctorId}/online-status`, {
-                        status: 1, // Online
-                        latitude,
-                        longitude
-                    });
-
-                    if (res && res.ok) {
-                        setStatus('online');
-                        toast.success('You are now Online & Visible', { id: 'loc-status' });
-                    } else {
-                        throw new Error('Failed to update status');
-                    }
-
-                } catch (error) {
-                    console.error(error);
-                    setStatus('offline');
-                    toast.error('Failed to go online. Check connection.', { id: 'loc-status' });
-                }
-            },
-            (error) => {
-                console.error(error);
-                setStatus('offline');
-                let msg = 'Unable to retrieve location.';
-                if (error.code === 1) msg = 'Location permission denied. Please enable GPS.';
-                if (error.code === 2) msg = 'Location unavailable.';
-                if (error.code === 3) msg = 'Location timeout.';
-                toast.error(msg, { id: 'loc-status' });
-            },
-            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-        );
     };
 
     if (!isVisible) return null;
@@ -100,7 +56,7 @@ export default function MedicLocationFab() {
         return (
             <div className="fixed top-20 right-4 z-[99]">
                 <button
-                    onClick={handleGoOnline}
+                    onClick={handleToggle}
                     className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-2 text-sm font-bold transition-all transform hover:scale-105"
                 >
                     <div className="relative flex h-3 w-3">
@@ -109,7 +65,7 @@ export default function MedicLocationFab() {
                     </div>
                     <span className="flex flex-col items-start leading-tight">
                         <span>Online</span>
-                        <span className="text-[10px] opacity-80 font-normal">Tap to Update</span>
+                        <span className="text-[10px] opacity-80 font-normal">Tap to Go Offline</span>
                     </span>
                 </button>
             </div>
@@ -120,7 +76,7 @@ export default function MedicLocationFab() {
     return (
         <div className="fixed top-20 right-4 z-[99]">
             <button
-                onClick={handleGoOnline}
+                onClick={handleToggle}
                 disabled={status === 'locating'}
                 className="relative group bg-red-600 hover:bg-red-700 text-white px-6 py-4 rounded-full shadow-xl flex items-center gap-3 transition-all transform hover:scale-105"
             >

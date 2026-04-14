@@ -238,7 +238,8 @@ export class DoctorsService implements OnModuleInit {
 
         if (!includeAll) {
             query.where('doctor.Verified_status = :verified', { verified: 1 })
-                .andWhere('doctor.status = :status', { status: 1 });
+                .andWhere('doctor.status = :status', { status: 1 })
+                .andWhere('doctor.is_online = :isOnline', { isOnline: 1 });
         }
 
         const doctors = await query.getMany();
@@ -306,12 +307,14 @@ export class DoctorsService implements OnModuleInit {
     async findAllVerified(search?: string, includeOffline: boolean = false): Promise<any[]> {
         const query = this.doctorsRepository.createQueryBuilder('doctor');
 
-        // When include_offline=true (booking modal), show ALL medics regardless of verification
+        // Live Map View (default): Must be verified, active, and ONLINE
+        // Booking View (includeOffline=true): Must be verified and active, but can be OFFLINE
+        query
+            .where('doctor.Verified_status = :verified', { verified: 1 })
+            .andWhere('doctor.status = :status', { status: 1 });
+
         if (!includeOffline) {
-            query
-                .where('doctor.Verified_status = :verified', { verified: 1 })
-                .andWhere('doctor.status = :status', { status: 1 })
-                .andWhere('doctor.is_online = :isOnline', { isOnline: 1 });
+            query.andWhere('doctor.is_online = :isOnline', { isOnline: 1 });
         }
 
         if (search) {

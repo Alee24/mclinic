@@ -77,7 +77,7 @@ export default function MapViewer() {
         const fetchAllDoctors = async () => {
             setLoading(true);
             try {
-                const res = await api.get('/doctors/admin/all');
+                const res = await api.get('/doctors');
                 if (res && res.ok) {
                     const data = await res.json();
                     setDoctors(data || []);
@@ -118,7 +118,7 @@ export default function MapViewer() {
             : null;
 
         const initials = `${doc.fname?.[0] || ''}${doc.lname?.[0] || ''}`.toUpperCase() || config.code;
-        const statusColor = doc.isWorking ? '#22C55E' : '#9CA3AF';
+        const statusColor = doc.is_online === 1 ? '#22C55E' : '#9CA3AF';
 
         return L.divIcon({
             html: `
@@ -130,7 +130,7 @@ export default function MapViewer() {
                 }
                         <span class="text-xs font-black text-white ${avatarUrl ? 'hidden' : 'flex'}">${initials}</span>
                     </div>
-                    <div class="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white ${doc.isWorking ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}"></div>
+                    <div class="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white ${doc.is_online === 1 ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}"></div>
                 </div>
             `,
             className: '',
@@ -295,8 +295,8 @@ export default function MapViewer() {
                                         {selectedDoctor.dr_type || 'Specialist'}
                                     </div>
                                     <div className="flex items-center gap-2 text-xs text-gray-400">
-                                        <div className={`w-2 h-2 rounded-full ${selectedDoctor.isWorking ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                                        {selectedDoctor.isWorking ? 'Available' : 'Offline'}
+                                        <div className={`w-2 h-2 rounded-full ${selectedDoctor.is_online === 1 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                                        {selectedDoctor.is_online === 1 ? 'Available' : 'Offline'}
                                     </div>
 
                                     {/* Admin Only Contact Details */}
