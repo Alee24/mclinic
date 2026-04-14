@@ -449,6 +449,7 @@ export class DoctorsService implements OnModuleInit {
                 if (updateDto.sex) userUpdate.sex = updateDto.sex;
                 if (updateDto.dob) userUpdate.dob = updateDto.dob;
                 if (updateDto.profile_image) userUpdate.profilePicture = updateDto.profile_image;
+                if (updateDto.password) userUpdate.password = updateDto.password;
 
                 await this.usersService.updateByEmail(updatedDoctor.email, userUpdate);
             } catch (err) {

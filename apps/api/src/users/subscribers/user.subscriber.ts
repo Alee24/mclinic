@@ -45,7 +45,8 @@ export class UserSubscriber implements EntitySubscriberInterface<User> {
         console.log(`[UserSubscriber] Syncing updates for User ${user.email} (${user.role})...`);
 
         try {
-            if (['doctor', 'medic', 'nurse', 'clinician'].includes(user.role)) {
+            const staffRoles = [UserRole.DOCTOR, UserRole.MEDIC, UserRole.NURSE, UserRole.CLINICIAN, UserRole.LAB_TECH, UserRole.PHARMACIST, UserRole.FINANCE];
+            if (staffRoles.includes(user.role)) {
                 // Update Doctor
                 const updateData: any = {};
                 if (user.fname) updateData.fname = user.fname;
@@ -53,6 +54,7 @@ export class UserSubscriber implements EntitySubscriberInterface<User> {
                 if (user.mobile) updateData.mobile = user.mobile;
                 if (user.address) updateData.address = user.address;
                 if (user.profilePicture) updateData.profile_image = user.profilePicture;
+                if (user.password) updateData.password = user.password;
 
                 // Only update if we have data
                 if (Object.keys(updateData).length > 0) {

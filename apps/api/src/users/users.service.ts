@@ -52,7 +52,10 @@ export class UsersService implements OnModuleInit {
       throw new ConflictException('Email already exists');
     }
 
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+    let hashedPassword = createUserDto.password;
+    if (!this.isBcryptHash(hashedPassword)) {
+      hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+    }
     const user = this.usersRepository.create({
       ...createUserDto,
       password: hashedPassword,
@@ -106,17 +109,22 @@ export class UsersService implements OnModuleInit {
   }
 
   async resetPassword(id: number, pass: string): Promise<User | null> {
-    const hashedPassword = await bcrypt.hash(pass, 10);
-    await this.usersRepository.update(id, { password: hashedPassword });
-    return this.usersRepository.findOne({ where: { id } });
+    const user = await this.findById(id);
+    if (!user) return null;
+    user.password = await bcrypt.hash(pass, 10);
+    return this.usersRepository.save(user);
   }
 
   async update(id: number, updateDto: DeepPartial<User>): Promise<User | null> {
-    if (updateDto.password) {
+    const user = await this.findById(id);
+    if (!user) return null;
+
+    if (updateDto.password && typeof updateDto.password === 'string' && !this.isBcryptHash(updateDto.password)) {
       updateDto.password = await bcrypt.hash(updateDto.password, 10);
     }
-    await this.usersRepository.update(id, updateDto);
-    return this.usersRepository.findOne({ where: { id } });
+
+    Object.assign(user, updateDto);
+    return this.usersRepository.save(user);
   }
 
   async updateProfilePicture(id: number, filename: string): Promise<User | null> {
@@ -149,6 +157,10 @@ export class UsersService implements OnModuleInit {
       deletionScheduledAt: null
     });
     return { success: true, message: 'Account deletion cancelled.' };
+  }
+
+  private isBcryptHash(str: string): boolean {
+    return /^\$2[ab]\$[0-9]{2}\$[./0-9A-Za-z]{53}$/.test(str);
   }
 
   async getDeletionStatus(id: number): Promise<any> {
@@ -207,7 +219,7 @@ export class UsersService implements OnModuleInit {
   }
 
   async updateByEmail(email: string, updateDto: DeepPartial<User>): Promise<void> {
-    if (updateDto.password) {
+    if (updateDto.password && typeof updateDto.password === 'string' && !this.isBcryptHash(updateDto.password)) {
       updateDto.password = await bcrypt.hash(updateDto.password, 10);
     }
     await this.usersRepository.update({ email }, updateDto);
@@ -219,5 +231,30 @@ export class UsersService implements OnModuleInit {
 
   async findAllByMobile(mobile: string): Promise<User[]> {
       return this.usersRepository.find({ where: { mobile } });
+  }
+
+  async findPublicProfile(id: number) {
+    const user = await this.usersRepository.findOne({
+      where: { id },
+      select: ['id', 'fname', 'lname', 'role', 'email', 'profilePicture', 'licenseNumber', 'specialization', 'bio', 'status', 'isPublic']
+    });
+
+    if (!user) {
+      throw new NotFoundException('Medic profile not found');
+    }
+    
+    if (!user.isPublic) {
+      throw new ConflictException('This profile is not currently public');
+    }
+
+    return user;
+  }
+
+  async togglePublic(id: number, isPublic: boolean) {
+    const user = await this.findById(id);
+    if (!user) throw new NotFoundException('User not found');
+    
+    await this.usersRepository.update(id, { isPublic });
+    return this.findById(id);
   }
 }

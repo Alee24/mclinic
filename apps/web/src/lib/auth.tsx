@@ -32,6 +32,10 @@ export interface User {
     city?: string;
     national_id?: string;
     doctorId?: number;
+    isPublic?: boolean;
+    licenseNumber?: string;
+    specialization?: string;
+    bio?: string;
 }
 
 interface AuthContextType {

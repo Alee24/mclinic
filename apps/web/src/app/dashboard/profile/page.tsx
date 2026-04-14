@@ -4,7 +4,7 @@ import { useAuth } from '@/lib/auth';
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { useRef } from 'react';
-import { FiActivity, FiShield, FiEdit2, FiCamera, FiBriefcase } from 'react-icons/fi';
+import { FiActivity, FiShield, FiEdit2, FiCamera, FiBriefcase, FiShare2, FiClipboard, FiEye } from 'react-icons/fi';
 import EditMedicalProfileModal from '@/components/dashboard/patients/EditMedicalProfileModal';
 import EditPersonalDetailsModal from '@/components/dashboard/patients/EditPersonalDetailsModal';
 import ChangePasswordModal from '@/components/dashboard/patients/ChangePasswordModal';
@@ -14,9 +14,28 @@ import UserAvatar from '@/components/dashboard/UserAvatar';
 export default function ProfilePage() {
     const { user, refreshUser } = useAuth();
 
-    // Reload user data without page refresh
     const reloadUser = async () => {
         await refreshUser();
+    };
+
+    const togglePublic = async () => {
+        if (!user) return;
+        try {
+            const res = await api.patch(`/users/${user.id}/public`, { isPublic: !user.isPublic });
+            if (res && res.ok) {
+                alert(`Profile is now ${!user.isPublic ? 'PUBLIC' : 'PRIVATE'}`);
+                reloadUser();
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const copyLink = () => {
+        if (!user) return;
+        const url = `${window.location.origin}/profile/${user.id}`;
+        navigator.clipboard.writeText(url);
+        alert('Profile link copied to clipboard!');
     };
 
     if (!user) return null;
@@ -172,6 +191,55 @@ export default function ProfilePage() {
                     </button>
                 </div>
             </div>
+
+            {/* Profile Sharing Card (New) */}
+            {isMedic && (
+                <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-8 text-white shadow-lg overflow-hidden relative group">
+                    <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div className="space-y-1">
+                            <h2 className="text-2xl font-black flex items-center gap-3">
+                                <FiShare2 /> Public Profile Sharing
+                            </h2>
+                            <p className="text-emerald-50/80 max-w-md text-sm">
+                                Share your professional credentials with patients via a public link. 
+                                Make sure to toggle visibility ON to be seen.
+                            </p>
+                        </div>
+                        <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20 w-full md:w-auto min-w-[320px] space-y-4">
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold uppercase tracking-wider text-emerald-100">Your Status</span>
+                                <button 
+                                    onClick={togglePublic}
+                                    className={`px-4 py-1.5 rounded-full text-xs font-black uppercase transition-all shadow-sm ${user.isPublic ? 'bg-white text-emerald-600' : 'bg-red-500 text-white'}`}
+                                >
+                                    {user.isPublic ? 'Publicly Visible' : 'Hidden (Private)'}
+                                </button>
+                            </div>
+                            <div className="flex gap-2">
+                                <div className="bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-sm flex-1 font-mono flex items-center truncate">
+                                    {typeof window !== 'undefined' ? `${window.location.host}/profile/${user.id}` : ''}
+                                </div>
+                                <button 
+                                    onClick={copyLink}
+                                    className="bg-white text-emerald-600 p-3 rounded-lg font-bold hover:bg-emerald-50 transition-all active:scale-95 shadow-sm"
+                                    title="Copy Link"
+                                >
+                                    <FiClipboard />
+                                </button>
+                                <a 
+                                    href={`/profile/${user.id}`}
+                                    target="_blank"
+                                    className="bg-white/20 text-white p-3 rounded-lg font-bold hover:bg-white/30 transition-all border border-white/20"
+                                    title="View Public Profile"
+                                >
+                                    <FiEye />
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-white/10 transition-all duration-700"></div>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left Column: Personal Info and Security */}

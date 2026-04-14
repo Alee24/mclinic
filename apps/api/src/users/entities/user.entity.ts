@@ -48,6 +48,18 @@ export class User {
   })
   role: UserRole;
 
+  @Column({ nullable: true })
+  licenseNumber: string;
+
+  @Column({ nullable: true })
+  specialization: string;
+
+  @Column({ type: 'text', nullable: true })
+  bio: string;
+
+  @Column({ default: false })
+  isPublic: boolean;
+
   @Column({ default: true })
   status: boolean; // mapped from status TINYINT(1)
 

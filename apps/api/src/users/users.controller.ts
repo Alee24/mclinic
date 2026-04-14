@@ -27,6 +27,11 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  @Get('profile/:id')
+  async getPublicProfile(@Param('id') id: string) {
+    return this.usersService.findPublicProfile(+id);
+  }
+
   @Get('count-active')
   async countActive() {
     const count = await this.usersService.countActive();
@@ -50,6 +55,12 @@ export class UsersController {
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: any) {
     return this.usersService.update(+id, updateUserDto);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch(':id/public')
+  async togglePublic(@Param('id') id: string, @Body('isPublic') isPublic: boolean) {
+    return this.usersService.togglePublic(+id, isPublic);
   }
 
   @UseGuards(AuthGuard('jwt'))
