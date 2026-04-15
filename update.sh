@@ -26,7 +26,7 @@ npm install --legacy-peer-deps
 npm run build
 
 echo "🔄 Restarting API Service..."
-pm2 restart mclinic-api --update-env || PORT=5454 pm2 start dist/main.js --name mclinic-api
+pm2 restart mclinic-api --update-env || PORT=7899 pm2 start dist/main.js --name mclinic-api
 
 # --- 2. Update Web ---
 echo "🛠️  Updating Web Frontend..."
