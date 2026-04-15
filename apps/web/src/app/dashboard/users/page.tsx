@@ -149,21 +149,23 @@ export default function UsersPage() {
     const [roleFilter, setRoleFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
 
-    const filteredUsers = users.filter(user => {
-        const matchesSearch = (user.fname || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (user.lname || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (user.email || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const filteredUsers = users
+        .filter(user => {
+            const matchesSearch = (user.fname || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (user.lname || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (user.email || '').toLowerCase().includes(searchTerm.toLowerCase());
 
-        const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+            const matchesRole = roleFilter === 'all' || user.role === roleFilter;
 
-        const matchesStatus = statusFilter === 'all'
-            ? true
-            : statusFilter === 'active'
-                ? user.status === true
-                : user.status === false;
+            const matchesStatus = statusFilter === 'all'
+                ? true
+                : statusFilter === 'active'
+                    ? user.status === true
+                    : user.status === false;
 
-        return matchesSearch && matchesRole && matchesStatus;
-    });
+            return matchesSearch && matchesRole && matchesStatus;
+        })
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
@@ -372,8 +374,11 @@ export default function UsersPage() {
                                         <td className="p-4">
                                             <div className="flex flex-col">
                                                 {user.lastAccess ? (
-                                                    <div className="text-xs font-bold text-blue-500 flex items-center gap-1.5 uppercase tracking-wider">
-                                                        <FiClock className="animate-pulse" />
+                                                    <div
+                                                        className="text-xs font-bold text-blue-500 flex items-center gap-1.5 uppercase tracking-wider cursor-help"
+                                                        title={format(new Date(user.lastAccess), 'MMM dd, yyyy HH:mm:ss')}
+                                                    >
+                                                        <FiClock className="animate-pulse flex-shrink-0" />
                                                         {formatDistanceToNow(new Date(user.lastAccess), { addSuffix: true })}
                                                     </div>
                                                 ) : (

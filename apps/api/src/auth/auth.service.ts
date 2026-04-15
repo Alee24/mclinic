@@ -88,6 +88,17 @@ export class AuthService {
       role: validUser.role,
     };
 
+    // Update last access timestamp on every successful login
+    try {
+      // For providers (doctors), find their matching user record by email
+      const userRecord = await this.usersService.findOne(validUser.email);
+      if (userRecord) {
+        await this.usersService.updateLastAccess(userRecord.id);
+      }
+    } catch (e) {
+      console.error('[AuthService] Failed to update lastAccess:', e);
+    }
+
     try {
       await this.emailService.sendLoginAttemptEmail(
         validUser,

@@ -91,7 +91,13 @@ export class UsersService implements OnModuleInit {
   }
 
   async findAll(): Promise<User[]> {
-    return this.usersRepository.find();
+    return this.usersRepository.find({
+      order: { createdAt: 'DESC' }
+    });
+  }
+
+  async updateLastAccess(id: number): Promise<void> {
+    await this.usersRepository.update(id, { lastAccess: new Date() });
   }
 
   async countActive(): Promise<number> {
