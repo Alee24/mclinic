@@ -1,5 +1,5 @@
 import { Injectable, ConflictException, OnModuleInit, NotFoundException } from '@nestjs/common';
-import { In } from 'typeorm';
+import { In, DataSource } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DeepPartial } from 'typeorm';
 import { User, UserRole } from './entities/user.entity';
@@ -12,14 +12,47 @@ export class UsersService implements OnModuleInit {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    private dataSource: DataSource,
     private notificationService: NotificationService
   ) { }
 
   async onModuleInit() {
     try {
+      await this.ensureLastAccessColumn();
+    } catch (e) {
+      console.error('[UsersService] ensureLastAccessColumn failed:', e);
+    }
+    try {
       await this.migrateRoles();
     } catch (e) {
       console.error('[UsersService] onModuleInit migration failed:', e);
+    }
+  }
+
+  // Ensure last_access column exists in DB (safe to run multiple times)
+  private async ensureLastAccessColumn() {
+    try {
+      await this.dataSource.query(`
+        ALTER TABLE users 
+        ADD COLUMN IF NOT EXISTS last_access TIMESTAMP NULL DEFAULT NULL
+      `);
+      console.log('[UsersService] last_access column ensured.');
+    } catch (e) {
+      // MySQL < 8.0 doesn't support IF NOT EXISTS for ALTER TABLE
+      // Check if column exists first
+      try {
+        const cols = await this.dataSource.query(
+          `SHOW COLUMNS FROM users LIKE 'last_access'`
+        );
+        if (cols.length === 0) {
+          await this.dataSource.query(
+            `ALTER TABLE users ADD COLUMN last_access TIMESTAMP NULL DEFAULT NULL`
+          );
+          console.log('[UsersService] last_access column created.');
+        }
+      } catch (err) {
+        console.error('[UsersService] Could not create last_access column:', err);
+      }
     }
   }
 
@@ -97,7 +130,15 @@ export class UsersService implements OnModuleInit {
   }
 
   async updateLastAccess(id: number): Promise<void> {
-    await this.usersRepository.update(id, { lastAccess: new Date() });
+    try {
+      await this.dataSource.query(
+        `UPDATE users SET last_access = NOW() WHERE id = ?`,
+        [id]
+      );
+    } catch (e) {
+      // Column may not exist - log but don't crash
+      console.error('[UsersService] updateLastAccess failed:', e.message);
+    }
   }
 
   async countActive(): Promise<number> {
