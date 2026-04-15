@@ -66,10 +66,15 @@ export class UsersService implements OnModuleInit {
 
       if (candidates.length > 0) {
         console.log(`[UsersService] Found ${candidates.length} users with legacy roles. Migrating to 'medic'...`);
-        for (const user of candidates) {
-          user.role = UserRole.MEDIC;
-          await this.usersRepository.save(user);
-        }
+        // Use direct query update - NEVER use save() here as it triggers
+        // subscribers and may re-process the password field
+        const ids = candidates.map(u => u.id);
+        await this.usersRepository
+          .createQueryBuilder()
+          .update(User)
+          .set({ role: UserRole.MEDIC })
+          .whereInIds(ids)
+          .execute();
         console.log('[UsersService] Migration complete.');
       }
     } catch (e) {
