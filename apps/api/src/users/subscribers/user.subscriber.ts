@@ -54,7 +54,7 @@ export class UserSubscriber implements EntitySubscriberInterface<User> {
                 if (user.mobile) updateData.mobile = user.mobile;
                 if (user.address) updateData.address = user.address;
                 if (user.profilePicture) updateData.profile_image = user.profilePicture;
-                if (user.password) updateData.password = user.password;
+                // NOTE: password intentionally NOT synced here - passwords are managed independently
 
                 // Only update if we have data
                 if (Object.keys(updateData).length > 0) {
