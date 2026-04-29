@@ -35,9 +35,25 @@ async function run() {
         port: process.env.DB_PORT || 3306,
     };
 
-    if (process.env.DATABASE_URL) {
+    // Load credentials from ecosystem.config.js
+    try {
+        const pm2Config = require('../../ecosystem.config.js');
+        const apiApp = pm2Config.apps.find(a => a.name === 'mclinic-api');
+        if (apiApp && apiApp.env) {
+            config.host = apiApp.env.DB_HOST || config.host;
+            config.user = apiApp.env.DB_USER || config.user;
+            config.password = apiApp.env.DB_PASSWORD || config.password;
+            config.database = apiApp.env.DB_NAME || config.database;
+            config.port = apiApp.env.DB_PORT || config.port;
+            console.log('🔹 Extracted credentials from ecosystem.config.js');
+        }
+    } catch (e) {
+        console.log('ℹ️ ecosystem.config.js fallback skipped:', e.message);
+    }
+
+    if (process.env.DATABASE_URL || config.DATABASE_URL) {
         try {
-            const url = new URL(process.env.DATABASE_URL);
+            const url = new URL(process.env.DATABASE_URL || config.DATABASE_URL);
             config.host = url.hostname;
             config.port = url.port || 3306;
             config.user = url.username;
