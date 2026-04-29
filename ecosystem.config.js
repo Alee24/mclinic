@@ -31,7 +31,7 @@ module.exports = {
         },
         {
             name: 'mclinic-web',
-            script: 'npm',
+            script: 'node_modules/next/dist/bin/next',
             args: 'start',
             cwd: '/var/www/mclinicportal/apps/web',
             env: {
