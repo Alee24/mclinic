@@ -110,9 +110,9 @@ npm install --legacy-peer-deps
 npm run build
 
 # 4. Restart Services
-echo "🔄 Restarting PM2 services..."
+echo "🔄 Starting/Restarting PM2 services..."
 cd $APP_DIR
-pm2 restart all || pm2 start ecosystem.config.js
+pm2 start ecosystem.config.js --update-env
 
 echo "✅ Deployment Successful!"
 echo "============================================="
