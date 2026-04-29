@@ -37,7 +37,7 @@ module.exports = {
             env: {
                 PORT: 7898,
                 NODE_ENV: 'production',
-                NEXT_PUBLIC_API_URL: '/api'
+                NEXT_PUBLIC_API_URL: 'https://portal.mclinic.co.ke/api'
             },
             instances: 1,
             exec_mode: 'fork',
