@@ -6,7 +6,8 @@ import { api } from '@/lib/api';
 import Link from 'next/link';
 import { FiCheckCircle, FiUser, FiActivity, FiBriefcase, FiMapPin, FiClock } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
-import { getCadres, getTitles, getSpecialties, getRegulatoryBody } from '@/lib/data/specialties';
+import { getCadres, getTitles, getSpecialties, getRegulatoryBody, getRegulatoryBodies } from '@/lib/data/specialties';
+import { KENYAN_HOSPITALS } from '@/lib/medical-constants';
 
 export default function MedicRegisterPage() {
     const router = useRouter();
@@ -48,6 +49,8 @@ export default function MedicRegisterPage() {
     // Dropdown Options State
     const [availableTitles, setAvailableTitles] = useState<string[]>([]);
     const [availableSpecialties, setAvailableSpecialties] = useState<string[]>([]);
+    const [showOtherSpeciality, setShowOtherSpeciality] = useState(false);
+    const [showOtherHospital, setShowOtherHospital] = useState(false);
 
     // Initialize Dropdowns on Mount
     useEffect(() => {
@@ -123,9 +126,10 @@ export default function MedicRegisterPage() {
                 const data = res ? await res.json() : { message: 'Network error or no response' };
                 toast.error(data.message || 'Registration failed. Please check your details.');
             }
-        } catch (error) {
-            console.error(error);
-            toast.error('An error occurred during submission.');
+        } catch (error: any) {
+            console.error('Registration error:', error);
+            const errorMessage = error.response?.data?.message || error.message || 'An error occurred during submission.';
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -265,23 +269,50 @@ export default function MedicRegisterPage() {
                                         <label className="label">Specialty</label>
                                         <select
                                             name="speciality"
-                                            value={formData.speciality}
+                                            value={showOtherSpeciality ? 'Other' : formData.speciality}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                if (val === 'Other') {
+                                                    setShowOtherSpeciality(true);
+                                                    setFormData({ ...formData, speciality: '' });
+                                                } else {
+                                                    setShowOtherSpeciality(false);
+                                                    setFormData({ ...formData, speciality: val });
+                                                }
+                                            }}
+                                            className="input-field"
+                                            required
+                                        >
+                                            <option value="">Select Specialty</option>
+                                            {availableSpecialties.map(s => <option key={s} value={s}>{s}</option>)}
+                                            <option value="Other">Other (Type below)</option>
+                                        </select>
+                                        {showOtherSpeciality && (
+                                            <input
+                                                type="text"
+                                                name="speciality"
+                                                value={formData.speciality}
+                                                onChange={handleChange}
+                                                className="input-field mt-2 animate-in slide-in-from-top-2"
+                                                placeholder="Type your specialty..."
+                                                required
+                                            />
+                                        )}
+                                    </div>
+                                    <div>
+                                        <label className="label">Regulatory Body</label>
+                                        <select
+                                            name="regulatory_body"
+                                            value={formData.regulatory_body}
                                             onChange={handleChange}
                                             className="input-field"
                                             required
                                         >
-                                            {availableSpecialties.map(s => <option key={s} value={s}>{s}</option>)}
+                                            {getRegulatoryBodies().map(body => (
+                                                <option key={body} value={body}>{body}</option>
+                                            ))}
+                                            <option value="Other">Other (Specify in Bio)</option>
                                         </select>
-                                    </div>
-                                    <div>
-                                        <label className="label">Regulatory Body</label>
-                                        <input
-                                            name="regulatory_body"
-                                            value={formData.regulatory_body}
-                                            readOnly
-                                            className="input-field bg-gray-100 cursor-not-allowed text-gray-500"
-                                            title="Automatically determined by Cadre"
-                                        />
                                     </div>
                                 </div>
 
@@ -313,13 +344,34 @@ export default function MedicRegisterPage() {
                             <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-500">
                                 <div>
                                     <label className="label">Current Hospital Attachment</label>
-                                    <input list="hospitals" name="hospital_attachment" value={formData.hospital_attachment} onChange={handleChange} className="input-field" placeholder="Primary Workplace" />
-                                    <datalist id="hospitals">
-                                        <option value="Wallal Hospital" />
-                                        <option value="Optica" />
-                                        <option value="City Eye" />
-                                        <option value="AAR Health Care" />
-                                    </datalist>
+                                    <select
+                                        name="hospital_attachment"
+                                        value={showOtherHospital ? 'Other' : formData.hospital_attachment}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (val === 'Other') {
+                                                setShowOtherHospital(true);
+                                                setFormData({ ...formData, hospital_attachment: '' });
+                                            } else {
+                                                setShowOtherHospital(false);
+                                                setFormData({ ...formData, hospital_attachment: val });
+                                            }
+                                        }}
+                                        className="input-field"
+                                    >
+                                        <option value="">Select Hospital</option>
+                                        {KENYAN_HOSPITALS.map(h => <option key={h} value={h}>{h}</option>)}
+                                    </select>
+                                    {showOtherHospital && (
+                                        <input
+                                            type="text"
+                                            name="hospital_attachment"
+                                            value={formData.hospital_attachment}
+                                            onChange={handleChange}
+                                            className="input-field mt-2 animate-in slide-in-from-top-2"
+                                            placeholder="Type hospital name..."
+                                        />
+                                    )}
                                 </div>
 
                                 <div>

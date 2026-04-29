@@ -165,6 +165,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                             items={[
                                                 { href: '/dashboard/finance/transactions', label: 'Overview & Wallet' },
                                                 { href: '/dashboard/invoices', label: 'Invoices' },
+                                                { href: '/dashboard/admin/settings/fees', label: 'Fees & Commissions' },
                                                 { href: '/dashboard/admin/settings/payments', label: 'Payment Gateways' },
                                                 { href: '/dashboard/admin/settings/mpesa', label: 'M-Pesa Config' }
                                             ]}

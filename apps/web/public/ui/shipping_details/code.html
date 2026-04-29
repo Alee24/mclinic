@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container": "#eceef0",
+                    "tertiary-container": "#5a0018",
+                    "on-primary": "#ffffff",
+                    "inverse-on-surface": "#eff1f3",
+                    "on-secondary-fixed-variant": "#005323",
+                    "surface-container-highest": "#e0e3e5",
+                    "on-primary-fixed-variant": "#3a4854",
+                    "primary": "#081621",
+                    "surface-tint": "#52606c",
+                    "surface-container-lowest": "#ffffff",
+                    "background": "#f7f9fb",
+                    "surface": "#f7f9fb",
+                    "tertiary-fixed-dim": "#ffb2b8",
+                    "tertiary": "#34000a",
+                    "on-surface-variant": "#43474b",
+                    "secondary-fixed-dim": "#3ee276",
+                    "secondary-fixed": "#65ff90",
+                    "on-primary-container": "#8492a0",
+                    "on-background": "#191c1e",
+                    "surface-variant": "#e0e3e5",
+                    "on-primary-fixed": "#0f1d28",
+                    "outline-variant": "#c4c7cb",
+                    "surface-container-high": "#e6e8ea",
+                    "on-tertiary-fixed": "#40000f",
+                    "surface-container-low": "#f2f4f6",
+                    "primary-fixed-dim": "#b9c8d7",
+                    "on-tertiary-fixed-variant": "#91002d",
+                    "on-secondary": "#ffffff",
+                    "secondary": "#006d31",
+                    "inverse-primary": "#b9c8d7",
+                    "on-secondary-container": "#007233",
+                    "error": "#ba1a1a",
+                    "on-tertiary-container": "#ff4f6e",
+                    "error-container": "#ffdad6",
+                    "surface-dim": "#d8dadc",
+                    "surface-bright": "#f7f9fb",
+                    "primary-fixed": "#d5e4f3",
+                    "primary-container": "#1d2b36",
+                    "outline": "#74777c",
+                    "on-error-container": "#93000a",
+                    "inverse-surface": "#2d3133",
+                    "on-secondary-fixed": "#00210a",
+                    "on-error": "#ffffff",
+                    "tertiary-fixed": "#ffdadb",
+                    "secondary-container": "#5efc8d",
+                    "on-surface": "#191c1e",
+                    "on-tertiary": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "xl": "32px",
+                    "xs": "4px",
+                    "unit": "4px",
+                    "margin": "24px",
+                    "lg": "24px",
+                    "gutter": "24px",
+                    "sm": "8px",
+                    "md": "16px",
+                    "xxl": "48px",
+                    "container-max": "1280px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Public Sans"],
+                    "label-md": ["Public Sans"],
+                    "headline-lg": ["Public Sans"],
+                    "display-lg": ["Public Sans"],
+                    "body-sm": ["Public Sans"],
+                    "body-md": ["Public Sans"],
+                    "body-lg": ["Public Sans"],
+                    "label-lg": ["Public Sans"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "label-md": ["12px", {"lineHeight": "14px", "fontWeight": "500"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "label-lg": ["14px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Public Sans', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50 font-['Public_Sans'] antialiased docked full-width top-0 border-b border-slate-200 dark:border-slate-800 flat no shadows flex items-center justify-between px-4 w-full h-16 sticky z-50">
+<div class="flex items-center gap-4">
+<button class="transition-all duration-200 active:opacity-70 hover:bg-slate-50 dark:hover:bg-slate-900 p-2 rounded-full">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Checkout</h1>
+</div>
+<button class="transition-all duration-200 active:opacity-70 hover:bg-slate-50 dark:hover:bg-slate-900 p-2 rounded-full">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+</button>
+</header>
+<main class="max-w-container-max mx-auto px-margin py-lg">
+<!-- Progress Stepper -->
+<div class="flex items-center justify-between mb-xxl max-w-2xl mx-auto">
+<div class="flex flex-col items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-on-secondary">
+<span class="material-symbols-outlined text-md" data-icon="check" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface">Cart</span>
+</div>
+<div class="flex-1 h-0.5 bg-secondary mx-md"></div>
+<div class="flex flex-col items-center gap-sm">
+<div class="w-10 h-10 rounded-full border-2 border-primary bg-primary flex items-center justify-center text-on-primary">
+<span class="font-label-lg text-label-lg">2</span>
+</div>
+<span class="font-label-md text-label-md text-primary font-bold">Details</span>
+</div>
+<div class="flex-1 h-0.5 bg-surface-container-highest mx-md"></div>
+<div class="flex flex-col items-center gap-sm">
+<div class="w-10 h-10 rounded-full border-2 border-outline-variant flex items-center justify-center text-outline">
+<span class="font-label-lg text-label-lg">3</span>
+</div>
+<span class="font-label-md text-label-md text-outline">Payment</span>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Form Section -->
+<div class="lg:col-span-8 space-y-xl">
+<!-- Patient Selection Card -->
+<section class="bg-surface-container-lowest border border-outline-variant p-lg rounded-xl">
+<div class="flex items-center gap-md mb-lg">
+<div class="w-10 h-10 rounded-lg bg-primary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</div>
+<h2 class="font-headline-md text-headline-md">Patient Details</h2>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-md">Select the patient for the laboratory test.</p>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+<!-- Patient Option 1 -->
+<label class="relative flex flex-col items-center p-md border-2 border-secondary bg-secondary-container/10 rounded-xl cursor-pointer">
+<input checked="" class="absolute top-2 right-2 text-secondary focus:ring-secondary" name="patient" type="radio"/>
+<img class="w-16 h-16 rounded-full object-cover mb-sm border-2 border-secondary" data-alt="A professional headshot of a middle-aged woman with a friendly smile, set against a clean, clinical white background. The lighting is soft and even, highlighting her kind expression. The overall aesthetic is one of professional healthcare and modern patient care, using a neutral and calming color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA4BtweoT9kCf46LZKpuYQJIM2XA62rR7quUsPHZ1hEIRTKY_ArRupOyvS1T-O7yhqrHXtgZHajgjbvVb6PElMw3K3dD0WwR40i8oUzhRyljkfWdCFwYLepHdDn4rnWtgYfczhOcGqm78j8YSIDv4XO-W21i_K-OISMVGMMkWMrLYV3KE7e7HgS-FdnXUBrtaKkJb2td4LB5gcH6M7r-g9V6d4lq2I0ZDHG9_3dLLbeCjuzs3fhJM3wnxdjqG2qATC4QpwiMbNZgoY"/>
+<span class="font-label-lg text-label-lg text-primary">Sarah Miller</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Self (Primary)</span>
+</label>
+<!-- Patient Option 2 -->
+<label class="relative flex flex-col items-center p-md border border-outline-variant hover:border-primary transition-colors rounded-xl cursor-pointer">
+<input class="absolute top-2 right-2 text-primary focus:ring-primary" name="patient" type="radio"/>
+<img class="w-16 h-16 rounded-full object-cover mb-sm" data-alt="A clear portrait of an elderly man with gray hair, looking directly at the camera with a calm and dignified expression. The setting is bright and clinical, emphasizing reliability and health management for seniors. The image is captured with high-definition clarity and a soft-focus background in a modern medical office." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSwMAa0eJxQQbclvdYy_Q17wifjUP3Q7IWYQHTC1hNksP_dNZP2gtW8sRAPtq4KiAkRtvjnyhft4WFibLiZShvwuiW6tOykgkGXvfOGLOK4TDiyi24U84R0amMXvcon61buCto86kJ0Az9cNU5ctjfmW5fvpEDkNuXt-X_6xmFXc7yu62Pjwfm7jU5nmuVcfM9F6JT6O3V7MWm5DMPbLuENannCUzYOm5HNatiKIysO6VkdKhCPswITmx8BVoxsTTw30N4CkimQO4"/>
+<span class="font-label-lg text-label-lg text-on-surface">Arthur Miller</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Father</span>
+</label>
+<!-- Add New Patient -->
+<button class="flex flex-col items-center justify-center p-md border border-dashed border-outline-variant hover:border-primary hover:bg-surface-container-low transition-colors rounded-xl gap-xs">
+<span class="material-symbols-outlined text-primary" data-icon="add_circle">add_circle</span>
+<span class="font-label-lg text-label-lg text-primary">Add Member</span>
+</button>
+</div>
+</section>
+<!-- Shipping Address Card -->
+<section class="bg-surface-container-lowest border border-outline-variant p-lg rounded-xl">
+<div class="flex items-center gap-md mb-lg">
+<div class="w-10 h-10 rounded-lg bg-primary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="local_shipping">local_shipping</span>
+</div>
+<h2 class="font-headline-md text-headline-md">Shipping Address</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+<div class="space-y-xs md:col-span-2">
+<label class="font-label-lg text-label-lg text-on-surface">Full Name</label>
+<input class="w-full h-12 px-md bg-background border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary font-body-md" placeholder="e.g. Sarah Miller" type="text"/>
+</div>
+<div class="space-y-xs md:col-span-2">
+<label class="font-label-lg text-label-lg text-on-surface">Street Address</label>
+<input class="w-full h-12 px-md bg-background border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary font-body-md" placeholder="123 Clinical Way, Ste 400" type="text"/>
+</div>
+<div class="space-y-xs">
+<label class="font-label-lg text-label-lg text-on-surface">City</label>
+<input class="w-full h-12 px-md bg-background border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary font-body-md" placeholder="Boston" type="text"/>
+</div>
+<div class="grid grid-cols-2 gap-md">
+<div class="space-y-xs">
+<label class="font-label-lg text-label-lg text-on-surface">State</label>
+<input class="w-full h-12 px-md bg-background border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary font-body-md" placeholder="MA" type="text"/>
+</div>
+<div class="space-y-xs">
+<label class="font-label-lg text-label-lg text-on-surface">ZIP</label>
+<input class="w-full h-12 px-md bg-background border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary font-body-md" placeholder="02108" type="text"/>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Order Summary / Checkout Column -->
+<div class="lg:col-span-4 space-y-lg">
+<div class="bg-primary-container text-white p-lg rounded-xl shadow-xl sticky top-24">
+<h3 class="font-headline-md text-headline-md text-on-primary mb-lg">Order Summary</h3>
+<div class="space-y-md border-b border-white/10 pb-lg mb-lg">
+<div class="flex justify-between items-start">
+<div>
+<p class="font-label-lg text-label-lg text-on-primary">Comprehensive Blood Panel</p>
+<p class="font-body-sm text-body-sm text-on-primary-container">Scheduled for 12 Oct</p>
+</div>
+<span class="font-label-lg text-label-lg">$149.00</span>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<p class="font-label-lg text-label-lg text-on-primary">Amoxicillin 500mg</p>
+<p class="font-body-sm text-body-sm text-on-primary-container">Prescription Refill</p>
+</div>
+<span class="font-label-lg text-label-lg">$12.50</span>
+</div>
+</div>
+<div class="space-y-sm mb-xl">
+<div class="flex justify-between text-on-primary-container">
+<span class="font-body-md text-body-md">Subtotal</span>
+<span class="font-body-md text-body-md">$161.50</span>
+</div>
+<div class="flex justify-between text-on-primary-container">
+<span class="font-body-md text-body-md">Shipping</span>
+<span class="font-body-md text-body-md">FREE</span>
+</div>
+<div class="flex justify-between text-on-primary-container">
+<span class="font-body-md text-body-md">Tax</span>
+<span class="font-body-md text-body-md">$8.05</span>
+</div>
+<div class="flex justify-between pt-md mt-md border-t border-white/20 text-on-primary">
+<span class="font-headline-md text-headline-md">Total</span>
+<span class="font-headline-md text-headline-md">$169.55</span>
+</div>
+</div>
+<button class="w-full py-md bg-secondary text-on-secondary font-bold rounded-lg hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-sm">
+                        Continue to Payment
+                        <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+<p class="mt-lg text-center font-body-sm text-body-sm text-on-primary-container flex items-center justify-center gap-xs">
+<span class="material-symbols-outlined text-sm" data-icon="lock" data-weight="fill" style="font-variation-settings: 'FILL' 1;">lock</span>
+                        Secure Encrypted Checkout
+                    </p>
+</div>
+<!-- Emergency Contact CTA -->
+<div class="p-md bg-error-container border border-error/20 rounded-lg flex items-center gap-md">
+<span class="material-symbols-outlined text-error" data-icon="error">error</span>
+<p class="font-body-sm text-body-sm text-on-error-container">
+                        Need immediate assistance? Call our <span class="font-bold underline cursor-pointer">Help Center</span>.
+                    </p>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Shell (Simulated for Web Relevance) -->
+<nav class="hidden md:flex fixed bottom-0 left-0 w-full bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 justify-around items-center px-4 py-2 pb-safe z-50">
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 px-3 py-1 hover:text-slate-900 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-['Public_Sans'] text-xs font-medium">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 px-3 py-1 hover:text-slate-900 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="medication">medication</span>
+<span class="font-['Public_Sans'] text-xs font-medium">Pharmacy</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 px-3 py-1 hover:text-slate-900 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="biotech">biotech</span>
+<span class="font-['Public_Sans'] text-xs font-medium">Labs</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-50 rounded-xl px-3 py-1 scale-95 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-['Public_Sans'] text-xs font-medium">Account</span>
+</a>
+</nav>
+<!-- Mobile Navigation Shell -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 flex justify-around items-center px-4 py-2 pb-safe z-50">
+<div class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 px-3 py-1">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-['Public_Sans'] text-xs font-medium">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 px-3 py-1">
+<span class="material-symbols-outlined" data-icon="medication">medication</span>
+<span class="font-['Public_Sans'] text-xs font-medium">Pharmacy</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 px-3 py-1">
+<span class="material-symbols-outlined" data-icon="biotech">biotech</span>
+<span class="font-['Public_Sans'] text-xs font-medium">Labs</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-50 rounded-xl px-3 py-1">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-['Public_Sans'] text-xs font-medium">Account</span>
+</div>
+</nav>
+</body></html>

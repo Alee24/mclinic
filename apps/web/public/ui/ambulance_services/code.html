@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CareConnect | Ambulance Subscription</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@100;200;300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-primary": "#b9c8d7",
+                    "on-primary-fixed": "#0f1d28",
+                    "error": "#ba1a1a",
+                    "on-secondary-fixed": "#00210a",
+                    "on-tertiary-container": "#ff4f6e",
+                    "inverse-on-surface": "#eff1f3",
+                    "on-secondary-fixed-variant": "#005323",
+                    "surface-container-highest": "#e0e3e5",
+                    "tertiary": "#34000a",
+                    "on-primary-container": "#8492a0",
+                    "on-surface": "#191c1e",
+                    "on-secondary-container": "#007233",
+                    "secondary": "#006d31",
+                    "on-secondary": "#ffffff",
+                    "surface-bright": "#f7f9fb",
+                    "surface-container": "#eceef0",
+                    "surface-container-low": "#f2f4f6",
+                    "tertiary-fixed": "#ffdadb",
+                    "primary-fixed": "#d5e4f3",
+                    "primary-fixed-dim": "#b9c8d7",
+                    "inverse-surface": "#2d3133",
+                    "surface-container-high": "#e6e8ea",
+                    "primary-container": "#1d2b36",
+                    "on-error-container": "#93000a",
+                    "on-primary": "#ffffff",
+                    "surface-container-lowest": "#ffffff",
+                    "outline-variant": "#c4c7cb",
+                    "surface-tint": "#52606c",
+                    "error-container": "#ffdad6",
+                    "tertiary-fixed-dim": "#ffb2b8",
+                    "tertiary-container": "#5a0018",
+                    "secondary-fixed": "#65ff90",
+                    "secondary-fixed-dim": "#3ee276",
+                    "on-tertiary-fixed": "#40000f",
+                    "on-background": "#191c1e",
+                    "on-tertiary-fixed-variant": "#91002d",
+                    "surface-dim": "#d8dadc",
+                    "on-tertiary": "#ffffff",
+                    "primary": "#081621",
+                    "surface-variant": "#e0e3e5",
+                    "background": "#f7f9fb",
+                    "surface": "#f7f9fb",
+                    "on-surface-variant": "#43474b",
+                    "on-error": "#ffffff",
+                    "secondary-container": "#5efc8d",
+                    "outline": "#74777c",
+                    "on-primary-fixed-variant": "#3a4854"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "xs": "4px",
+                    "xl": "32px",
+                    "lg": "24px",
+                    "gutter": "24px",
+                    "sm": "8px",
+                    "container-max": "1280px",
+                    "xxl": "48px",
+                    "md": "16px",
+                    "unit": "4px",
+                    "margin": "24px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Public Sans"],
+                    "headline-lg": ["Public Sans"],
+                    "body-lg": ["Public Sans"],
+                    "body-md": ["Public Sans"],
+                    "label-lg": ["Public Sans"],
+                    "body-sm": ["Public Sans"],
+                    "display-lg": ["Public Sans"],
+                    "label-md": ["Public Sans"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-lg": ["14px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-md": ["12px", {"lineHeight": "14px", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .emergency-glow {
+        box-shadow: 0 0 20px rgba(194, 0, 63, 0.3);
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 fixed top-0 w-full z-50 border-b border-slate-100 dark:border-slate-800 transition-colors duration-200">
+<div class="flex justify-between items-center px-4 h-16 w-full max-w-full">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-slate-200 overflow-hidden">
+<img alt="User profile photo" class="w-full h-full object-cover" data-alt="A professional headshot of a healthcare user, Alex Johnson, with a clean and clinical aesthetic. The background is a soft, out-of-focus medical environment with cool blue and white tones. The lighting is bright and even, conveying trust and premium membership status in a modern medical application interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAVzJ47cLQcseXQhak6cO4RKPhoq0Q0xcR3ia1tb1VlKBqoHrSdvxTeI7WQWmmFt1vryDQQzvnzSpagg4GXMXbziJ7meoNohK5RHsICyEC_GpWBJhegkNJbDAX4azYa0MZHZSoLjMTPUsvo45WoOpE7gTb6qHZ-W3CwvRi6d3mA2NXZDmRWnCiGALoo9ADHZCsnKWQMox6jERFTE6Uc8XpGS0vU_-hU0Sa4-dCgmyPbdEpiJF0eB9uNxWqYNflis5LNlsuyCYOTwfw"/>
+</div>
+<h1 class="text-xl font-black text-[#1D2B36] dark:text-white tracking-tight font-['Public_Sans']">CareConnect</h1>
+</div>
+<button class="material-symbols-outlined text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-900 p-2 rounded-full transition-colors">notifications</button>
+</div>
+</header>
+<main class="pt-24 px-gutter max-w-container-max mx-auto">
+<!-- Emergency Action Section -->
+<section class="mb-xxl">
+<div class="bg-white rounded-xl border border-outline-variant p-lg flex flex-col md:flex-row items-center justify-between gap-lg relative overflow-hidden">
+<div class="absolute top-0 right-0 w-1/3 h-full opacity-10 pointer-events-none">
+<span class="material-symbols-outlined text-[160px] translate-x-1/4 -translate-y-1/4 text-error">emergency</span>
+</div>
+<div class="z-10 text-center md:text-left">
+<h2 class="font-headline-lg text-headline-lg text-primary mb-xs">Immediate Assistance Needed?</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-md">Our dispatchers are available 24/7. Your location is automatically transmitted upon request.</p>
+</div>
+<button class="z-10 w-full md:w-auto bg-[#C2003F] text-white px-xxl py-md rounded-lg font-headline-md text-headline-md emergency-glow flex items-center justify-center gap-sm active:scale-95 transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">emergency</span>
+                    Request Emergency Ambulance
+                </button>
+</div>
+</section>
+<!-- Subscription Tiers -->
+<section class="mb-xxl">
+<div class="text-center mb-xl">
+<h2 class="font-headline-lg text-headline-lg text-primary">Ambulance Subscription Plans</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant mt-sm">Choose the coverage that fits your lifestyle and protects your loved ones.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-lg">
+<!-- Individual Plan -->
+<div class="bg-white border border-slate-200 rounded-xl p-lg flex flex-col hover:border-primary transition-colors">
+<div class="flex justify-between items-start mb-md">
+<div>
+<span class="bg-slate-100 text-slate-600 text-label-md font-label-md px-sm py-xs rounded-full">Individual</span>
+<div class="mt-md flex items-baseline">
+<span class="font-display-lg text-display-lg text-primary">$12</span>
+<span class="font-body-md text-body-md text-on-surface-variant ml-xs">/month</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary text-4xl">person</span>
+</div>
+<ul class="space-y-sm mb-xl flex-grow">
+<li class="flex items-center gap-sm font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-secondary text-lg">check_circle</span>
+                            Unlimited Emergency Dispatches
+                        </li>
+<li class="flex items-center gap-sm font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-secondary text-lg">check_circle</span>
+                            Priority Queue Positioning
+                        </li>
+<li class="flex items-center gap-sm font-body-sm text-body-sm text-slate-400">
+<span class="material-symbols-outlined text-lg">cancel</span>
+                            Family Member Coverage
+                        </li>
+</ul>
+<button class="w-full py-md border border-primary text-primary font-label-lg rounded-lg hover:bg-slate-50 transition-colors">Select Individual</button>
+</div>
+<!-- Family Plan (Featured) -->
+<div class="bg-primary-container text-white rounded-xl p-lg flex flex-col relative scale-105 shadow-xl ring-2 ring-primary">
+<div class="absolute top-0 right-lg -translate-y-1/2 bg-secondary text-white text-label-md font-label-md px-md py-xs rounded-full">MOST POPULAR</div>
+<div class="flex justify-between items-start mb-md">
+<div>
+<span class="bg-white/10 text-white text-label-md font-label-md px-sm py-xs rounded-full">Family</span>
+<div class="mt-md flex items-baseline">
+<span class="font-display-lg text-display-lg text-white">$29</span>
+<span class="font-body-md text-body-md text-on-primary-container ml-xs">/month</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-white text-4xl">family_restroom</span>
+</div>
+<ul class="space-y-sm mb-xl flex-grow">
+<li class="flex items-center gap-sm font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-secondary-fixed text-lg">check_circle</span>
+                            Up to 5 Family Members
+                        </li>
+<li class="flex items-center gap-sm font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-secondary-fixed text-lg">check_circle</span>
+                            Unlimited Dispatches
+                        </li>
+<li class="flex items-center gap-sm font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-secondary-fixed text-lg">check_circle</span>
+                            Real-time Ambulance Tracking
+                        </li>
+<li class="flex items-center gap-sm font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-secondary-fixed text-lg">check_circle</span>
+                            Advanced Life Support Included
+                        </li>
+</ul>
+<button class="w-full py-md bg-secondary text-white font-label-lg rounded-lg hover:bg-secondary/90 transition-colors">Start Family Plan</button>
+</div>
+<!-- Corporate Plan -->
+<div class="bg-white border border-slate-200 rounded-xl p-lg flex flex-col hover:border-primary transition-colors">
+<div class="flex justify-between items-start mb-md">
+<div>
+<span class="bg-slate-100 text-slate-600 text-label-md font-label-md px-sm py-xs rounded-full">Corporate</span>
+<div class="mt-md flex items-baseline">
+<span class="font-display-lg text-display-lg text-primary">$199</span>
+<span class="font-body-md text-body-md text-on-surface-variant ml-xs">/month</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary text-4xl">corporate_fare</span>
+</div>
+<ul class="space-y-sm mb-xl flex-grow">
+<li class="flex items-center gap-sm font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-secondary text-lg">check_circle</span>
+                            Custom Employee Capacity
+                        </li>
+<li class="flex items-center gap-sm font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-secondary text-lg">check_circle</span>
+                            Dedicated Dispatch Hotline
+                        </li>
+<li class="flex items-center gap-sm font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-secondary text-lg">check_circle</span>
+                            Monthly Safety Reports
+                        </li>
+</ul>
+<button class="w-full py-md border border-primary text-primary font-label-lg rounded-lg hover:bg-slate-50 transition-colors">Contact Sales</button>
+</div>
+</div>
+</section>
+<!-- Coverage & FAQ Bento -->
+<section class="mb-xxl">
+<h3 class="font-headline-md text-headline-md text-primary mb-xl">Coverage &amp; Details</h3>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-lg">
+<!-- Map Location -->
+<div class="md:col-span-8 bg-white border border-slate-200 rounded-xl overflow-hidden min-h-[400px] flex flex-col">
+<div class="p-md bg-white border-b border-slate-100 flex justify-between items-center">
+<h4 class="font-label-lg text-label-lg">Active Coverage Map</h4>
+<div class="flex items-center gap-xs text-secondary">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="text-label-md">148 Units Online</span>
+</div>
+</div>
+<div class="flex-grow bg-slate-100 relative">
+<img class="w-full h-full object-cover grayscale-[0.5] opacity-80" data-alt="A clean, minimalist topographic digital map of a modern metropolitan area with highlighted coverage zones in a soft clinical green tint. The map uses a sophisticated dark navy and white color palette, appearing integrated into a professional medical software interface. Small pulsing green icons represent ambulance units stationed throughout the city, conveying rapid response capabilities." data-location="New York City" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHxS0hI4gyzY_NZS4_U4mqadUKIHxA-j8rT01LWKoSnbid1wnDvRPsEtGKK_ZKis5cYrF7FhQEmM4NADqaMZhIWlqW0Zcjn7j1kLFyUxS-Xwkh7Oegbna7bDDXbvisg3xEsn-7MOPh7hbWB9hoDzGholaM5vvfL16nSN-Lpz53qSXoTGMm6xqLbl1wJRcI1gxqILC7t3Cyor-KbGF9fkGOIFojo6VhDFO7yWbLBuTR_PBAotmmXH6vHow3fjiU_N4P4juQ_RSsmaY"/>
+<div class="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent pointer-events-none"></div>
+</div>
+</div>
+<!-- FAQ Section -->
+<div class="md:col-span-4 space-y-md">
+<div class="bg-white border border-slate-200 rounded-xl p-md">
+<h4 class="font-label-lg text-label-lg text-primary mb-sm">What areas are covered?</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">We currently cover the Greater Metropolitan area including all surrounding suburbs within a 50-mile radius of the city center.</p>
+</div>
+<div class="bg-white border border-slate-200 rounded-xl p-md">
+<h4 class="font-label-lg text-label-lg text-primary mb-sm">Response time guarantee?</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">While traffic varies, our average response time for premium subscribers is under 8 minutes in core zones.</p>
+</div>
+<div class="bg-white border border-slate-200 rounded-xl p-md">
+<h4 class="font-label-lg text-label-lg text-primary mb-sm">Inter-hospital transfers?</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Subscription covers emergency dispatches. Non-emergency transfers are available at a 50% discounted rate.</p>
+</div>
+<div class="bg-primary text-white rounded-xl p-md flex items-center justify-between group cursor-pointer">
+<span class="font-label-lg">View Full FAQ</span>
+<span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 py-3 bg-white dark:bg-slate-950 pb-safe shadow-[0_-2px_10px_rgba(0,0,0,0.05)] border-t border-slate-100 dark:border-slate-800">
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 opacity-80 font-['Public_Sans'] text-[10px] font-medium transition-all hover:text-[#1D2B36]" href="#">
+<span class="material-symbols-outlined">home</span>
+            Home
+        </a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 opacity-80 font-['Public_Sans'] text-[10px] font-medium transition-all hover:text-[#1D2B36]" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+            Booking
+        </a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 opacity-80 font-['Public_Sans'] text-[10px] font-medium transition-all hover:text-[#1D2B36]" href="#">
+<span class="material-symbols-outlined">medical_services</span>
+            Pharmacy
+        </a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 opacity-80 font-['Public_Sans'] text-[10px] font-medium transition-all hover:text-[#1D2B36]" href="#">
+<span class="material-symbols-outlined">biotech</span>
+            Labs
+        </a>
+<a class="flex flex-col items-center justify-center text-[#1D2B36] dark:text-blue-400 scale-105 transition-transform font-['Public_Sans'] text-[10px] font-medium" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">emergency</span>
+            Emergency
+        </a>
+</nav>
+</body></html>

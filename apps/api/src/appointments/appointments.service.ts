@@ -11,6 +11,7 @@ import { EmailService } from '../email/email.service';
 import { SmsService } from '../sms/sms.service';
 import { NotificationService } from '../notification/notification.service';
 import { User } from '../users/entities/user.entity';
+import { SystemSettingsService } from '../system-settings/system-settings.service';
 
 
 @Injectable()
@@ -26,6 +27,7 @@ export class AppointmentsService {
     private emailService: EmailService,
     private smsService: SmsService,
     private notificationService: NotificationService,
+    private systemSettingsService: SystemSettingsService,
   ) { }
 
   async create(createAppointmentDto: any): Promise<Appointment> {
@@ -63,7 +65,12 @@ export class AppointmentsService {
       throw new BadRequestException('Doctor not found.');
     }
 
-    // Calculate Fees
+    // Calculate Fees using dynamic settings
+    const defaultBookingFee = Number(await this.systemSettingsService.get('FEE_BOOKING') || 500);
+    const defaultVirtualFee = Number(await this.systemSettingsService.get('FEE_VIRTUAL_VISIT') || 1500);
+    const defaultPhysicalFee = Number(await this.systemSettingsService.get('FEE_PHYSICAL_VISIT') || 2500);
+    const defaultAmbulanceBase = Number(await this.systemSettingsService.get('FEE_AMBULANCE_BASE') || 5000);
+
     let fee = 0;
     let serviceName = 'Consultation';
 
@@ -76,32 +83,28 @@ export class AppointmentsService {
         fee = Number(service.price);
         serviceName = service.name;
       }
-
     } else {
-      // Standard Consultation Fee Logic
-      // If Nurse/Clinician -> Fixed 1500
-      // If Doctor -> Custom Fee
       const drType = (doctor.dr_type || '').toLowerCase();
-
-      console.log(`[DEBUG_FEE] Doctor ID: ${doctor.id}, Type: ${drType}, DB Fee: ${doctor.fee}`);
-
       if (drType.includes('nurse') || drType.includes('clinician')) {
-        fee = 1500;
+        fee = defaultPhysicalFee;
         serviceName = 'Nurse/Clinician Consultation';
+      } else if (drType.includes('ambulance')) {
+        fee = defaultAmbulanceBase;
+        serviceName = 'Ambulance Service';
       } else {
-        fee = Number(doctor.fee || 1500);
+        fee = Number(doctor.fee || defaultPhysicalFee);
         serviceName = 'Specialist Consultation';
       }
-      console.log(`[DEBUG_FEE] Calculated Fee: ${fee}`);
     }
 
-    // Override Fee for Virtual Sessions to 900 KES
+    // Override Fee for Virtual Sessions
     if (isVirtual) {
-      fee = 900;
-      console.log(
-        `[CREATE-APPT] Virtual Session detected. Setting consultation fee to 900 KES.`,
-      );
+      fee = defaultVirtualFee;
+      console.log(`[CREATE-APPT] Virtual Session detected. Setting consultation fee to ${fee} KES.`);
     }
+
+    // Add Mandatory Booking Fee to the Total Patient Charge
+    const totalPatientFee = fee + defaultBookingFee;
 
     // Calculate Transport Fee normally first
     let transportFee = 0;
@@ -144,7 +147,7 @@ export class AppointmentsService {
       appointment_time: appointmentTime,
       serviceId: finalServiceId,
       isVirtual,
-      fee,
+      fee: totalPatientFee, // Store total charged to patient
       transportFee,
       meetingId,
       meetingLink,
@@ -174,9 +177,12 @@ export class AppointmentsService {
       if (appointmentWithPatient?.patient) {
         const invoiceNumber = `INV-${Date.now()}-${savedAppointment.id}`;
 
-        // Calculate Shares
-        const commission = fee * 0.4;
-        const doctorShare = fee * 0.6 + transportFee;
+        // Calculate Shares using dynamic commission rate
+        const commissionRate = Number(await this.systemSettingsService.get('COMMISSION_PERCENTAGE') || 40) / 100;
+        
+        // Commission = (Consultation Fee * Rate) + Booking Fee
+        const commission = (fee * commissionRate) + defaultBookingFee;
+        const doctorShare = (fee * (1 - commissionRate)) + transportFee;
 
         const invoice = this.invoiceRepository.create({
           invoiceNumber,
@@ -229,40 +235,30 @@ export class AppointmentsService {
     // Notify Patient via Email (Existing)
     // await this.emailService.sendAppointmentConfirmation(savedAppointment); // Assuming this exists or will be added
 
-    // --- SMS Notifications ---
+    // --- SMS Notifications (Initial Booking) ---
     try {
-      // 1. Fetch Patient Mobile
       const patientUser = await this.appointmentsRepository.manager
         .getRepository(User)
         .findOne({ where: { id: createAppointmentDto.patientId } });
 
-      // 2. Prepare Messages
       const patientName = patientUser?.fname || 'Patient';
       const doctorName = doctor.fname ? `Dr. ${doctor.fname} ${doctor.lname}` : 'the Specialist';
-      const formattedDate = new Date(appointmentDate).toDateString();
-      const timeSlot = appointmentTime;
+      const portalUrl = 'https://portal.mclinic.co.ke';
 
-      // SMS to Patient
+      // 1. SMS to Patient: Initial Booking
       if (patientUser?.mobile) {
-        const msg = `Dear ${patientName}, your appointment with ${doctorName} is confirmed for ${formattedDate} at ${timeSlot}. Ref: #${savedAppointment.id}`;
-        await this.smsService.sendSms(patientUser.mobile, msg);
+        const patientMsg = `Dear ${patientName}, you have successfully booked an appointment with ${doctorName}. Please complete your payment to confirm. View details: ${portalUrl}/dashboard/appointments`;
+        await this.notificationService.sendCustomSms(patientUser.mobile, patientMsg);
       }
 
-      // SMS to Doctor
-      if (doctor.mobile) {
-        const msg = `New Appointment: ${patientName} has booked for ${formattedDate} at ${timeSlot}. Service: ${serviceName || 'Consultation'}.`;
-        await this.smsService.sendSms(doctor.mobile, msg);
-      }
-
-      // Notify Admin
+      // 2. Notify Admin
       await this.notificationService.notifyAdmin(
         'booking',
-        `New Appointment: ${patientName} with ${doctorName} on ${formattedDate} @ ${timeSlot}.`
+        `New Booking (Unconfirmed): ${patientName} with ${doctorName} for ${new Date(appointmentDate).toDateString()} @ ${appointmentTime}.`
       );
 
     } catch (error) {
-      console.error('[Appointments] Failed to send SMS notifications', error);
-      // Don't block the appointment creation
+      console.error('[Appointments] Failed to send initial booking SMS', error);
     }
 
     return savedAppointment;
@@ -320,42 +316,37 @@ export class AppointmentsService {
 
     console.log(`[Appointments] findAllForUser called. Role: ${user.role}, Email: ${user.email}`);
 
-    // Unified Medic Check: If the user is a 'Doctor'/'Medic', try to find their provider profile.
-    if (['medic', 'doctor', 'nurse', 'clinician', 'lab_tech', 'pharmacist'].includes(user.role)) {
-      console.log(`[Appointments] Attempting to resolve Medic Profile for User: ${user.email} (Role: ${user.role})`);
+    // Simplified list of medical roles for filtering
+    const medicalRoles = ['medic', 'doctor', 'nurse', 'clinician', 'lab_tech', 'pharmacist'];
+    const isMedicalRole = medicalRoles.includes(user.role);
 
-      // Priority 1: Check by user_id
+    if (isMedicalRole || user.role === 'admin') {
+      if (user.role === 'admin') return this.findAll();
+
+      console.log(`[Appointments] Attempting to resolve Medic Profile for User: ${user.email}`);
+
+      // Try searching for the doctor profile
       let doctor = await this.appointmentsRepository.manager
         .getRepository(Doctor)
-        .findOne({ where: { user_id: user.sub || user.id } });
-
-      // Priority 2: Fallback to email if not found by ID (legacy support for non-backfilled data)
-      if (!doctor) {
-        console.log(`[Appointments] No Medic Profile found by user_id. Trying email: ${user.email}`);
-        doctor = await this.appointmentsRepository.manager
-          .getRepository(Doctor)
-          .findOne({ where: { email: user.email } });
-      }
+        .findOne({
+          where: [
+            { user_id: user.sub || user.id },
+            { email: user.email }
+          ]
+        });
 
       if (doctor) {
-        console.log(`[Appointments] Found Medic Profile for ${user.email} -> Doctor ID: ${doctor.id}`);
-
+        console.log(`[Appointments] Found Medic Profile. Doctor ID: ${doctor.id}`);
         const appointments = await this.appointmentsRepository.find({
-          where: {
-            doctorId: doctor.id,
-            status: Not(AppointmentStatus.PENDING), // Medics only see non-pending appointments
-          },
+          where: { doctorId: doctor.id },
           relations: ['patient', 'doctor', 'service', 'invoice'],
           order: { appointment_date: 'DESC' },
         });
-
-        console.log(`[Appointments] Fetched ${appointments.length} appointments for Doctor ID ${doctor.id}`);
 
         // Enrich with Patient Medical Data
         const userIds = appointments.map((a) => a.patient?.id).filter(Boolean);
         if (userIds.length > 0) {
           try {
-            // Refactored to use WHERE IN properly
             const profiles = await this.appointmentsRepository.manager
               .getRepository(Patient)
               .createQueryBuilder('patient')
@@ -364,11 +355,8 @@ export class AppointmentsService {
 
             appointments.forEach((a) => {
               if (a.patient) {
-                // Find profile where patient.user_id matches appointment.patient.id (which is user_id in User entity)
-                // Wait, Appointment.patient is a User entity relation. Patient entity has user_id relation.
-                const profile = profiles.find((p) => p.user_id === a.patient.id);
+                const profile = profiles.find((p) => Number(p.user_id) === Number(a.patient.id));
                 if (profile) {
-                  // Attach profile data to the patient object for frontend
                   (a.patient as any).blood_group = profile.blood_group;
                   (a.patient as any).sex = profile.sex || a.patient.sex;
                   (a.patient as any).genotype = profile.genotype;
@@ -385,16 +373,24 @@ export class AppointmentsService {
 
         return appointments;
       } else {
-        console.log(`[Appointments] WARNING: No Medic Profile found for ${user.email} despite having Medic Role.`);
+        console.warn(`[Appointments] Medic role user ${user.email} has no Doctor profile. Returning empty list.`);
+        // Fallback: If no doctor profile but logged in as medic, maybe they have appointments directly under user ID?
+        // (This happens if migration/sync didn't run)
+        const fallbackApts = await this.appointmentsRepository.find({
+          where: { doctorId: user.sub || user.id },
+          relations: ['patient', 'doctor', 'service', 'invoice'],
+          order: { appointment_date: 'DESC' },
+        });
+        if (fallbackApts.length > 0) return fallbackApts;
         return [];
       }
     }
 
-    // Fallback: If no Medic profile found, assume Patient role
-    console.log(`[Appointments] User ${user.email} treated as Patient. Fetching by patientId.`);
+    // Patient View
+    console.log(`[Appointments] Fetching for Patient: ${user.email}`);
     return this.appointmentsRepository.find({
       where: { patientId: user.sub || user.id },
-      relations: ['doctor', 'service'],
+      relations: ['doctor', 'service', 'invoice'], // Added invoice relation for patient view
       order: { appointment_date: 'DESC' },
     });
   }

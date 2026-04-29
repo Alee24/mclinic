@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CareConnect - Pharmacy Marketplace</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-primary": "#b9c8d7",
+                        "on-primary-fixed": "#0f1d28",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed": "#00210a",
+                        "on-tertiary-container": "#ff4f6e",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-secondary-fixed-variant": "#005323",
+                        "surface-container-highest": "#e0e3e5",
+                        "tertiary": "#34000a",
+                        "on-primary-container": "#8492a0",
+                        "on-surface": "#191c1e",
+                        "on-secondary-container": "#007233",
+                        "secondary": "#006d31",
+                        "on-secondary": "#ffffff",
+                        "surface-bright": "#f7f9fb",
+                        "surface-container": "#eceef0",
+                        "surface-container-low": "#f2f4f6",
+                        "tertiary-fixed": "#ffdadb",
+                        "primary-fixed": "#d5e4f3",
+                        "primary-fixed-dim": "#b9c8d7",
+                        "inverse-surface": "#2d3133",
+                        "surface-container-high": "#e6e8ea",
+                        "primary-container": "#1d2b36",
+                        "on-error-container": "#93000a",
+                        "on-primary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "outline-variant": "#c4c7cb",
+                        "surface-tint": "#52606c",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#ffb2b8",
+                        "tertiary-container": "#5a0018",
+                        "secondary-fixed": "#65ff90",
+                        "secondary-fixed-dim": "#3ee276",
+                        "on-tertiary-fixed": "#40000f",
+                        "on-background": "#191c1e",
+                        "on-tertiary-fixed-variant": "#91002d",
+                        "surface-dim": "#d8dadc",
+                        "on-tertiary": "#ffffff",
+                        "primary": "#081621",
+                        "surface-variant": "#e0e3e5",
+                        "background": "#f7f9fb",
+                        "surface": "#f7f9fb",
+                        "on-surface-variant": "#43474b",
+                        "on-error": "#ffffff",
+                        "secondary-container": "#5efc8d",
+                        "outline": "#74777c",
+                        "on-primary-fixed-variant": "#3a4854"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "xl": "32px",
+                        "lg": "24px",
+                        "gutter": "24px",
+                        "sm": "8px",
+                        "container-max": "1280px",
+                        "xxl": "48px",
+                        "md": "16px",
+                        "unit": "4px",
+                        "margin": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Public Sans"],
+                        "headline-lg": ["Public Sans"],
+                        "body-lg": ["Public Sans"],
+                        "body-md": ["Public Sans"],
+                        "label-lg": ["Public Sans"],
+                        "body-sm": ["Public Sans"],
+                        "display-lg": ["Public Sans"],
+                        "label-md": ["Public Sans"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-lg": ["14px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-md": ["12px", {"lineHeight": "14px", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background font-body-md text-on-background min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white border-b border-slate-100 flex justify-between items-center px-4 h-16 w-full max-w-full">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-surface-container overflow-hidden">
+<img alt="User profile photo" class="w-full h-full object-cover" data-alt="A professional close-up portrait of Alex Johnson, a premium member of a medical service, looking friendly and confident. The lighting is soft and natural, typical of a modern clinical environment with white and soft blue tones. The image is crisp, representing high-quality health care and trust in a corporate digital interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuAWVaEjfMTgzBcvO-gr0NlHdwFeU_3Z8CS2FG4WWGtx4uyKigBoaNOflxoue7HEhZdQwcEDG-mvLtiPDIv25HqPBbKsZDgorbTyUFbdUFsHzvyt9qWsLNm8yfRk3Y8hfs6pzx5s7S8ef6W9yxVOmSM6IQHtmWoCoAPOIMks0Afk4bWSc08nuAXUj1ee9XKpeK6TTyaiecWE54nhYj5z35f_XkPSMMsCPlA5OmtjQZXLciPifUqXLCFvXUhIFquQITqITUzlb2p4U"/>
+</div>
+</div>
+<h1 class="text-xl font-black text-[#1D2B36] tracking-tight font-['Public_Sans']">CareConnect</h1>
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-slate-900 transition-colors duration-200 hover:bg-slate-50 p-2 rounded-full cursor-pointer">notifications</span>
+</div>
+</header>
+<main class="pt-20 pb-32 px-gutter max-w-container-max mx-auto">
+<!-- Search & Prescription Header -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-lg mb-xxl">
+<div class="lg:col-span-8">
+<div class="bg-white p-xl rounded-xl border border-slate-100 flex flex-col gap-lg">
+<div class="flex flex-col gap-xs">
+<h2 class="font-headline-md text-headline-md text-primary">Find your medication</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Search thousands of products with doorstep delivery.</p>
+</div>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full pl-12 pr-4 py-4 bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary-container text-body-md" placeholder="Search medicines, health products, brands..." type="text"/>
+</div>
+</div>
+</div>
+<div class="lg:col-span-4">
+<div class="bg-secondary-container h-full p-xl rounded-xl flex flex-col justify-between border border-secondary/10">
+<div class="flex flex-col gap-sm">
+<span class="material-symbols-outlined text-on-secondary-container text-4xl" data-weight="fill" style="font-variation-settings: 'FILL' 1;">description</span>
+<h3 class="font-headline-md text-headline-md text-on-secondary-container">Upload Prescription</h3>
+<p class="font-body-sm text-body-sm text-on-secondary-container opacity-80">Order prescription-only medicines securely in seconds.</p>
+</div>
+<button class="mt-lg w-full bg-secondary text-on-secondary py-3 rounded-lg font-label-lg uppercase tracking-wider flex items-center justify-center gap-sm hover:brightness-110 transition-all">
+<span class="material-symbols-outlined">upload_file</span>
+                        Upload Now
+                    </button>
+</div>
+</div>
+</section>
+<!-- Categories Bento -->
+<section class="mb-xxl">
+<div class="flex justify-between items-end mb-lg">
+<h2 class="font-headline-md text-headline-md text-primary">Shop by Category</h2>
+<a class="text-secondary font-label-lg flex items-center gap-xs" href="#">View All <span class="material-symbols-outlined text-sm">arrow_forward</span></a>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-md">
+<!-- Pain Relief -->
+<div class="bg-white p-md rounded-xl border border-slate-100 flex flex-col items-center gap-sm text-center cursor-pointer hover:border-secondary transition-colors group">
+<div class="w-12 h-12 bg-error-container rounded-full flex items-center justify-center text-on-error-container group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">pill</span>
+</div>
+<span class="font-label-lg text-primary">Pain Relief</span>
+</div>
+<!-- Vitamins -->
+<div class="bg-white p-md rounded-xl border border-slate-100 flex flex-col items-center gap-sm text-center cursor-pointer hover:border-secondary transition-colors group">
+<div class="w-12 h-12 bg-primary-fixed rounded-full flex items-center justify-center text-on-primary-fixed group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">nutrition</span>
+</div>
+<span class="font-label-lg text-primary">Vitamins</span>
+</div>
+<!-- Chronic Care -->
+<div class="bg-white p-md rounded-xl border border-slate-100 flex flex-col items-center gap-sm text-center cursor-pointer hover:border-secondary transition-colors group">
+<div class="w-12 h-12 bg-secondary-fixed rounded-full flex items-center justify-center text-on-secondary-fixed group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">monitor_heart</span>
+</div>
+<span class="font-label-lg text-primary">Chronic Care</span>
+</div>
+<!-- Skin Care -->
+<div class="bg-white p-md rounded-xl border border-slate-100 flex flex-col items-center gap-sm text-center cursor-pointer hover:border-secondary transition-colors group">
+<div class="w-12 h-12 bg-tertiary-fixed rounded-full flex items-center justify-center text-on-tertiary-fixed group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">face_5</span>
+</div>
+<span class="font-label-lg text-primary">Skin Care</span>
+</div>
+<!-- Baby Care -->
+<div class="bg-white p-md rounded-xl border border-slate-100 flex flex-col items-center gap-sm text-center cursor-pointer hover:border-secondary transition-colors group">
+<div class="w-12 h-12 bg-surface-container rounded-full flex items-center justify-center text-on-surface group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">child_care</span>
+</div>
+<span class="font-label-lg text-primary">Baby Care</span>
+</div>
+<!-- First Aid -->
+<div class="bg-white p-md rounded-xl border border-slate-100 flex flex-col items-center gap-sm text-center cursor-pointer hover:border-secondary transition-colors group">
+<div class="w-12 h-12 bg-error-container rounded-full flex items-center justify-center text-on-error-container group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">medical_services</span>
+</div>
+<span class="font-label-lg text-primary">First Aid</span>
+</div>
+</div>
+</section>
+<!-- Featured Products -->
+<section>
+<div class="flex justify-between items-end mb-lg">
+<h2 class="font-headline-md text-headline-md text-primary">Featured Products</h2>
+<div class="flex gap-sm">
+<button class="p-2 border border-slate-200 rounded-full hover:bg-slate-50 transition-colors">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="p-2 border border-slate-200 rounded-full hover:bg-slate-50 transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-lg">
+<!-- Product 1 -->
+<div class="bg-white rounded-xl border border-slate-100 overflow-hidden flex flex-col">
+<div class="relative h-48 bg-slate-50">
+<img alt="Medicine bottle" class="w-full h-full object-contain p-lg" data-alt="A clean, pharmaceutical-style product shot of a medicine box on a white background. The lighting is bright and sterile, with soft shadows. The packaging features professional clinical branding in navy and green. The atmosphere conveys medical reliability and pharmaceutical quality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8I9Da3dDgNnL11qNz47tlVP-9MNH-O9WGhdYb5Nb34TGFbbtJcgAagXq1h85iAvPL4QFQKCxwhPV2Wv6IJDflFvTjckdpvDiGvoEjtSpmoknnEpjYBJ_4BiTq-enk9wQMpAHkuI-KfdSoLSrhmTwqniGOZNJMw1KQqs6ATPeC2pSUNGBYSHI9csjGPfjMCcLlqTNWA_P_xWSt2HSUBJNH6V6r97G4mHh1UoJEXuodr2bkZxLj8wkgImMLeIKogeiC_EnRpdBppJI"/>
+<span class="absolute top-3 right-3 bg-secondary-container text-on-secondary-container text-[10px] font-bold px-2 py-1 rounded uppercase">In Stock</span>
+</div>
+<div class="p-md flex flex-col flex-1">
+<span class="text-[10px] font-bold text-outline uppercase tracking-wider mb-1">Pain Relief</span>
+<h4 class="font-body-md text-primary font-semibold mb-xs leading-tight">Advanced Ibuprofen 200mg</h4>
+<p class="text-[12px] text-on-surface-variant mb-md">Quick release tablets, 24 count</p>
+<div class="mt-auto flex items-center justify-between">
+<span class="text-headline-md text-primary font-black">$12.50</span>
+<button class="bg-primary text-on-primary p-2 rounded-lg flex items-center justify-center hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Product 2 (Prescription Only) -->
+<div class="bg-white rounded-xl border border-slate-100 overflow-hidden flex flex-col">
+<div class="relative h-48 bg-slate-50">
+<img alt="Prescription medication" class="w-full h-full object-contain p-lg" data-alt="A professional medical photograph of assorted capsules and clinical packaging. The aesthetic is clean, modern, and clinical, with high-key lighting and a focus on transparency and hygiene. Soft grays and clean whites dominate the palette, emphasizing pharmaceutical precision." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCOJxaM-QJYvLAx-KcUliy5eKa0ELUBEpXsmJo3tWSHeVT3E3c3URpZci6x_3GsozQnveoye4Tr7Zy68BuDfNq0uJUcoWBz-rBoh-Ro4CEmEs50oVS3K9mTJyyC0tWv4igrTzODisTGUEOdEljsLzZ0KYI-TKekMDTHIHOdnZa2itM0p3XQN1NNk1JKDCrpH-a0BHepNQBg_nq2BDhus7ct15496hH10IgwFreftnTRhsIHd3l59zJ4i2Gpjvg1jUyfiEffJIBW86I"/>
+<span class="absolute top-3 right-3 bg-error-container text-on-error-container text-[10px] font-bold px-2 py-1 rounded uppercase">Prescription Only</span>
+</div>
+<div class="p-md flex flex-col flex-1">
+<span class="text-[10px] font-bold text-outline uppercase tracking-wider mb-1">Chronic Care</span>
+<h4 class="font-body-md text-primary font-semibold mb-xs leading-tight">Metformin Hydrochloride</h4>
+<p class="text-[12px] text-on-surface-variant mb-md">Blood sugar management, 500mg</p>
+<div class="mt-auto flex items-center justify-between">
+<span class="text-headline-md text-primary font-black">$45.00</span>
+<button class="bg-primary text-on-primary p-2 rounded-lg flex items-center justify-center hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined">description</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Product 3 -->
+<div class="bg-white rounded-xl border border-slate-100 overflow-hidden flex flex-col">
+<div class="relative h-48 bg-slate-50">
+<img alt="Vitamin jar" class="w-full h-full object-contain p-lg" data-alt="A minimalist presentation of high-end vitamin supplements in a sleek glass jar. The image features soft, diffused lighting with a focus on wellness and organic health. The background is a clean, textured surface in light stone colors, evoking a premium apothecary vibe." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7IoXt49NzqnRu4L7PcT-bX26KLcENUroSJHkia6C9osslYyK3Y5QSvFpT_KNp7lop1GcasqVzCPgPJ7Ip_BChdFks-MaP_NWCEjOkL5C8YNSVpYQWeuHxAUkDZRY6LU8gqkcQ_XXWIy71f60qc6DR7TmJgU_xUK8yRBO_mBDwHzEFbKwFIVnEe2WRg5-Pn9WN8dOTP30urSQLHbH5ki34lYaISAohkCN-Bp1w1yECZgpxepdl4eSbPDXfx7ikHkY0t59DRfmrRZE"/>
+<span class="absolute top-3 left-3 bg-on-tertiary-container text-on-tertiary text-[10px] font-bold px-2 py-1 rounded uppercase">Trending</span>
+</div>
+<div class="p-md flex flex-col flex-1">
+<span class="text-[10px] font-bold text-outline uppercase tracking-wider mb-1">Vitamins</span>
+<h4 class="font-body-md text-primary font-semibold mb-xs leading-tight">Multivitamin Complex+</h4>
+<p class="text-[12px] text-on-surface-variant mb-md">Immune support, 60 Capsules</p>
+<div class="mt-auto flex items-center justify-between">
+<span class="text-headline-md text-primary font-black">$28.99</span>
+<button class="bg-primary text-on-primary p-2 rounded-lg flex items-center justify-center hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Product 4 -->
+<div class="bg-white rounded-xl border border-slate-100 overflow-hidden flex flex-col">
+<div class="relative h-48 bg-slate-50">
+<img alt="First aid cream" class="w-full h-full object-contain p-lg" data-alt="Close-up of high-quality first-aid cream and surgical supplies. The image has a clean, clinical aesthetic with sharp focus and bright, white lighting. The colors are neutral with professional medicinal blue accents, conveying safety, care, and cleanliness." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdKFAPrveGzWYO83FK0OrjHojteEGv3TjPENlBXCf68qpLqux3-LtPfeETI_cBJZFDubpGTBqyjitllpSiH34UBQecevlSg2hVL2KEWEp1ssFDVhOM2p7MNbDOcxrKoPAKGRbYjLEh3zgLd2cv3i6xfs8CNswa_mPMtbPQZj5mACPvfb97qctdFsa1P1pjdbOjjM2T_UBtnM1Hp1BEngRuNUphbetdK3kTiqRGgawxEpsQCYm1aSh2wxpe6NWJqDr9uum6iEKH7HQ"/>
+</div>
+<div class="p-md flex flex-col flex-1">
+<span class="text-[10px] font-bold text-outline uppercase tracking-wider mb-1">First Aid</span>
+<h4 class="font-body-md text-primary font-semibold mb-xs leading-tight">Healing Antiseptic Ointment</h4>
+<p class="text-[12px] text-on-surface-variant mb-md">Triple antibiotic, 1oz tube</p>
+<div class="mt-auto flex items-center justify-between">
+<span class="text-headline-md text-primary font-black">$8.25</span>
+<button class="bg-primary text-on-primary p-2 rounded-lg flex items-center justify-center hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 py-3 bg-white border-t border-slate-100 pb-safe shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+<a class="flex flex-col items-center justify-center text-slate-400 opacity-80 transition-all hover:text-[#1D2B36] font-['Public_Sans'] text-[10px] font-medium" href="#">
+<span class="material-symbols-outlined">home</span>
+            Home
+        </a>
+<a class="flex flex-col items-center justify-center text-slate-400 opacity-80 transition-all hover:text-[#1D2B36] font-['Public_Sans'] text-[10px] font-medium" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+            Booking
+        </a>
+<a class="flex flex-col items-center justify-center text-[#1D2B36] scale-105 transition-transform font-['Public_Sans'] text-[10px] font-medium" href="#">
+<span class="material-symbols-outlined">medical_services</span>
+            Pharmacy
+        </a>
+<a class="flex flex-col items-center justify-center text-slate-400 opacity-80 transition-all hover:text-[#1D2B36] font-['Public_Sans'] text-[10px] font-medium" href="#">
+<span class="material-symbols-outlined">biotech</span>
+            Labs
+        </a>
+<a class="flex flex-col items-center justify-center text-slate-400 opacity-80 transition-all hover:text-[#1D2B36] font-['Public_Sans'] text-[10px] font-medium" href="#">
+<span class="material-symbols-outlined">emergency</span>
+            Emergency
+        </a>
+</nav>
+</body></html>

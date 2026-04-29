@@ -7,7 +7,7 @@ import { FiUsers, FiLock, FiSearch, FiEdit2, FiTrash2, FiCheck, FiX, FiShield, F
 import { formatDistanceToNow, format } from 'date-fns';
 
 export default function UsersPage() {
-    const { user, loading: authLoading } = useAuth();
+    const { user, loading: authLoading, login: authLogin } = useAuth();
     const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -143,6 +143,27 @@ export default function UsersPage() {
         } catch (err) {
             console.error(err);
             alert('Failed to update user.');
+        }
+    };
+
+    const handleImpersonate = async (userId: number) => {
+        if (!confirm('Are you sure you want to log in as this user? You will be signed out of your current admin session.')) return;
+
+        setLoading(true);
+        try {
+            const res = await api.post('/auth/impersonate', { userId });
+            if (res && res.ok) {
+                const data = await res.json();
+                // Switch session
+                authLogin(data.user, data.access_token);
+            } else {
+                alert('Failed to impersonate user.');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Error during impersonation.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -400,6 +421,13 @@ export default function UsersPage() {
                                                     title="Edit User"
                                                 >
                                                     <FiEdit2 />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleImpersonate(user.id)}
+                                                    className="p-2 text-primary hover:bg-primary/10 rounded-lg transition"
+                                                    title="Login as User"
+                                                >
+                                                    <FiUsers />
                                                 </button>
                                                 <button
                                                     onClick={() => setResettingUser(user)}

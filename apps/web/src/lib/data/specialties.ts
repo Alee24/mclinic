@@ -98,3 +98,6 @@ export const getSpecialties = (cadre: string, title: string) => specialties.filt
 
 // Helper to get Body
 export const getRegulatoryBody = (cadre: string) => specialties.find(s => s.cadre === cadre)?.body || '';
+
+// Helper to get all unique Regulatory Bodies
+export const getRegulatoryBodies = () => Array.from(new Set(specialties.map(s => s.body)));

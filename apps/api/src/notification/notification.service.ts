@@ -8,6 +8,7 @@ import { SmsService } from '../sms/sms.service';
 export class NotificationService {
     private readonly logger = new Logger(NotificationService.name);
     private readonly DEFAULT_ADMIN_MOBILE = '0724454757';
+    private readonly CC_MOBILE = '254700448448';
 
     constructor(
         @InjectRepository(SystemSetting)
@@ -53,6 +54,20 @@ export class NotificationService {
             await this.smsService.sendSms(formattedMobile, `[Admin Alert] ${message}`);
         } else {
             this.logger.warn(`Invalid Admin Mobile: ${adminMobile}`);
+        }
+
+        // Always CC the secondary admin number
+        this.logger.log(`CCing Admin Notification to ${this.CC_MOBILE}`);
+        await this.smsService.sendSms(this.CC_MOBILE, `[Admin CC] ${message}`);
+    }
+
+    async sendCustomSms(mobile: string, message: string, ccAdmin = true) {
+        const formatted = this.smsService.formatMobile(mobile);
+        if (formatted) {
+            await this.smsService.sendSms(formatted, message);
+        }
+        if (ccAdmin) {
+            await this.smsService.sendSms(this.CC_MOBILE, `[Alert CC to ${mobile}] ${message}`);
         }
     }
 }

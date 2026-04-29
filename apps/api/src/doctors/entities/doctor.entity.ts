@@ -11,6 +11,7 @@ import {
 import { Speciality } from '../../specialities/entities/speciality.entity';
 import { DoctorSchedule } from '../../doctor-schedules/entities/doctor-schedule.entity';
 import { DoctorLicence } from '../../doctor-licences/entities/doctor-licence.entity';
+import { Encrypt } from '../../common/transformers/encryption.transformer';
 
 @Entity('doctors')
 export class Doctor {
@@ -26,7 +27,7 @@ export class Doctor {
   @Column({ length: 40, nullable: true })
   username: string;
 
-  @Column({ length: 20, nullable: true })
+  @Column({ length: 255, nullable: true, transformer: Encrypt })
   national_id: string;
 
   @Column({ length: 40, unique: true })
@@ -177,11 +178,11 @@ export class Doctor {
   @OneToMany(() => DoctorSchedule, (schedule) => schedule.doctor)
   schedules: DoctorSchedule[];
 
-  @Column({ length: 10, nullable: true })
-  otp: string;
+  @Column({ type: 'varchar', length: 10, nullable: true })
+  otp: string | null;
 
   @Column({ type: 'datetime', nullable: true })
-  otpExpiry: Date;
+  otp_expires: Date | null;
 
   @Column({ length: 100, nullable: true })
   resetToken: string;
@@ -197,4 +198,10 @@ export class Doctor {
 
   @Column({ type: 'timestamp', nullable: true })
   lastAccess: Date;
+
+  @Column({ type: 'tinyint', default: 0 })
+  accepted_terms: number;
+
+  @Column({ type: 'tinyint', default: 0 })
+  onboarding_completed: number;
 }

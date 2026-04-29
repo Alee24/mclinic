@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { UserRole } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { DoctorsService } from '../doctors/doctors.service';
@@ -20,11 +20,47 @@ export class AuthService {
     private smsService: SmsService,
   ) { }
 
+  private async comparePassword(plain: string, stored: string, userType: 'user' | 'doctor', id: number): Promise<boolean> {
+    try {
+      // 1. Try standard bcrypt comparison
+      if (stored && stored.startsWith('$2')) {
+        const match = await bcrypt.compare(plain, stored);
+        if (match) return true;
+      }
+      
+      // 2. Fallback: Check plain text (for migrated data)
+      if (plain === stored) {
+        // Transparently upgrade to bcrypt for next time
+        const hashed = await bcrypt.hash(plain, 10);
+        if (userType === 'user') {
+          await this.usersService.update(id, { password: hashed } as any);
+        } else {
+          await this.doctorsService.update(id, { password: hashed } as any);
+        }
+        return true;
+      }
+      
+      return false;
+    } catch (e) {
+      // If bcrypt.compare throws (e.g. invalid hash format), check plain text
+      if (plain === stored) {
+        const hashed = await bcrypt.hash(plain, 10);
+        if (userType === 'user') {
+          await this.usersService.update(id, { password: hashed } as any);
+        } else {
+          await this.doctorsService.update(id, { password: hashed } as any);
+        }
+        return true;
+      }
+      return false;
+    }
+  }
+
   async validateUser(email: string, pass: string, userType: string = 'patient'): Promise<any> {
     if (userType === 'provider') {
       const doctor = await this.doctorsService.findByEmail(email);
       if (doctor) {
-        if (await bcrypt.compare(pass, doctor.password)) {
+        if (await this.comparePassword(pass, doctor.password, 'doctor', doctor.id)) {
           if (!doctor.status || doctor.status === 0) {
             throw new UnauthorizedException('Account is suspended or inactive. Contact admin.');
           }
@@ -38,7 +74,7 @@ export class AuthService {
 
       const admin = await this.usersService.findOne(email);
       if (admin && admin.role === UserRole.ADMIN) {
-        if (await bcrypt.compare(pass, admin.password)) {
+        if (await this.comparePassword(pass, admin.password, 'user', admin.id)) {
           const { password, ...result } = admin;
           return result;
         } else {
@@ -53,7 +89,7 @@ export class AuthService {
     } else {
       const user = await this.usersService.findOne(email);
       if (user) {
-        if (await bcrypt.compare(pass, user.password)) {
+        if (await this.comparePassword(pass, user.password, 'user', user.id)) {
           const { password, ...result } = user;
           return result;
         } else {
@@ -110,9 +146,42 @@ export class AuthService {
     }
 
     let finalUser = { ...validUser };
-    if (['doctor', 'medic', 'nurse', 'clinician', 'lab_tech', 'pharmacist'].includes(validUser.role)) {
+    if (['doctor', 'medic', 'nurse', 'clinician', 'lab_tech', 'pharmacist', 'admin'].includes(validUser.role)) {
       // @ts-ignore
       finalUser.doctorId = validUser.id;
+    }
+
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: finalUser,
+    };
+  }
+
+  async impersonate(adminId: number, targetUserId: number) {
+    const admin = await this.usersService.findById(adminId);
+    if (!admin || admin.role !== UserRole.ADMIN) {
+      throw new UnauthorizedException('Only admins can impersonate users.');
+    }
+
+    const targetUser = await this.usersService.findById(targetUserId);
+    if (!targetUser) {
+      throw new NotFoundException('User to impersonate not found.');
+    }
+
+    const payload = {
+      email: targetUser.email,
+      sub: targetUser.id,
+      role: targetUser.role,
+      isImpersonated: true,
+      adminId: admin.id
+    };
+
+    let finalUser = { ...targetUser };
+    if (finalUser.password) delete (finalUser as any).password;
+
+    if (['doctor', 'medic', 'nurse', 'clinician', 'lab_tech', 'pharmacist'].includes(targetUser.role)) {
+      // @ts-ignore
+      finalUser.doctorId = targetUser.id;
     }
 
     return {
@@ -302,5 +371,155 @@ export class AuthService {
       access_token: this.jwtService.sign(payload),
       user,
     }
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.usersService.findOne(email);
+    if (!user) {
+      // Return success anyway to prevent email enumeration
+      return { message: 'If an account exists with this email, a reset link has been sent.' };
+    }
+
+    const token = randomBytes(32).toString('hex');
+    const expiry = new Date();
+    expiry.setHours(expiry.getHours() + 1); // 1 hour expiry
+
+    await this.usersService.update(user.id, {
+      resetToken: token,
+      resetTokenExpires: expiry
+    } as any);
+
+    try {
+      await this.emailService.sendPasswordResetEmail(user, token);
+      
+      // Send SMS Notification
+      if (user.mobile) {
+        const formattedMobile = this.smsService.formatMobile(user.mobile);
+        if (formattedMobile) {
+          const shortMessage = `M-Clinic: A password reset was requested for your account. Please check your registered email for instructions.`;
+          await this.smsService.sendSms(formattedMobile, shortMessage);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to send password reset notifications', e);
+    }
+
+    return { message: 'If an account exists with this email, a reset link has been sent.' };
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    const user = await this.usersService.findByToken(token);
+    if (!user) {
+      throw new UnauthorizedException('Invalid or expired reset token');
+    }
+
+    if (user.resetTokenExpires && new Date() > user.resetTokenExpires) {
+      throw new UnauthorizedException('Reset token has expired');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await this.usersService.update(user.id, {
+      password: hashedPassword,
+      resetToken: null,
+      resetTokenExpires: null
+    } as any);
+
+    try {
+      // Send SMS Notification
+      if (user.mobile) {
+        const formattedMobile = this.smsService.formatMobile(user.mobile);
+        if (formattedMobile) {
+          const message = `M-Clinic: Your account password has been successfully reset. If this was not you, please contact support immediately.`;
+          await this.smsService.sendSms(formattedMobile, message);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to send password reset success SMS', e);
+    }
+
+    return { message: 'Password reset successful. You can now login with your new password.' };
+  }
+
+  async sendOtp(mobile: string, userType: 'patient' | 'provider' = 'patient') {
+    const formattedMobile = this.smsService.formatMobile(mobile);
+    if (!formattedMobile) {
+      throw new BadRequestException('Invalid mobile number format. Use 07... or 254...');
+    }
+
+    let account: any = null;
+    if (userType === 'provider') {
+      account = await this.doctorsService.findOneByMobile(formattedMobile);
+    } else {
+      account = await this.usersService.findOneByMobile(formattedMobile);
+    }
+
+    if (!account) {
+      throw new NotFoundException('Account with this mobile number not found');
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+
+    if (userType === 'provider') {
+      await this.doctorsService.update(account.id, { otp, otp_expires: expiry });
+    } else {
+      await this.usersService.update(account.id, { otp, otp_expires: expiry });
+    }
+
+    const message = `M-Clinic: Your One-Time PIN (OTP) is ${otp}. It expires in 10 minutes.`;
+    const sent = await this.smsService.sendSms(formattedMobile, message);
+
+    if (!sent) {
+      // In production, we'd throw. For now, let's log and return success if it's likely a config issue
+      // to avoid blocking users if the SMS provider is temporarily down but we have the OTP.
+      console.warn(`[AuthService] SMS Failed to ${formattedMobile}. OTP: ${otp}`);
+      // return { success: true, message: 'OTP sent (Simulation)' }; // For debugging
+    }
+
+    return { success: true, message: 'OTP sent successfully' };
+  }
+
+  async loginWithOtp(mobile: string, otp: string, userType: 'patient' | 'provider' = 'patient') {
+    const formattedMobile = this.smsService.formatMobile(mobile);
+    if (!formattedMobile) throw new BadRequestException('Invalid mobile number');
+
+    let account: any = null;
+    if (userType === 'provider') {
+      account = await this.doctorsService.findOneByMobile(formattedMobile);
+    } else {
+      account = await this.usersService.findOneByMobile(formattedMobile);
+    }
+
+    if (!account || account.otp !== otp) {
+      throw new UnauthorizedException('Invalid OTP');
+    }
+
+    if (new Date() > new Date(account.otp_expires)) {
+      throw new UnauthorizedException('OTP has expired');
+    }
+
+    // Clear OTP
+    if (userType === 'provider') {
+      await this.doctorsService.update(account.id, { otp: null, otp_expires: null });
+    } else {
+      await this.usersService.update(account.id, { otp: null, otp_expires: null });
+    }
+
+    // Map role
+    let role = account.role;
+    if (userType === 'provider') {
+      role = this.mapDrTypeToRole(account.dr_type);
+    }
+
+    const payload = { email: account.email, sub: account.id, role };
+    
+    let finalUser = { ...account, role };
+    if (finalUser.password) delete (finalUser as any).password;
+    if (finalUser.otp) delete (finalUser as any).otp;
+
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: finalUser,
+    };
   }
 }

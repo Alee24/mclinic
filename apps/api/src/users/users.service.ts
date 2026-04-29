@@ -19,6 +19,8 @@ export class UsersService implements OnModuleInit {
   async onModuleInit() {
     try {
       await this.ensureLastAccessColumn();
+      await this.ensureIsPublicColumn();
+      await this.ensureResetTokenExpiresColumn();
     } catch (e) {
       console.error('[UsersService] ensureLastAccessColumn failed:', e);
     }
@@ -53,6 +55,40 @@ export class UsersService implements OnModuleInit {
       } catch (err) {
         console.error('[UsersService] Could not create last_access column:', err);
       }
+    }
+  }
+
+  // Ensure isPublic column exists
+  private async ensureIsPublicColumn() {
+    try {
+      const cols = await this.dataSource.query(
+        `SHOW COLUMNS FROM users LIKE 'isPublic'`
+      );
+      if (cols.length === 0) {
+        await this.dataSource.query(
+          `ALTER TABLE users ADD COLUMN isPublic TINYINT(1) DEFAULT 0`
+        );
+        console.log('[UsersService] isPublic column created.');
+      }
+    } catch (err) {
+      console.error('[UsersService] Could not ensure isPublic column:', err);
+    }
+  }
+
+  // Ensure resetTokenExpires column exists
+  private async ensureResetTokenExpiresColumn() {
+    try {
+      const cols = await this.dataSource.query(
+        `SHOW COLUMNS FROM users LIKE 'resetTokenExpires'`
+      );
+      if (cols.length === 0) {
+        await this.dataSource.query(
+          `ALTER TABLE users ADD COLUMN resetTokenExpires TIMESTAMP NULL DEFAULT NULL`
+        );
+        console.log('[UsersService] resetTokenExpires column created.');
+      }
+    } catch (err) {
+      console.error('[UsersService] Could not ensure resetTokenExpires column:', err);
     }
   }
 

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Booking Confirmation - Healthcare Excellence</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed": "#d5e4f3",
+                    "outline": "#74777c",
+                    "on-error": "#ffffff",
+                    "tertiary-fixed-dim": "#ffb2b8",
+                    "on-tertiary-container": "#ff4f6e",
+                    "error": "#ba1a1a",
+                    "surface": "#f7f9fb",
+                    "inverse-primary": "#b9c8d7",
+                    "inverse-surface": "#2d3133",
+                    "primary": "#081621",
+                    "on-error-container": "#93000a",
+                    "on-secondary-fixed": "#00210a",
+                    "secondary-container": "#5efc8d",
+                    "primary-fixed-dim": "#b9c8d7",
+                    "on-tertiary-fixed-variant": "#91002d",
+                    "on-secondary-container": "#007233",
+                    "surface-container-high": "#e6e8ea",
+                    "on-tertiary-fixed": "#40000f",
+                    "on-secondary-fixed-variant": "#005323",
+                    "surface-container": "#eceef0",
+                    "tertiary-container": "#5a0018",
+                    "on-surface": "#191c1e",
+                    "on-secondary": "#ffffff",
+                    "surface-bright": "#f7f9fb",
+                    "on-primary-container": "#8492a0",
+                    "on-primary-fixed": "#0f1d28",
+                    "surface-tint": "#52606c",
+                    "secondary": "#006d31",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-on-surface": "#eff1f3",
+                    "on-tertiary": "#ffffff",
+                    "outline-variant": "#c4c7cb",
+                    "surface-container-highest": "#e0e3e5",
+                    "error-container": "#ffdad6",
+                    "tertiary-fixed": "#ffdadb",
+                    "tertiary": "#34000a",
+                    "on-primary": "#ffffff",
+                    "secondary-fixed": "#65ff90",
+                    "primary-container": "#1d2b36",
+                    "on-background": "#191c1e",
+                    "background": "#f7f9fb",
+                    "surface-dim": "#d8dadc",
+                    "on-primary-fixed-variant": "#3a4854",
+                    "surface-variant": "#e0e3e5",
+                    "surface-container-low": "#f2f4f6",
+                    "secondary-fixed-dim": "#3ee276",
+                    "on-surface-variant": "#43474b"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "md": "16px",
+                    "margin": "24px",
+                    "xs": "4px",
+                    "unit": "4px",
+                    "gutter": "24px",
+                    "sm": "8px",
+                    "xxl": "48px",
+                    "container-max": "1280px",
+                    "lg": "24px",
+                    "xl": "32px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Public Sans"],
+                    "label-lg": ["Public Sans"],
+                    "display-lg": ["Public Sans"],
+                    "label-md": ["Public Sans"],
+                    "body-md": ["Public Sans"],
+                    "body-lg": ["Public Sans"],
+                    "body-sm": ["Public Sans"],
+                    "headline-lg": ["Public Sans"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "label-lg": ["14px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-md": ["12px", {"lineHeight": "14px", "fontWeight": "500"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        font-family: 'Public Sans', sans-serif;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col items-center">
+<!-- Confirmation Shell is suppressed for Transactional Success Screen -->
+<main class="w-full max-w-container-max mx-auto px-margin py-xxl flex flex-col items-center">
+<!-- Success Animation / Icon Area -->
+<div class="flex flex-col items-center text-center mb-xl">
+<div class="w-24 h-24 bg-secondary-container rounded-full flex items-center justify-center mb-lg shadow-sm border border-secondary/10">
+<span class="material-symbols-outlined text-on-secondary-container text-5xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-primary mb-xs">Appointment Confirmed</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-lg">Your appointment has been successfully scheduled. A confirmation email and calendar invite have been sent to your registered address.</p>
+</div>
+<!-- Appointment Summary Card -->
+<div class="w-full max-w-2xl bg-surface-container-lowest rounded-xl border border-outline-variant p-lg md:p-xl shadow-sm mb-xl">
+<div class="flex flex-col md:flex-row md:items-start md:justify-between gap-lg">
+<div class="flex-1 space-y-md">
+<div class="flex items-start gap-md">
+<div class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a male cardiologist in a white clinical coat and stethoscope, set against a soft-focus medical office background. The lighting is bright and clean, emphasizing a trustworthy and expert medical persona consistent with high-end healthcare branding. The color palette is dominated by sterile whites and clinical blues." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfw1Rl2rVXsj3j5JgXiymiPTA9iImbse0PQE_0gM54TZgS_E9CKWX3gwPIKubYpCeQJTe1sZX3md0pgkGeMMXd9hZgvSbYK89cE4VyBHl18vXlNEXqtxTQ8OU-kij9ckJbOq9pnymT8J911q-Vs8eCDXNentdD3djYLC-aFnsZmvPotBd8JMOx-FnQyZeFpVXGe0zJWZJW53YJjyl_1MeE-g18gHn3Aq9OfKEPewbTxHuxicbuZVg4PrtNCDwUj5krFbkqPw2cRqo"/>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Practitioner</p>
+<h2 class="font-headline-md text-headline-md text-primary">Dr. Jonathan Aris</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Senior Cardiologist • Specialist Heart Center</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-lg pt-md border-t border-surface-container-high">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xl">calendar_today</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant">Date</p>
+<p class="font-body-md text-body-md text-primary font-semibold">Tuesday, Oct 24, 2023</p>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xl">schedule</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant">Time</p>
+<p class="font-body-md text-body-md text-primary font-semibold">10:30 AM - 11:15 AM</p>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-md pt-md">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xl">location_on</span>
+</div>
+<div class="flex-1">
+<p class="font-label-md text-label-md text-on-surface-variant">Location / Link</p>
+<p class="font-body-md text-body-md text-primary font-semibold">Central Medical Plaza, Suite 402</p>
+<a class="text-secondary font-label-lg text-label-lg hover:underline inline-flex items-center gap-1 mt-1" href="#">
+                                View in Maps <span class="material-symbols-outlined text-sm">open_in_new</span>
+</a>
+</div>
+</div>
+</div>
+<!-- Status Badge -->
+<div class="md:text-right">
+<span class="inline-flex items-center px-lg py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-lg text-label-lg uppercase tracking-widest border border-secondary/10">
+                        Confirmed
+                    </span>
+</div>
+</div>
+</div>
+<!-- Action Area -->
+<div class="flex flex-col md:flex-row items-center justify-center gap-md w-full max-w-2xl">
+<button class="w-full md:w-auto px-xl py-md bg-primary text-on-primary font-label-lg text-label-lg rounded-lg shadow-sm hover:bg-primary-container transition-colors flex items-center justify-center gap-md">
+<span class="material-symbols-outlined">event_available</span>
+                Add to Calendar
+            </button>
+<button class="w-full md:w-auto px-xl py-md bg-surface-container-lowest text-primary border border-outline-variant font-label-lg text-label-lg rounded-lg hover:bg-surface-container-low transition-colors flex items-center justify-center gap-md">
+<span class="material-symbols-outlined">home</span>
+                Back to Home
+            </button>
+</div>
+<!-- Helpful Info Section -->
+<div class="mt-xxl w-full max-w-2xl grid grid-cols-1 md:grid-cols-2 gap-lg">
+<div class="p-lg bg-surface-container-low rounded-lg border border-outline-variant/30">
+<h3 class="font-label-lg text-label-lg text-primary mb-sm">Preparation Required</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Please arrive 15 minutes before your scheduled time for vital signs check. Bring your insurance card.</p>
+</div>
+<div class="p-lg bg-surface-container-low rounded-lg border border-outline-variant/30">
+<h3 class="font-label-lg text-label-lg text-primary mb-sm">Cancellation Policy</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Cancellations must be made at least 24 hours in advance to avoid a service fee. Manage via Bookings tab.</p>
+</div>
+</div>
+</main>
+<!-- Support Banner (Small Footer) -->
+<footer class="mt-auto py-lg text-center w-full bg-surface-container-high border-t border-outline-variant">
+<p class="font-label-md text-label-md text-on-surface-variant">
+            Need help? Contact our clinical support at <span class="text-primary font-semibold">1-800-HEAL-EX</span>
+</p>
+</footer>
+</body></html>

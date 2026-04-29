@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Find Your Specialist | Healthcare Excellence</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed": "#d5e4f3",
+                    "outline": "#74777c",
+                    "on-error": "#ffffff",
+                    "tertiary-fixed-dim": "#ffb2b8",
+                    "on-tertiary-container": "#ff4f6e",
+                    "error": "#ba1a1a",
+                    "surface": "#f7f9fb",
+                    "inverse-primary": "#b9c8d7",
+                    "inverse-surface": "#2d3133",
+                    "primary": "#081621",
+                    "on-error-container": "#93000a",
+                    "on-secondary-fixed": "#00210a",
+                    "secondary-container": "#5efc8d",
+                    "primary-fixed-dim": "#b9c8d7",
+                    "on-tertiary-fixed-variant": "#91002d",
+                    "on-secondary-container": "#007233",
+                    "surface-container-high": "#e6e8ea",
+                    "on-tertiary-fixed": "#40000f",
+                    "on-secondary-fixed-variant": "#005323",
+                    "surface-container": "#eceef0",
+                    "tertiary-container": "#5a0018",
+                    "on-surface": "#191c1e",
+                    "on-secondary": "#ffffff",
+                    "surface-bright": "#f7f9fb",
+                    "on-primary-container": "#8492a0",
+                    "on-primary-fixed": "#0f1d28",
+                    "surface-tint": "#52606c",
+                    "secondary": "#006d31",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-on-surface": "#eff1f3",
+                    "on-tertiary": "#ffffff",
+                    "outline-variant": "#c4c7cb",
+                    "surface-container-highest": "#e0e3e5",
+                    "error-container": "#ffdad6",
+                    "tertiary-fixed": "#ffdadb",
+                    "tertiary": "#34000a",
+                    "on-primary": "#ffffff",
+                    "secondary-fixed": "#65ff90",
+                    "primary-container": "#1d2b36",
+                    "on-background": "#191c1e",
+                    "background": "#f7f9fb",
+                    "surface-dim": "#d8dadc",
+                    "on-primary-fixed-variant": "#3a4854",
+                    "surface-variant": "#e0e3e5",
+                    "surface-container-low": "#f2f4f6",
+                    "secondary-fixed-dim": "#3ee276",
+                    "on-surface-variant": "#43474b"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "md": "16px",
+                    "margin": "24px",
+                    "xs": "4px",
+                    "unit": "4px",
+                    "gutter": "24px",
+                    "sm": "8px",
+                    "xxl": "48px",
+                    "container-max": "1280px",
+                    "lg": "24px",
+                    "xl": "32px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Public Sans"],
+                    "label-lg": ["Public Sans"],
+                    "display-lg": ["Public Sans"],
+                    "label-md": ["Public Sans"],
+                    "body-md": ["Public Sans"],
+                    "body-lg": ["Public Sans"],
+                    "body-sm": ["Public Sans"],
+                    "headline-lg": ["Public Sans"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "label-lg": ["14px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-md": ["12px", {"lineHeight": "14px", "fontWeight": "500"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md min-h-screen pb-32">
+<!-- TopAppBar Shell -->
+<header class="fixed top-0 w-full z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+<div class="flex justify-between items-center px-4 h-16 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors duration-200 rounded-lg">
+<span class="material-symbols-outlined text-slate-900 dark:text-slate-100" data-icon="menu">menu</span>
+</button>
+<h1 class="font-['Public_Sans'] font-semibold text-lg tracking-tight text-slate-900 dark:text-slate-100">Healthcare Excellence</h1>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container overflow-hidden border border-outline-variant">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="A professional headshot of a male user for a healthcare profile. The lighting is soft and natural, emphasizing a trustworthy and friendly expression. The background is a clean, minimalist medical office setting with soft blue and white tones. The overall aesthetic is professional, high-quality, and modern." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDVTM7HPRb8eOyuJ7QcGalVPHh9_Cx3Nxg5b59fYFn_mauj7kdC8bCdiMfzczdEI_ofzt1GNfKY49x51SjYQ84rr8xD2Um2yt1lz_7c59ZJ9gMNCGyRxKTCTW7Aqm06EE_DnU8oPXLSkjDLYTmgYSSqtrbDAZVeTYZbDVhystHpa99r0YWLHcfmDOBzlL_1xb5j99t5UIkCjoPfYOYbrNJDfma5hLLJS04FELiDUDIu1yjKanVOWIzSQp6ww4a53VuSABlVrBKzJm8"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="mt-20 px-4 max-w-7xl mx-auto">
+<!-- Search & Filter Section -->
+<section class="mb-lg">
+<h2 class="font-headline-md text-headline-md mb-md">Find Your Specialist</h2>
+<div class="flex gap-sm overflow-x-auto no-scrollbar pb-2">
+<button class="px-md py-sm bg-primary-container text-on-primary-fixed rounded-xl flex items-center gap-2 whitespace-nowrap">
+<span class="material-symbols-outlined text-[18px]" data-icon="clinical_notes">clinical_notes</span>
+<span class="font-label-lg">Cardiology</span>
+</button>
+<button class="px-md py-sm bg-surface-container text-on-surface-variant rounded-xl flex items-center gap-2 whitespace-nowrap hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="neurology">neurology</span>
+<span class="font-label-lg">Neurology</span>
+</button>
+<button class="px-md py-sm bg-surface-container text-on-surface-variant rounded-xl flex items-center gap-2 whitespace-nowrap hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="psychology">psychology</span>
+<span class="font-label-lg">Psychiatry</span>
+</button>
+<button class="px-md py-sm bg-surface-container text-on-surface-variant rounded-xl flex items-center gap-2 whitespace-nowrap hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="orthopedics">orthopedics</span>
+<span class="font-label-lg">Orthopedics</span>
+</button>
+</div>
+</section>
+<!-- Bento Grid Doctor Cards -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-lg">
+<!-- Doctor Card 1 -->
+<article class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm flex flex-col">
+<div class="p-md flex gap-md items-start border-b border-surface-container">
+<div class="w-24 h-24 lg:w-32 lg:h-32 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container">
+<img alt="Dr. Sarah Jenkins" class="w-full h-full object-cover" data-alt="Professional female cardiologist in a white coat and stethoscope, looking confident and compassionate. The lighting is clinical and bright, characteristic of a high-end medical facility. The background is a blurred hospital hallway with cool white and teal accents, suggesting a clean and technologically advanced environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnzYfrpkL0bqCeAId-prqgXAL5cIAVUP0vAjTCtwCqTGtRaPFf5NeiLN9dbkhdnKfPS_e094yqKHP9c6ZueFfUN6uBX6H7TWZVhEPzZA3M7OQNOGWWFzfZA6-BdrJWatn_0n8ciPWDZgf5Z6HWSNfH_wyNVIr8svs9tOas9x-ASEbAmrjTHNQjkELTtnyusVjpKNupH-eg_VH5mXnV0REbRhbWtd7tAxjDoNofxwFHLcSLCUYAVw5gsCLi_4uZsgV-XaYXD1wpn5Q"/>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline-md text-headline-md text-primary">Dr. Sarah Jenkins</h3>
+<p class="text-on-surface-variant font-body-sm mb-xs">Senior Cardiologist • 12 Yrs Exp.</p>
+</div>
+<div class="flex items-center gap-1 bg-secondary-container px-2 py-1 rounded-lg">
+<span class="material-symbols-outlined text-[14px] text-on-secondary-container" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-on-secondary-container font-label-md">4.9</span>
+</div>
+</div>
+<p class="text-on-surface-variant font-body-sm line-clamp-2 mt-2">Specializing in non-invasive diagnostic cardiology and preventive heart health management for adults.</p>
+</div>
+</div>
+<!-- Scheduling Section -->
+<div class="p-md bg-surface-container-low">
+<div class="flex justify-between items-center mb-md">
+<h4 class="font-label-lg text-primary">Select Date</h4>
+<span class="text-secondary font-label-md">Next: Tomorrow</span>
+</div>
+<!-- Horizontal Date Scroller -->
+<div class="flex gap-sm overflow-x-auto no-scrollbar mb-md">
+<button class="flex flex-col items-center justify-center min-w-[64px] h-[80px] rounded-lg bg-primary text-on-primary ring-2 ring-primary ring-offset-2">
+<span class="font-label-md opacity-80">Mon</span>
+<span class="font-headline-md">12</span>
+</button>
+<button class="flex flex-col items-center justify-center min-w-[64px] h-[80px] rounded-lg bg-surface-container-lowest border border-outline-variant hover:border-primary transition-colors">
+<span class="font-label-md text-on-surface-variant">Tue</span>
+<span class="font-headline-md text-on-surface">13</span>
+</button>
+<button class="flex flex-col items-center justify-center min-w-[64px] h-[80px] rounded-lg bg-surface-container-lowest border border-outline-variant hover:border-primary transition-colors">
+<span class="font-label-md text-on-surface-variant">Wed</span>
+<span class="font-headline-md text-on-surface">14</span>
+</button>
+<button class="flex flex-col items-center justify-center min-w-[64px] h-[80px] rounded-lg bg-surface-container-lowest border border-outline-variant hover:border-primary transition-colors">
+<span class="font-label-md text-on-surface-variant">Thu</span>
+<span class="font-headline-md text-on-surface">15</span>
+</button>
+<button class="flex flex-col items-center justify-center min-w-[64px] h-[80px] rounded-lg bg-surface-container-lowest border border-outline-variant hover:border-primary transition-colors">
+<span class="font-label-md text-on-surface-variant">Fri</span>
+<span class="font-headline-md text-on-surface">16</span>
+</button>
+</div>
+<h4 class="font-label-lg text-primary mb-md">Available Slots</h4>
+<div class="grid grid-cols-4 gap-sm">
+<button class="py-2 rounded border border-outline-variant text-on-surface font-label-md hover:bg-primary hover:text-white transition-colors">09:00 AM</button>
+<button class="py-2 rounded border border-outline-variant text-on-surface font-label-md hover:bg-primary hover:text-white transition-colors">10:30 AM</button>
+<button class="py-2 rounded bg-surface-dim text-outline cursor-not-allowed font-label-md" disabled="">11:00 AM</button>
+<button class="py-2 rounded border border-outline-variant text-on-surface font-label-md hover:bg-primary hover:text-white transition-colors">01:30 PM</button>
+<button class="py-2 rounded border border-outline-variant text-on-surface font-label-md hover:bg-primary hover:text-white transition-colors">03:00 PM</button>
+<button class="py-2 rounded border border-outline-variant text-on-surface font-label-md hover:bg-primary hover:text-white transition-colors">04:30 PM</button>
+</div>
+<button class="w-full mt-lg py-md bg-secondary text-on-secondary rounded-lg font-label-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-[20px]" data-icon="calendar_add_on">calendar_add_on</span>
+                        BOOK APPOINTMENT
+                    </button>
+</div>
+</article>
+<!-- Doctor Card 2 -->
+<article class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm flex flex-col">
+<div class="p-md flex gap-md items-start border-b border-surface-container">
+<div class="w-24 h-24 lg:w-32 lg:h-32 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container">
+<img alt="Dr. Michael Chen" class="w-full h-full object-cover" data-alt="Professional male physician with glasses and a friendly, approachable smile. He is wearing a dark blue medical scrub under a white coat. The background is a brightly lit modern hospital environment with medical equipment visible in a soft blur. High contrast and clean medical aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDO5DVXLbXUwZpswYgM4lkj9W8vJZIV4f5ZLRQetkRTpy5Pz1sqR6aS8g0acZMkyru4ivDBdPSMjMKcpG1eG1mhPNI_LAn316rY7WY4Ue_fYZNd3OJxv1KLz4mb-0KAnEraN5E17Bok8wzIwn-jlh5scXPbkV-woOn-AP0RNWK0scOiEgURDHU3hc9JJ4cKAt02mTfbiROPdZluPl2xMhBtQajQpKIY40YQE7asODVwDaXOO0NkWWdVWFHl5sl-j3lvq4DhulNIIXo"/>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline-md text-headline-md text-primary">Dr. Michael Chen</h3>
+<p class="text-on-surface-variant font-body-sm mb-xs">Cardiovascular Surgeon • 15 Yrs Exp.</p>
+</div>
+<div class="flex items-center gap-1 bg-secondary-container px-2 py-1 rounded-lg">
+<span class="material-symbols-outlined text-[14px] text-on-secondary-container" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-on-secondary-container font-label-md">5.0</span>
+</div>
+</div>
+<p class="text-on-surface-variant font-body-sm line-clamp-2 mt-2">Expert in minimally invasive heart surgeries and complex cardiovascular interventions with high success rates.</p>
+</div>
+</div>
+<!-- Scheduling Section -->
+<div class="p-md bg-surface-container-low">
+<div class="flex justify-between items-center mb-md">
+<h4 class="font-label-lg text-primary">Select Date</h4>
+<span class="text-secondary font-label-md">Available Today</span>
+</div>
+<div class="flex gap-sm overflow-x-auto no-scrollbar mb-md">
+<button class="flex flex-col items-center justify-center min-w-[64px] h-[80px] rounded-lg bg-primary text-on-primary ring-2 ring-primary ring-offset-2">
+<span class="font-label-md opacity-80">Mon</span>
+<span class="font-headline-md">12</span>
+</button>
+<button class="flex flex-col items-center justify-center min-w-[64px] h-[80px] rounded-lg bg-surface-container-lowest border border-outline-variant hover:border-primary transition-colors">
+<span class="font-label-md text-on-surface-variant">Tue</span>
+<span class="font-headline-md text-on-surface">13</span>
+</button>
+<button class="flex flex-col items-center justify-center min-w-[64px] h-[80px] rounded-lg bg-surface-container-lowest border border-outline-variant hover:border-primary transition-colors">
+<span class="font-label-md text-on-surface-variant">Wed</span>
+<span class="font-headline-md text-on-surface">14</span>
+</button>
+<button class="flex flex-col items-center justify-center min-w-[64px] h-[80px] rounded-lg bg-surface-container-lowest border border-outline-variant hover:border-primary transition-colors">
+<span class="font-label-md text-on-surface-variant">Thu</span>
+<span class="font-headline-md text-on-surface">15</span>
+</button>
+<button class="flex flex-col items-center justify-center min-w-[64px] h-[80px] rounded-lg bg-surface-container-lowest border border-outline-variant hover:border-primary transition-colors">
+<span class="font-label-md text-on-surface-variant">Fri</span>
+<span class="font-headline-md text-on-surface">16</span>
+</button>
+</div>
+<h4 class="font-label-lg text-primary mb-md">Available Slots</h4>
+<div class="grid grid-cols-4 gap-sm">
+<button class="py-2 rounded border border-outline-variant text-on-surface font-label-md hover:bg-primary hover:text-white transition-colors">08:00 AM</button>
+<button class="py-2 rounded bg-surface-dim text-outline cursor-not-allowed font-label-md" disabled="">09:30 AM</button>
+<button class="py-2 rounded border border-outline-variant text-on-surface font-label-md hover:bg-primary hover:text-white transition-colors">11:00 AM</button>
+<button class="py-2 rounded border border-outline-variant text-on-surface font-label-md hover:bg-primary hover:text-white transition-colors">02:00 PM</button>
+<button class="py-2 rounded border border-outline-variant text-on-surface font-label-md hover:bg-primary hover:text-white transition-colors">04:00 PM</button>
+<button class="py-2 rounded border border-outline-variant text-on-surface font-label-md hover:bg-primary hover:text-white transition-colors">05:30 PM</button>
+</div>
+<button class="w-full mt-lg py-md bg-secondary text-on-secondary rounded-lg font-label-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-[20px]" data-icon="calendar_add_on">calendar_add_on</span>
+                        BOOK APPOINTMENT
+                    </button>
+</div>
+</article>
+</div>
+</main>
+<!-- BottomNavBar Shell -->
+<nav class="fixed bottom-0 left-0 w-full bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 shadow-[0_-1px_3px_0_rgba(0,0,0,0.05)] z-50 px-2 py-3 pb-safe flex justify-around items-center">
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 p-2 hover:text-slate-900 dark:hover:text-white transition-transform scale-95 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-['Public_Sans'] text-[12px] font-medium tracking-wide">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg p-2 transition-transform scale-95 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_today" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
+<span class="font-['Public_Sans'] text-[12px] font-medium tracking-wide">Bookings</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 p-2 hover:text-slate-900 dark:hover:text-white transition-transform scale-95 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="mail">mail</span>
+<span class="font-['Public_Sans'] text-[12px] font-medium tracking-wide">Inbox</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 p-2 hover:text-slate-900 dark:hover:text-white transition-transform scale-95 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-['Public_Sans'] text-[12px] font-medium tracking-wide">Profile</span>
+</a>
+</nav>
+<!-- Floating Action Button: Contextually suppressed on booking detail view but shown as a helper here for emergencies -->
+<button class="fixed bottom-24 right-6 w-14 h-14 bg-error text-on-error rounded-full shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-transform z-40">
+<span class="material-symbols-outlined" data-icon="e911_emergency">e911_emergency</span>
+</button>
+</body></html>

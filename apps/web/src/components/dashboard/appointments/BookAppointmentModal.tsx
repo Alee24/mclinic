@@ -6,6 +6,7 @@ import { api } from '@/lib/api';
 import { FiX, FiSearch, FiMapPin, FiUser, FiDollarSign, FiCalendar, FiClock, FiArrowRight, FiArrowLeft, FiCheckCircle, FiActivity, FiFilter, FiVideo } from 'react-icons/fi';
 import { useAuth } from '@/lib/auth';
 import CompleteProfileModal from '../CompleteProfileModal';
+import { MEDICAL_SPECIALITIES } from '@/lib/medical-constants';
 
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -622,7 +623,7 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
                                 </select>
                                 <select className="w-full p-4 rounded-xl border dark:border-gray-800 bg-white dark:bg-black outline-none text-sm font-medium" value={speciality} onChange={e => setSpeciality(e.target.value)}>
                                     <option value="">All Specialities</option>
-                                    {uniqueSpecialities.map(s => <option key={s} value={s}>{s}</option>)}
+                                    {MEDICAL_SPECIALITIES.map(s => <option key={s} value={s}>{s}</option>)}
                                 </select>
 
                                 {userLocation && (

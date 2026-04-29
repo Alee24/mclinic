@@ -1,23 +1,12 @@
--- Direct SQL to add missing columns to users table
--- Run this with: mysql -u m-cl-app -p'Mclinic@App2023?' mclinicportal < fix-users-table.sql
+-- Fix missing columns in users table to match User entity
+ALTER TABLE `users` 
+ADD COLUMN IF NOT EXISTS `licenseNumber` VARCHAR(255) NULL AFTER `role`,
+ADD COLUMN IF NOT EXISTS `specialization` VARCHAR(255) NULL AFTER `licenseNumber`,
+ADD COLUMN IF NOT EXISTS `bio` TEXT NULL AFTER `specialization`,
+ADD COLUMN IF NOT EXISTS `isPublic` TINYINT(1) NOT NULL DEFAULT 0 AFTER `bio`,
+ADD COLUMN IF NOT EXISTS `lastAccess` TIMESTAMP NULL AFTER `updatedAt`;
 
-USE mclinicportal;
-
--- Add role column
-ALTER TABLE `users` ADD COLUMN `role` ENUM('patient', 'doctor', 'admin', 'lab_tech', 'nurse', 'clinician', 'medic', 'finance', 'pharmacist') NOT NULL DEFAULT 'patient' AFTER `password`;
-
--- Add emailVerifiedAt column  
-ALTER TABLE `users` ADD COLUMN `emailVerifiedAt` TIMESTAMP NULL AFTER `status`;
-
--- Add national_id column
-ALTER TABLE `users` ADD COLUMN `national_id` VARCHAR(255) NULL AFTER `mobile`;
-
--- Add resetToken column
-ALTER TABLE `users` ADD COLUMN `resetToken` VARCHAR(255) NULL AFTER `updated_at`;
-
--- Add resetTokenExpiry column
-ALTER TABLE `users` ADD COLUMN `resetTokenExpiry` TIMESTAMP NULL AFTER `resetToken`;
-
-SELECT '✅ All columns added successfully!' AS Status;
-SELECT 'Final users table structure:' AS Info;
-DESCRIBE `users`;
+-- Also ensure resetToken columns exist (redundancy check)
+ALTER TABLE `users` 
+ADD COLUMN IF NOT EXISTS `resetToken` VARCHAR(255) NULL AFTER `createdAt`,
+ADD COLUMN IF NOT EXISTS `resetTokenExpiry` TIMESTAMP NULL AFTER `resetToken`;

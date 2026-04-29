@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { FiSearch, FiCheckCircle, FiAlertCircle, FiUser, FiFileText, FiShield, FiCalendar, FiMapPin, FiPhone, FiMail, FiAward } from 'react-icons/fi';
+import { api } from '@/lib/api';
 
 type VerificationType = 'medic' | 'prescription';
 
@@ -26,20 +27,20 @@ export default function VerifyPage() {
         setResult(null);
 
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://portal.mclinic.co.ke/api';
-
             let endpoint = '';
+            let params: Record<string, string> = {};
+            
             if (verificationType === 'medic') {
-                // Search for doctor by license number
-                endpoint = `/doctors?licenseNumber=${encodeURIComponent(searchQuery)}`;
+                endpoint = '/doctors';
+                params = { licenseNumber: searchQuery };
             } else {
-                // Search for prescription by code
-                endpoint = `/pharmacy/prescriptions?code=${encodeURIComponent(searchQuery)}`;
+                endpoint = '/pharmacy/prescriptions';
+                params = { code: searchQuery };
             }
 
-            const res = await fetch(`${API_URL}${endpoint}`);
+            const res = await api.get(endpoint, params);
 
-            if (res.ok) {
+            if (res && res.ok) {
                 const data = await res.json();
 
                 if (verificationType === 'medic') {

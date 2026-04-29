@@ -3,6 +3,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { User, UserRole } from '../users/entities/user.entity';
 import { Doctor } from '../doctors/entities/doctor.entity';
+import { Appointment } from '../appointments/entities/appointment.entity';
+import { Invoice } from '../financial/entities/invoice.entity';
+import { Transaction } from '../financial/entities/transaction.entity';
+import { Wallet } from '../wallets/entities/wallet.entity';
+import AdmZip from 'adm-zip';
+import { join } from 'path';
+import { existsSync } from 'fs';
 
 @Injectable()
 export class MigrationService {
@@ -11,6 +18,14 @@ export class MigrationService {
     private userRepository: Repository<User>,
     @InjectRepository(Doctor)
     private doctorRepository: Repository<Doctor>,
+    @InjectRepository(Appointment)
+    private appointmentRepository: Repository<Appointment>,
+    @InjectRepository(Invoice)
+    private invoiceRepository: Repository<Invoice>,
+    @InjectRepository(Transaction)
+    private transactionRepository: Repository<Transaction>,
+    @InjectRepository(Wallet)
+    private walletRepository: Repository<Wallet>,
     private dataSource: DataSource,
   ) {}
 
@@ -116,6 +131,55 @@ export class MigrationService {
       await queryRunner.query('SET FOREIGN_KEY_CHECKS = 1');
       await queryRunner.release();
     }
+  }
+
+  getTemplate(type: string): string {
+    const templates = {
+      users: 'id,fname,lname,email,password,mobile,national_id,dob,sex,address,city,latitude,longitude,role,status,isPublic,verificationToken,resetToken,resetTokenExpires,emailVerifiedAt,profilePicture',
+      medics: 'id,fname,lname,username,email,password,mobile,national_id,dob,sex,address,qualification,speciality,dr_type,about,fee,reg_code,licenceNo,licenceExpiry,Verified_status,approved_status,approvalStatus,rejectionReason,balance,slot_type,latitude,longitude,serial_or_slot,start_time,end_time,serial_day,max_serial,duration,department_id,location_id,residance,regulatory_body,years_of_experience,hospital_attachment,telemedicine,on_call,featured,status,is_online,profile_image,signatureUrl,stampUrl,otp,otpExpiry,resetToken,resetTokenExpiry,can_prescribe,accepted_terms,onboarding_completed',
+      transactions: 'id,reference,amount,type,source,status,user_email,invoice_number,description,createdAt,updatedAt',
+      invoices: 'id,invoiceNumber,customerName,customerEmail,customerMobile,totalAmount,status,dueDate,paymentMethod,doctor_email,commissionAmount,appointmentId,createdAt,updatedAt',
+      appointments: 'id,patient_email,doctor_email,appointment_date,appointment_time,fee,status,notes,reason,isVirtual,createdAt,updatedAt',
+      departments: 'id,name,description,status',
+      specialities: 'id,name,description,department_id',
+      locations: 'id,name,address,latitude,longitude',
+      services: 'id,name,description,price,duration,isActive,createdAt,updatedAt'
+    };
+    return (templates as any)[type] || '';
+  }
+
+  private parseCsv(content: string): any[] {
+    const lines = content.split(/\r?\n/).filter((l) => l.trim());
+    if (lines.length < 2) return [];
+
+    const headers = this.splitCsvLine(lines[0]);
+    return lines.slice(1).map((line) => {
+      const values = this.splitCsvLine(line);
+      const obj: Record<string, any> = {};
+      headers.forEach((header, i) => {
+        obj[header] = values[i] || null;
+      });
+      return obj;
+    });
+  }
+
+  private splitCsvLine(line: string): string[] {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        result.push(current.trim().replace(/^"|"$/g, ''));
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    result.push(current.trim().replace(/^"|"$/g, ''));
+    return result;
   }
 
   /**
@@ -235,18 +299,34 @@ export class MigrationService {
    * Clean and format a value
    */
   private cleanValue(value: string): string | null {
-    if (value === 'NULL' || value === 'null') {
+    if (!value) return null;
+    const trimmed = value.trim();
+    if (trimmed.toUpperCase() === 'NULL') {
       return null;
     }
 
     if (
-      (value.startsWith("'") && value.endsWith("'")) ||
-      (value.startsWith('"') && value.endsWith('"'))
+      (trimmed.startsWith("'") && trimmed.endsWith("'")) ||
+      (trimmed.startsWith('"') && trimmed.endsWith('"'))
     ) {
-      return value.slice(1, -1);
+      return trimmed.slice(1, -1);
     }
 
-    return value;
+    return trimmed;
+  }
+
+  private parseNumeric(value: any): number | null {
+    if (value === null || value === undefined || value === '') return null;
+    if (typeof value === 'string' && value.toUpperCase() === 'NULL') return null;
+    const num = parseFloat(value);
+    return isNaN(num) ? null : num;
+  }
+
+  private parseDate(value: any): Date | null {
+    if (!value) return null;
+    if (typeof value === 'string' && value.toUpperCase() === 'NULL') return null;
+    const d = new Date(value);
+    return isNaN(d.getTime()) ? null : d;
   }
 
   /**
@@ -268,123 +348,179 @@ export class MigrationService {
 
   /**
    * Transform old user record to new schema
+   * Template: id,fname,lname,email,password,mobile,national_id,dob,sex,address,city,latitude,longitude,role,status,isPublic,verificationToken,resetToken,resetTokenExpires,emailVerifiedAt,profilePicture
    */
   private transformUser(values: string[]): any {
-    const name = this.cleanValue(values[1]);
-    const email = this.cleanValue(values[2]);
-    const password = this.cleanValue(values[4]);
-    const mobile = this.cleanValue(values[5]);
-    const address = this.cleanValue(values[6]);
-    const status = this.cleanValue(values[8]);
-    const profileImage = this.cleanValue(values[9]);
-    const createdAt = this.cleanValue(values[10]);
-    const updatedAt = this.cleanValue(values[11]);
-    const isSuspended = this.cleanValue(values[12]);
-
-    const { fname, lname } = this.splitName(name || '');
-    const finalStatus = isSuspended === '1' ? 0 : parseInt(status || '1');
-
     return {
-      email,
-      password,
-      mobile,
-      address,
-      status: finalStatus,
-      created_at: createdAt,
-      updated_at: updatedAt,
-      fname,
-      lname,
-      profile_image: profileImage,
+      fname: this.cleanValue(values[1]),
+      lname: this.cleanValue(values[2]),
+      email: this.cleanValue(values[3]),
+      password: this.cleanValue(values[4]),
+      mobile: this.cleanValue(values[5]),
+      national_id: this.cleanValue(values[6]),
+      dob: this.cleanValue(values[7]),
+      sex: this.cleanValue(values[8]),
+      address: this.cleanValue(values[9]),
+      city: this.cleanValue(values[10]),
+      latitude: this.parseNumeric(this.cleanValue(values[11])),
+      longitude: this.parseNumeric(this.cleanValue(values[12])),
+      role: this.cleanValue(values[13]) || 'patient',
+      status: this.parseNumeric(this.cleanValue(values[14])) || 1,
+      isPublic: this.parseNumeric(this.cleanValue(values[15])) || 1,
+      verificationToken: this.cleanValue(values[16]),
+      resetToken: this.cleanValue(values[17]),
+      resetTokenExpires: this.parseDate(this.cleanValue(values[18])),
+      emailVerifiedAt: this.parseDate(this.cleanValue(values[19])),
+      profilePicture: this.cleanValue(values[20]),
     };
   }
 
   /**
    * Transform old doctor record to new schema
+   * Based on template: id,fname,lname,username,email,password,mobile,national_id,dob,sex,address,qualification,speciality,dr_type,about,fee,reg_code,licenceNo,licenceExpiry,Verified_status,approved_status,approvalStatus,rejectionReason,balance,slot_type,latitude,longitude,serial_or_slot,start_time,end_time,serial_day,max_serial,duration,department_id,location_id,residance,regulatory_body,years_of_experience,hospital_attachment,telemedicine,on_call,featured,status,is_online,profile_image,signatureUrl,stampUrl,otp,otpExpiry,resetToken,resetTokenExpiry,can_prescribe,accepted_terms,onboarding_completed
    */
   private transformDoctor(values: string[]): any {
-    // Based on user provided columns:
-    // 0: id, 1: fname, 2: lname, 3: username, 4: national_id, 5: email, 6: dob, 7: reg_code,
-    // 8: Verified_status, 9: approved_status, 10: password, 11: mobile, 12: address, 13: balance,
-    // 14: sex, 15: qualification, 16: speciality, 17: dr_type, 18: about, 19: slot_type,
-    // 20: latitude, 21: longitude, 22: fee, 23: serial_or_slot, 24: start_time, 25: end_time,
-    // 26: serial_day, 27: max_serial, 28: duration, 29: department_id, 30: location_id,
-    // 31: licenceNo, 32: licenceExpiry, 33: residance, 34: featured, 35: status,
-    // 36: created_at, 37: updated_at, 38: profile_image
-
     return {
       fname: this.cleanValue(values[1]),
       lname: this.cleanValue(values[2]),
       username: this.cleanValue(values[3]),
-      national_id: this.cleanValue(values[4]),
-      email: this.cleanValue(values[5]),
-      dob: this.cleanValue(values[6]),
-      reg_code: this.cleanValue(values[7]),
-      Verified_status: parseInt(this.cleanValue(values[8]) || '0'),
-      approved_status: this.cleanValue(values[9]),
-      password: this.cleanValue(values[10]),
-      mobile: this.cleanValue(values[11]),
-      address: this.cleanValue(values[12]),
-      balance: parseFloat(this.cleanValue(values[13]) || '0'),
-      sex: this.cleanValue(values[14]),
-      qualification: this.cleanValue(values[15]),
-      speciality: this.cleanValue(values[16]),
-      dr_type: this.cleanValue(values[17]),
-      about: this.cleanValue(values[18]),
-      slot_type: parseInt(this.cleanValue(values[19]) || '0'),
-      latitude: parseFloat(this.cleanValue(values[20]) || '0'),
-      longitude: parseFloat(this.cleanValue(values[21]) || '0'),
-      fee: parseInt(this.cleanValue(values[22]) || '0'),
-      serial_or_slot: this.cleanValue(values[23]),
-      start_time: this.cleanValue(values[24]),
-      end_time: this.cleanValue(values[25]),
-      serial_day: parseInt(this.cleanValue(values[26]) || '0'),
-      max_serial: parseInt(this.cleanValue(values[27]) || '0'),
-      duration: parseInt(this.cleanValue(values[28]) || '0'),
-      department_id: parseInt(this.cleanValue(values[29]) || '0'),
-      location_id: parseInt(this.cleanValue(values[30]) || '0'),
-      licenceNo: this.cleanValue(values[31]),
-      licenceExpiry: this.cleanValue(values[32]),
-      residance: this.cleanValue(values[33]),
-      featured: parseInt(this.cleanValue(values[34]) || '0'),
-      status: parseInt(this.cleanValue(values[35]) || '0'),
-      created_at: this.cleanValue(values[36]),
-      updated_at: this.cleanValue(values[37]),
-      profile_image: this.cleanValue(values[38]),
+      email: this.cleanValue(values[4]),
+      password: this.cleanValue(values[5]),
+      mobile: this.cleanValue(values[6]),
+      national_id: this.cleanValue(values[7]),
+      dob: this.cleanValue(values[8]),
+      sex: this.cleanValue(values[9]),
+      address: this.cleanValue(values[10]),
+      qualification: this.cleanValue(values[11]),
+      speciality: this.cleanValue(values[12]),
+      dr_type: this.cleanValue(values[13]),
+      about: this.cleanValue(values[14]),
+      fee: this.parseNumeric(this.cleanValue(values[15])) || 1500,
+      reg_code: this.cleanValue(values[16]),
+      licenceNo: this.cleanValue(values[17]),
+      licenceExpiry: this.cleanValue(values[18]),
+      Verified_status: this.parseNumeric(this.cleanValue(values[19])) || 0,
+      approved_status: this.cleanValue(values[20]),
+      approvalStatus: this.cleanValue(values[21]) || 'pending',
+      rejectionReason: this.cleanValue(values[22]),
+      balance: this.parseNumeric(this.cleanValue(values[23])) || 0,
+      slot_type: this.parseNumeric(this.cleanValue(values[24])) || 0,
+      latitude: this.parseNumeric(this.cleanValue(values[25])),
+      longitude: this.parseNumeric(this.cleanValue(values[26])),
+      serial_or_slot: this.cleanValue(values[27]),
+      start_time: this.cleanValue(values[28]),
+      end_time: this.cleanValue(values[29]),
+      serial_day: this.parseNumeric(this.cleanValue(values[30])) || 0,
+      max_serial: this.parseNumeric(this.cleanValue(values[31])) || 0,
+      duration: this.parseNumeric(this.cleanValue(values[32])) || 0,
+      department_id: this.parseNumeric(this.cleanValue(values[33])),
+      location_id: this.parseNumeric(this.cleanValue(values[34])),
+      residance: this.cleanValue(values[35]),
+      regulatory_body: this.cleanValue(values[36]),
+      featured: this.parseNumeric(this.cleanValue(values[41])) || 0,
+      status: this.parseNumeric(this.cleanValue(values[42])) || 0,
+      profile_image: this.cleanValue(values[44]),
+      signatureUrl: this.cleanValue(values[45]),
+      stampUrl: this.cleanValue(values[46]),
+      can_prescribe: this.parseNumeric(this.cleanValue(values[51])) || 0,
+      accepted_terms: this.parseNumeric(this.cleanValue(values[52])) || 0,
+      onboarding_completed: this.parseNumeric(this.cleanValue(values[53])) || 0,
     };
+  }
+
+  private transformData(dataType: string, values: string[]): any {
+    switch (dataType) {
+      case 'medics':
+      case 'doctors':
+        return this.transformDoctor(values);
+      case 'users':
+        return this.transformUser(values);
+      case 'appointments':
+        return {
+          id: this.cleanValue(values[0]),
+          patient_email: this.cleanValue(values[1]),
+          doctor_email: this.cleanValue(values[2]),
+          appointment_date: this.cleanValue(values[3]),
+          appointment_time: this.cleanValue(values[4]),
+          fee: this.cleanValue(values[5]),
+          status: this.cleanValue(values[6]),
+          notes: this.cleanValue(values[7]),
+          reason: this.cleanValue(values[8]),
+          isVirtual: this.cleanValue(values[9]),
+          createdAt: this.cleanValue(values[10]),
+          updatedAt: this.cleanValue(values[11]),
+        };
+      case 'invoices':
+        return {
+          id: this.cleanValue(values[0]),
+          invoiceNumber: this.cleanValue(values[1]),
+          customerName: this.cleanValue(values[2]),
+          customerEmail: this.cleanValue(values[3]),
+          customerMobile: this.cleanValue(values[4]),
+          totalAmount: this.cleanValue(values[5]),
+          status: this.cleanValue(values[6]),
+          dueDate: this.cleanValue(values[7]),
+          paymentMethod: this.cleanValue(values[8]),
+          doctor_email: this.cleanValue(values[9]),
+          commissionAmount: this.cleanValue(values[10]),
+          appointmentId: this.cleanValue(values[11]),
+          createdAt: this.cleanValue(values[12]),
+          updatedAt: this.cleanValue(values[13]),
+        };
+      case 'transactions':
+        return {
+          id: this.cleanValue(values[0]),
+          reference: this.cleanValue(values[1]),
+          amount: this.cleanValue(values[2]),
+          type: this.cleanValue(values[3]),
+          source: this.cleanValue(values[4]),
+          status: this.cleanValue(values[5]),
+          user_email: this.cleanValue(values[6]),
+          invoice_number: this.cleanValue(values[7]),
+          description: this.cleanValue(values[8]),
+          createdAt: this.cleanValue(values[9]),
+          updatedAt: this.cleanValue(values[10]),
+        };
+      default:
+        // For simple types, just map to an object if possible or return raw values
+        return values;
+    }
   }
 
   /**
    * Preview data before migration
    */
-  async previewData(sqlContent: string, dataType: string) {
+  async previewData(content: string, dataType: string, isCsv: boolean) {
     try {
-      const rows = this.parseInsertStatement(sqlContent);
-      const sample = [];
+      let sample: any[] = [];
+      let total = 0;
 
-      // Get first 10 records for preview
-      for (let i = 0; i < Math.min(10, rows.length); i++) {
-        const values = this.parseRow(rows[i]);
-        const transformed =
-          dataType === 'doctors'
-            ? this.transformDoctor(values)
-            : this.transformUser(values);
-        sample.push(transformed);
+      if (isCsv) {
+        const rows = this.parseCsv(content);
+        total = rows.length;
+        sample = rows.slice(0, 10);
+      } else {
+        const rows = this.parseInsertStatement(content);
+        total = rows.length;
+        // Get first 10 records for preview
+        for (let i = 0; i < Math.min(10, rows.length); i++) {
+          const values = this.parseRow(rows[i]);
+          const transformed = this.transformData(dataType, values);
+          sample.push(transformed);
+        }
       }
 
       return {
         type: dataType,
         sample,
-        total: rows.length,
+        total,
       };
     } catch (error) {
       throw new Error(`Failed to preview data: ${error.message}`);
     }
   }
 
-  /**
-   * Execute migration
-   */
-  async executeMigration(sqlContent: string, dataType: string) {
+  async executeMigration(content: string, dataType: string, isCsv: boolean) {
     const stats: {
       totalRecords: number;
       transformed: number;
@@ -398,43 +534,23 @@ export class MigrationService {
     };
 
     try {
-      const rows = this.parseInsertStatement(sqlContent);
+      let rows = [];
+      if (isCsv) {
+        rows = this.parseCsv(content);
+      } else {
+        const sqlRows = this.parseInsertStatement(content);
+        rows = sqlRows.map((r) => {
+          const vals = this.parseRow(r);
+          return this.transformData(dataType, vals);
+        });
+      }
+
       stats.totalRecords = rows.length;
 
       for (let i = 0; i < rows.length; i++) {
         try {
-          const values = this.parseRow(rows[i]);
-          const transformed =
-            dataType === 'doctors'
-              ? this.transformDoctor(values)
-              : this.transformUser(values);
-
-          if (!transformed.email) {
-            stats.skipped++;
-            stats.errors.push(`Row ${i + 1}: Missing email`);
-            continue;
-          }
-
-          if (dataType === 'doctors') {
-            const existing = await this.doctorRepository.findOne({
-              where: { email: transformed.email },
-            });
-            if (existing) {
-              await this.doctorRepository.update(existing.id, transformed);
-            } else {
-              await this.doctorRepository.save(transformed);
-            }
-          } else {
-            const existing = await this.userRepository.findOne({
-              where: { email: transformed.email },
-            });
-            if (existing) {
-              await this.userRepository.update(existing.id, transformed);
-            } else {
-              await this.userRepository.save(transformed);
-            }
-          }
-
+          const data = rows[i];
+          await this.processItem(dataType, data);
           stats.transformed++;
         } catch (error) {
           stats.skipped++;
@@ -446,5 +562,272 @@ export class MigrationService {
     } catch (error) {
       throw new Error(`Migration failed: ${error.message}`);
     }
+  }
+
+  private async processItem(type: string, data: any) {
+    switch (type) {
+      case 'users':
+        await this.processUser(data);
+        break;
+      case 'medics':
+      case 'doctors':
+        await this.processDoctor(data);
+        break;
+      case 'appointments':
+        await this.processAppointment(data);
+        break;
+      case 'invoices':
+        await this.processInvoice(data);
+        break;
+      case 'transactions':
+        await this.processTransaction(data);
+        break;
+      case 'departments':
+        await this.processDepartment(data);
+        break;
+      case 'specialities':
+        await this.processSpeciality(data);
+        break;
+      case 'locations':
+        await this.processLocation(data);
+        break;
+      case 'services':
+        await this.processService(data);
+        break;
+      default:
+        throw new Error(`Unknown data type: ${type}`);
+    }
+  }
+
+  private async processUser(data: any) {
+    if (!data.email) throw new Error('Missing email');
+
+    // Field mapping and cleaning
+    if (data.profile_image && !data.profilePicture) {
+      data.profilePicture = data.profile_image;
+    }
+    delete data.profile_image;
+
+    // Numeric sanitization
+    data.latitude = this.parseNumeric(data.latitude);
+    data.longitude = this.parseNumeric(data.longitude);
+    data.status = data.status === 'true' || data.status === '1' || data.status === 1 || data.status === true;
+    data.isPublic = data.isPublic === 'true' || data.isPublic === '1' || data.isPublic === 1 || data.isPublic === true;
+
+    // Date sanitization
+    data.createdAt = this.parseDate(data.createdAt) || new Date();
+    data.updatedAt = this.parseDate(data.updatedAt) || new Date();
+    data.emailVerifiedAt = this.parseDate(data.emailVerifiedAt);
+    data.resetTokenExpires = this.parseDate(data.resetTokenExpires);
+
+    let user = await this.userRepository.findOne({
+      where: { email: data.email },
+    });
+
+    if (user) {
+      // Deep merge / Override
+      await this.userRepository.save({ ...user, ...data });
+    } else {
+      user = await this.userRepository.save({
+        ...data,
+        password: data.password || 'Mclinic@2026',
+        role: (data.role as UserRole) || UserRole.PATIENT,
+      });
+      if (user) await this.ensureWallet(user.id);
+    }
+  }
+
+  private async processDoctor(data: any) {
+    if (!data.email) throw new Error('Missing email');
+
+    // Numeric sanitization
+    data.fee = this.parseNumeric(data.fee) || 1500;
+    data.balance = this.parseNumeric(data.balance) || 0;
+    data.latitude = this.parseNumeric(data.latitude);
+    data.longitude = this.parseNumeric(data.longitude);
+    data.status = this.parseNumeric(data.status) || 0;
+    data.Verified_status = this.parseNumeric(data.Verified_status) || 0;
+    data.isPublic = data.isPublic === 'true' || data.isPublic === '1' || data.isPublic === 1 || data.isPublic === true;
+    data.featured = this.parseNumeric(data.featured) || 0;
+    data.can_prescribe = this.parseNumeric(data.can_prescribe) || 0;
+
+    // Date sanitization
+    data.licenceExpiry = this.parseDate(data.licenceExpiry);
+    data.created_at = this.parseDate(data.created_at) || new Date();
+    data.updated_at = this.parseDate(data.updated_at) || new Date();
+
+    let doctor = await this.doctorRepository.findOne({
+      where: { email: data.email },
+    });
+
+    if (doctor) {
+      // Deep merge / Override
+      await this.doctorRepository.save({ ...doctor, ...data });
+    } else {
+      doctor = await this.doctorRepository.save({
+        ...data,
+        password: data.password || 'Mclinic@2026',
+        dr_type: data.dr_type || 'Doctor',
+      });
+
+      // Also ensure corresponding User exists
+      let user = await this.userRepository.findOne({
+        where: { email: data.email },
+      });
+      if (!user) {
+        user = await this.userRepository.save({
+          fname: data.fname,
+          lname: data.lname,
+          email: data.email,
+          password: data.password || 'Mclinic@2026',
+          role: UserRole.MEDIC,
+          mobile: data.mobile,
+          address: data.address,
+        });
+      }
+      if (user) await this.ensureWallet(user.id);
+    }
+  }
+
+  private async processAppointment(data: any) {
+    const patient = await this.userRepository.findOne({
+      where: { email: data.patient_email },
+    });
+    const doctor = await this.doctorRepository.findOne({
+      where: { email: data.doctor_email },
+    });
+
+    if (!patient || !doctor) {
+      throw new Error(
+        `Patient or Doctor not found (${data.patient_email} / ${data.doctor_email})`,
+      );
+    }
+
+    await this.appointmentRepository.save({
+      patientId: patient.id,
+      doctorId: doctor.id,
+      appointment_date: this.parseDate(data.appointment_date) || new Date(),
+      appointment_time: data.appointment_time,
+      fee: this.parseNumeric(data.fee) || 0,
+      status: data.status || 'pending',
+      notes: data.notes,
+      reason: data.reason,
+      isVirtual: data.isVirtual === 'true' || data.isVirtual === '1' || data.isVirtual === 1 || data.isVirtual === true,
+      createdAt: this.parseDate(data.createdAt) || new Date(),
+      updatedAt: this.parseDate(data.updatedAt) || new Date(),
+    } as any);
+  }
+
+  private async processInvoice(data: any) {
+    const doctor = data.doctor_email
+      ? await this.doctorRepository.findOne({
+          where: { email: data.doctor_email },
+        })
+      : null;
+
+    await this.invoiceRepository.save({
+      invoiceNumber: data.invoiceNumber,
+      customerName: data.customerName,
+      customerEmail: data.customerEmail,
+      totalAmount: this.parseNumeric(data.totalAmount) || 0,
+      status: data.status || 'pending',
+      dueDate: this.parseDate(data.dueDate),
+      customerMobile: data.customerMobile,
+      paymentMethod: data.paymentMethod,
+      doctorId: doctor?.id,
+      commissionAmount: this.parseNumeric(data.commissionAmount) || 0,
+      appointmentId: this.parseNumeric(data.appointmentId),
+      createdAt: this.parseDate(data.createdAt) || new Date(),
+      updatedAt: this.parseDate(data.updatedAt) || new Date(),
+    } as any);
+  }
+
+  private async processTransaction(data: any) {
+    const user = data.user_email
+      ? await this.userRepository.findOne({
+          where: { email: data.user_email },
+        })
+      : null;
+    const invoice = data.invoice_number
+      ? await this.invoiceRepository.findOne({
+          where: { invoiceNumber: data.invoice_number },
+        })
+      : null;
+
+    await this.transactionRepository.save({
+      reference: data.reference,
+      amount: this.parseNumeric(data.amount) || 0,
+      type: data.type || 'credit',
+      source: data.source || 'MPESA',
+      status: data.status || 'completed',
+      userId: user?.id,
+      invoiceId: invoice?.id,
+      description: data.description,
+      createdAt: this.parseDate(data.createdAt) || new Date(),
+      updatedAt: this.parseDate(data.updatedAt) || new Date(),
+    } as any);
+  }
+
+  private async ensureWallet(userId: number) {
+    const wallet = await this.walletRepository.findOne({ where: { user_id: userId } });
+    if (!wallet) {
+      await this.walletRepository.save({ user_id: userId, balance: 0 });
+    }
+  }
+
+
+  private async processDepartment(data: any) {
+    const repo = this.dataSource.getRepository('departments');
+    if (data.id) {
+      await repo.upsert(data, ['id']);
+    } else {
+      await repo.save(data);
+    }
+  }
+
+  private async processSpeciality(data: any) {
+    const repo = this.dataSource.getRepository('specialities');
+    const deptRepo = this.dataSource.getRepository('departments');
+    
+    if (data.department_name) {
+      const dept = await deptRepo.findOne({ where: { name: data.department_name } });
+      if (dept) data.department_id = dept.id;
+      delete data.department_name;
+    }
+
+    if (data.id) {
+      await repo.upsert(data, ['id']);
+    } else {
+      await repo.save(data);
+    }
+  }
+
+  private async processLocation(data: any) {
+    const repo = this.dataSource.getRepository('locations');
+    if (data.id) {
+      await repo.upsert(data, ['id']);
+    } else {
+      await repo.save(data);
+    }
+  }
+
+  private async processService(data: any) {
+    const repo = this.dataSource.getRepository('services');
+    if (data.id) {
+      await repo.upsert(data, ['id']);
+    } else {
+      await repo.save(data);
+    }
+  }
+
+  async exportAssets(): Promise<Buffer> {
+    const zip = new AdmZip();
+    const uploadPath = join(process.cwd(), 'uploads');
+
+    if (existsSync(uploadPath)) {
+      zip.addLocalFolder(uploadPath);
+    }
+
+    return zip.toBuffer();
   }
 }

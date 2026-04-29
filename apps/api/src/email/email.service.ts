@@ -118,6 +118,42 @@ export class EmailService {
         });
     }
 
+    async sendPasswordResetEmail(user: any, token: string) {
+        const resetUrl = `${this.frontendUrl}/reset-password?token=${token}`;
+        await this.sendMailWithContext({
+            to: user.email,
+            subject: 'Reset Your Password - M-Clinic Health',
+            html: `
+                <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; color: #1f2937; line-height: 1.6;">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h1 style="color: #059669; font-size: 24px; font-weight: 800; margin: 0;">M-CLINIC</h1>
+                        <p style="color: #6b7280; font-size: 14px; margin: 5px 0 0 0;">Advanced Healthcare Portal</p>
+                    </div>
+                    
+                    <div style="background-color: #f9fafb; border-radius: 16px; padding: 30px; border: 1px solid #f3f4f6;">
+                        <h2 style="font-size: 20px; font-weight: 700; color: #111827; margin-top: 0;">Password Reset Request</h2>
+                        <p>Hello ${user.fname},</p>
+                        <p>We received a request to reset the password for your M-Clinic account. Click the button below to set a new password. This link will expire in 1 hour.</p>
+                        
+                        <div style="text-align: center; margin: 30px 0;">
+                            <a href="${resetUrl}" style="background-color: #059669; color: white; padding: 14px 28px; text-decoration: none; border-radius: 12px; font-weight: 700; display: inline-block; transition: all 0.3s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">Reset My Password</a>
+                        </div>
+                        
+                        <p style="font-size: 14px; color: #6b7280;">If you didn't request this, you can safely ignore this email. Your password will remain unchanged.</p>
+                    </div>
+                    
+                    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #f3f4f6; text-align: center; color: #9ca3af; font-size: 12px;">
+                        <p>&copy; ${new Date().getFullYear()} M-Clinic Health Kenya. All rights reserved.</p>
+                    </div>
+                </div>
+            `,
+            context: {
+                name: `${user.fname} ${user.lname}`,
+                resetUrl: resetUrl,
+            },
+        });
+    }
+
     async sendLoginAttemptEmail(user: any, ipAddress: string, location: string) {
         await this.sendMailWithContext({
             to: user.email,

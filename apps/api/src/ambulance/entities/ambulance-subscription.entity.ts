@@ -124,6 +124,15 @@ export class AmbulanceSubscription {
     @Column({ default: 'active' })
     status: string; // 'active', 'expired', 'pending'
 
+    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+    price: number;
+
+    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+    commission: number;
+
+    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+    total_amount: number;
+
     @Column({ type: 'date', nullable: true })
     start_date: string;
 

@@ -254,6 +254,18 @@ export default function AdminView() {
                             <Link href="/dashboard/migration" className="px-3 py-1 bg-white dark:bg-black text-blue-600 text-[10px] font-bold rounded-lg border border-blue-100 shadow-sm flex items-center">Go</Link>
                         </div>
 
+                        {/* Fee Settings Shortcut */}
+                        <div className="flex items-center gap-4 p-4 rounded-2xl border border-rose-50 dark:border-rose-900/30 bg-rose-50/50 dark:bg-rose-900/10 hover:bg-rose-100/50 transition-colors group">
+                            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-rose-100 text-rose-600 group-hover:bg-rose-600 group-hover:text-white transition-all">
+                                <FiDollarSign />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <h4 className="font-bold text-sm text-rose-900 dark:text-rose-100">Service Fees</h4>
+                                <p className="text-xs text-rose-600/70 truncate">Commission & Prices</p>
+                            </div>
+                            <Link href="/dashboard/admin/settings/fees" className="px-3 py-1 bg-white dark:bg-black text-rose-600 text-[10px] font-bold rounded-lg border border-rose-100 shadow-sm flex items-center">Settings</Link>
+                        </div>
+
                         {/* Financials Shortcut */}
                         <div className="flex items-center gap-4 p-4 rounded-2xl border border-green-50 dark:border-green-900/30 bg-green-50/50 dark:bg-green-900/10 hover:bg-green-100/50 transition-colors group">
                             <div className="w-12 h-12 rounded-full flex items-center justify-center bg-green-100 text-green-600 group-hover:bg-green-600 group-hover:text-white transition-all">

@@ -160,10 +160,20 @@ export default function AmbulanceSubscriptionPage() {
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="font-black text-lg">KES {Number(pkg.price).toLocaleString()}</div>
-                                        <div className="text-xs text-gray-400">/yr</div>
+                                        <div className="font-black text-lg text-green-700">
+                                            KES {(Number(pkg.price) + Number(pkg.commission)).toLocaleString()}
+                                        </div>
+                                        <div className="text-[10px] text-gray-400 font-bold uppercase">
+                                            {pkg.validity_days === 1 ? 'One-off' : '/ Year'}
+                                        </div>
                                     </div>
                                 </div>
+
+                                {pkg.is_group_package && (
+                                    <div className="mb-4 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-[10px] font-black uppercase flex items-center gap-2">
+                                        <FiInfo /> Min. {pkg.min_members} Members Required
+                                    </div>
+                                )}
 
                                 <div className="flex flex-wrap gap-2 mt-4">
                                     {getCleanFeatures(pkg).map((f: string, i: number) => (

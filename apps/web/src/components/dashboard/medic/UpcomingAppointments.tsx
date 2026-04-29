@@ -42,6 +42,11 @@ export default function UpcomingAppointments({ appointments, loading, onSelect }
                                 }`}>
                                 {apt.status}
                             </span>
+                            {apt.invoice?.status !== 'paid' && apt.invoice?.status !== 'PAID' && (
+                                <span className="text-[9px] font-bold text-red-500 animate-pulse flex items-center gap-1">
+                                    ⚠️ UNPAID
+                                </span>
+                            )}
                             <button className="text-[10px] font-bold text-donezo-dark hover:underline">View Details</button>
                         </div>
                     </div>

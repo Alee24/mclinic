@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CareConnect - Virtual Consultation</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-primary": "#b9c8d7",
+                    "on-primary-fixed": "#0f1d28",
+                    "error": "#ba1a1a",
+                    "on-secondary-fixed": "#00210a",
+                    "on-tertiary-container": "#ff4f6e",
+                    "inverse-on-surface": "#eff1f3",
+                    "on-secondary-fixed-variant": "#005323",
+                    "surface-container-highest": "#e0e3e5",
+                    "tertiary": "#34000a",
+                    "on-primary-container": "#8492a0",
+                    "on-surface": "#191c1e",
+                    "on-secondary-container": "#007233",
+                    "secondary": "#006d31",
+                    "on-secondary": "#ffffff",
+                    "surface-bright": "#f7f9fb",
+                    "surface-container": "#eceef0",
+                    "surface-container-low": "#f2f4f6",
+                    "tertiary-fixed": "#ffdadb",
+                    "primary-fixed": "#d5e4f3",
+                    "primary-fixed-dim": "#b9c8d7",
+                    "inverse-surface": "#2d3133",
+                    "surface-container-high": "#e6e8ea",
+                    "primary-container": "#1d2b36",
+                    "on-error-container": "#93000a",
+                    "on-primary": "#ffffff",
+                    "surface-container-lowest": "#ffffff",
+                    "outline-variant": "#c4c7cb",
+                    "surface-tint": "#52606c",
+                    "error-container": "#ffdad6",
+                    "tertiary-fixed-dim": "#ffb2b8",
+                    "tertiary-container": "#5a0018",
+                    "secondary-fixed": "#65ff90",
+                    "secondary-fixed-dim": "#3ee276",
+                    "on-tertiary-fixed": "#40000f",
+                    "on-background": "#191c1e",
+                    "on-tertiary-fixed-variant": "#91002d",
+                    "surface-dim": "#d8dadc",
+                    "on-tertiary": "#ffffff",
+                    "primary": "#081621",
+                    "surface-variant": "#e0e3e5",
+                    "background": "#f7f9fb",
+                    "surface": "#f7f9fb",
+                    "on-surface-variant": "#43474b",
+                    "on-error": "#ffffff",
+                    "secondary-container": "#5efc8d",
+                    "outline": "#74777c",
+                    "on-primary-fixed-variant": "#3a4854"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "xs": "4px",
+                    "xl": "32px",
+                    "lg": "24px",
+                    "gutter": "24px",
+                    "sm": "8px",
+                    "container-max": "1280px",
+                    "xxl": "48px",
+                    "md": "16px",
+                    "unit": "4px",
+                    "margin": "24px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Public Sans"],
+                    "headline-lg": ["Public Sans"],
+                    "body-lg": ["Public Sans"],
+                    "body-md": ["Public Sans"],
+                    "label-lg": ["Public Sans"],
+                    "body-sm": ["Public Sans"],
+                    "display-lg": ["Public Sans"],
+                    "label-md": ["Public Sans"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-lg": ["14px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-md": ["12px", {"lineHeight": "14px", "fontWeight": "500"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        body { font-family: 'Public Sans', sans-serif; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.5);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white border-b border-slate-100 flex justify-between items-center px-4 h-16 w-full max-w-full">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden border border-slate-200">
+<img alt="User profile photo" class="w-full h-full object-cover" data-alt="A professional studio portrait of a friendly Alex Johnson, a patient in their mid-30s. The lighting is soft and natural, emphasizing a calm and reliable atmosphere. The background is a clean, neutral gray, consistent with a high-end clinical health application's aesthetic of hygiene and precision." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzw3YieFuSCh_MQ2qAydkGjpuerSUoFkntqLzKNNHJfYUpg4w8LeMAE-6v2Z7oiBP5dEUcywXurjbiYtWYoO4YYPSH9rWj5bkboOgtnNLUZGACGdj9BXqfcobn6zp9oI_lwKrJiebnH9ub3XW_dMUyL-UIddVlxtkIIsCLQ7fy6xsjug3ZIDlxSW4hf8J-_Lo4j4qwyBFfeI_GZK0eo1PLUmyfP7JYrglZvs1Woq_ELzE0IYfYw5SeiTskMeChtUwT76lbmbQPbas"/>
+</div>
+<span class="text-xl font-black text-[#1D2B36] tracking-tight">CareConnect</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 transition-colors duration-200 hover:bg-slate-50 rounded-full">
+<span class="material-symbols-outlined text-slate-900">notifications</span>
+</button>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-grow pt-16 pb-24 px-gutter container mx-auto max-w-[1280px]">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-lg mt-lg">
+<!-- Left Column: Video Preview & Waiting Status -->
+<div class="lg:col-span-7 flex flex-col gap-lg">
+<!-- Video/Waiting Container -->
+<div class="relative aspect-video rounded-xl bg-primary-container overflow-hidden shadow-sm">
+<img alt="Video Placeholder" class="w-full h-full object-cover opacity-60" data-alt="A blurred view of a modern, sterile clinical office with soft blue and white tones. The lighting is bright and professional, creating a sense of safety and medical precision. In the foreground, a subtle graphical overlay indicates a 'Waiting for Doctor' status with clean, high-contrast typography, maintaining a calm and structured visual language." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3qqnnZmUbY_VEg_OCjP-UPYJuu6vUVD4MHiWZ6R5Y77L0ZklrTKZsIsHcS3ttm7AU0xRHIFon4pXIHM30DDk8Hj2cMtnr-gZrEXS5LLxI-4ckJS12vsAxN85lT_UAFbjbdZRWnGncf7ZEtb3DBWI-fDfjyzulMkM00r2LUwCDa6o3b6D3mg6vxzJgMUmE-6te0GA3XRvPd6HH5dBysj3ZlxJhp8TzVPRMToGVFBfhGcnY5iS7hePP_R3mx0B3E2lQIXnr1fqQ8PA"/>
+<div class="absolute inset-0 flex flex-col items-center justify-center text-center p-xl">
+<div class="w-16 h-16 rounded-full border-4 border-white/20 border-t-white animate-spin mb-md"></div>
+<h2 class="font-headline-md text-white text-headline-md mb-xs">Waiting for Dr. Sarah Miller</h2>
+<p class="font-body-md text-on-primary-container text-body-md">Your consultation will begin shortly.</p>
+</div>
+<div class="absolute bottom-md left-md right-md flex justify-between items-center bg-black/40 backdrop-blur-md p-md rounded-lg">
+<div class="flex gap-sm">
+<button class="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-white/30 transition-all">
+<span class="material-symbols-outlined">mic</span>
+</button>
+<button class="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-white/30 transition-all">
+<span class="material-symbols-outlined">videocam</span>
+</button>
+</div>
+<div class="px-md py-1 bg-white/10 rounded-full text-white font-label-md text-label-md border border-white/20">
+                            Connection: Stable
+                        </div>
+</div>
+</div>
+<!-- Call Status & Join Action -->
+<div class="bg-white border border-slate-100 rounded-xl p-lg flex flex-col md:flex-row items-center justify-between gap-lg">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">schedule</span>
+</div>
+<div>
+<p class="font-label-lg text-on-surface-variant text-label-lg uppercase">Estimated Wait Time</p>
+<p class="font-headline-md text-primary text-headline-md">4 Minutes</p>
+</div>
+</div>
+<div class="flex gap-md w-full md:w-auto">
+<button class="flex-1 md:flex-none px-xl py-md bg-secondary text-on-secondary rounded-lg font-label-lg text-label-lg hover:bg-on-secondary-container transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">video_chat</span>
+                            Join Call Now
+                        </button>
+<button class="w-12 h-12 border border-error text-error rounded-lg flex items-center justify-center hover:bg-error-container transition-all">
+<span class="material-symbols-outlined">call_end</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Right Column: Doctor Info & Preliminary Chat -->
+<div class="lg:col-span-5 flex flex-col gap-lg">
+<!-- Doctor Profile Card -->
+<div class="bg-white border border-slate-100 rounded-xl overflow-hidden">
+<div class="p-lg flex items-start gap-md">
+<div class="w-20 h-20 rounded-xl overflow-hidden border border-slate-100 shrink-0">
+<img alt="Doctor Sarah Miller" class="w-full h-full object-cover" data-alt="A professional close-up of Dr. Sarah Miller, a confident and approachable physician in her late 40s wearing a white clinical coat. She is smiling gently against a bright, airy medical office background. The photography is high-key and clean, mirroring the professional and trustworthy atmosphere of a premium telehealth platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUaOysBR9sNdjAOpYnd6FAfoeWG1KLrL1gMigp77ncl4FhvwCBaXUrNZ7ZULgfTxq86Z0mgUTivoQ_hxKKCb6XQHkk30j_Q3WJX7DgofjZC4esea_zq1iOL6NbwycLj7tw6QLCdYuaK3o-y0OdWTSa8-My729AuH-lb10IpgPz4tOY06a_S-MRUsrOA5mxrK0VHmZF0JVW4J9pL_OIZGh5goC7csr1eYkrAIkQdTG8THDqtxenyimVp_sPbmgAwtoRoRzs-VKx8-k"/>
+</div>
+<div class="flex-grow">
+<h3 class="font-headline-md text-primary text-headline-md">Dr. Sarah Miller</h3>
+<p class="font-body-sm text-secondary text-body-sm font-semibold mb-sm">Senior Cardiologist</p>
+<div class="flex flex-wrap gap-xs">
+<span class="bg-surface-container px-2 py-1 rounded text-xs font-medium text-on-surface-variant">Heart Health</span>
+<span class="bg-surface-container px-2 py-1 rounded text-xs font-medium text-on-surface-variant">Internal Medicine</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-low px-lg py-md border-t border-slate-100 flex items-center justify-between">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-yellow-500 text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-md text-on-surface text-label-md">4.9 (124 reviews)</span>
+</div>
+<button class="text-secondary font-label-lg text-label-lg hover:underline">View Profile</button>
+</div>
+</div>
+<!-- Chat Interface -->
+<div class="bg-white border border-slate-100 rounded-xl flex flex-col h-[500px]">
+<div class="p-md border-b border-slate-100 flex items-center justify-between">
+<span class="font-label-lg text-primary text-label-lg">Preliminary Information</span>
+<span class="flex items-center gap-1 text-xs text-secondary">
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+                            Online
+                        </span>
+</div>
+<div class="flex-grow overflow-y-auto p-lg space-y-lg">
+<!-- Bot Message -->
+<div class="flex flex-col items-start gap-xs max-w-[85%]">
+<div class="bg-surface-container-high p-md rounded-xl rounded-tl-none">
+<p class="font-body-sm text-on-surface text-body-sm">Hello Alex! Before Dr. Miller joins, could you please confirm your current symptoms?</p>
+</div>
+<span class="font-label-md text-slate-400 text-[10px]">10:00 AM</span>
+</div>
+<!-- User Message -->
+<div class="flex flex-col items-end gap-xs max-w-[85%] ml-auto">
+<div class="bg-primary-container text-white p-md rounded-xl rounded-tr-none">
+<p class="font-body-sm text-body-sm">I've been feeling some chest tightness and slight dizziness since yesterday afternoon.</p>
+</div>
+<span class="font-label-md text-slate-400 text-[10px]">10:02 AM</span>
+</div>
+<!-- Bot Message -->
+<div class="flex flex-col items-start gap-xs max-w-[85%]">
+<div class="bg-surface-container-high p-md rounded-xl rounded-tl-none">
+<p class="font-body-sm text-on-surface text-body-sm">Thank you. Have you taken any medication for this today?</p>
+</div>
+<span class="font-label-md text-slate-400 text-[10px]">10:03 AM</span>
+</div>
+</div>
+<div class="p-md border-t border-slate-100">
+<div class="relative flex items-center">
+<input class="w-full bg-surface-container-low border-none rounded-lg pl-md pr-xl py-sm focus:ring-2 focus:ring-secondary/20 text-body-sm font-body-sm" placeholder="Type your response..." type="text"/>
+<button class="absolute right-sm text-secondary hover:text-on-secondary-container p-1">
+<span class="material-symbols-outlined">send</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Only visible on Mobile) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 py-3 bg-white border-t border-slate-100 pb-safe shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+<a class="flex flex-col items-center justify-center text-slate-400 opacity-80" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-['Public_Sans'] text-[10px] font-medium mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#1D2B36] scale-105 transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
+<span class="font-['Public_Sans'] text-[10px] font-medium mt-1">Booking</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 opacity-80" href="#">
+<span class="material-symbols-outlined">medical_services</span>
+<span class="font-['Public_Sans'] text-[10px] font-medium mt-1">Pharmacy</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 opacity-80" href="#">
+<span class="material-symbols-outlined">biotech</span>
+<span class="font-['Public_Sans'] text-[10px] font-medium mt-1">Labs</span>
+</a>
+<a class="flex flex-col items-center justify-center text-error opacity-80" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">emergency</span>
+<span class="font-['Public_Sans'] text-[10px] font-medium mt-1">Emergency</span>
+</a>
+</nav>
+<!-- Navigation Drawer (Desktop Sidebar Hook) -->
+<aside class="hidden xl:flex fixed left-0 top-16 h-[calc(100vh-64px)] w-20 flex-col bg-white border-r border-slate-100 py-6 items-center gap-8">
+<div class="group relative">
+<button class="w-12 h-12 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-all">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+<span class="absolute left-full ml-4 px-2 py-1 bg-primary text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">Profile</span>
+</div>
+<div class="group relative">
+<button class="w-12 h-12 rounded-xl flex items-center justify-center bg-slate-50 text-primary font-semibold border-l-4 border-primary">
+<span class="material-symbols-outlined">video_chat</span>
+</button>
+<span class="absolute left-full ml-4 px-2 py-1 bg-primary text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">Consultations</span>
+</div>
+<div class="group relative">
+<button class="w-12 h-12 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-all">
+<span class="material-symbols-outlined">pill</span>
+</button>
+<span class="absolute left-full ml-4 px-2 py-1 bg-primary text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">Prescriptions</span>
+</div>
+<div class="group relative">
+<button class="w-12 h-12 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-all">
+<span class="material-symbols-outlined">description</span>
+</button>
+<span class="absolute left-full ml-4 px-2 py-1 bg-primary text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">Results</span>
+</div>
+<div class="mt-auto group relative">
+<button class="w-12 h-12 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-all">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<span class="absolute left-full ml-4 px-2 py-1 bg-primary text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">Settings</span>
+</div>
+</aside>
+<!-- Global Alert (System Notification) -->
+<div class="fixed top-20 right-gutter z-40 max-w-sm w-full animate-bounce">
+<div class="bg-secondary-container border border-secondary/20 p-md rounded-lg shadow-lg flex items-start gap-md">
+<span class="material-symbols-outlined text-on-secondary-container">info</span>
+<div>
+<p class="font-label-lg text-on-secondary-container text-label-lg">Ready to start</p>
+<p class="font-body-sm text-on-secondary-container text-body-sm">Dr. Sarah Miller is finalizing a previous session. You're next in line.</p>
+</div>
+</div>
+</div>
+</body></html>

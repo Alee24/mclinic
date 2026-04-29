@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { FiCheckCircle, FiAlertCircle, FiShield } from 'react-icons/fi';
 import Link from 'next/link';
+import { api } from '@/lib/api';
 
 export default function VerifyEmailPage() {
     const searchParams = useSearchParams();
@@ -22,20 +23,15 @@ export default function VerifyEmailPage() {
 
         const verify = async () => {
             try {
-                const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://portal.mclinic.co.ke/api';
-                const res = await fetch(`${API_URL}/auth/verify-email`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token }),
-                });
+                const res = await api.post('/auth/verify-email', { token });
 
-                if (res.ok) {
+                if (res && res.ok) {
                     setStatus('success');
                     setMessage('Your email has been successfully verified! You can now log in.');
                 } else {
-                    const data = await res.json().catch(() => ({}));
+                    const data = await (res?.json().catch(() => ({})) || Promise.resolve({}));
                     setStatus('error');
-                    setMessage(data.message || 'Verification failed. The token may be invalid or expired.');
+                    setMessage(data?.message || 'Verification failed. The token may be invalid or expired.');
                 }
             } catch (err) {
                 setStatus('error');

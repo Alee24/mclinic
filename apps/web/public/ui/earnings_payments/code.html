@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-error": "#ffffff",
+                    "surface-bright": "#f7f9fb",
+                    "on-secondary-container": "#007233",
+                    "surface-container-low": "#f2f4f6",
+                    "surface-container-high": "#e6e8ea",
+                    "inverse-primary": "#b9c8d7",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary-container": "#5a0018",
+                    "on-secondary": "#ffffff",
+                    "on-primary-container": "#8492a0",
+                    "secondary-container": "#5efc8d",
+                    "surface-variant": "#e0e3e5",
+                    "primary-fixed-dim": "#b9c8d7",
+                    "error-container": "#ffdad6",
+                    "surface-tint": "#52606c",
+                    "outline-variant": "#c4c7cb",
+                    "on-surface-variant": "#43474b",
+                    "surface-container": "#eceef0",
+                    "on-tertiary-fixed": "#40000f",
+                    "surface-container-highest": "#e0e3e5",
+                    "on-primary-fixed-variant": "#3a4854",
+                    "inverse-surface": "#2d3133",
+                    "surface": "#f7f9fb",
+                    "on-tertiary-container": "#ff4f6e",
+                    "primary-container": "#1d2b36",
+                    "secondary-fixed-dim": "#3ee276",
+                    "primary-fixed": "#d5e4f3",
+                    "on-secondary-fixed-variant": "#005323",
+                    "on-background": "#191c1e",
+                    "inverse-on-surface": "#eff1f3",
+                    "error": "#ba1a1a",
+                    "on-tertiary-fixed-variant": "#91002d",
+                    "on-primary": "#ffffff",
+                    "primary": "#081621",
+                    "outline": "#74777c",
+                    "tertiary-fixed-dim": "#ffb2b8",
+                    "on-secondary-fixed": "#00210a",
+                    "secondary": "#006d31",
+                    "surface-dim": "#d8dadc",
+                    "tertiary": "#34000a",
+                    "secondary-fixed": "#65ff90",
+                    "on-tertiary": "#ffffff",
+                    "background": "#f7f9fb",
+                    "tertiary-fixed": "#ffdadb",
+                    "on-error-container": "#93000a",
+                    "on-primary-fixed": "#0f1d28",
+                    "on-surface": "#191c1e"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "unit": "4px",
+                    "md": "16px",
+                    "margin": "24px",
+                    "xl": "32px",
+                    "sm": "8px",
+                    "gutter": "24px",
+                    "container-max": "1280px",
+                    "xs": "4px",
+                    "lg": "24px",
+                    "xxl": "48px"
+            },
+            "fontFamily": {
+                    "body-md": ["Public Sans"],
+                    "headline-lg": ["Public Sans"],
+                    "body-lg": ["Public Sans"],
+                    "label-md": ["Public Sans"],
+                    "display-lg": ["Public Sans"],
+                    "headline-md": ["Public Sans"],
+                    "body-sm": ["Public Sans"],
+                    "label-lg": ["Public Sans"]
+            },
+            "fontSize": {
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "label-md": ["12px", {"lineHeight": "14px", "fontWeight": "500"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "label-lg": ["14px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Public Sans', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface">
+<!-- TopAppBar -->
+<header class="bg-white dark:bg-slate-900 docked full-width top-0 z-50 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center w-full px-4 h-16 sticky">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant">
+<img alt="Doctor Profile Picture" class="w-full h-full object-cover" data-alt="A professional portrait of a senior male physician with a kind expression, wearing a crisp white medical coat and a stethoscope. The background is a brightly lit, clean, and modern medical office with soft teal and white tones. The lighting is soft and high-key, conveying a sense of expertise, reliability, and clinical precision." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5-0IWHGimrUcO5mToxkxHyaJ5O9FZJUYs5Uf8ijeBp-9xw6vxrtgFTJVN1QV1OMTepmUGvUYH56f6acyBu4WthxdJlMvmcSh1lV_jN-yx1q_qwmdxg6KN64q7d84IMZBlUrKd89yESeiqqBhcFKZ1dH0qfiH5hyZbwAaGnF0lm6U9fXOplOWxAoaauzl6j9gNv_3nHnAtYefEut-SU22N09r7RJXA_LKORwqoB6HWLp8aXWuaOB089aFaOcmq5YMxjQ6GvDlUAtM"/>
+</div>
+<h1 class="text-xl font-bold text-slate-900 dark:text-slate-50 font-public-sans tracking-tight">Medic Dashboard</h1>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors active:opacity-80">
+<span class="material-symbols-outlined text-slate-900 dark:text-slate-100">notifications</span>
+</button>
+</header>
+<main class="max-w-[1280px] mx-auto p-4 md:p-gutter pb-32">
+<!-- Header Section -->
+<div class="mb-xl">
+<h2 class="font-headline-lg text-headline-lg text-primary mb-2">Earnings Overview</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Track your monthly revenue and settlement status from patient consultations.</p>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Main Chart Card -->
+<div class="md:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-xl p-lg flex flex-col">
+<div class="flex justify-between items-end mb-xl">
+<div>
+<p class="font-label-lg text-label-lg text-on-surface-variant uppercase mb-1">Total Revenue (Year to Date)</p>
+<h3 class="font-display-lg text-display-lg text-primary">$142,580.00</h3>
+</div>
+<div class="flex gap-2">
+<span class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-label-md font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">trending_up</span> +12.5%
+                        </span>
+</div>
+</div>
+<!-- Income Visualization (Chart Placeholder) -->
+<div class="flex-grow min-h-[300px] flex items-end gap-2 px-2 border-b border-outline-variant pb-2">
+<div class="flex-1 bg-surface-container-high hover:bg-secondary transition-colors rounded-t-lg h-[40%]" title="Jan: $8,400"></div>
+<div class="flex-1 bg-surface-container-high hover:bg-secondary transition-colors rounded-t-lg h-[55%]" title="Feb: $9,200"></div>
+<div class="flex-1 bg-surface-container-high hover:bg-secondary transition-colors rounded-t-lg h-[48%]" title="Mar: $8,900"></div>
+<div class="flex-1 bg-surface-container-high hover:bg-secondary transition-colors rounded-t-lg h-[65%]" title="Apr: $11,500"></div>
+<div class="flex-1 bg-surface-container-high hover:bg-secondary transition-colors rounded-t-lg h-[75%]" title="May: $12,800"></div>
+<div class="flex-1 bg-surface-container-high hover:bg-secondary transition-colors rounded-t-lg h-[70%]" title="Jun: $12,100"></div>
+<div class="flex-1 bg-secondary rounded-t-lg h-[90%]" title="Jul (Current): $14,400"></div>
+<div class="flex-1 bg-surface-container-high rounded-t-lg h-[0%]"></div>
+<div class="flex-1 bg-surface-container-high rounded-t-lg h-[0%]"></div>
+<div class="flex-1 bg-surface-container-high rounded-t-lg h-[0%]"></div>
+<div class="flex-1 bg-surface-container-high rounded-t-lg h-[0%]"></div>
+<div class="flex-1 bg-surface-container-high rounded-t-lg h-[0%]"></div>
+</div>
+<div class="flex justify-between mt-4 px-2 text-label-md text-on-surface-variant font-medium">
+<span>JAN</span><span>FEB</span><span>MAR</span><span>APR</span><span>MAY</span><span>JUN</span><span>JUL</span><span>AUG</span><span>SEP</span><span>OCT</span><span>NOV</span><span>DEC</span>
+</div>
+</div>
+<!-- Settlement Status Card -->
+<div class="md:col-span-4 space-y-gutter">
+<div class="bg-primary-container text-white rounded-xl p-lg flex flex-col justify-between h-[180px]">
+<div>
+<p class="font-label-lg text-label-lg text-on-primary-container mb-2">Available for Withdrawal</p>
+<h4 class="font-headline-lg text-headline-lg">$4,850.25</h4>
+</div>
+<button class="w-full bg-secondary text-white py-3 rounded-full font-label-lg flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all">
+<span class="material-symbols-outlined">payments</span> Settle Funds
+                    </button>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg">
+<p class="font-label-lg text-label-lg text-on-surface-variant mb-md uppercase">Settlement Period</p>
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<span class="font-body-sm text-body-sm">Next Auto-Deposit</span>
+<span class="font-label-lg text-label-lg text-primary">July 28, 2023</span>
+</div>
+<div class="w-full bg-surface-container rounded-full h-2">
+<div class="bg-secondary h-2 rounded-full w-[65%]"></div>
+</div>
+<div class="flex justify-between items-center text-label-md">
+<span class="text-on-surface-variant">6 days remaining</span>
+<span class="text-secondary font-semibold">Active</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Transactions Table -->
+<div class="md:col-span-12 bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden">
+<div class="px-lg py-md border-b border-outline-variant flex justify-between items-center">
+<h3 class="font-headline-md text-headline-md text-primary">Recent Transactions</h3>
+<button class="text-secondary font-label-lg hover:underline">Download CSV</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant">
+<th class="px-lg py-md font-label-lg text-on-surface-variant">PATIENT / SERVICE</th>
+<th class="px-lg py-md font-label-lg text-on-surface-variant">DATE</th>
+<th class="px-lg py-md font-label-lg text-on-surface-variant">TYPE</th>
+<th class="px-lg py-md font-label-lg text-on-surface-variant">AMOUNT</th>
+<th class="px-lg py-md font-label-lg text-on-surface-variant">STATUS</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<tr class="hover:bg-surface-container transition-colors">
+<td class="px-lg py-md">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Close-up portrait of a woman in her 30s with neutral lighting and a calm expression. She is in a minimalist setting with a very soft grey background. The image is clean and clinical, focusing on high-detail facial features and a professional, light-mode design aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBbzkQK9VJNnbPz3zeqquK_AX85A4hIRrhubFua3cfU0lQ1wume9g_aU7xJYRZJXVWxw5zbtsphFLSHuGcKUp2hJdjqZ0Xvz09iUeV6ooZSaseBBvrkiSqMERHkkV5ymBd4hdkgIzS26xPSWrFm6vSBpYpPZiGBBY33CCtorZ28vsXXAa7XEmHO-vvUqXkGBL-QhBNzoDEKOW4wyNjGKMfxyxl5vZ6-0iRRQPg2446eBYecUuHhx40Dgq5z0oVS6IaLvBCgy1rTbKo"/>
+</div>
+<div>
+<p class="font-label-lg text-primary">Elena Rodriguez</p>
+<p class="text-label-md text-on-surface-variant">Telehealth Consultation</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-md font-body-sm">Today, 10:30 AM</td>
+<td class="px-lg py-md">
+<span class="text-label-md bg-surface-container-high px-2 py-0.5 rounded">Consultation</span>
+</td>
+<td class="px-lg py-md font-label-lg text-primary">$150.00</td>
+<td class="px-lg py-md">
+<span class="flex items-center gap-1 text-label-md font-semibold text-secondary">
+<span class="w-2 h-2 rounded-full bg-secondary"></span> Processed
+                                    </span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container transition-colors">
+<td class="px-lg py-md">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A portrait of a middle-aged man with a professional yet friendly look, set against a blurred medical background of soft blue and white. The lighting is bright and even, reinforcing a clean, sterile, yet approachable clinical environment. High-key tones dominate the composition." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0tDH5CF2YJMi0CdfnPi2qWvQsu6Ilngb7jGQiu7wBu7lH1-Vaq9lumbr6ORcr4u2hxYl1HRoTmsYFL0ezJiISXJgQq5Kj3U5ChoLkKlEMF4Ih-ZQtItZdYkefUBcyBEcJQCUAgOo-yAGARsb_1C9TGOayUBEZXlCdsJSNYeTEhzMjryE6FAkEczSmTC2N7-Pls2G-qKrNEHsm_pPrKqt7jADPwF_LAIDT6xHZEhG4bOoizzWXeoW9YYwi7iHGoP0R9QER4_8cOFc"/>
+</div>
+<div>
+<p class="font-label-lg text-primary">Marcus Thompson</p>
+<p class="text-label-md text-on-surface-variant">In-person Follow-up</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-md font-body-sm">Yesterday, 4:15 PM</td>
+<td class="px-lg py-md">
+<span class="text-label-md bg-surface-container-high px-2 py-0.5 rounded">Clinic Visit</span>
+</td>
+<td class="px-lg py-md font-label-lg text-primary">$220.00</td>
+<td class="px-lg py-md">
+<span class="flex items-center gap-1 text-label-md font-semibold text-secondary">
+<span class="w-2 h-2 rounded-full bg-secondary"></span> Processed
+                                    </span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container transition-colors">
+<td class="px-lg py-md">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Detailed portrait of a senior woman with grey hair and a gentle smile, illuminated by soft natural light coming from a window. The aesthetic is clean, medical, and empathetic, utilizing a white and soft blue palette. The atmosphere is calm and respectful." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2euXIpDr7k67JNUHvzUrDIzvc5wPkUf_Fy-r-ttzLvc8tsTKucwy50Or4OHTo_HmBG0VbNAdxUJQYlQgYH-LPsDgdV_Kgv-dEt3jtHpoCVn3FTxGEDQZ2aIS4ph-PqAeYhz_-w85Kh_-81dgNBnFpR1a0XgDR-OQy-5a8gMoruLJZnCjj2XmG9TpqiR8hvDp_eCGQIdwjDdYnqbwEN219jWJFxfN_bgIlf3qlDHDuq1QAhDbMyOAciwgxVn5NE8aQEESL1H6QqDk"/>
+</div>
+<div>
+<p class="font-label-lg text-primary">Sarah Jenkins</p>
+<p class="text-label-md text-on-surface-variant">Prescription Renewal</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-md font-body-sm">July 20, 2023</td>
+<td class="px-lg py-md">
+<span class="text-label-md bg-surface-container-high px-2 py-0.5 rounded">Pharmacy</span>
+</td>
+<td class="px-lg py-md font-label-lg text-primary">$45.00</td>
+<td class="px-lg py-md">
+<span class="flex items-center gap-1 text-label-md font-semibold text-on-surface-variant">
+<span class="w-2 h-2 rounded-full bg-outline"></span> Pending
+                                    </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-md text-center border-t border-outline-variant bg-surface-container-lowest">
+<button class="font-label-lg text-secondary hover:underline">View All Transactions</button>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-3 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 shadow-lg dark:shadow-none z-50">
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 py-1 hover:text-slate-700 dark:hover:text-slate-200 transition-transform duration-150 active:scale-90" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-public-sans text-xs font-medium mt-1">Appointments</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 py-1 hover:text-slate-700 dark:hover:text-slate-200 transition-transform duration-150 active:scale-90" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-public-sans text-xs font-medium mt-1">Patients</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 rounded-xl px-3 py-1 transition-transform duration-150 active:scale-90" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">payments</span>
+<span class="font-public-sans text-xs font-medium mt-1">Earnings</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 py-1 hover:text-slate-700 dark:hover:text-slate-200 transition-transform duration-150 active:scale-90" href="#">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="font-public-sans text-xs font-medium mt-1">Profile</span>
+</a>
+</nav>
+</body></html>

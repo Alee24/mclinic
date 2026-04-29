@@ -38,6 +38,15 @@ export class User {
   @Column({ nullable: true })
   resetToken: string;
 
+  @Column({ type: 'timestamp', nullable: true })
+  resetTokenExpires: Date;
+
+  @Column({ type: 'varchar', length: 10, nullable: true })
+  otp: string | null;
+
+  @Column({ type: 'datetime', nullable: true })
+  otp_expires: Date | null;
+
   @Column()
   password: string;
 

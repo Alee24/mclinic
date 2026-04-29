@@ -26,9 +26,25 @@ export class DoctorsService implements OnModuleInit {
         private nckService: NckVerificationService,
     ) { }
 
-    async getDashboardStats(doctorId: number) {
+    async getDashboardStats(doctorIdOrUserEmail: any) {
+        let doctorId = typeof doctorIdOrUserEmail === 'number' ? doctorIdOrUserEmail : null;
+
+        // If we got an email (from controller), Resolve the doctor
+        if (typeof doctorIdOrUserEmail === 'string') {
+            const doc = await this.doctorsRepository.findOne({ where: { email: doctorIdOrUserEmail } });
+            if (doc) doctorId = Number(doc.id);
+        }
+
+        if (!doctorId) {
+            return { appointmentsToday: 0, totalPatients: 0, pendingReports: 0 };
+        }
+
         // 1. Today's Appointments
-        const todayStr = new Date().toISOString().split('T')[0];
+        // IMPORTANT: Use local time date string or adjust for timezone? 
+        // For now, consistent with existing logic: YYYY-MM-DD
+        const now = new Date();
+        const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
         const appointmentsToday = await this.appointmentsRepository.createQueryBuilder('appointment')
             .where('appointment.doctorId = :doctorId', { doctorId })
             .andWhere('appointment.appointment_date = :today', { today: todayStr })
@@ -40,10 +56,9 @@ export class DoctorsService implements OnModuleInit {
             .select('COUNT(DISTINCT appointment.patientId)', 'count')
             .where('appointment.doctorId = :doctorId', { doctorId })
             .getRawOne();
-        const totalPatients = parseInt(uniquePatients.count || '0');
+        const totalPatients = parseInt(uniquePatients?.count || '0');
 
         // 3. Pending Reports (Completed appointments with NO medical record)
-        // We assume 'medical_record' is the table name as per Entity definition
         const pendingReports = await this.appointmentsRepository
             .createQueryBuilder('appointment')
             .leftJoin('medical_record', 'mr', 'mr.appointmentId = appointment.id')
@@ -214,20 +229,38 @@ export class DoctorsService implements OnModuleInit {
     }
 
     private async createDoctorLogic(dto: any, user: User | null) {
-        // Hash password if present
+        // 1. Hash password if present
         if (dto.password) {
             dto.password = await bcrypt.hash(dto.password, 10);
         }
 
-        // In the new schema, we don't necessarily link to User via user_id
-        // unless we add it back. The production schema uses email/password directly.
+        // 2. Safety: Filter out fields that don't exist in the database schema to prevent crashes
+        // This is crucial because frontend may send UI state fields like 'cadre' or 'confirmPassword'
+        const allowedFields = this.doctorsRepository.metadata.columns.map(c => c.propertyName);
+        const filteredDto = Object.keys(dto)
+            .filter(key => allowedFields.includes(key))
+            .reduce((obj: any, key) => {
+                obj[key] = dto[key];
+                return obj;
+            }, {});
+
+        // 3. Create record using filtered data
         const doctor = this.doctorsRepository.create({
-            ...dto,
-            user_id: user ? user.id : null, // Save user_id if provided
+            ...filteredDto,
+            user_id: user ? user.id : (dto.user_id || null),
             status: 0, // Inactive until verified
             Verified_status: 0,
         } as unknown as DeepPartial<Doctor>);
-        return this.doctorsRepository.save(doctor);
+
+        try {
+            return await this.doctorsRepository.save(doctor);
+        } catch (error) {
+            console.error('[DoctorsService] Registration Error:', error);
+            if (error.code === 'ER_DUP_ENTRY') {
+                throw new BadRequestException('An account with this email already exists.');
+            }
+            throw new BadRequestException('Could not complete registration. Please check your details.');
+        }
     }
 
     async getNearby(lat: number, lng: number, radiusKm: number = 50, includeAll: boolean = false): Promise<any[]> {
@@ -453,6 +486,8 @@ export class DoctorsService implements OnModuleInit {
                 if (updateDto.dob) userUpdate.dob = updateDto.dob;
                 if (updateDto.profile_image) userUpdate.profilePicture = updateDto.profile_image;
                 if (updateDto.password) userUpdate.password = updateDto.password;
+                if (updateDto.licenceNo) userUpdate.licenseNumber = updateDto.licenceNo;
+                if (updateDto.national_id) userUpdate.national_id = updateDto.national_id;
 
                 await this.usersService.updateByEmail(updatedDoctor.email, userUpdate);
             } catch (err) {
@@ -564,15 +599,20 @@ export class DoctorsService implements OnModuleInit {
 
         return {
             success: true,
-            data: {
-                serialNumber,
-                name: `DR. ${doctor.fname} ${doctor.lname}`,
-                qualification: doctor.qualification,
-                speciality: doctor.dr_type,
-                licenseNo: doctor.licenceNo,
-                photo: doctor.profile_image,
-                qrCode: qrCodeDataUrl,
+            serialNumber,
+            doctor: {
+                name: `${doctor.fname} ${doctor.lname}`,
+                email: doctor.email,
+                mobile: doctor.mobile,
+                speciality: doctor.dr_type || 'Medic',
+                licenseNumber: doctor.licenceNo,
+                licenseExpiry: doctor.updated_at, // Using updated_at as a placeholder if expiry is missing
+                drType: doctor.dr_type,
+                profileImage: doctor.profile_image?.startsWith('http') ? doctor.profile_image : (doctor.profile_image ? `https://portal.mclinic.co.ke/api/uploads/profiles/${doctor.profile_image}` : null),
             },
+            qrCode: qrCodeDataUrl,
+            issuedDate: new Date().toISOString(),
+            verificationUrl,
         };
     }
 

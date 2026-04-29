@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Visit Details - Healthcare Excellence</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed": "#d5e4f3",
+                    "outline": "#74777c",
+                    "on-error": "#ffffff",
+                    "tertiary-fixed-dim": "#ffb2b8",
+                    "on-tertiary-container": "#ff4f6e",
+                    "error": "#ba1a1a",
+                    "surface": "#f7f9fb",
+                    "inverse-primary": "#b9c8d7",
+                    "inverse-surface": "#2d3133",
+                    "primary": "#081621",
+                    "on-error-container": "#93000a",
+                    "on-secondary-fixed": "#00210a",
+                    "secondary-container": "#5efc8d",
+                    "primary-fixed-dim": "#b9c8d7",
+                    "on-tertiary-fixed-variant": "#91002d",
+                    "on-secondary-container": "#007233",
+                    "surface-container-high": "#e6e8ea",
+                    "on-tertiary-fixed": "#40000f",
+                    "on-secondary-fixed-variant": "#005323",
+                    "surface-container": "#eceef0",
+                    "tertiary-container": "#5a0018",
+                    "on-surface": "#191c1e",
+                    "on-secondary": "#ffffff",
+                    "surface-bright": "#f7f9fb",
+                    "on-primary-container": "#8492a0",
+                    "on-primary-fixed": "#0f1d28",
+                    "surface-tint": "#52606c",
+                    "secondary": "#006d31",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-on-surface": "#eff1f3",
+                    "on-tertiary": "#ffffff",
+                    "outline-variant": "#c4c7cb",
+                    "surface-container-highest": "#e0e3e5",
+                    "error-container": "#ffdad6",
+                    "tertiary-fixed": "#ffdadb",
+                    "tertiary": "#34000a",
+                    "on-primary": "#ffffff",
+                    "secondary-fixed": "#65ff90",
+                    "primary-container": "#1d2b36",
+                    "on-background": "#191c1e",
+                    "background": "#f7f9fb",
+                    "surface-dim": "#d8dadc",
+                    "on-primary-fixed-variant": "#3a4854",
+                    "surface-variant": "#e0e3e5",
+                    "surface-container-low": "#f2f4f6",
+                    "secondary-fixed-dim": "#3ee276",
+                    "on-surface-variant": "#43474b"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "md": "16px",
+                    "margin": "24px",
+                    "xs": "4px",
+                    "unit": "4px",
+                    "gutter": "24px",
+                    "sm": "8px",
+                    "xxl": "48px",
+                    "container-max": "1280px",
+                    "lg": "24px",
+                    "xl": "32px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Public Sans"],
+                    "label-lg": ["Public Sans"],
+                    "display-lg": ["Public Sans"],
+                    "label-md": ["Public Sans"],
+                    "body-md": ["Public Sans"],
+                    "body-lg": ["Public Sans"],
+                    "body-sm": ["Public Sans"],
+                    "headline-lg": ["Public Sans"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "label-lg": ["14px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-md": ["12px", {"lineHeight": "14px", "fontWeight": "500"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .form-focus-ring:focus {
+            outline: 2px solid #1d2b36;
+            outline-offset: 2px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 fixed top-0 w-full z-50">
+<div class="flex justify-between items-center px-4 h-16 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors duration-200 rounded-lg">
+<span class="material-symbols-outlined text-slate-900 dark:text-slate-100">arrow_back</span>
+</button>
+<h1 class="font-['Public_Sans'] font-semibold text-lg tracking-tight text-slate-900 dark:text-slate-100">Healthcare Excellence</h1>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center overflow-hidden">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="A professional headshot of a person with a friendly expression, set against a clean, softly blurred office background. The lighting is bright and natural, reflecting a clinical yet welcoming atmosphere. The overall aesthetic is corporate and modern, consistent with a high-end healthcare application's user profile section." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtmTuTfEXU8wW4B543LIrTzLSOIicL0QsFa7WoGBIUddM57mg6RBlemEPAc7aDJD8XBaNMf5CXtKODFe9vTyUS4SCWeQU6Yj75k8Q_9-LHNM6JPAa_0fLYa9vcaw6UMb6Edp0eGXGGqGJRVMua_6bqtNbpk_Of6r8nLqsykYyQ0bsqfn4oEEXyMHDNBwIseEyQbQi15wtBuKdIzYl6c8f1fDOZOySdfeMPYwrVgmsGVUioP5_ZoC07Q6YBOQuzsL8wpl_Eum2H0fA"/>
+</div>
+</div>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-2xl mx-auto">
+<!-- Header Section -->
+<section class="mb-xl">
+<h2 class="font-headline-lg text-headline-lg text-primary mb-sm">Visit Details</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Please provide the necessary information to prepare for your upcoming consultation.</p>
+</section>
+<!-- Form Section -->
+<form class="space-y-lg">
+<!-- Consultation Type Selection -->
+<div class="space-y-sm">
+<label class="font-label-lg text-label-lg text-primary block mb-xs">CONSULTATION TYPE</label>
+<div class="grid grid-cols-2 gap-md">
+<label class="relative flex flex-col items-center justify-center p-lg bg-surface-container-lowest border border-outline-variant rounded-xl cursor-pointer hover:bg-surface-container-low transition-colors group">
+<input checked="" class="peer absolute top-3 right-3 text-secondary focus:ring-secondary border-outline-variant" name="consultation_type" type="radio" value="in_person"/>
+<span class="material-symbols-outlined text-4xl mb-sm text-on-surface-variant peer-checked:text-secondary">location_on</span>
+<span class="font-label-lg text-label-lg text-primary">In-person</span>
+<span class="font-label-md text-label-md text-on-surface-variant">At the clinic</span>
+</label>
+<label class="relative flex flex-col items-center justify-center p-lg bg-surface-container-lowest border border-outline-variant rounded-xl cursor-pointer hover:bg-surface-container-low transition-colors group">
+<input class="peer absolute top-3 right-3 text-secondary focus:ring-secondary border-outline-variant" name="consultation_type" type="radio" value="virtual"/>
+<span class="material-symbols-outlined text-4xl mb-sm text-on-surface-variant peer-checked:text-secondary">videocam</span>
+<span class="font-label-lg text-label-lg text-primary">Virtual</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Video call</span>
+</label>
+</div>
+</div>
+<!-- Reason for Visit -->
+<div class="space-y-sm">
+<label class="font-label-lg text-label-lg text-primary block mb-xs" for="reason">REASON FOR VISIT</label>
+<textarea class="w-full bg-surface-container-lowest border-outline-variant rounded-lg p-md font-body-md text-body-md focus:ring-2 focus:ring-primary focus:border-primary placeholder:text-outline-variant" id="reason" placeholder="Briefly describe your symptoms or reason for booking..." rows="5"></textarea>
+</div>
+<!-- File Upload Section -->
+<div class="space-y-sm">
+<label class="font-label-lg text-label-lg text-primary block mb-xs">PREVIOUS REPORTS (OPTIONAL)</label>
+<div class="relative group">
+<div class="w-full border-2 border-dashed border-outline-variant rounded-xl p-xl flex flex-col items-center justify-center bg-surface-container-low group-hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-outline text-4xl mb-sm">cloud_upload</span>
+<p class="font-body-md text-body-md text-primary font-semibold">Upload medical documents</p>
+<p class="font-label-md text-label-md text-on-surface-variant mt-xs text-center">Support for PDF, JPG, or PNG (Max 10MB each)</p>
+<input class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" type="file"/>
+</div>
+</div>
+<!-- File Preview Example (Hidden state) -->
+<div class="mt-sm space-y-sm">
+<div class="flex items-center justify-between p-sm bg-surface-container-highest rounded-lg border border-outline-variant">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary">description</span>
+<span class="font-label-md text-label-md text-primary">blood_work_oct2023.pdf</span>
+</div>
+<button class="text-error hover:bg-error-container p-xs rounded-md transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Submit Button -->
+<div class="pt-lg">
+<button class="w-full bg-primary text-on-primary font-label-lg text-label-lg py-lg rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-sm" type="submit">
+                    Continue to Booking
+                    <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</form>
+<!-- Informational Card -->
+<div class="mt-xl p-lg bg-primary-fixed border border-primary-fixed-dim rounded-xl flex gap-md items-start">
+<span class="material-symbols-outlined text-primary text-2xl">info</span>
+<div class="space-y-xs">
+<p class="font-label-lg text-label-lg text-primary">Confidentiality Guarantee</p>
+<p class="font-body-sm text-body-sm text-on-primary-fixed-variant leading-snug">Your medical information is encrypted and only shared with the attending specialist for your consultation.</p>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-2 py-3 pb-safe bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 shadow-[0_-1px_3px_0_rgba(0,0,0,0.05)] z-50 md:hidden">
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 p-2 hover:text-slate-900 dark:hover:text-white transition-transform scale-95 active:scale-90" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-['Public_Sans'] text-[12px] font-medium tracking-wide">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg p-2 transition-transform scale-95 active:scale-90" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
+<span class="font-['Public_Sans'] text-[12px] font-medium tracking-wide">Bookings</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 p-2 hover:text-slate-900 dark:hover:text-white transition-transform scale-95 active:scale-90" href="#">
+<span class="material-symbols-outlined">mail</span>
+<span class="font-['Public_Sans'] text-[12px] font-medium tracking-wide">Inbox</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 p-2 hover:text-slate-900 dark:hover:text-white transition-transform scale-95 active:scale-90" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Public_Sans'] text-[12px] font-medium tracking-wide">Profile</span>
+</a>
+</nav>
+</body></html>

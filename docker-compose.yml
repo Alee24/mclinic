@@ -1,16 +1,76 @@
 version: '3.8'
+
 services:
-  db:
+  mclinic-db:
     image: mysql:8.0
+    container_name: mclinic-db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ''
-      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
-      MYSQL_DATABASE: mclinic
+      MYSQL_ROOT_PASSWORD: 'Mclinic@Root2026'
+      MYSQL_DATABASE: mclinicportal
+      MYSQL_USER: m-cl-app
+      MYSQL_PASSWORD: 'Mclinic@App2023?'
     ports:
       - '3306:3306'
     volumes:
-      - mysql_data:/var/lib/mysql
+      - mclinic_mysql_data:/var/lib/mysql
+      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u$$MYSQL_USER", "-p$$MYSQL_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mclinic-network
+
+  mclinic-api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: mclinic-api
+    restart: always
+    depends_on:
+      mclinic-db:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - PORT=7899
+      - DB_HOST=mclinic-db
+      - DB_PORT=3306
+      - DB_USER=m-cl-app
+      - DB_PASSWORD=Mclinic@App2023?
+      - DB_NAME=mclinicportal
+      - JWT_SECRET=mclinic-secret-key-prod-2026
+      - APP_URL=https://portal.mclinic.co.ke
+    ports:
+      - '7899:7899'
+    volumes:
+      - ./apps/api/uploads:/app/apps/api/uploads
+    networks:
+      - mclinic-network
+
+  mclinic-web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=https://portal.mclinic.co.ke/api
+    container_name: mclinic-web
+    restart: always
+    depends_on:
+      - mclinic-api
+    environment:
+      - PORT=5054
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=https://portal.mclinic.co.ke/api
+    ports:
+      - '5054:5054'
+    networks:
+      - mclinic-network
 
 volumes:
-  mysql_data:
+  mclinic_mysql_data:
+
+networks:
+  mclinic-network:
+    driver: bridge

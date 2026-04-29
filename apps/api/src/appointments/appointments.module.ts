@@ -9,6 +9,7 @@ import { Invoice } from '../financial/entities/invoice.entity';
 import { FinancialModule } from '../financial/financial.module';
 import { EmailModule } from '../email/email.module';
 import { SmsModule } from '../sms/sms.module';
+import { SystemSettingsModule } from '../system-settings/system-settings.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { SmsModule } from '../sms/sms.module';
     EmailModule,
     SmsModule,
     DoctorsModule,
+    SystemSettingsModule,
   ],
   controllers: [AppointmentsController],
   providers: [AppointmentsService],

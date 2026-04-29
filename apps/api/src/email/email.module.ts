@@ -19,6 +19,9 @@ import { EmailController } from './email.controller';
                         user: config.get('SMTP_USER'),
                         pass: config.get('SMTP_PASS'),
                     },
+                    tls: {
+                        rejectUnauthorized: false
+                    }
                 },
                 defaults: {
                     from: `"${config.get('SMTP_FROM_NAME')}" <${config.get('SMTP_FROM_EMAIL')}>`,

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-primary": "#b9c8d7",
+                    "on-primary-fixed": "#0f1d28",
+                    "error": "#ba1a1a",
+                    "on-secondary-fixed": "#00210a",
+                    "on-tertiary-container": "#ff4f6e",
+                    "inverse-on-surface": "#eff1f3",
+                    "on-secondary-fixed-variant": "#005323",
+                    "surface-container-highest": "#e0e3e5",
+                    "tertiary": "#34000a",
+                    "on-primary-container": "#8492a0",
+                    "on-surface": "#191c1e",
+                    "on-secondary-container": "#007233",
+                    "secondary": "#006d31",
+                    "on-secondary": "#ffffff",
+                    "surface-bright": "#f7f9fb",
+                    "surface-container": "#eceef0",
+                    "surface-container-low": "#f2f4f6",
+                    "tertiary-fixed": "#ffdadb",
+                    "primary-fixed": "#d5e4f3",
+                    "primary-fixed-dim": "#b9c8d7",
+                    "inverse-surface": "#2d3133",
+                    "surface-container-high": "#e6e8ea",
+                    "primary-container": "#1d2b36",
+                    "on-error-container": "#93000a",
+                    "on-primary": "#ffffff",
+                    "surface-container-lowest": "#ffffff",
+                    "outline-variant": "#c4c7cb",
+                    "surface-tint": "#52606c",
+                    "error-container": "#ffdad6",
+                    "tertiary-fixed-dim": "#ffb2b8",
+                    "tertiary-container": "#5a0018",
+                    "secondary-fixed": "#65ff90",
+                    "secondary-fixed-dim": "#3ee276",
+                    "on-tertiary-fixed": "#40000f",
+                    "on-background": "#191c1e",
+                    "on-tertiary-fixed-variant": "#91002d",
+                    "surface-dim": "#d8dadc",
+                    "on-tertiary": "#ffffff",
+                    "primary": "#081621",
+                    "surface-variant": "#e0e3e5",
+                    "background": "#f7f9fb",
+                    "surface": "#f7f9fb",
+                    "on-surface-variant": "#43474b",
+                    "on-error": "#ffffff",
+                    "secondary-container": "#5efc8d",
+                    "outline": "#74777c",
+                    "on-primary-fixed-variant": "#3a4854"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "xs": "4px",
+                    "xl": "32px",
+                    "lg": "24px",
+                    "gutter": "24px",
+                    "sm": "8px",
+                    "container-max": "1280px",
+                    "xxl": "48px",
+                    "md": "16px",
+                    "unit": "4px",
+                    "margin": "24px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Public Sans"],
+                    "headline-lg": ["Public Sans"],
+                    "body-lg": ["Public Sans"],
+                    "body-md": ["Public Sans"],
+                    "label-lg": ["Public Sans"],
+                    "body-sm": ["Public Sans"],
+                    "display-lg": ["Public Sans"],
+                    "label-md": ["Public Sans"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-lg": ["14px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-md": ["12px", {"lineHeight": "14px", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Public Sans', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen">
+<header class="bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 fixed top-0 w-full z-50 border-b border-slate-100 dark:border-slate-800 transition-colors duration-200">
+<div class="flex justify-between items-center px-4 h-16 w-full max-w-full">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-primary-fixed-variant">menu</span>
+<h1 class="text-xl font-black text-[#1D2B36] dark:text-white tracking-tight">CareConnect</h1>
+</div>
+<div class="flex items-center gap-md">
+<div class="hidden md:flex gap-lg mr-lg">
+<span class="text-[#1D2B36] dark:text-white font-bold font-label-lg text-label-lg">Home</span>
+<span class="text-slate-500 dark:text-slate-400 font-label-lg text-label-lg hover:bg-slate-50 dark:hover:bg-slate-900 px-2 rounded">Booking</span>
+<span class="text-slate-500 dark:text-slate-400 font-label-lg text-label-lg hover:bg-slate-50 dark:hover:bg-slate-900 px-2 rounded">Pharmacy</span>
+</div>
+<span class="material-symbols-outlined text-slate-900 dark:text-slate-100">notifications</span>
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden border border-outline-variant">
+<img alt="User" data-alt="A professional studio headshot of a friendly Alex Johnson, a patient in their 30s with a warm expression. The lighting is soft and high-key, emphasizing a clean, modern clinical environment in the background. The style is professional, polished, and fits perfectly within a premium healthcare application's light-mode aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDshaplVGX8JpgMkfQB5SntGdSCbA8vRIN9P4FIhk2h4vMDcnQ44hA_z1O5yPLt1G8M5c7C8LQIjsogSJF7eVs_1QcapOczTjjGeBkVfkov08L31_mdfOUMMoTIATNNCBVPoCBs2ArM5Hg8DU7wDESB4amuF_P2FZNlyJfFC64LK5jjdXwiGNSmR2eAKEfp30OjBzZ6rr7XoxpTIO5ej_-F8eX_-WbUdPf_V-s2B_q5fmtXW8RvA3rxl76O9Zqb48DZXVQDzjDh0KQ"/>
+</div>
+</div>
+</div>
+</header>
+<main class="pt-20 pb-24 px-gutter max-w-container-max mx-auto">
+<section class="mb-xl">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-md mb-lg">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-primary-container">Book Consultation</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Select your specialty and find the right specialist for your needs.</p>
+</div>
+<div class="flex gap-sm">
+<button class="flex items-center gap-xs px-md py-sm bg-primary-container text-white rounded-full font-label-md text-label-md transition-all active:scale-95 shadow-sm">
+<span class="material-symbols-outlined text-[18px]">location_on</span>
+                        New York, NY
+                    </button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<div class="md:col-span-4 space-y-lg">
+<div class="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant">
+<h3 class="font-label-lg text-label-lg mb-md text-primary-container">1. Medical Specialty</h3>
+<div class="grid grid-cols-2 gap-sm">
+<button class="flex flex-col items-center justify-center p-md bg-secondary-container text-on-secondary-container rounded-lg border-2 border-secondary transition-all">
+<span class="material-symbols-outlined mb-xs" style="font-variation-settings: 'FILL' 1;">medical_services</span>
+<span class="font-label-md text-label-md">General</span>
+</button>
+<button class="flex flex-col items-center justify-center p-md bg-white text-on-surface-variant rounded-lg border border-outline-variant hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined mb-xs">child_care</span>
+<span class="font-label-md text-label-md">Pediatrics</span>
+</button>
+<button class="flex flex-col items-center justify-center p-md bg-white text-on-surface-variant rounded-lg border border-outline-variant hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined mb-xs">favorite</span>
+<span class="font-label-md text-label-md">Cardiology</span>
+</button>
+<button class="flex flex-col items-center justify-center p-md bg-white text-on-surface-variant rounded-lg border border-outline-variant hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined mb-xs">psychiatry</span>
+<span class="font-label-md text-label-md">Mental Health</span>
+</button>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant">
+<h3 class="font-label-lg text-label-lg mb-md text-primary-container">2. Consultation Type</h3>
+<div class="flex gap-sm">
+<label class="flex-1 cursor-pointer">
+<input checked="" class="hidden peer" name="cons_type" type="radio"/>
+<div class="flex flex-col items-center p-md border-2 border-outline-variant rounded-lg peer-checked:border-secondary peer-checked:bg-secondary-container/20 transition-all">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-label-md text-label-md mt-xs">In-person</span>
+</div>
+</label>
+<label class="flex-1 cursor-pointer">
+<input class="hidden peer" name="cons_type" type="radio"/>
+<div class="flex flex-col items-center p-md border-2 border-outline-variant rounded-lg peer-checked:border-secondary peer-checked:bg-secondary-container/20 transition-all">
+<span class="material-symbols-outlined text-on-surface-variant">videocam</span>
+<span class="font-label-md text-label-md mt-xs">Virtual</span>
+</div>
+</label>
+</div>
+</div>
+</div>
+<div class="md:col-span-8 space-y-lg">
+<div class="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant">
+<div class="flex justify-between items-center mb-lg">
+<h3 class="font-label-lg text-label-lg text-primary-container">3. Choose Your Doctor</h3>
+<div class="flex items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+<span class="font-label-md text-label-md">Filter</span>
+</div>
+</div>
+<div class="space-y-md">
+<div class="group relative flex flex-col sm:flex-row gap-lg p-lg bg-white border border-outline-variant rounded-xl hover:border-secondary transition-all cursor-pointer">
+<div class="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0">
+<img alt="Dr. Sarah Jenkins" data-alt="A professional portrait of Dr. Sarah Jenkins, a friendly-looking female physician with grey hair, wearing a white lab coat and a stethoscope. She is positioned against a soft-focus clinical background with bright, airy daylight. The image evokes trust, experience, and professional medical excellence in a high-end corporate healthcare setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHoIYYWRrkLKu6slqTbbrBCdEzpX8CaqeuiCdDCyMBfFYot15jfsvigpCMZd_nIuxoIIlQdlVBWX6zLpcg84_Ysg5kUBQGxViLTOfgJKQMXfPvn6KjZshqHw-9i-cAJ1OLfCKYoSXhAbYXsM-HDS85vyDaojz-1eayrAA1U9QzK_sYtyfqrvsZrql0Wx3HFormcWUzy6QzP4AwkeXStQeOc7X676fJ7V4cy7nc7WeuSs2p9gfpkpy8Nk589RhwisuMlK3_axv4nZo"/>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-headline-md text-body-lg font-bold text-primary-container">Dr. Sarah Jenkins</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Senior Cardiologist • 15 yrs exp.</p>
+</div>
+<div class="flex items-center gap-xs bg-secondary-container px-sm py-xs rounded text-on-secondary-container">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-md text-label-md">4.9 (124)</span>
+</div>
+</div>
+<div class="mt-md flex flex-wrap gap-sm">
+<span class="px-sm py-xs bg-surface-container text-on-surface-variant font-label-md text-label-md rounded">Mon, 10 Oct</span>
+<span class="px-sm py-xs bg-surface-container text-on-surface-variant font-label-md text-label-md rounded">Wed, 12 Oct</span>
+<span class="px-sm py-xs bg-secondary-container text-on-secondary-container font-label-md text-label-md rounded font-bold">Earliest: Today</span>
+</div>
+</div>
+<div class="absolute top-lg right-lg sm:relative sm:top-0 sm:right-0 flex items-center">
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</div>
+</div>
+<div class="group flex flex-col sm:flex-row gap-lg p-lg bg-white border-2 border-primary-container rounded-xl transition-all cursor-pointer shadow-sm relative">
+<div class="absolute -top-3 left-4 bg-primary-container text-white px-md py-xs rounded-full font-label-md text-[10px] tracking-widest uppercase">Selected</div>
+<div class="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0">
+<img alt="Dr. Marcus Thorne" data-alt="A professional headshot of Dr. Marcus Thorne, a male cardiologist in his late 40s, wearing business casual attire under a white physician's coat. He has a reassuring smile and is set against a clean, modern medical facility background with blue and white tones. The lighting is crisp and sterile yet welcoming, reflecting clinical precision." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3SOriuBB6lcuIpK6W7XsWimyExI64kTTdH5UUq0BZRncJUgHBXsYMFNbcsDxktWaWUlLzwndciMJLULu-PQaPtvf2lAMtQk35tFltHJ1HZSGtDkqsLdFfQCQQ6HC7mVcoTsTmFCEXGIBilGo92z50Cf68CzrpjKVLvQKwoMWaNNI02N01o9WPpfvH8VKhRStMqare2ffmnz6PPpbGK0R9zVTihtDA70a5pbCOZBjbBgsELUyoGDIM2OnOq4ncEa3OOxHbuoPU_ms"/>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-headline-md text-body-lg font-bold text-primary-container">Dr. Marcus Thorne</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">General Practitioner • 8 yrs exp.</p>
+</div>
+<div class="flex items-center gap-xs bg-secondary-container px-sm py-xs rounded text-on-secondary-container">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-md text-label-md">4.8 (89)</span>
+</div>
+</div>
+<div class="mt-md space-y-md">
+<div class="flex gap-sm overflow-x-auto pb-xs">
+<button class="flex-shrink-0 px-lg py-sm bg-primary-container text-white rounded-lg text-center">
+<span class="block font-label-md text-label-md">Today</span>
+<span class="block font-label-lg text-label-lg">09:30 AM</span>
+</button>
+<button class="flex-shrink-0 px-lg py-sm bg-white border border-outline-variant text-on-surface-variant rounded-lg text-center hover:border-secondary">
+<span class="block font-label-md text-label-md">Today</span>
+<span class="block font-label-lg text-label-lg">11:00 AM</span>
+</button>
+<button class="flex-shrink-0 px-lg py-sm bg-white border border-outline-variant text-on-surface-variant rounded-lg text-center hover:border-secondary">
+<span class="block font-label-md text-label-md">Today</span>
+<span class="block font-label-lg text-label-lg">02:15 PM</span>
+</button>
+<button class="flex-shrink-0 px-lg py-sm bg-white border border-outline-variant text-on-surface-variant rounded-lg text-center hover:border-secondary">
+<span class="block font-label-md text-label-md">Tomorrow</span>
+<span class="block font-label-lg text-label-lg">10:00 AM</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="flex flex-col sm:flex-row gap-md">
+<button class="flex-1 py-lg bg-surface-container-high text-primary-container font-headline-md rounded-xl hover:bg-surface-container-highest transition-all border border-outline-variant">
+                            Save for Later
+                        </button>
+<button class="flex-[2] py-lg bg-secondary text-white font-headline-md rounded-xl hover:opacity-90 shadow-lg shadow-secondary/20 transition-all flex items-center justify-center gap-md">
+                            Confirm Appointment
+                            <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<section class="mt-xxl bg-primary-container text-white rounded-xxl p-xxl overflow-hidden relative">
+<div class="relative z-10 max-w-2xl">
+<span class="bg-error px-md py-xs rounded-full font-label-md text-label-md mb-lg inline-block">EMERGENCY ASSISTANCE</span>
+<h3 class="font-display-lg text-headline-lg mb-md">Need immediate medical attention?</h3>
+<p class="font-body-lg text-body-lg text-on-primary-container mb-xl">Our rapid response team and virtual emergency triage are available 24/7 for critical care situations.</p>
+<div class="flex flex-wrap gap-md">
+<button class="px-xl py-lg bg-[#C2003F] text-white font-bold rounded-xl flex items-center gap-md shadow-xl active:scale-95 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">emergency</span>
+                        Call Ambulance Now
+                    </button>
+<button class="px-xl py-lg bg-white/10 backdrop-blur-md text-white font-bold rounded-xl flex items-center gap-md border border-white/20 hover:bg-white/20 transition-all">
+<span class="material-symbols-outlined">video_chat</span>
+                        Instant Telehealth
+                    </button>
+</div>
+</div>
+<div class="absolute right-0 bottom-0 top-0 w-1/3 hidden lg:block opacity-20">
+<img alt="Medical Center" class="w-full h-full object-cover" data-alt="A futuristic medical center architecture with sleek glass and white steel structures. The environment is impeccably clean with high-tech diagnostic elements and soft blue glowing accents. The lighting is professional and calming, illustrating a state-of-the-art facility for critical care and emergency services." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBW1ExuEdmaCA1rWwN73FDZco1YBMU6GKDV1ZUrlI2rjwsKXAG8nDx2D2esTBaY5hF2L00rkoQmkGGULknVI9HEWDOlDv-VQoGzoWsvtLG1hlSAvycRzhnKtiP_iM_ZiUvlsPo80TzQy6KEDXW9om9HAzjRu3XQYHQdd3bAjV34ZUyz5aaiNQHgk-klUkplnALlkeRqJiwEPdEmWzHDy0L5_abzlpgATNm5RqegJp-MWOm73FYeKfLxzUphjBiNbzn51MsIf90TNLk"/>
+</div>
+</section>
+</main>
+<footer class="md:hidden">
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 py-3 bg-white dark:bg-slate-950 pb-safe shadow-[0_-2px_10px_rgba(0,0,0,0.05)] border-t border-slate-100 dark:border-slate-800">
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 opacity-80">
+<span class="material-symbols-outlined">home</span>
+<span class="font-['Public_Sans'] text-[10px] font-medium">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#1D2B36] dark:text-blue-400 scale-105 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
+<span class="font-['Public_Sans'] text-[10px] font-medium">Booking</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 opacity-80">
+<span class="material-symbols-outlined">medical_services</span>
+<span class="font-['Public_Sans'] text-[10px] font-medium">Pharmacy</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 opacity-80">
+<span class="material-symbols-outlined">biotech</span>
+<span class="font-['Public_Sans'] text-[10px] font-medium">Labs</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 opacity-80">
+<span class="material-symbols-outlined text-error">emergency</span>
+<span class="font-['Public_Sans'] text-[10px] font-medium">Emergency</span>
+</div>
+</nav>
+</footer>
+</body></html>

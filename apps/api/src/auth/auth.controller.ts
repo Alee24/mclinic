@@ -36,4 +36,30 @@ export class AuthController {
   async resendVerification(@Body() body: { email: string }) {
     return this.authService.resendVerificationEmail(body.email);
   }
+  
+  @Post('forgot-password')
+  async forgotPassword(@Body('email') email: string) {
+    return this.authService.forgotPassword(email);
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() body: { token: string; password: string }) {
+    return this.authService.resetPassword(body.token, body.password);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('impersonate')
+  async impersonate(@Body('userId') userId: number, @Request() req: any) {
+    return this.authService.impersonate(req.user.id, userId);
+  }
+
+  @Post('otp/send')
+  async sendOtp(@Body() body: { mobile: string; userType?: 'patient' | 'provider' }) {
+    return this.authService.sendOtp(body.mobile, body.userType);
+  }
+
+  @Post('otp/login')
+  async loginWithOtp(@Body() body: { mobile: string; otp: string; userType?: 'patient' | 'provider' }) {
+    return this.authService.loginWithOtp(body.mobile, body.otp, body.userType);
+  }
 }

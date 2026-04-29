@@ -1,0 +1,1 @@
+SELECT * FROM system_setting WHERE `key` = 'EMAIL_NOTIFICATIONS_ENABLED';

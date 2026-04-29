@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Consultation Summary | MediConsult</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed": "#65ff90",
+                        "inverse-on-surface": "#eff1f3",
+                        "surface-bright": "#f7f9fb",
+                        "on-secondary-fixed": "#00210a",
+                        "inverse-primary": "#b9c8d7",
+                        "surface-container": "#eceef0",
+                        "on-background": "#191c1e",
+                        "error-container": "#ffdad6",
+                        "secondary": "#006d31",
+                        "surface-variant": "#e0e3e5",
+                        "on-surface": "#191c1e",
+                        "tertiary-fixed-dim": "#ffb2b8",
+                        "primary-fixed": "#d5e4f3",
+                        "error": "#ba1a1a",
+                        "surface-container-low": "#f2f4f6",
+                        "surface": "#f7f9fb",
+                        "on-error-container": "#93000a",
+                        "primary-fixed-dim": "#b9c8d7",
+                        "on-primary-fixed": "#0f1d28",
+                        "tertiary": "#34000a",
+                        "on-primary": "#ffffff",
+                        "background": "#f7f9fb",
+                        "on-secondary-container": "#007233",
+                        "tertiary-fixed": "#ffdadb",
+                        "surface-container-high": "#e6e8ea",
+                        "on-primary-fixed-variant": "#3a4854",
+                        "outline-variant": "#c4c7cb",
+                        "on-error": "#ffffff",
+                        "surface-dim": "#d8dadc",
+                        "on-secondary": "#ffffff",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#5a0018",
+                        "secondary-container": "#5efc8d",
+                        "on-tertiary-fixed-variant": "#91002d",
+                        "inverse-surface": "#2d3133",
+                        "on-surface-variant": "#43474b",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-tint": "#52606c",
+                        "on-tertiary-fixed": "#40000f",
+                        "on-secondary-fixed-variant": "#005323",
+                        "secondary-fixed-dim": "#3ee276",
+                        "outline": "#74777c",
+                        "on-tertiary-container": "#ff4f6e",
+                        "primary-container": "#1d2b36",
+                        "primary": "#081621",
+                        "on-primary-container": "#8492a0"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xxl": "48px",
+                        "xl": "32px",
+                        "sm": "8px",
+                        "xs": "4px",
+                        "gutter": "24px",
+                        "md": "16px",
+                        "lg": "24px",
+                        "unit": "4px",
+                        "margin": "24px",
+                        "container-max": "1280px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Public Sans"],
+                        "headline-lg": ["Public Sans"],
+                        "display-lg": ["Public Sans"],
+                        "body-sm": ["Public Sans"],
+                        "headline-md": ["Public Sans"],
+                        "label-lg": ["Public Sans"],
+                        "body-md": ["Public Sans"],
+                        "body-lg": ["Public Sans"]
+                    },
+                    "fontSize": {
+                        "label-md": ["12px", {"lineHeight": "14px", "fontWeight": "500"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "label-lg": ["14px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Public Sans', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface">
+<header class="bg-white dark:bg-slate-950 border-b border-slate-100 dark:border-slate-800 docked full-width top-0 z-50">
+<div class="flex justify-between items-center w-full px-4 md:px-6 h-16 max-w-7xl mx-auto">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="medical_services">medical_services</span>
+<h1 class="text-lg font-black text-slate-900 dark:text-slate-50 tracking-tighter">MediConsult</h1>
+</div>
+<button class="bg-[#C2003F] text-white px-4 py-2 rounded-lg font-public-sans text-sm font-semibold tracking-tight transition-opacity active:opacity-80">
+                Emergency
+            </button>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-4 md:px-6 py-gutter mb-xxl">
+<div class="mb-xl flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<span class="inline-block px-3 py-1 bg-secondary-container text-on-secondary-container font-label-lg text-label-lg rounded-full mb-2">Visit Completed</span>
+<h2 class="font-headline-lg text-headline-lg text-primary">Consultation Summary</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Session ID: #MC-882910-2023</p>
+</div>
+<button class="flex items-center justify-center gap-2 px-gutter py-3 border border-outline rounded-xl font-label-lg text-label-lg hover:bg-slate-50 transition-colors">
+<span class="material-symbols-outlined" data-icon="download">download</span>
+                Download PDF Summary
+            </button>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<div class="lg:col-span-4 space-y-gutter">
+<section class="bg-surface-container-lowest border border-outline-variant p-lg rounded-xl">
+<h3 class="font-label-lg text-label-lg text-on-surface-variant uppercase mb-4">Doctor Information</h3>
+<div class="flex items-center gap-4 mb-gutter">
+<div class="w-16 h-16 rounded-full overflow-hidden border-2 border-primary-fixed">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a middle-aged male physician with a warm, empathetic expression. He is wearing a crisp white medical coat and a stethoscope around his neck. The lighting is soft and clinical, set against a clean, out-of-focus medical office background. The overall aesthetic is professional, modern, and high-trust, maintaining a clinical yet accessible feel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCU_RL8rsydvz1JAifd8ZDTKOTpwANre9v9Y2-LHCFZlarluRE62mLWC0qtkz9SKkiFimyRRdKh21MFr9axHXK5r9miIgBg4Qqpshg0J9odg3QKM-oe4kfD231Jmob3cfn8QAbet-eio2ba7ABlzcSzfkSXdhe3si9IsjW15zSOjShgobuqBEqS1ryXfilDD5s3GWY0loOFaJDjTzrjH1YwepqKnJe9TaEwhCv9UuEM3KC47Mjnpa32fisM6PsjVJoSGshlNDQpaX0"/>
+</div>
+<div>
+<p class="font-headline-md text-headline-md text-primary">Dr. Elena Rodriguez</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Senior Immunologist</p>
+</div>
+</div>
+<div class="space-y-3 pt-4 border-t border-slate-100">
+<div class="flex justify-between items-center">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Visit Time</span>
+<span class="font-label-md text-label-md text-on-surface">Oct 24, 2023 • 10:30 AM</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Duration</span>
+<span class="font-label-md text-label-md text-on-surface">24 Minutes</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Mode</span>
+<span class="font-label-md text-label-md text-on-surface flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="videocam">videocam</span> Video Call
+                            </span>
+</div>
+</div>
+</section>
+<section class="bg-surface-container-lowest border border-outline-variant p-lg rounded-xl">
+<h3 class="font-label-lg text-label-lg text-on-surface-variant uppercase mb-4">Primary Diagnosis</h3>
+<div class="p-md bg-tertiary-fixed rounded-lg border border-tertiary-container/10">
+<p class="font-headline-md text-headline-md text-on-tertiary-fixed mb-1">Seasonal Allergies</p>
+<p class="font-body-sm text-body-sm text-on-tertiary-fixed-variant">Acute Rhinoconjunctivitis (H10.1)</p>
+</div>
+<div class="mt-4">
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+                            Patient exhibits classic symptoms of seasonal pollen sensitivity including nasal congestion and ocular irritation. No signs of secondary infection detected during visual assessment.
+                        </p>
+</div>
+</section>
+</div>
+<div class="lg:col-span-8 space-y-gutter">
+<section class="bg-surface-container-lowest border border-outline-variant p-lg rounded-xl">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+<div>
+<h3 class="font-headline-md text-headline-md text-primary">Digital Prescription</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Valid for 30 days from date of issue</p>
+</div>
+<button class="bg-secondary text-on-secondary px-6 py-3 rounded-lg font-label-lg text-label-lg flex items-center justify-center gap-2 active:opacity-80 transition-opacity">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+                            Order via Pharmacy
+                        </button>
+</div>
+<div class="space-y-4">
+<div class="flex items-start gap-4 p-md rounded-lg border border-slate-100 hover:border-primary-fixed-dim transition-colors group">
+<div class="w-12 h-12 rounded bg-primary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="medication">medication</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<h4 class="font-label-lg text-label-lg text-primary">Desloratadine 5mg</h4>
+<span class="font-label-md text-label-md text-on-surface-variant">30 Tablets</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-2">Non-drowsy antihistamine</p>
+<div class="flex items-center gap-4">
+<span class="flex items-center gap-1 font-label-md text-label-md text-secondary">
+<span class="material-symbols-outlined text-[14px]" data-icon="schedule">schedule</span> Once daily
+                                    </span>
+<span class="flex items-center gap-1 font-label-md text-label-md text-primary">
+<span class="material-symbols-outlined text-[14px]" data-icon="restaurant">restaurant</span> After meals
+                                    </span>
+</div>
+</div>
+</div>
+<div class="flex items-start gap-4 p-md rounded-lg border border-slate-100 hover:border-primary-fixed-dim transition-colors group">
+<div class="w-12 h-12 rounded bg-primary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="medication_liquid">medication_liquid</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<h4 class="font-label-lg text-label-lg text-primary">Fluticasone Propionate Nasal</h4>
+<span class="font-label-md text-label-md text-on-surface-variant">1 Bottle (120 Sprays)</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-2">Corticosteroid nasal spray</p>
+<div class="flex items-center gap-4">
+<span class="flex items-center gap-1 font-label-md text-label-md text-secondary">
+<span class="material-symbols-outlined text-[14px]" data-icon="schedule">schedule</span> Twice daily
+                                    </span>
+<span class="flex items-center gap-1 font-label-md text-label-md text-primary">
+<span class="material-symbols-outlined text-[14px]" data-icon="info">info</span> 2 sprays per nostril
+                                    </span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="bg-surface-container-lowest border border-outline-variant p-lg rounded-xl">
+<h3 class="font-headline-md text-headline-md text-primary mb-6">Recommended Follow-up Steps</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<div class="flex gap-4 p-4 bg-surface-container-low rounded-xl">
+<span class="material-symbols-outlined text-secondary" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<h4 class="font-label-lg text-label-lg text-on-surface mb-1">Track Symptoms</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Log your daily congestion levels in the Records tab for the next 7 days.</p>
+</div>
+</div>
+<div class="flex gap-4 p-4 bg-surface-container-low rounded-xl">
+<span class="material-symbols-outlined text-secondary" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<h4 class="font-label-lg text-label-lg text-on-surface mb-1">Environmental Control</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Keep windows closed during high pollen count mornings (6 AM - 10 AM).</p>
+</div>
+</div>
+<div class="flex gap-4 p-4 bg-surface-container-low rounded-xl">
+<span class="material-symbols-outlined text-secondary" data-icon="event_repeat" style="font-variation-settings: 'FILL' 0;">event_repeat</span>
+<div>
+<h4 class="font-label-lg text-label-lg text-on-surface mb-1">Follow-up Review</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Book a brief review in 2 weeks if symptoms do not improve with medication.</p>
+</div>
+</div>
+<div class="flex gap-4 p-4 bg-surface-container-low rounded-xl">
+<span class="material-symbols-outlined text-secondary" data-icon="biotech" style="font-variation-settings: 'FILL' 0;">biotech</span>
+<div>
+<h4 class="font-label-lg text-label-lg text-on-surface mb-1">Allergy Panel</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Consider a comprehensive IgE blood test before the spring season begins.</p>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+</main>
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-safe h-16 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-t border-slate-100 dark:border-slate-800 shadow-[0_-2px_10px_rgba(0,0,0,0.02)]">
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 transition-all duration-200 ease-in-out hover:text-slate-600" href="#">
+<span class="material-symbols-outlined" data-icon="videocam">videocam</span>
+<span class="font-public-sans text-[10px] font-medium">Consult</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-900 dark:text-slate-50 font-bold scale-105 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="history" style="font-variation-settings: 'FILL' 1;">history</span>
+<span class="font-public-sans text-[10px] font-medium">History</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 transition-all duration-200 ease-in-out hover:text-slate-600" href="#">
+<span class="material-symbols-outlined" data-icon="clinical_notes">clinical_notes</span>
+<span class="font-public-sans text-[10px] font-medium">Records</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 transition-all duration-200 ease-in-out hover:text-slate-600" href="#">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+<span class="font-public-sans text-[10px] font-medium">Profile</span>
+</a>
+</nav>
+</body></html>

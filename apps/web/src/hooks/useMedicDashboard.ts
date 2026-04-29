@@ -25,6 +25,15 @@ export function useMedicDashboard() {
 
     const fetchData = useCallback(async () => {
         if (!user?.email) return;
+
+        // Prevent fetching if not a medic role (e.g. Admin/Patient)
+        const role = (user?.role || '').toLowerCase();
+        const isMedic = ['doctor', 'medic', 'nurse', 'clinician'].includes(role);
+        if (!isMedic) {
+            setLoading(false);
+            return;
+        }
+
         setLoading(true);
         try {
             // 1. Fetch Profile

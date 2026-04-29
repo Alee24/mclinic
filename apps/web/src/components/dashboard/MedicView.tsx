@@ -11,6 +11,7 @@ import { useMedicDashboard } from '@/hooks/useMedicDashboard';
 import MedicStats from './medic/MedicStats';
 import UpcomingAppointments from './medic/UpcomingAppointments';
 import QuickActions from './medic/QuickActions';
+import OnboardingFlow from './medic/OnboardingFlow';
 
 export default function DoctorView() {
     const { user } = useAuth();
@@ -28,6 +29,17 @@ export default function DoctorView() {
     const [showEditProfileModal, setShowEditProfileModal] = useState(false);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
+
+    if (loading) return (
+        <div className="flex items-center justify-center min-h-[400px]">
+             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-donezo-dark"></div>
+        </div>
+    );
+
+    // Enforce Onboarding
+    if (doctorProfile && (!doctorProfile.accepted_terms || !doctorProfile.onboarding_completed)) {
+        return <OnboardingFlow doctor={doctorProfile} onComplete={refresh} />;
+    }
 
     // Profile Warning Logic
     const profileWarning = doctorProfile && (!doctorProfile.about || !doctorProfile.speciality || !doctorProfile.qualification || !doctorProfile.address);

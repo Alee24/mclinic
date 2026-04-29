@@ -66,103 +66,109 @@ export default function DoctorIdCard({ doctorId }: IdCardProps) {
             </div>
 
             {/* ID Card Design */}
-            <div className="bg-white p-8 rounded-xl shadow-2xl max-w-2xl mx-auto print:shadow-none">
+            <div className="bg-white p-8 rounded-xl shadow-2xl max-w-2xl mx-auto print:shadow-none print:p-0">
                 {/* Front Side */}
-                <div className="border-4 border-primary rounded-xl p-6 bg-gradient-to-br from-white to-gray-50 relative overflow-hidden">
+                <div className="border-[6px] border-primary rounded-2xl p-6 bg-gradient-to-br from-white to-gray-50 relative overflow-hidden shadow-inner">
                     {/* Watermark/Background Decoration */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-5 pointer-events-none">
-                        <img src="https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png" alt="Watermark" className="w-64 grayscale" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.03] pointer-events-none rotate-12">
+                        <img src="https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png" alt="Watermark" className="w-[400px] grayscale" />
                     </div>
 
                     {/* Header */}
                     <div className="flex items-center justify-between border-b-2 border-primary pb-4 mb-6 relative z-10">
-                        <img src="https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png" alt="M-Clinic Kenya" className="h-12 object-contain" />
+                        <img src="https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png" alt="M-Clinic Kenya" className="h-10 object-contain" />
                         <div className="text-right">
-                            <h1 className="text-xl font-bold text-primary">MEDICAL ID</h1>
-                            <p className="text-xs text-gray-600 font-mono">{idCardData.serialNumber}</p>
+                            <h1 className="text-lg font-black text-primary leading-tight">PROFESSIONAL MEDICAL ID</h1>
+                            <p className="text-[10px] text-gray-500 font-mono font-bold">{idCardData.serialNumber}</p>
                         </div>
                     </div>
 
                     {/* Content */}
-                    <div className="flex gap-6 relative z-10">
+                    <div className="flex gap-8 relative z-10">
                         {/* Left: Photo & QR */}
                         <div className="flex flex-col gap-4 w-1/3">
-                            <div className="aspect-square bg-gray-200 rounded-lg overflow-hidden border-2 border-primary shadow-md">
-                                {idCardData.doctor.profileImage ? (
+                            <div className="aspect-[4/5] bg-gray-100 rounded-xl overflow-hidden border-2 border-primary/30 shadow-lg">
+                                {idCardData.doctor?.profileImage ? (
                                     <img
                                         src={idCardData.doctor.profileImage}
                                         alt={idCardData.doctor.name}
                                         className="w-full h-full object-cover"
                                     />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                        No Photo
+                                    <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 bg-gray-50">
+                                        <div className="text-4xl mb-2">🧑‍⚕️</div>
+                                        <span className="text-[10px] font-bold">MISSING PHOTO</span>
                                     </div>
                                 )}
                             </div>
-                            <div className="bg-white p-2 rounded-lg border border-gray-200 shadow-sm text-center">
-                                <img src={idCardData.qrCode} alt="Verification QR" className="w-full h-auto mb-1" />
-                                <p className="text-[10px] text-gray-500">Scan to Verify</p>
+                            <div className="bg-white p-2 rounded-xl border border-gray-100 shadow-sm text-center">
+                                {idCardData.qrCode ? (
+                                    <img src={idCardData.qrCode} alt="Verification QR" className="w-full h-auto mb-1 rounded-lg" />
+                                ) : (
+                                    <div className="w-full h-16 bg-gray-50 rounded flex items-center justify-center text-[10px]">QR Pending</div>
+                                )}
+                                <p className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">Scan to Verify Credentials</p>
                             </div>
                         </div>
 
                         {/* Right: Details */}
-                        <div className="flex-1 space-y-3">
-                            <div>
-                                <h2 className="text-xl font-bold text-gray-900">{idCardData.doctor.name}</h2>
-                                <p className="text-primary font-medium uppercase tracking-wide text-sm">{idCardData.doctor.speciality || 'General Practitioner'}</p>
+                        <div className="flex-1 flex flex-col">
+                            <div className="mb-6">
+                                <h2 className="text-2xl font-black text-gray-900 leading-tight mb-1 uppercase tracking-tight">
+                                    {idCardData.doctor?.name || 'NAME NOT SET'}
+                                </h2>
+                                <p className="text-primary font-black uppercase tracking-widest text-xs flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-primary"></span>
+                                    {idCardData.doctor?.speciality || 'General Practitioner'}
+                                </p>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-x-2 gap-y-3 text-sm mt-4">
-                                <div>
-                                    <p className="text-xs text-gray-500 uppercase">License No</p>
-                                    <p className="font-semibold">{idCardData.doctor.licenseNumber || 'N/A'}</p>
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-4 text-sm mt-auto">
+                                <div className="space-y-0.5">
+                                    <p className="text-[9px] text-gray-400 uppercase font-black tracking-widest">License Number</p>
+                                    <p className="font-bold text-gray-800 text-base">{idCardData.doctor?.licenseNumber || 'PENDING'}</p>
                                 </div>
-                                <div>
-                                    <p className="text-xs text-gray-500 uppercase">Expires</p>
-                                    <p className="font-semibold text-red-600">
-                                        {idCardData.doctor.licenseExpiry ? new Date(idCardData.doctor.licenseExpiry).toLocaleDateString() : 'N/A'}
+                                <div className="space-y-0.5">
+                                    <p className="text-[9px] text-gray-400 uppercase font-black tracking-widest">ID Card Issued</p>
+                                    <p className="font-bold text-gray-800 text-sm">
+                                        {idCardData.issuedDate ? new Date(idCardData.issuedDate).toLocaleDateString('en-GB') : 'N/A'}
                                     </p>
                                 </div>
-                                <div>
-                                    <p className="text-xs text-gray-500 uppercase">Designation</p>
-                                    <p className="font-medium">{idCardData.doctor.drType}</p>
+                                <div className="space-y-0.5">
+                                    <p className="text-[9px] text-gray-400 uppercase font-black tracking-widest">Medical Body</p>
+                                    <p className="font-bold text-gray-800 text-sm">{idCardData.doctor?.drType || 'M-CLINIC KENYA'}</p>
                                 </div>
-                                <div>
-                                    <p className="text-xs text-gray-500 uppercase">Issued</p>
-                                    <p className="font-medium">{new Date(idCardData.issuedDate).toLocaleDateString()}</p>
+                                <div className="space-y-0.5">
+                                    <p className="text-[9px] text-gray-400 uppercase font-black tracking-widest">Status</p>
+                                    <p className="font-black text-green-600 text-[10px] flex items-center gap-1">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span> ACTIVE MEMBER
+                                    </p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Footer */}
-                    <div className="mt-6 pt-2 border-t border-primary/20 text-center relative z-10">
-                        <p className="text-[10px] text-gray-500">
-                            Property of M-Clinic Kenya. If found, please return to P.O Box 12345 Nairobi or info@mclinic.co.ke
+                    <div className="mt-8 pt-3 border-t border-primary/20 text-center relative z-10 flex items-center justify-between">
+                        <p className="text-[8px] text-gray-400 font-bold max-w-[280px] text-left leading-relaxed lowercase">
+                            this card is the property of m-clinic kenya and remains m-clinic kenya's property. if found, please return to any m-clinic center or contact info@mclinic.co.ke
                         </p>
+                        <div className="flex flex-col items-end">
+                            <p className="text-[10px] font-black italic text-gray-300">verified credential</p>
+                        </div>
                     </div>
                 </div>
 
-                {/* Back Side (Optional - for print) */}
-                <div className="hidden print:block mt-8 border-4 border-primary rounded-xl p-6 bg-gradient-to-br from-white to-gray-50">
-                    <h3 className="text-lg font-bold text-center mb-4">Contact Information</h3>
-                    <div className="space-y-2 text-sm">
-                        <p><strong>Email:</strong> {idCardData.doctor.email}</p>
-                        <p><strong>Mobile:</strong> {idCardData.doctor.mobile || 'N/A'}</p>
-                    </div>
-
-                    <div className="mt-6 pt-4 border-t border-gray-300">
-                        <h4 className="font-semibold text-sm mb-2">Verification</h4>
-                        <p className="text-xs text-gray-600">
-                            Scan the QR code or visit: {idCardData.verificationUrl}
-                        </p>
-                    </div>
-
-                    <div className="mt-6 pt-4 border-t border-gray-300 text-center">
-                        <p className="text-xs text-gray-500">
-                            This card is property of M-Clinic Kenya and must be returned upon request.
-                        </p>
+                {/* Print Helper */}
+                <div className="hidden print:block page-break-after-always mt-12 px-8 py-10 border-4 border-dashed border-gray-200 rounded-3xl text-center">
+                    <p className="text-gray-400 text-sm mb-4">M-Clinic Kenya • HQ Nairobi</p>
+                    <p className="text-lg font-black dark:text-gray-900 mb-6 uppercase tracking-widest text-primary">Back of Medical ID</p>
+                    <div className="text-sm text-gray-600 space-y-2 max-w-md mx-auto">
+                        <p><strong>Contact:</strong> {idCardData.doctor?.email}</p>
+                        <p><strong>Emergency:</strong> {idCardData.doctor?.mobile || '+254 XX XXX XXX'}</p>
+                        <div className="pt-6 mt-6 border-t border-gray-100">
+                            <p className="text-xs">This card grants access to the M-Clinic Portal and enables telemedicine services across Kenya.</p>
+                        </div>
                     </div>
                 </div>
             </div>

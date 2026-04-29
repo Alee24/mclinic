@@ -4,6 +4,7 @@ import { FiX, FiSave, FiBriefcase, FiUpload, FiUser, FiFileText, FiMapPin } from
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import toast from 'react-hot-toast';
+import { MEDICAL_SPECIALITIES, MEDICAL_QUALIFICATIONS, KENYAN_HOSPITALS, REGULATORY_BODIES } from '@/lib/medical-constants';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434';
 
@@ -37,6 +38,11 @@ export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: Ed
         about: '',
     });
 
+    const [showOtherSpeciality, setShowOtherSpeciality] = useState(false);
+    const [showOtherQualification, setShowOtherQualification] = useState(false);
+    const [showOtherHospital, setShowOtherHospital] = useState(false);
+    const [showOtherRegulatory, setShowOtherRegulatory] = useState(false);
+
     const [signatureFile, setSignatureFile] = useState<File | null>(null);
     const [stampFile, setStampFile] = useState<File | null>(null);
     const [profileFile, setProfileFile] = useState<File | null>(null);
@@ -64,6 +70,12 @@ export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: Ed
             });
             setSigPreview(doctor.signatureUrl || '');
             setStampPreview(doctor.stampUrl || '');
+
+            // Initialize "Other" states
+            if (doctor.speciality && !MEDICAL_SPECIALITIES.includes(doctor.speciality)) setShowOtherSpeciality(true);
+            if (doctor.qualification && !MEDICAL_QUALIFICATIONS.includes(doctor.qualification)) setShowOtherQualification(true);
+            if (doctor.hospital_attachment && !KENYAN_HOSPITALS.includes(doctor.hospital_attachment)) setShowOtherHospital(true);
+            if (doctor.regulatory_body && !REGULATORY_BODIES.some(b => b.startsWith(doctor.regulatory_body))) setShowOtherRegulatory(true);
 
             if (doctor.profile_image) {
                 if (doctor.profile_image.startsWith('http') || doctor.profile_image.startsWith('blob:')) {
@@ -243,11 +255,65 @@ export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: Ed
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     <div>
                                                         <label className="block text-xs font-bold text-gray-500 mb-1">Primary Specialty</label>
-                                                        <input type="text" name="speciality" value={formData.speciality} onChange={handleChange} className="w-full p-3 rounded-lg border border-gray-200 dark:bg-black dark:border-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                                                        <select
+                                                            name="speciality"
+                                                            value={showOtherSpeciality ? 'Other' : formData.speciality}
+                                                            onChange={(e) => {
+                                                                const val = e.target.value;
+                                                                if (val === 'Other') {
+                                                                    setShowOtherSpeciality(true);
+                                                                    setFormData({ ...formData, speciality: '' });
+                                                                } else {
+                                                                    setShowOtherSpeciality(false);
+                                                                    setFormData({ ...formData, speciality: val });
+                                                                }
+                                                            }}
+                                                            className="w-full p-3 rounded-lg border border-gray-200 dark:bg-black dark:border-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                                        >
+                                                            <option value="">Select Speciality</option>
+                                                            {MEDICAL_SPECIALITIES.map(s => <option key={s} value={s}>{s}</option>)}
+                                                        </select>
+                                                        {showOtherSpeciality && (
+                                                            <input
+                                                                type="text"
+                                                                name="speciality"
+                                                                value={formData.speciality}
+                                                                onChange={handleChange}
+                                                                className="w-full mt-2 p-3 rounded-lg border border-blue-200 dark:bg-black dark:border-blue-900 dark:text-white text-sm animate-in slide-in-from-top-2 duration-300"
+                                                                placeholder="Type speciality..."
+                                                            />
+                                                        )}
                                                     </div>
                                                     <div>
                                                         <label className="block text-xs font-bold text-gray-500 mb-1">Highest Qualification</label>
-                                                        <input type="text" name="qualification" value={formData.qualification} onChange={handleChange} className="w-full p-3 rounded-lg border border-gray-200 dark:bg-black dark:border-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. MBBS, MD, BSc. Nursing" />
+                                                        <select
+                                                            name="qualification"
+                                                            value={showOtherQualification ? 'Other' : formData.qualification}
+                                                            onChange={(e) => {
+                                                                const val = e.target.value;
+                                                                if (val === 'Other') {
+                                                                    setShowOtherQualification(true);
+                                                                    setFormData({ ...formData, qualification: '' });
+                                                                } else {
+                                                                    setShowOtherQualification(false);
+                                                                    setFormData({ ...formData, qualification: val });
+                                                                }
+                                                            }}
+                                                            className="w-full p-3 rounded-lg border border-gray-200 dark:bg-black dark:border-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                                        >
+                                                            <option value="">Select Qualification</option>
+                                                            {MEDICAL_QUALIFICATIONS.map(q => <option key={q} value={q}>{q}</option>)}
+                                                        </select>
+                                                        {showOtherQualification && (
+                                                            <input
+                                                                type="text"
+                                                                name="qualification"
+                                                                value={formData.qualification}
+                                                                onChange={handleChange}
+                                                                className="w-full mt-2 p-3 rounded-lg border border-blue-200 dark:bg-black dark:border-blue-900 dark:text-white text-sm animate-in slide-in-from-top-2 duration-300"
+                                                                placeholder="Type qualification..."
+                                                            />
+                                                        )}
                                                     </div>
                                                     <div>
                                                         <label className="block text-xs font-bold text-gray-500 mb-1">Years of Experience</label>
@@ -255,13 +321,34 @@ export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: Ed
                                                     </div>
                                                     <div>
                                                         <label className="block text-xs font-bold text-gray-500 mb-1">Current Hospital Attachment</label>
-                                                        <input list="hospitals" type="text" name="hospital_attachment" value={formData.hospital_attachment} onChange={handleChange} className="w-full p-3 rounded-lg border border-gray-200 dark:bg-black dark:border-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
-                                                        <datalist id="hospitals">
-                                                            <option value="Wallal Hospital" />
-                                                            <option value="Optica" />
-                                                            <option value="City Eye" />
-                                                            <option value="AAR Health Care" />
-                                                        </datalist>
+                                                        <select
+                                                            name="hospital_attachment"
+                                                            value={showOtherHospital ? 'Other' : formData.hospital_attachment}
+                                                            onChange={(e) => {
+                                                                const val = e.target.value;
+                                                                if (val === 'Other') {
+                                                                    setShowOtherHospital(true);
+                                                                    setFormData({ ...formData, hospital_attachment: '' });
+                                                                } else {
+                                                                    setShowOtherHospital(false);
+                                                                    setFormData({ ...formData, hospital_attachment: val });
+                                                                }
+                                                            }}
+                                                            className="w-full p-3 rounded-lg border border-gray-200 dark:bg-black dark:border-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                                        >
+                                                            <option value="">Select Hospital</option>
+                                                            {KENYAN_HOSPITALS.map(h => <option key={h} value={h}>{h}</option>)}
+                                                        </select>
+                                                        {showOtherHospital && (
+                                                            <input
+                                                                type="text"
+                                                                name="hospital_attachment"
+                                                                value={formData.hospital_attachment}
+                                                                onChange={handleChange}
+                                                                className="w-full mt-2 p-3 rounded-lg border border-blue-200 dark:bg-black dark:border-blue-900 dark:text-white text-sm animate-in slide-in-from-top-2 duration-300"
+                                                                placeholder="Type hospital name..."
+                                                            />
+                                                        )}
                                                     </div>
                                                 </div>
 
@@ -293,13 +380,34 @@ export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: Ed
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     <div>
                                                         <label className="block text-xs font-bold text-gray-500 mb-1">Regulatory Body</label>
-                                                        <select name="regulatory_body" value={formData.regulatory_body} onChange={handleChange} className="w-full p-3 rounded-lg border border-gray-200 dark:bg-black dark:border-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                                                        <select
+                                                            name="regulatory_body"
+                                                            value={showOtherRegulatory ? 'Other' : formData.regulatory_body}
+                                                            onChange={(e) => {
+                                                                const val = e.target.value;
+                                                                if (val === 'Other') {
+                                                                    setShowOtherRegulatory(true);
+                                                                    setFormData({ ...formData, regulatory_body: '' });
+                                                                } else {
+                                                                    setShowOtherRegulatory(false);
+                                                                    setFormData({ ...formData, regulatory_body: val });
+                                                                }
+                                                            }}
+                                                            className="w-full p-3 rounded-lg border border-gray-200 dark:bg-black dark:border-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                                        >
                                                             <option value="">Select Body</option>
-                                                            <option value="KMPDC">KMPDC</option>
-                                                            <option value="NCK">NCK</option>
-                                                            <option value="COC">COC</option>
-                                                            <option value="PPB">PPB</option>
+                                                            {REGULATORY_BODIES.map(b => <option key={b} value={b.split(' (')[0]}>{b}</option>)}
                                                         </select>
+                                                        {showOtherRegulatory && (
+                                                            <input
+                                                                type="text"
+                                                                name="regulatory_body"
+                                                                value={formData.regulatory_body}
+                                                                onChange={handleChange}
+                                                                className="w-full mt-2 p-3 rounded-lg border border-blue-200 dark:bg-black dark:border-blue-900 dark:text-white text-sm animate-in slide-in-from-top-2 duration-300"
+                                                                placeholder="Type regulatory body..."
+                                                            />
+                                                        )}
                                                     </div>
                                                     <div>
                                                         <label className="block text-xs font-bold text-gray-500 mb-1">Registration Number</label>

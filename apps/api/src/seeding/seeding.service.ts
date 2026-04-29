@@ -84,6 +84,13 @@ export class SeedingService {
       { key: 'EMAIL_ACCOUNT_CREATION', value: 'true', description: 'Send welcome email on account creation', isSecure: false },
       { key: 'EMAIL_INVOICE_GENERATED', value: 'true', description: 'Send invoice emails', isSecure: false },
       { key: 'EMAIL_LICENSE_EXPIRY_WARNING', value: 'true', description: 'Warn about license expiration', isSecure: false },
+
+      // Service Fees (Aligned with Frontend FEE_KEYS)
+      { key: 'FEE_BOOKING', value: '500', description: 'Default booking fee', isSecure: false },
+      { key: 'FEE_VIRTUAL_VISIT', value: '1500', description: 'Default virtual consultation fee', isSecure: false },
+      { key: 'FEE_PHYSICAL_VISIT', value: '2500', description: 'Default physical consultation fee', isSecure: false },
+      { key: 'FEE_AMBULANCE_BASE', value: '5000', description: 'Default ambulance service fee', isSecure: false },
+      { key: 'COMMISSION_PERCENTAGE', value: '40', description: 'Company commission percentage (e.g. 40 for 40%)', isSecure: false },
     ];
 
     for (const s of defaultSettings) {

@@ -53,23 +53,7 @@ export default function MedicLocationFab() {
     if (!isVisible) return null;
 
     if (status === 'online') {
-        return (
-            <div className="fixed top-20 right-4 z-[99]">
-                <button
-                    onClick={handleToggle}
-                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-2 text-sm font-bold transition-all transform hover:scale-105"
-                >
-                    <div className="relative flex h-3 w-3">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-200 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
-                    </div>
-                    <span className="flex flex-col items-start leading-tight">
-                        <span>Online</span>
-                        <span className="text-[10px] opacity-80 font-normal">Tap to Go Offline</span>
-                    </span>
-                </button>
-            </div>
-        );
+        return null;
     }
 
     // Offline / Locating State - Prominent Animation

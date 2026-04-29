@@ -9,6 +9,8 @@ import { Invoice, InvoiceStatus } from './entities/invoice.entity';
 import { InvoiceItem } from './entities/invoice-item.entity';
 import { Doctor } from '../doctors/entities/doctor.entity';
 import { Patient } from '../patients/entities/patient.entity';
+import { Appointment } from '../appointments/entities/appointment.entity';
+import { User } from '../users/entities/user.entity';
 import { WalletsService } from '../wallets/wallets.service';
 import { MpesaService } from '../mpesa/mpesa.service';
 import { NotificationService } from '../notification/notification.service';
@@ -512,6 +514,9 @@ export class FinancialService {
         // Update Appointment Status to CONFIRMED
         await this.doctorRepo.manager.update('appointment', { id: appointmentId }, { status: 'confirmed' });
 
+        // Send Notifications
+        await this.sendConfirmationSms(appointmentId);
+
         return { success: true, message: 'Payment processed successfully' };
     }
 
@@ -585,7 +590,49 @@ export class FinancialService {
             }
         }
 
+        let appId: number | null = invoice.appointmentId;
+        if (!appId && invoice.invoiceNumber && invoice.invoiceNumber.startsWith('INV-')) {
+            const parts = invoice.invoiceNumber.split('-');
+            appId = parts.length > 2 ? parseInt(parts[2]) : null;
+        }
+
+        if (appId) {
+            await this.sendConfirmationSms(appId);
+        }
+
         return { success: true, message: 'Payment confirmed successfully', invoice };
+    }
+
+    private async sendConfirmationSms(appointmentId: number) {
+        try {
+            const appt = await this.invoiceRepo.manager.getRepository(Appointment).findOne({
+                where: { id: appointmentId },
+                relations: ['patient', 'doctor']
+            });
+
+            if (appt && appt.patient && appt.doctor) {
+                const patient = appt.patient;
+                const doctor = appt.doctor;
+                const portalUrl = 'https://portal.mclinic.co.ke';
+                const apptTime = `${new Date(appt.appointment_date).toDateString()} @ ${appt.appointment_time}`;
+
+                // 1. SMS to Patient: Confirmation + Doctor Contact
+                const patientMsg = `Appointment Confirmed! You have an appointment with Dr. ${doctor.fname} ${doctor.lname} on ${apptTime}. Medic Contact: ${doctor.mobile || 'N/A'}. View details: ${portalUrl}/dashboard/appointments`;
+                await this.notificationService.sendCustomSms(patient.mobile, patientMsg);
+
+                // 2. SMS to Doctor: Confirmation + Patient Contact
+                const doctorMsg = `Confirmed Appointment: ${patient.fname} ${patient.lname} has paid for their appointment on ${apptTime}. Patient Contact: ${patient.mobile || 'N/A'}. View details: ${portalUrl}/dashboard/appointments`;
+                await this.notificationService.sendCustomSms(doctor.mobile, doctorMsg);
+
+                // 3. Notify Admin
+                await this.notificationService.notifyAdmin(
+                    'booking',
+                    `Payment Confirmed for Appt #${appointmentId}: ${patient.fname} vs Dr. ${doctor.lname}. Notification sent to both.`
+                );
+            }
+        } catch (error) {
+            console.error('[Financial] Failed to send post-payment SMS notifications', error);
+        }
     }
 
     // Release Funds (Called when Appointment is COMPLETED)

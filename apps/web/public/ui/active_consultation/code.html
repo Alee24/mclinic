@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed": "#65ff90",
+                    "inverse-on-surface": "#eff1f3",
+                    "surface-bright": "#f7f9fb",
+                    "on-secondary-fixed": "#00210a",
+                    "inverse-primary": "#b9c8d7",
+                    "surface-container": "#eceef0",
+                    "on-background": "#191c1e",
+                    "error-container": "#ffdad6",
+                    "secondary": "#006d31",
+                    "surface-variant": "#e0e3e5",
+                    "on-surface": "#191c1e",
+                    "tertiary-fixed-dim": "#ffb2b8",
+                    "primary-fixed": "#d5e4f3",
+                    "error": "#ba1a1a",
+                    "surface-container-low": "#f2f4f6",
+                    "surface": "#f7f9fb",
+                    "on-error-container": "#93000a",
+                    "primary-fixed-dim": "#b9c8d7",
+                    "on-primary-fixed": "#0f1d28",
+                    "tertiary": "#34000a",
+                    "on-primary": "#ffffff",
+                    "background": "#f7f9fb",
+                    "on-secondary-container": "#007233",
+                    "tertiary-fixed": "#ffdadb",
+                    "surface-container-high": "#e6e8ea",
+                    "on-primary-fixed-variant": "#3a4854",
+                    "outline-variant": "#c4c7cb",
+                    "on-error": "#ffffff",
+                    "surface-dim": "#d8dadc",
+                    "on-secondary": "#ffffff",
+                    "surface-container-highest": "#e0e3e5",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-container": "#5a0018",
+                    "secondary-container": "#5efc8d",
+                    "on-tertiary-fixed-variant": "#91002d",
+                    "inverse-surface": "#2d3133",
+                    "on-surface-variant": "#43474b",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-tint": "#52606c",
+                    "on-tertiary-fixed": "#40000f",
+                    "on-secondary-fixed-variant": "#005323",
+                    "secondary-fixed-dim": "#3ee276",
+                    "outline": "#74777c",
+                    "on-tertiary-container": "#ff4f6e",
+                    "primary-container": "#1d2b36",
+                    "primary": "#081621",
+                    "on-primary-container": "#8492a0"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "xxl": "48px",
+                    "xl": "32px",
+                    "sm": "8px",
+                    "xs": "4px",
+                    "gutter": "24px",
+                    "md": "16px",
+                    "lg": "24px",
+                    "unit": "4px",
+                    "margin": "24px",
+                    "container-max": "1280px"
+            },
+            "fontFamily": {
+                    "label-md": ["Public Sans"],
+                    "headline-lg": ["Public Sans"],
+                    "display-lg": ["Public Sans"],
+                    "body-sm": ["Public Sans"],
+                    "headline-md": ["Public Sans"],
+                    "label-lg": ["Public Sans"],
+                    "body-md": ["Public Sans"],
+                    "body-lg": ["Public Sans"]
+            },
+            "fontSize": {
+                    "label-md": ["12px", {"lineHeight": "14px", "fontWeight": "500"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "label-lg": ["14px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-call-pulse {
+            position: relative;
+        }
+        .active-call-pulse::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background-color: #3ee276;
+            border-radius: 50%;
+            right: -2px;
+            top: -2px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-primary text-on-surface font-body-md overflow-hidden">
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-4 md:px-6 h-16 max-w-7xl mx-auto border-b border-white/10 bg-black/20 backdrop-blur-sm">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-white" data-icon="medical_services">medical_services</span>
+<h1 class="text-white font-public-sans text-sm font-semibold tracking-tight">MediConsult</h1>
+<div class="ml-4 flex items-center gap-2 bg-secondary/20 border border-secondary/30 px-3 py-1 rounded-full">
+<span class="material-symbols-outlined text-secondary-fixed text-[14px]" data-icon="sensors">sensors</span>
+<span class="text-secondary-fixed font-label-md text-label-md">Connection: Stable</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-white/80 font-label-lg text-label-lg">08:42</span>
+</div>
+</header>
+<main class="relative h-screen w-full bg-slate-950 flex items-center justify-center overflow-hidden">
+<div class="absolute inset-0 z-0">
+<img alt="Dr. Sarah Miller" class="w-full h-full object-cover opacity-90 grayscale-[0.2]" data-alt="A professional female doctor, Dr. Sarah Miller, with a warm and confident expression wearing a white clinical coat and a stethoscope. She is positioned in a modern, brightly lit medical office with soft blue and white tones. The lighting is soft and professional, emphasizing a clean healthcare environment with high-end digital clinical equipment visible in the blurred background. The style is cinematic and high-fidelity, conveying safety and medical expertise." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBNhBJXEqcYrrtDMu6_o2kAF-xzUnP4wUKSl2CgoaMz2Lgr6Tx6zWs8faa7rqjBVaJZF6_n9wQKLwj0gcppfSekyctIKpEQJgvBcX_7GrZSJQcwPOGg5qlCHQOtu6xyA4xCKA2739OzlRFlcFzMraFdWQkieLDx0ecAaclvopxTdmi6mDD-zrAyv9t36BZFp6Paf8EmDgwC8y9d_5py6wQfdTRwpdyM3woKwNpUVrbsny29Ndnl4Xqm8tbovIRnfB4bUWGmYoqvaKE"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/40"></div>
+</div>
+<div class="absolute top-24 right-6 md:right-12 w-32 md:w-48 aspect-[3/4] rounded-xl overflow-hidden border-2 border-white/20 shadow-2xl z-20 group">
+<img alt="Patient Preview" class="w-full h-full object-cover" data-alt="A male patient in his late 30s viewed through a high-quality webcam during a virtual medical consultation. He is in a well-lit home office with neutral walls and a professional appearance. The lighting is natural from a nearby window, creating a realistic, high-definition video call aesthetic. The mood is calm and attentive, typical of a productive telehealth session." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdJmON6kSBF1c8SAAn4J54p0qLYFLYMzIxVaV7KQj5YUFtwcmsuGmQYGKlXcKeKrhY7h2E1QnDyFpNU2uTI5rZ0gHxMokB3Z5HOecYYwItj4wl_t1U80q4U_dKDVCQRkvkxB44G5bLQw8iRQcsdcKuPXtMc_9zbI4Cgiq_2LuNsE-qqFFzIdVPSNGPk-l3bN1FQvrkaRcdy75Fdqiel3CRKTh5lPWp2RZqVKU6zpvweqK_J4cfVnjLGk877BuKzu66Ht7GzH0oEyk"/>
+<div class="absolute bottom-2 left-2 px-2 py-0.5 bg-black/40 backdrop-blur-md rounded text-[10px] text-white font-medium">
+                You
+            </div>
+</div>
+<div class="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-4 z-40">
+<div class="flex items-center bg-black/30 backdrop-blur-xl border border-white/10 p-2 rounded-full gap-2 md:gap-4 px-4 md:px-6">
+<button class="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-all active:scale-95 group">
+<span class="material-symbols-outlined group-active:scale-90" data-icon="mic">mic</span>
+</button>
+<button class="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-all active:scale-95 group">
+<span class="material-symbols-outlined group-active:scale-90" data-icon="videocam">videocam</span>
+</button>
+<div class="h-8 w-[1px] bg-white/10 mx-2"></div>
+<button class="flex items-center gap-2 px-4 py-3 rounded-full bg-primary-fixed-dim text-on-primary-fixed hover:bg-primary-fixed transition-all active:scale-95 group">
+<span class="material-symbols-outlined text-[20px]" data-icon="clinical_notes">clinical_notes</span>
+<span class="font-label-lg text-label-lg hidden md:block">Share Records</span>
+</button>
+<div class="h-8 w-[1px] bg-white/10 mx-2"></div>
+<button class="w-14 h-14 flex items-center justify-center rounded-full bg-error hover:bg-error/90 text-on-error shadow-lg shadow-error/20 transition-all active:scale-95 group">
+<span class="material-symbols-outlined font-bold text-[28px]" data-icon="call_end">call_end</span>
+</button>
+</div>
+</div>
+<div class="absolute left-6 bottom-12 md:left-12 text-white z-40 hidden md:block">
+<div class="flex flex-col gap-1">
+<h2 class="font-headline-md text-headline-md font-bold tracking-tight">Dr. Sarah Miller</h2>
+<p class="font-body-sm text-body-sm text-white/70">General Practitioner • Consultation #4829</p>
+</div>
+</div>
+</main>
+<div class="md:hidden">
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-safe h-16 bg-white/95 backdrop-blur-md border-t border-slate-100 shadow-[0_-2px_10px_rgba(0,0,0,0.02)]">
+<div class="flex flex-col items-center justify-center text-slate-900 font-bold scale-105 transition-all duration-200 ease-in-out">
+<span class="material-symbols-outlined" data-icon="videocam" style="font-variation-settings: 'FILL' 1;">videocam</span>
+<span class="font-public-sans text-[10px] font-medium">Consult</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 transition-all duration-200 ease-in-out">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-public-sans text-[10px] font-medium">History</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 transition-all duration-200 ease-in-out">
+<span class="material-symbols-outlined" data-icon="clinical_notes">clinical_notes</span>
+<span class="font-public-sans text-[10px] font-medium">Records</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 transition-all duration-200 ease-in-out">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+<span class="font-public-sans text-[10px] font-medium">Profile</span>
+</div>
+</nav>
+</div>
+</body></html>

@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import Link from 'next/link';
-import { FiUser, FiHeart, FiArrowRight, FiMessageSquare } from 'react-icons/fi';
+import { FiUser, FiHeart, FiArrowRight, FiMessageSquare, FiEye, FiEyeOff } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
+import { api } from '@/lib/api';
 
 type UserType = 'patient' | 'provider';
 
@@ -18,6 +19,8 @@ export default function LoginPage() {
     const [mobile, setMobile] = useState('');
     const [otp, setOtp] = useState('');
     const [otpSent, setOtpSent] = useState(false);
+    const [showRegister, setShowRegister] = useState(false);
+    const [showPass, setShowPass] = useState(false);
 
     // Redirect if already logged in
     useEffect(() => {
@@ -30,14 +33,9 @@ export default function LoginPage() {
         e.preventDefault();
         setLoading(true);
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://portal.mclinic.co.ke/api';
-            const res = await fetch(`${API_URL}/auth/otp/send`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ mobile })
-            });
-            const data = await res.json();
-            if (res.ok) {
+            const res = await api.post('/auth/otp/send', { mobile, userType });
+            const data = await res?.json();
+            if (res && res.ok) {
                 // Show masked email info to user
                 if (data.accounts && data.accounts.length > 0) {
                     const emailList = data.accounts.map((acc: any) => `${acc.email} (${acc.type})`).join(', ');
@@ -62,12 +60,7 @@ export default function LoginPage() {
         e.preventDefault();
         setLoading(true);
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://portal.mclinic.co.ke/api';
-            const res = await fetch(`${API_URL}/auth/otp/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ mobile, otp })
-            });
+            const res = await api.post('/auth/otp/login', { mobile, otp, userType });
 
             if (res && res.ok) {
                 const data = await res.json();
@@ -91,8 +84,8 @@ export default function LoginPage() {
                 toast.success(`Welcome back, ${data.user.fname || 'User'}!`);
                 login(data.user, data.access_token);
             } else {
-                const errorData = await res.json().catch(() => ({}));
-                toast.error(errorData.message || 'Invalid OTP.');
+                const errorData = await res?.json().catch(() => ({}));
+                toast.error(errorData?.message || 'Invalid OTP.');
             }
         } catch (error) {
             toast.error('Connection failed.');
@@ -315,17 +308,26 @@ export default function LoginPage() {
                                     />
                                 </div>
 
-                                <div>
+                            <div className="relative">
                                     <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">
                                         Password
                                     </label>
-                                    <input
-                                        type="password"
-                                        name="password"
-                                        required
-                                        className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:border-green-500 dark:focus:border-green-500 outline-none transition"
-                                        placeholder="Enter your password"
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type={showPass ? 'text' : 'password'}
+                                            name="password"
+                                            required
+                                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:border-green-500 dark:focus:border-green-500 outline-none transition"
+                                            placeholder="Enter your password"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPass(!showPass)}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                                        >
+                                            {showPass ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                                        </button>
+                                    </div>
                                 </div>
                             </>
                         ) : (
@@ -400,19 +402,17 @@ export default function LoginPage() {
                         </button>
                     </form>
 
-                    {/* Register Link */}
-                    <div className="mt-8 text-center text-sm text-gray-500 pt-6 border-t dark:border-gray-800">
-                        Don't have an account?{' '}
-                        <Link
-                            href={userType === 'patient' ? '/register/patient' : '/register/doctor'}
-                            className={`font-bold hover:underline ${userType === 'patient' ? 'text-green-600' : 'text-blue-600'
-                                }`}
-                        >
-                            Register as {userType === 'patient' ? 'Patient' : 'Provider'}
+                    {/* Simple Register Links */}
+                    <div className="mt-8 pt-6 border-t dark:border-gray-800 flex justify-center gap-8">
+                        <Link href="/register/patient" className="text-xs font-bold text-gray-400 hover:text-green-600 uppercase tracking-widest transition-colors">
+                            Register as Patient
+                        </Link>
+                        <Link href="/register/medic" className="text-xs font-bold text-gray-400 hover:text-blue-600 uppercase tracking-widest transition-colors">
+                            Register as Medic
                         </Link>
                     </div>
 
-                    <div className="mt-4 text-center">
+                    <div className="mt-8 text-center">
                         <Link
                             href="/support"
                             className="text-sm font-medium text-gray-400 hover:text-green-600 transition flex items-center justify-center gap-1.5"

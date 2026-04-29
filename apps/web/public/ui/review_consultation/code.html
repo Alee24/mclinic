@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Consultation Recording - MediConsult</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed": "#65ff90",
+                    "inverse-on-surface": "#eff1f3",
+                    "surface-bright": "#f7f9fb",
+                    "on-secondary-fixed": "#00210a",
+                    "inverse-primary": "#b9c8d7",
+                    "surface-container": "#eceef0",
+                    "on-background": "#191c1e",
+                    "error-container": "#ffdad6",
+                    "secondary": "#006d31",
+                    "surface-variant": "#e0e3e5",
+                    "on-surface": "#191c1e",
+                    "tertiary-fixed-dim": "#ffb2b8",
+                    "primary-fixed": "#d5e4f3",
+                    "error": "#ba1a1a",
+                    "surface-container-low": "#f2f4f6",
+                    "surface": "#f7f9fb",
+                    "on-error-container": "#93000a",
+                    "primary-fixed-dim": "#b9c8d7",
+                    "on-primary-fixed": "#0f1d28",
+                    "tertiary": "#34000a",
+                    "on-primary": "#ffffff",
+                    "background": "#f7f9fb",
+                    "on-secondary-container": "#007233",
+                    "tertiary-fixed": "#ffdadb",
+                    "surface-container-high": "#e6e8ea",
+                    "on-primary-fixed-variant": "#3a4854",
+                    "outline-variant": "#c4c7cb",
+                    "on-error": "#ffffff",
+                    "surface-dim": "#d8dadc",
+                    "on-secondary": "#ffffff",
+                    "surface-container-highest": "#e0e3e5",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-container": "#5a0018",
+                    "secondary-container": "#5efc8d",
+                    "on-tertiary-fixed-variant": "#91002d",
+                    "inverse-surface": "#2d3133",
+                    "on-surface-variant": "#43474b",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-tint": "#52606c",
+                    "on-tertiary-fixed": "#40000f",
+                    "on-secondary-fixed-variant": "#005323",
+                    "secondary-fixed-dim": "#3ee276",
+                    "outline": "#74777c",
+                    "on-tertiary-container": "#ff4f6e",
+                    "primary-container": "#1d2b36",
+                    "primary": "#081621",
+                    "on-primary-container": "#8492a0"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "xxl": "48px",
+                    "xl": "32px",
+                    "sm": "8px",
+                    "xs": "4px",
+                    "gutter": "24px",
+                    "md": "16px",
+                    "lg": "24px",
+                    "unit": "4px",
+                    "margin": "24px",
+                    "container-max": "1280px"
+            },
+            "fontFamily": {
+                    "label-md": ["Public Sans"],
+                    "headline-lg": ["Public Sans"],
+                    "display-lg": ["Public Sans"],
+                    "body-sm": ["Public Sans"],
+                    "headline-md": ["Public Sans"],
+                    "label-lg": ["Public Sans"],
+                    "body-md": ["Public Sans"],
+                    "body-lg": ["Public Sans"]
+            },
+            "fontSize": {
+                    "label-md": ["12px", {"lineHeight": "14px", "fontWeight": "500"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "label-lg": ["14px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Public Sans', sans-serif; background-color: #f7f9fb; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass-panel { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface">
+<!-- TopAppBar -->
+<header class="bg-white dark:bg-slate-950 border-b border-slate-100 dark:border-slate-800 docked full-width top-0 z-50 fixed">
+<div class="flex justify-between items-center w-full px-4 md:px-6 h-16 max-w-7xl mx-auto">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="medical_services">medical_services</span>
+<span class="text-lg font-black text-slate-900 dark:text-slate-50 tracking-tighter">MediConsult</span>
+</div>
+<div class="hidden md:flex gap-8 items-center">
+<a class="font-public-sans text-sm font-semibold tracking-tight text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors px-3 py-2 rounded" href="#">Consult</a>
+<a class="font-public-sans text-sm font-semibold tracking-tight text-slate-900 dark:text-slate-50 font-bold px-3 py-2 rounded" href="#">History</a>
+<a class="font-public-sans text-sm font-semibold tracking-tight text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors px-3 py-2 rounded" href="#">Records</a>
+<a class="font-public-sans text-sm font-semibold tracking-tight text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors px-3 py-2 rounded" href="#">Profile</a>
+</div>
+<button class="bg-[#ba1a1a] text-white px-4 py-2 rounded-lg font-label-lg text-label-lg active:opacity-80 transition-opacity uppercase tracking-widest text-[11px]">
+                Emergency
+            </button>
+</div>
+</header>
+<main class="pt-24 pb-32 px-4 md:px-6 max-w-7xl mx-auto">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Video Player Interface Section (Top Focus) -->
+<section class="lg:col-span-8 flex flex-col gap-6">
+<div class="relative aspect-video bg-black rounded-xl overflow-hidden shadow-sm group">
+<img class="w-full h-full object-cover opacity-80" data-alt="A professional medical consultation recording view showing a split screen. On one side, a friendly female doctor in a white lab coat and stethoscope is speaking warmly. On the other side, a clinical dashboard with vital signs and medical history is visible. The lighting is bright and sterile with soft blue and white tones reflecting a high-end digital healthcare environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDV-nyceHY8uN_1O0ECZ7wSCLlkUeGse05CP153Hr4RUhfQs0HHensaVuTLsFGyI1SosOhkURN3aOkm8WNYSJbGO-brzI-mMj0n5tJ_5VoXCYsdM10oWTsKYCk8A01elFFQq-f0B-Gn9v5jLLNTZ8sCj4Rv-41SvuCXG7t40xYRsHChEtBm26DAbC7DHErWSha1vkVHItLoSKZLCvk8HDxmOonGsnJuQN0KXTgq3FIeCbrb_paCK8AklV-eNiX2HVIXUtlP96Lb01c"/>
+<!-- Player Controls Overlay -->
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-6">
+<div class="flex items-center gap-4 text-white mb-4">
+<button class="material-symbols-outlined text-4xl" data-icon="play_circle" data-weight="fill" style="font-variation-settings: 'FILL' 1;">play_circle</button>
+<div class="flex-1 h-1 bg-white/30 rounded-full relative">
+<div class="absolute inset-y-0 left-0 w-1/3 bg-secondary-fixed-dim rounded-full"></div>
+</div>
+<span class="text-label-md font-label-md">12:45 / 45:00</span>
+</div>
+<div class="flex justify-between items-center text-white">
+<h2 class="font-headline-md text-headline-md">Dr. Sarah Jenkins - Post-Op Review</h2>
+<div class="flex gap-4">
+<span class="material-symbols-outlined" data-icon="volume_up">volume_up</span>
+<span class="material-symbols-outlined" data-icon="fullscreen">fullscreen</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Session Metadata -->
+<div class="flex flex-wrap items-center justify-between gap-4 p-6 bg-white rounded-xl border border-outline-variant/30">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="calendar_today">calendar_today</span>
+</div>
+<div>
+<p class="text-label-md font-label-md text-on-surface-variant">Session Date</p>
+<p class="text-body-md font-body-md font-semibold">October 24, 2023</p>
+</div>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-label-lg text-label-lg active:opacity-80 transition-opacity">
+<span class="material-symbols-outlined text-[18px]" data-icon="share">share</span>
+                            Share with Family
+                        </button>
+<button class="flex items-center gap-2 px-4 py-2 border border-outline text-on-surface rounded-lg font-label-lg text-label-lg hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="download">download</span>
+                            Download
+                        </button>
+</div>
+</div>
+</section>
+<!-- Sidebar / Interaction Panel -->
+<aside class="lg:col-span-4 flex flex-col gap-6">
+<!-- Tabbed Content Card -->
+<div class="bg-white rounded-xl border border-outline-variant/30 flex flex-col h-[600px]">
+<div class="flex border-b border-outline-variant/30">
+<button class="flex-1 py-4 text-label-lg font-label-lg border-b-2 border-primary text-primary">Transcript</button>
+<button class="flex-1 py-4 text-label-lg font-label-lg text-on-surface-variant hover:text-on-surface">Clinical Notes</button>
+</div>
+<!-- Search Bar -->
+<div class="p-4 border-b border-outline-variant/20">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface rounded-lg border-none focus:ring-2 focus:ring-primary/20 text-body-sm font-body-sm" placeholder="Search transcript..." type="text"/>
+</div>
+</div>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto p-4 space-y-6">
+<div class="flex gap-3">
+<span class="text-label-md font-label-md text-primary mt-1">00:12</span>
+<div>
+<p class="text-label-md font-label-md text-on-surface-variant mb-1">Dr. Jenkins</p>
+<p class="text-body-sm font-body-sm text-on-surface leading-relaxed">Good morning, Arthur. How has the knee been feeling since we last spoke? Any stiffness in the morning?</p>
+</div>
+</div>
+<div class="flex gap-3">
+<span class="text-label-md font-label-md text-outline mt-1">00:45</span>
+<div>
+<p class="text-label-md font-label-md text-on-surface-variant mb-1">Patient</p>
+<p class="text-body-sm font-body-sm text-on-surface leading-relaxed">It's getting better, doctor. Still a bit tender when I climb stairs, but the swelling has definitely gone down.</p>
+</div>
+</div>
+<div class="flex gap-3 bg-primary-fixed/30 p-3 rounded-lg border-l-4 border-primary">
+<span class="text-label-md font-label-md text-primary mt-1">01:32</span>
+<div>
+<p class="text-label-md font-label-md text-on-surface-variant mb-1">Dr. Jenkins</p>
+<p class="text-body-sm font-body-sm text-on-surface leading-relaxed">That's very encouraging. The reduction in swelling is a key indicator. I want to adjust your physiotherapy routine slightly to focus on that stair climbing discomfort.</p>
+</div>
+</div>
+<div class="flex gap-3">
+<span class="text-label-md font-label-md text-outline mt-1">02:15</span>
+<div>
+<p class="text-label-md font-label-md text-on-surface-variant mb-1">Dr. Jenkins</p>
+<p class="text-body-sm font-body-sm text-on-surface leading-relaxed">We'll add some isometric holds and see how you progress over the next two weeks.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Shared Files/Resources -->
+<div class="p-6 bg-secondary-container/20 rounded-xl border border-secondary/10">
+<h3 class="font-label-lg text-label-lg text-on-secondary-container flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined" data-icon="attachment">attachment</span>
+                        Shared Resources
+                    </h3>
+<div class="space-y-3">
+<div class="flex items-center justify-between p-3 bg-white rounded-lg border border-outline-variant/20">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary" data-icon="picture_as_pdf">picture_as_pdf</span>
+<span class="text-body-sm font-body-sm">Physio_Guide_V2.pdf</span>
+</div>
+<span class="material-symbols-outlined text-outline cursor-pointer" data-icon="download">download</span>
+</div>
+<div class="flex items-center justify-between p-3 bg-white rounded-lg border border-outline-variant/20">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary" data-icon="image">image</span>
+<span class="text-body-sm font-body-sm">X-Ray_Comparison.jpg</span>
+</div>
+<span class="material-symbols-outlined text-outline cursor-pointer" data-icon="download">download</span>
+</div>
+</div>
+</div>
+</aside>
+</div>
+<!-- Detailed Clinical Notes Bento Section -->
+<section class="mt-xl">
+<h2 class="font-headline-md text-headline-md mb-lg">Clinical Consultation Summary</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Diagnosis Card -->
+<div class="md:col-span-1 p-6 bg-white rounded-xl border border-outline-variant/30">
+<span class="inline-block px-3 py-1 bg-secondary-container text-on-secondary-container text-[10px] font-bold rounded-full uppercase mb-4 tracking-wider">Diagnosis</span>
+<h4 class="font-headline-md text-headline-md mb-2">Post-Op Recovery</h4>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Progressing according to schedule. Slight residual inflammation in the lateral meniscus area.</p>
+</div>
+<!-- Prescription/Plan Card -->
+<div class="md:col-span-2 p-6 bg-primary-container text-on-primary-container rounded-xl border border-primary/20 flex flex-col justify-between">
+<div>
+<span class="inline-block px-3 py-1 bg-on-primary-container/20 text-on-primary-container text-[10px] font-bold rounded-full uppercase mb-4 tracking-wider">Treatment Plan</span>
+<ul class="space-y-4">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-secondary-fixed-dim" data-icon="check_circle" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<p class="font-semibold">Modified Physiotherapy</p>
+<p class="text-label-md opacity-80">Focus on isometric holds 3x daily.</p>
+</div>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-secondary-fixed-dim" data-icon="check_circle" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<p class="font-semibold">Medication Update</p>
+<p class="text-label-md opacity-80">Decrease dosage of anti-inflammatories by 50% starting Monday.</p>
+</div>
+</li>
+</ul>
+</div>
+<div class="mt-6 pt-6 border-t border-on-primary-container/10 flex justify-between items-center">
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-full object-cover border-2 border-on-primary-container/20" data-alt="Close up portrait of a senior medical specialist with kind eyes, wearing a clean white lab coat and a subtle smile. The background is a soft-focus medical office with books and a diplomas on the wall. Lighting is professional and warm." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBAOhy5H7RFJN9CP_zEH-jolhxnl48-ngHR4-9syR7acIp2noHRhQYK7WBR6iMQts4Ndb9atWS2aqsFGzalAQMkQFIj6vt9E3HqVl_PnW1yd4s5PZrY8K6AgCO3Hk8aUedOCbOEjf0D8gD5m-Uo_hpi6qAs2j0Sens3zc0IfQdNo3Vid1mAKbbGzUEn6P7L0Bt1wyfv-p89L0fM3FhHHkW4NQ80eN1YJ-NGqe-XydwqEYIV7bVavgdWzE7Ucue85HwOxEmr4t8lsVg"/>
+<p class="text-label-md font-label-md">Verified by Dr. Sarah Jenkins</p>
+</div>
+<span class="material-symbols-outlined" data-icon="verified_user">verified_user</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden bg-white/95 dark:bg-slate-950/95 backdrop-blur-md fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-safe h-16 border-t border-slate-100 dark:border-slate-800 shadow-[0_-2px_10px_rgba(0,0,0,0.02)]">
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 transition-all duration-200 ease-in-out">
+<span class="material-symbols-outlined" data-icon="videocam">videocam</span>
+<span class="font-public-sans text-[10px] font-medium">Consult</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-900 dark:text-slate-50 font-bold scale-105 transition-all duration-200 ease-in-out">
+<span class="material-symbols-outlined" data-icon="history" data-weight="fill" style="font-variation-settings: 'FILL' 1;">history</span>
+<span class="font-public-sans text-[10px] font-medium">History</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 transition-all duration-200 ease-in-out">
+<span class="material-symbols-outlined" data-icon="clinical_notes">clinical_notes</span>
+<span class="font-public-sans text-[10px] font-medium">Records</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 transition-all duration-200 ease-in-out">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+<span class="font-public-sans text-[10px] font-medium">Profile</span>
+</div>
+</nav>
+</body></html>

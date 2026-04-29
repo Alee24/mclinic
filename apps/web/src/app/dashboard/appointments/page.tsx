@@ -40,11 +40,6 @@ export default function AppointmentsPage() {
             const aptRes = await api.get('/appointments');
             if (aptRes?.ok) {
                 let data = await aptRes.json();
-                // Medics only see confirmed/completed/missed appointments — filter out pending
-                const isMedic = user?.role === 'doctor' || user?.role === 'medic' || user?.role === 'nurse' || user?.role === 'clinician';
-                if (isMedic) {
-                    data = data.filter((apt: any) => apt.status !== 'pending');
-                }
                 setAppointments(data);
             }
         } catch (err) {
@@ -73,9 +68,10 @@ export default function AppointmentsPage() {
         }
     }, [user]);
 
-    const isAdmin = user?.role === UserRole.ADMIN;
-    const isDoctor = user?.role === UserRole.DOCTOR || user?.role === UserRole.MEDIC || user?.role === UserRole.NURSE || user?.role === UserRole.CLINICIAN;
-    const isPatient = user?.role === UserRole.PATIENT;
+    const role = user?.role?.toLowerCase();
+    const isAdmin = role === 'admin';
+    const isDoctor = ['doctor', 'medic', 'nurse', 'clinician', 'lab_tech'].includes(role || '');
+    const isPatient = role === 'patient';
 
     return (
         <div className="space-y-6">
@@ -101,14 +97,17 @@ export default function AppointmentsPage() {
                             <th className="px-6 py-4">Service</th>
                             <th className="px-6 py-4">Date & Time</th>
                             <th className="px-6 py-4">Status</th>
+                            <th className="px-6 py-4">Payment</th>
+                            <th className="px-6 py-4">Charge</th>
+                            {isAdmin && <th className="px-6 py-4 text-emerald-600">Comm.</th>}
                             <th className="px-6 py-4">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                         {loading ? (
-                            <tr><td colSpan={isPatient ? 6 : 7} className="px-6 py-4 text-center">Loading...</td></tr>
+                            <tr><td colSpan={isPatient ? 8 : 9} className="px-6 py-4 text-center">Loading...</td></tr>
                         ) : appointments.length === 0 ? (
-                            <tr><td colSpan={isPatient ? 6 : 7} className="px-6 py-4 text-center text-gray-500">No appointments found</td></tr>
+                            <tr><td colSpan={isPatient ? 8 : 9} className="px-6 py-4 text-center text-gray-500">No appointments found</td></tr>
                         ) : (
                             appointments.map((apt) => (
                                 <tr key={apt.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
@@ -129,35 +128,55 @@ export default function AppointmentsPage() {
                                         }
                                     </td>
                                     <td className="px-6 py-4 text-gray-500">
-                                        <div className="text-sm font-medium">{apt.service?.name || 'General Consultation'}</div>
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-medium">{apt.service?.name || 'General Consultation'}</span>
+                                            <span className="text-[10px] text-gray-400 uppercase font-black tracking-tighter">
+                                                {apt.isVirtual ? '💻 VIRTUAL' : '🏠 PHYSICAL VISIT'}
+                                            </span>
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4 text-gray-500">
                                         {apt.appointment_date ? (
                                             <div>
-                                                <div>{new Date(apt.appointment_date).toLocaleDateString()}</div>
+                                                <div className="font-bold text-gray-800 dark:text-gray-200">{new Date(apt.appointment_date).toLocaleDateString()}</div>
                                                 <div className="text-xs">{apt.appointment_time}</div>
                                             </div>
                                         ) : 'Pending Date'}
                                     </td>
                                     <td className="px-6 py-4">
+                                        <span className={`px-2 py-1 rounded-full text-xs font-black uppercase w-fit ${apt.status === 'confirmed' ? 'bg-green-100 text-green-700' :
+                                            apt.status === 'completed' ? 'bg-blue-100 text-blue-700' :
+                                                apt.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                                                    apt.status === 'missed' ? 'bg-red-100 text-red-700' :
+                                                        apt.status === 'cancelled' ? 'bg-gray-100 text-gray-700' :
+                                                            'bg-gray-100 text-gray-700'
+                                            }`}>
+                                            {apt.status}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4">
                                         <div className="flex flex-col gap-1">
-                                            <span className={`px-2 py-1 rounded-full text-xs font-medium uppercase w-fit ${apt.status === 'confirmed' ? 'bg-green-100 text-green-700' :
-                                                apt.status === 'completed' ? 'bg-blue-100 text-blue-700' :
-                                                    apt.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                                                        apt.status === 'missed' ? 'bg-red-100 text-red-700' :
-                                                            apt.status === 'cancelled' ? 'bg-gray-100 text-gray-700' :
-                                                                'bg-gray-100 text-gray-700'
+                                            <span className={`px-2 py-1 rounded font-black text-[10px] uppercase w-fit ${apt.invoice?.status === 'paid' || apt.invoice?.status === 'PAID'
+                                                ? 'bg-emerald-500 text-white'
+                                                : 'bg-rose-100 text-rose-600'
                                                 }`}>
-                                                {apt.status}
+                                                {apt.invoice?.status === 'paid' || apt.invoice?.status === 'PAID' ? 'PAID' : 'PENDING'}
                                             </span>
-                                            {/* Show Rating if Doctor and Review exists */}
-                                            {isDoctor && apt.review && (
-                                                <div className="flex items-center gap-1 text-xs text-yellow-500 font-bold mt-1">
-                                                    ⭐ {apt.review.rating}/5
-                                                </div>
+                                            {isDoctor && (apt.invoice?.status !== 'paid' && apt.invoice?.status !== 'PAID') && (
+                                                <span className="text-[9px] font-black text-rose-500 animate-pulse uppercase">
+                                                    ⚠️ DO NOT PROCEED
+                                                </span>
                                             )}
                                         </div>
                                     </td>
+                                    <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">
+                                        KES {apt.invoice?.totalAmount ? Number(apt.invoice.totalAmount).toLocaleString() : (apt.fee || 0).toLocaleString()}
+                                    </td>
+                                    {isAdmin && (
+                                        <td className="px-6 py-4 font-black text-emerald-600">
+                                            {apt.invoice?.commissionAmount ? `KES ${Number(apt.invoice.commissionAmount).toLocaleString()}` : '-'}
+                                        </td>
+                                    )}
                                     <td className="px-6 py-4">
                                         <div className="flex gap-2 items-center flex-wrap">
                                             {/* Patient Actions */}

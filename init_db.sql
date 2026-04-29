@@ -17,19 +17,26 @@ CREATE TABLE `users` (
   `fname` varchar(40) DEFAULT NULL,
   `lname` varchar(50) DEFAULT NULL,
   `mobile` varchar(40) DEFAULT NULL,
-  `national_id` varchar(20) DEFAULT NULL,
+  `national_id` varchar(255) DEFAULT NULL,
+  `licenseNumber` varchar(255) DEFAULT NULL,
+  `specialization` varchar(255) DEFAULT NULL,
+  `bio` text DEFAULT NULL,
+  `isPublic` tinyint(1) NOT NULL DEFAULT '0',
   `dob` varchar(20) DEFAULT NULL,
   `sex` varchar(20) DEFAULT NULL,
-  `address` varchar(255) DEFAULT NULL,
+  `address` text DEFAULT NULL,
   `city` varchar(100) DEFAULT NULL,
   `latitude` decimal(10,8) DEFAULT NULL,
   `longitude` decimal(10,8) DEFAULT NULL,
   `profile_image` varchar(255) DEFAULT NULL,
+  `resetToken` varchar(255) DEFAULT NULL,
+  `resetTokenExpiry` timestamp NULL DEFAULT NULL,
+  `lastAccess` timestamp NULL DEFAULT NULL,
   `createdAt` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
   `updatedAt` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
   PRIMARY KEY (`id`),
   UNIQUE KEY `IDX_email` (`email`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- Table structure for table `doctors`

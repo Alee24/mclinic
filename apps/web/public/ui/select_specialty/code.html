@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Select Medical Specialty - Healthcare Excellence</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed": "#d5e4f3",
+                    "outline": "#74777c",
+                    "on-error": "#ffffff",
+                    "tertiary-fixed-dim": "#ffb2b8",
+                    "on-tertiary-container": "#ff4f6e",
+                    "error": "#ba1a1a",
+                    "surface": "#f7f9fb",
+                    "inverse-primary": "#b9c8d7",
+                    "inverse-surface": "#2d3133",
+                    "primary": "#081621",
+                    "on-error-container": "#93000a",
+                    "on-secondary-fixed": "#00210a",
+                    "secondary-container": "#5efc8d",
+                    "primary-fixed-dim": "#b9c8d7",
+                    "on-tertiary-fixed-variant": "#91002d",
+                    "on-secondary-container": "#007233",
+                    "surface-container-high": "#e6e8ea",
+                    "on-tertiary-fixed": "#40000f",
+                    "on-secondary-fixed-variant": "#005323",
+                    "surface-container": "#eceef0",
+                    "tertiary-container": "#5a0018",
+                    "on-surface": "#191c1e",
+                    "on-secondary": "#ffffff",
+                    "surface-bright": "#f7f9fb",
+                    "on-primary-container": "#8492a0",
+                    "on-primary-fixed": "#0f1d28",
+                    "surface-tint": "#52606c",
+                    "secondary": "#006d31",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-on-surface": "#eff1f3",
+                    "on-tertiary": "#ffffff",
+                    "outline-variant": "#c4c7cb",
+                    "surface-container-highest": "#e0e3e5",
+                    "error-container": "#ffdad6",
+                    "tertiary-fixed": "#ffdadb",
+                    "tertiary": "#34000a",
+                    "on-primary": "#ffffff",
+                    "secondary-fixed": "#65ff90",
+                    "primary-container": "#1d2b36",
+                    "on-background": "#191c1e",
+                    "background": "#f7f9fb",
+                    "surface-dim": "#d8dadc",
+                    "on-primary-fixed-variant": "#3a4854",
+                    "surface-variant": "#e0e3e5",
+                    "surface-container-low": "#f2f4f6",
+                    "secondary-fixed-dim": "#3ee276",
+                    "on-surface-variant": "#43474b"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "md": "16px",
+                    "margin": "24px",
+                    "xs": "4px",
+                    "unit": "4px",
+                    "gutter": "24px",
+                    "sm": "8px",
+                    "xxl": "48px",
+                    "container-max": "1280px",
+                    "lg": "24px",
+                    "xl": "32px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Public Sans"],
+                    "label-lg": ["Public Sans"],
+                    "display-lg": ["Public Sans"],
+                    "label-md": ["Public Sans"],
+                    "body-md": ["Public Sans"],
+                    "body-lg": ["Public Sans"],
+                    "body-sm": ["Public Sans"],
+                    "headline-lg": ["Public Sans"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "label-lg": ["14px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-md": ["12px", {"lineHeight": "14px", "fontWeight": "500"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Public Sans', sans-serif;
+            background-color: #f7f9fb;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col pb-24">
+<!-- TopAppBar from JSON -->
+<header class="bg-white dark:bg-slate-900 fixed top-0 w-full z-50 border-b border-slate-200 dark:border-slate-800 transition-colors duration-200">
+<div class="flex justify-between items-center px-4 h-16 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg text-slate-900 dark:text-slate-100 transition-colors">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="font-['Public_Sans'] font-bold text-xl tracking-tight text-slate-900 dark:text-white uppercase tracking-wider">Healthcare Excellence</h1>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center overflow-hidden">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="A professional close-up portrait of a diverse medical professional with a friendly expression, set against a blurred clean clinic background with soft, natural lighting that emphasizes trust and modern healthcare aesthetics." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1g37tOFNxZxin9DmKUEeUwqjC3GQOG9YjfTaWD8hND7fbFdi8_7dFSr79A_U7cD5wlUUo5vSzPalE6NUtJaxFjaRWOxGQn9HCi9r9j5psOeB3ZQLITjhw9povTy6DG05_3XtFXXyU0btnvHAEXmbAY0ry_ltlQDQ48qTSYHn5IZ4F4VNmJ8NfTlz94W_FV57sCET-dPobcqEarjVsA0QFaB8EcRseR46ap0V5HH9bgJqiw7Ka59dSimJsqlmHSxf76L02wcK23qI"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 w-full max-w-7xl mx-auto px-margin pt-24 pb-12">
+<div class="mb-xl">
+<h2 class="font-headline-lg text-headline-lg text-primary mb-sm">Select Specialty</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">Find the right medical expert for your needs. Choose from our network of world-class specialists trained in advanced clinical practices.</p>
+</div>
+<!-- Search Bar Section -->
+<div class="relative max-w-xl mb-xl">
+<div class="absolute inset-y-0 left-0 pl-md flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline" data-icon="search">search</span>
+</div>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-xl py-4 pl-12 pr-md focus:ring-2 focus:ring-secondary focus:border-transparent transition-all font-body-md text-on-surface" placeholder="Search symptoms or specialties..." type="text"/>
+</div>
+<!-- Specialties Grid (Bento Style) -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Large Featured Card -->
+<button class="md:col-span-8 group relative overflow-hidden bg-primary-container text-on-primary-fixed-variant rounded-xl p-xl flex flex-col justify-between text-left transition-all hover:shadow-lg border border-primary">
+<div class="relative z-10">
+<span class="material-symbols-outlined text-[48px] text-secondary-fixed mb-md" data-icon="stethoscope">stethoscope</span>
+<h3 class="font-headline-md text-headline-md text-white mb-xs">General Physician</h3>
+<p class="font-body-sm text-on-primary-container max-w-xs">Primary care, routine check-ups, and holistic health management for all ages.</p>
+</div>
+<div class="mt-xl relative z-10 flex items-center text-secondary-fixed font-label-lg">
+                    Book Now <span class="material-symbols-outlined ml-xs" data-icon="chevron_right">chevron_right</span>
+</div>
+<!-- Decorative background image -->
+<div class="absolute right-0 top-0 w-1/2 h-full opacity-20 group-hover:scale-105 transition-transform">
+<img alt="Medical background" class="w-full h-full object-cover" data-alt="A clean, minimalist close-up of high-quality medical equipment on a polished surface, featuring cool tones and sharp clinical focus, emphasizing precision and professional healthcare standards in a modern medical facility." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0UcEwPVeijO-RgObHGBVgrPzDuz1yrUlB_ntYPWOF9gf96mGmQxAhNfCEcz3JhPK53H9E0A1x7zZ--JVwe8fQ5BD-LNHESYnqpxZIC1TNI5d6eeWjkkIZOO-Rta0SL9P4LcUlaKQBu25_ialkkZ0yp5bSaUBWezh4HFhkBiwM1tZtqxuokW-JIxqbNwAI-DU8DZGTDiGadgFL2krjS0hbW1GRimhQalGLhGpJOpdPa74-aNl2sQJYfA5EoROkIxYKkSXVocyiwxQ"/>
+</div>
+</button>
+<!-- Cardiology Card -->
+<button class="md:col-span-4 bg-surface-container-lowest border border-outline-variant rounded-xl p-lg flex flex-col items-center text-center transition-all hover:border-secondary group">
+<div class="w-16 h-16 bg-surface-container flex items-center justify-center rounded-full mb-md group-hover:bg-secondary-fixed transition-colors">
+<span class="material-symbols-outlined text-[32px] text-primary" data-icon="cardiology">cardiology</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-xs">Cardiology</h3>
+<p class="font-body-sm text-on-surface-variant">Heart health, diagnostics, and vascular specialty care.</p>
+</button>
+<!-- Pediatrics Card -->
+<button class="md:col-span-4 bg-surface-container-lowest border border-outline-variant rounded-xl p-lg flex flex-col items-center text-center transition-all hover:border-secondary group">
+<div class="w-16 h-16 bg-surface-container flex items-center justify-center rounded-full mb-md group-hover:bg-secondary-fixed transition-colors">
+<span class="material-symbols-outlined text-[32px] text-primary" data-icon="child_care">child_care</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-xs">Pediatrics</h3>
+<p class="font-body-sm text-on-surface-variant">Specialized healthcare for infants, children, and adolescents.</p>
+</button>
+<!-- Dermatology Card -->
+<button class="md:col-span-4 bg-surface-container-lowest border border-outline-variant rounded-xl p-lg flex flex-col items-center text-center transition-all hover:border-secondary group">
+<div class="w-16 h-16 bg-surface-container flex items-center justify-center rounded-full mb-md group-hover:bg-secondary-fixed transition-colors">
+<span class="material-symbols-outlined text-[32px] text-primary" data-icon="dermatology">dermatology</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-xs">Dermatology</h3>
+<p class="font-body-sm text-on-surface-variant">Expert care for skin, hair, and nail health conditions.</p>
+</button>
+<!-- Neurology Card -->
+<button class="md:col-span-4 bg-surface-container-lowest border border-outline-variant rounded-xl p-lg flex flex-col items-center text-center transition-all hover:border-secondary group">
+<div class="w-16 h-16 bg-surface-container flex items-center justify-center rounded-full mb-md group-hover:bg-secondary-fixed transition-colors">
+<span class="material-symbols-outlined text-[32px] text-primary" data-icon="neurology">neurology</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-xs">Neurology</h3>
+<p class="font-body-sm text-on-surface-variant">Advanced care for brain and nervous system disorders.</p>
+</button>
+</div>
+<!-- Footer Action (Floating or Pinned) -->
+<div class="mt-xxl flex justify-end items-center gap-md">
+<button class="font-label-lg text-primary hover:underline px-lg py-md">Cancel Selection</button>
+<button class="bg-secondary text-on-secondary px-xxl py-md rounded-xl font-label-lg hover:bg-on-secondary-container transition-all flex items-center gap-xs">
+                Continue <span class="material-symbols-outlined text-[18px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</main>
+<!-- BottomNavBar from JSON -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-2 py-3 pb-safe bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 shadow-[0_-1px_3px_0_rgba(0,0,0,0.05)] z-50">
+<button class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 p-2 hover:text-slate-900 dark:hover:text-white transition-transform scale-95 active:scale-90">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-['Public_Sans'] text-[12px] font-medium tracking-wide">Home</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg p-2 transition-transform scale-95 active:scale-90">
+<span class="material-symbols-outlined" data-icon="calendar_today" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
+<span class="font-['Public_Sans'] text-[12px] font-medium tracking-wide">Bookings</span>
+</button>
+<button class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 p-2 hover:text-slate-900 dark:hover:text-white transition-transform scale-95 active:scale-90">
+<span class="material-symbols-outlined" data-icon="mail">mail</span>
+<span class="font-['Public_Sans'] text-[12px] font-medium tracking-wide">Inbox</span>
+</button>
+<button class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 p-2 hover:text-slate-900 dark:hover:text-white transition-transform scale-95 active:scale-90">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-['Public_Sans'] text-[12px] font-medium tracking-wide">Profile</span>
+</button>
+</nav>
+</body></html>

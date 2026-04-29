@@ -207,12 +207,17 @@ export default function ProfilePage() {
                         </div>
                         <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20 w-full md:w-auto min-w-[320px] space-y-4">
                             <div className="flex items-center justify-between">
-                                <span className="text-xs font-bold uppercase tracking-wider text-emerald-100">Your Status</span>
+                                <span className="text-xs font-bold uppercase tracking-wider text-emerald-100">Visibility Status</span>
                                 <button 
                                     onClick={togglePublic}
-                                    className={`px-4 py-1.5 rounded-full text-xs font-black uppercase transition-all shadow-sm ${user.isPublic ? 'bg-white text-emerald-600' : 'bg-red-500 text-white'}`}
+                                    className={`px-6 py-2 rounded-full text-[10px] font-black uppercase transition-all shadow-lg active:scale-95 flex items-center gap-2 ${
+                                        user.isPublic 
+                                        ? 'bg-white text-emerald-600 shadow-emerald-900/20' 
+                                        : 'bg-rose-500 text-white shadow-rose-900/40 animate-pulse'
+                                    }`}
                                 >
-                                    {user.isPublic ? 'Publicly Visible' : 'Hidden (Private)'}
+                                    <div className={`w-2 h-2 rounded-full shadow-sm ${user.isPublic ? 'bg-emerald-500' : 'bg-white'}`} />
+                                    {user.isPublic ? 'Profile is Public' : 'Make Profile Public'}
                                 </button>
                             </div>
                             <div className="flex gap-2">
