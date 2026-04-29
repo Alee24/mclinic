@@ -75,7 +75,9 @@ async function run() {
         { name: 'isPublic', type: 'TINYINT(1) DEFAULT 0' },
         { name: 'deletionRequestedAt', type: 'TIMESTAMP NULL' },
         { name: 'deletionScheduledAt', type: 'TIMESTAMP NULL' },
-        { name: 'lastAccess', type: 'TIMESTAMP NULL' }
+        { name: 'lastAccess', type: 'TIMESTAMP NULL' },
+        { name: 'otp', type: 'VARCHAR(10) NULL' },
+        { name: 'otp_expires', type: 'DATETIME NULL' }
     ];
 
     for (const col of columns) {
