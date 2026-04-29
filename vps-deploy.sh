@@ -112,6 +112,7 @@ npm run build
 # 4. Restart Services
 echo "🔄 Starting/Restarting PM2 services..."
 cd $APP_DIR
+pm2 kill || true
 pm2 start ecosystem.config.js --update-env
 
 echo "✅ Deployment Successful!"
