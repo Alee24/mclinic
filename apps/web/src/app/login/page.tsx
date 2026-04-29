@@ -103,7 +103,7 @@ export default function LoginPage() {
         const password = formData.get('password');
 
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://portal.mclinic.co.ke/api';
+            const API_URL = 'https://portal.mclinic.co.ke/api';
             const apiUrl = `${API_URL}/auth/login`;
             const res = await fetch(apiUrl, {
                 method: 'POST',
