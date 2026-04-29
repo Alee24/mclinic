@@ -19,7 +19,7 @@ git reset --hard origin/$BRANCH
 # 2. Run Database Patches
 echo "🔧 Running Direct SQL Patch to fix missing columns..."
 cd "$APP_DIR/apps/api"
-npm install dotenv mysql2
+npm install dotenv mysql2 bcrypt
 
 cat > fix-db-vps-patch.js << 'EOF'
 const mysql = require('mysql2/promise');
@@ -89,6 +89,28 @@ async function run() {
         }
     }
 
+    // Ensure Admin User Exists
+    const bcrypt = require('bcrypt');
+    try {
+        const hashedPassword = await bcrypt.hash('Digital2025', 10);
+        // Check if email already exists to prevent integrity violation if unique key differs
+        const [rows] = await conn.query('SELECT id FROM users WHERE email = ?', ['mettoalex@gmail.com']);
+        if (rows.length === 0) {
+            await conn.query(`
+                INSERT INTO users (email, password, role, fname, lname, status, createdAt, updatedAt)
+                VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
+            `, ['mettoalex@gmail.com', hashedPassword, 'admin', 'Admin', 'User', 1]);
+            console.log('✅ Admin user mettoalex@gmail.com created!');
+        } else {
+            await conn.query(`
+                UPDATE users SET password = ?, role = ?, status = ? WHERE email = ?
+            `, [hashedPassword, 'admin', 1, 'mettoalex@gmail.com']);
+            console.log('✅ Admin user mettoalex@gmail.com updated!');
+        }
+    } catch (e) {
+        console.error('⚠️ Error verifying admin user:', e.message);
+    }
+
     await conn.end();
 }
 run().catch(e => { console.error(e); process.exit(1); });
@@ -100,6 +122,7 @@ node fix-db-vps-patch.js
 echo "🔹 Updating API..."
 cd "$APP_DIR/apps/api"
 npm install --legacy-peer-deps
+npx prisma generate
 npm run build
 
 # 3. Web Deployment
