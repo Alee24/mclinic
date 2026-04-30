@@ -66,7 +66,7 @@ interface BookAppointmentModalProps {
     initialType?: 'PHYSICAL' | 'VIRTUAL';
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://portal.mclinic.co.ke/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 const DoctorAvatar = ({ doctor }: { doctor: Doctor }) => {
     const [error, setError] = useState(false);

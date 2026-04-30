@@ -114,7 +114,7 @@ export default function MapViewer() {
     const createMarkerIcon = (doc: any, isSelected: boolean) => {
         const config = getDocConfig(doc);
         const avatarUrl = doc.profile_image
-            ? (doc.profile_image.startsWith('http') ? doc.profile_image : `https://portal.mclinic.co.ke/api/uploads/profiles/${doc.profile_image}`)
+            ? (doc.profile_image.startsWith('http') ? doc.profile_image : `/api/uploads/profiles/${doc.profile_image}`)
             : null;
 
         const initials = `${doc.fname?.[0] || ''}${doc.lname?.[0] || ''}`.toUpperCase() || config.code;
@@ -277,7 +277,7 @@ export default function MapViewer() {
                                 <div className="w-20 h-20 rounded-[2rem] bg-gray-50 overflow-hidden shadow-inner border border-gray-100 shrink-0">
                                     <img
                                         src={selectedDoctor.profile_image
-                                            ? (selectedDoctor.profile_image.startsWith('http') ? selectedDoctor.profile_image : `https://portal.mclinic.co.ke/api/uploads/profiles/${selectedDoctor.profile_image}`)
+                                            ? (selectedDoctor.profile_image.startsWith('http') ? selectedDoctor.profile_image : `/api/uploads/profiles/${selectedDoctor.profile_image}`)
                                             : `https://ui-avatars.com/api/?name=${selectedDoctor.fname}+${selectedDoctor.lname}&background=random`
                                         }
                                         className="w-full h-full object-cover"

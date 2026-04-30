@@ -125,7 +125,7 @@ export default function PanicSystem() {
                 formData.append('audio', blob, `panic-${id}-${Date.now()}.webm`);
 
                 try {
-                    await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://portal.mclinic.co.ke/api'}/emergency/${id}/audio`, {
+                    await fetch(`/api/emergency/${id}/audio`, {
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('access_token')}`
