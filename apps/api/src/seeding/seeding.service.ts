@@ -324,7 +324,7 @@ export class SeedingService {
         const doctor = faker.helpers.arrayElement(doctors);
 
         const record = this.recordRepo.create({
-          patient,
+          patient: patient.user,
           doctor,
           diagnosis: 'Common Cold',
           prescription: 'Rest and fluids',
