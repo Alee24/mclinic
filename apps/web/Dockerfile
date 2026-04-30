@@ -13,6 +13,9 @@ COPY --from=builder /app/apps/web/.next ./apps/web/.next
 COPY --from=builder /app/apps/web/node_modules ./apps/web/node_modules
 COPY --from=builder /app/apps/web/package.json ./apps/web/package.json
 
-EXPOSE 7898
+EXPOSE 3000
+ENV PORT 3000
+ENV HOSTNAME "0.0.0.0"
+
 WORKDIR /app/apps/web
-CMD ["npm", "start", "--", "-p", "7898"]
+CMD ["npm", "run", "start"]
