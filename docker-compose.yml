@@ -41,9 +41,9 @@ services:
     container_name: mclinic-web
     restart: always
     ports:
-      - "7898:7898"
+      - "7898:3000"
     environment:
-      - PORT=7898
+      - PORT=3000
       - NEXT_PUBLIC_API_URL=/api
     depends_on:
       - api
