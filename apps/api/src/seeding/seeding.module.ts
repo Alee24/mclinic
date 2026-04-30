@@ -12,6 +12,7 @@ import { ServicePrice } from '../financial/entities/service-price.entity';
 import { Invoice } from '../financial/entities/invoice.entity';
 import { InvoiceItem } from '../financial/entities/invoice-item.entity';
 import { SystemSetting } from '../system-settings/entities/system-setting.entity';
+import { MedicalProfile } from '../medical-profiles/entities/medical-profile.entity';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { SystemSetting } from '../system-settings/entities/system-setting.entity
       Invoice,
       InvoiceItem,
       SystemSetting,
+      MedicalProfile,
     ]),
   ],
   controllers: [SeedingController],

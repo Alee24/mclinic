@@ -19,6 +19,7 @@ import { ServicePrice } from '../financial/entities/service-price.entity';
 import { Invoice } from '../financial/entities/invoice.entity';
 import { InvoiceItem } from '../financial/entities/invoice-item.entity';
 import { SystemSetting } from '../system-settings/entities/system-setting.entity';
+import { MedicalProfile } from '../medical-profiles/entities/medical-profile.entity';
 
 @Injectable()
 export class SeedingService {
@@ -30,6 +31,8 @@ export class SeedingService {
     private appointmentRepo: Repository<Appointment>,
     @InjectRepository(MedicalRecord)
     private recordRepo: Repository<MedicalRecord>,
+    @InjectRepository(MedicalProfile)
+    private profileRepo: Repository<MedicalProfile>,
     @InjectRepository(Transaction) private txRepo: Repository<Transaction>,
     @InjectRepository(ServicePrice) private priceRepo: Repository<ServicePrice>,
     @InjectRepository(Invoice) private invoiceRepo: Repository<Invoice>,
@@ -110,6 +113,7 @@ export class SeedingService {
     await this.doctorRepo.delete({ id: MoreThanOrEqual(0) });
     await this.patientRepo.delete({ id: MoreThanOrEqual(0) });
     await this.priceRepo.delete({ id: MoreThanOrEqual(0) });
+    await this.profileRepo.delete({ id: MoreThanOrEqual(0) });
     await this.userRepo.delete({ id: MoreThanOrEqual(0) });
     return { message: 'All data dropped successfully.' };
   }
