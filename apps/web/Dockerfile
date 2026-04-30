@@ -8,14 +8,17 @@ RUN cd apps/web && npm run build
 
 FROM node:20-alpine
 WORKDIR /app
-COPY --from=builder /app/apps/web/public ./apps/web/public
-COPY --from=builder /app/apps/web/.next ./apps/web/.next
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/web/node_modules ./apps/web/node_modules
+COPY --from=builder /app/apps/web/.next ./apps/web/.next
+COPY --from=builder /app/apps/web/public ./apps/web/public
 COPY --from=builder /app/apps/web/package.json ./apps/web/package.json
 
 EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
+ENV NODE_ENV production
 
 WORKDIR /app/apps/web
-CMD ["npm", "run", "start"]
+# Use the direct path to next to be 100% sure it's found
+CMD ["../../node_modules/.bin/next", "start", "-p", "3000"]
