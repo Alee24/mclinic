@@ -53,7 +53,8 @@ import { NotificationModule } from './notification/notification.module';
         password: configService.get('DB_PASSWORD', ''),
         database: configService.get('DB_NAME', 'mclinicportal'),
         autoLoadEntities: true,
-        synchronize: false, // NEVER true in production - use migrations instead
+        synchronize: true,
+        migrationsRun: true,
         extra: {
           connectionLimit: 10,
           connectTimeout: 60000,
