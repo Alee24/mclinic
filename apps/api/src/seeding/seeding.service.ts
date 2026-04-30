@@ -185,19 +185,20 @@ export class SeedingService {
       // 1. Seed Patients
       const patients = [];
 
-      // Create Admin Account (Metto Alex)
+      // Create Admin Account
       const adminPassword = await bcrypt.hash('Digital2025', 10);
       const adminUser = this.userRepo.create({
-        email: 'mettoalex@gmail.com',
+        email: 'admin@mclinic.co.ke',
         password: adminPassword,
         role: UserRole.ADMIN,
         status: true,
         fname: 'Alex',
         lname: 'Metto',
+        phoneNumber: '0724454757',
         emailVerifiedAt: new Date(),
       });
       await this.userRepo.save(adminUser);
-      console.log('Created Admin Account: mettoalex@gmail.com / Digital2025');
+      console.log('Created Admin Account: admin@mclinic.co.ke / Digital2025');
 
       for (let i = 0; i < 15; i++) {
         const email = faker.internet.email();
