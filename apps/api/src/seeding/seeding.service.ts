@@ -94,6 +94,11 @@ export class SeedingService {
       { key: 'FEE_PHYSICAL_VISIT', value: '2500', description: 'Default physical consultation fee', isSecure: false },
       { key: 'FEE_AMBULANCE_BASE', value: '5000', description: 'Default ambulance service fee', isSecure: false },
       { key: 'COMMISSION_PERCENTAGE', value: '40', description: 'Company commission percentage (e.g. 40 for 40%)', isSecure: false },
+
+      // Advanta SMS Settings
+      { key: 'sms_api_key', value: 'YOUR_API_KEY_HERE', description: 'Advanta SMS API Key', isSecure: true },
+      { key: 'sms_partner_id', value: 'YOUR_PARTNER_ID_HERE', description: 'Advanta SMS Partner ID', isSecure: false },
+      { key: 'sms_shortcode', value: 'M-CLINIC', description: 'Advanta SMS Sender ID / Shortcode', isSecure: false },
     ];
 
     for (const s of defaultSettings) {
