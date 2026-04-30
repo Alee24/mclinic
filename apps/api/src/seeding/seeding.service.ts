@@ -198,7 +198,7 @@ export class SeedingService {
         status: true,
         fname: 'Alex',
         lname: 'Metto',
-        phoneNumber: '0724454757',
+        mobile: '0724454757',
         emailVerifiedAt: new Date(),
       });
       await this.userRepo.save(adminUser);
