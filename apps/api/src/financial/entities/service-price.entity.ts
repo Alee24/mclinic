@@ -23,6 +23,9 @@ export class ServicePrice {
   @Column({ default: 'KES' })
   currency: string;
 
+  @Column({ type: 'text', nullable: true })
+  description: string;
+
   // If null, this is the base/global price for the service.
   // If set, this is a specific override for a doctor.
   @Column({ nullable: true, type: 'bigint', unsigned: true })

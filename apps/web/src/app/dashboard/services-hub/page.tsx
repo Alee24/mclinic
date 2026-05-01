@@ -10,50 +10,57 @@ export default function ServicesHubPage() {
     const services = [
         {
             title: 'Book Appointment',
-            description: 'Schedule a consultation with a General Practitioner or Specialist.',
+            description: 'Schedule a consultation with a General Practitioner or Specialist for home or facility visits.',
             icon: <FiCalendar />,
             color: 'bg-blue-500',
             href: '/dashboard/appointments',
-            action: () => router.push('/dashboard/appointments?book=true') // Assuming query param triggers modal or just nav
-        },
-        {
-            title: 'Pharmacy Store',
-            description: 'Order medications and health products delivered to you.',
-            icon: <FiPackage />,
-            color: 'bg-green-500',
-            href: '/dashboard/pharmacy'
+            action: () => router.push('/dashboard/appointments?book=true')
         },
         {
             title: 'Virtual Consultation',
-            description: 'Speak to a doctor via video call from anywhere, anytime.',
+            description: 'Speak to a doctor via video call from anywhere, anytime. Fast and convenient.',
             icon: <FiActivity />,
             color: 'bg-indigo-600',
             action: () => router.push('/dashboard/appointments?book=true&type=VIRTUAL')
         },
         {
+            title: 'Pharmacy Store',
+            description: 'Order medications and health products delivered to your doorstep.',
+            icon: <FiPackage />,
+            color: 'bg-green-500',
+            href: '/dashboard/pharmacy'
+        },
+        {
+            title: 'Medical Concierge',
+            description: 'Your personal healthcare coordinator for priority bookings and end-to-end management.',
+            icon: <FiUser />,
+            color: 'bg-rose-500',
+            action: () => alert('Medical Concierge service selected. An agent will contact you shortly.')
+        },
+        {
             title: 'Lab & Diagnostics',
-            description: 'View your lab results or book a new test.',
+            description: 'View your lab results or book a new test with home sample collection.',
             icon: <FiActivity />,
             color: 'bg-purple-500',
             href: '/dashboard/lab'
         },
         {
             title: 'Ambulance Service',
-            description: 'Emergency response and medical transport services.',
+            description: 'Rapid 24/7 emergency response and medical transport subscriptions.',
             icon: <FiTruck />,
             color: 'bg-red-500',
             href: '/dashboard/ambulance'
         },
         {
             title: 'Medical Records',
-            description: 'Access your complete medical history and reports.',
+            description: 'Access your complete medical history, reports, and digital prescriptions.',
             icon: <FiFileText />,
             color: 'bg-orange-500',
             href: '/dashboard/records'
         },
         {
             title: 'My Profile',
-            description: 'Update your personal details and account settings.',
+            description: 'Update your personal details, health metrics, and account settings.',
             icon: <FiUser />,
             color: 'bg-gray-500',
             href: '/dashboard/profile'
