@@ -16,6 +16,8 @@ export default function DoctorDetailsPage() {
     const [transactions, setTransactions] = useState<any[]>([]);
     const [activeTab, setActiveTab] = useState<'profile' | 'appointments' | 'financials'>('profile');
 
+    const [settings, setSettings] = useState<any[]>([]);
+
     // Booking State
     const [showBookingModal, setShowBookingModal] = useState(false);
     const [bookingType, setBookingType] = useState<'PHYSICAL' | 'VIRTUAL'>('PHYSICAL');
@@ -27,6 +29,12 @@ export default function DoctorDetailsPage() {
                 const docRes = await api.get(`/doctors/${params.id}`);
                 if (docRes && docRes.ok) {
                     setDoctor(await docRes.json());
+                }
+
+                // Fetch System Settings
+                const setRes = await api.get('/settings');
+                if (setRes && setRes.ok) {
+                    setSettings(await setRes.json());
                 }
 
                 // Fetch Doctor Appointments
@@ -59,6 +67,21 @@ export default function DoctorDetailsPage() {
     // Is Patient (able to book)
     const isPatient = user?.role === UserRole.PATIENT;
 
+    // Derived Fees from Settings
+    const getSetting = (key: string) => settings.find(s => s.key === key)?.value;
+    const physicalFee = Number(getSetting('FEE_PHYSICAL_VISIT') || 2500);
+    const virtualFee = Number(getSetting('FEE_VIRTUAL_VISIT') || 1500);
+    const bookingFee = Number(getSetting('FEE_BOOKING') || 500);
+
+    // Actual display logic matching AppointmentsService
+    const drType = (doctor.dr_type || '').toLowerCase();
+    let baseFee = physicalFee;
+    if (!drType.includes('nurse') && !drType.includes('clinician')) {
+        baseFee = Number(doctor.fee || physicalFee);
+    }
+    const totalPhysical = baseFee + bookingFee;
+    const totalVirtual = virtualFee + bookingFee;
+
     return (
         <div className="space-y-6">
             {/* Header Card */}
@@ -86,7 +109,7 @@ export default function DoctorDetailsPage() {
                         </div>
                         <div className="flex items-center gap-2">
                             <span className="text-primary"><FiDollarSign /></span>
-                            <span>Fee: KES {doctor.fee}</span>
+                            <span>Fee: KES {totalPhysical}</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <span className="text-primary"><FiBriefcase /></span>
@@ -289,7 +312,7 @@ export default function DoctorDetailsPage() {
                                                 <FiVideo size={20} />
                                                 <span>VIRTUAL CALL</span>
                                             </div>
-                                            <span className="text-[10px] opacity-70 font-bold uppercase tracking-widest">from KES {doctor.services?.find((s: any) => s.name?.toLowerCase().includes('virtual'))?.price || 900} / session</span>
+                                            <span className="text-[10px] opacity-70 font-bold uppercase tracking-widest">from KES {totalVirtual} / session</span>
                                         </button>
                                     </div>
                                     <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800 flex items-center gap-3 text-xs text-gray-500 font-bold uppercase tracking-tighter">

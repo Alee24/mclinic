@@ -111,6 +111,8 @@ export default function DoctorsPage() {
         setSelectedIds([]);
     };
 
+    const [settings, setSettings] = useState<any[]>([]);
+
     const fetchDoctors = async () => {
         try {
             const params: any = {};
@@ -122,6 +124,12 @@ export default function DoctorsPage() {
             if (res && res.ok) {
                 const data = await res.json();
                 setDoctors(data);
+            }
+
+            // Fetch Settings
+            const setRes = await api.get('/settings');
+            if (setRes && setRes.ok) {
+                setSettings(await setRes.json());
             }
         } catch (error) {
             console.error('Failed to fetch doctors', error);
@@ -432,8 +440,20 @@ export default function DoctorsPage() {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-gray-600 dark:text-gray-400">
-                                        <div className="font-medium">Fee: KES {doc.fee}</div>
-                                        <div className="text-xs text-gray-400">Bal: KES {doc.balance}</div>
+                                        <div className="font-medium text-xs">
+                                            {(() => {
+                                                const getSetting = (key: string) => settings.find(s => s.key === key)?.value;
+                                                const physicalFee = Number(getSetting('FEE_PHYSICAL_VISIT') || 2500);
+                                                const bookingFee = Number(getSetting('FEE_BOOKING') || 500);
+                                                const drType = (doc.dr_type || '').toLowerCase();
+                                                let baseFee = physicalFee;
+                                                if (!drType.includes('nurse') && !drType.includes('clinician')) {
+                                                    baseFee = Number(doc.fee || physicalFee);
+                                                }
+                                                return `Fee: KES ${baseFee + bookingFee}`;
+                                            })()}
+                                        </div>
+                                        <div className="text-[10px] text-gray-400">Bal: KES {doc.balance}</div>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex flex-col gap-1 items-start">
