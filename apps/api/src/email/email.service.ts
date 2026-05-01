@@ -36,10 +36,14 @@ export class EmailService {
         const fromName = await this.settingsService.get('EMAIL_SMTP_FROM_NAME') || 'M-Clinic Notifications';
         const fromEmail = (await this.settingsService.get('EMAIL_SMTP_FROM_EMAIL'))?.trim() || user;
 
+        const portNum = port ? parseInt(port, 10) : 587;
+        // Port 465 is for implicit SSL, Port 587 is for STARTTLS
+        const finalSecure = portNum === 465;
+
         const config = {
             host,
-            port: port ? parseInt(port, 10) : 587,
-            secure,
+            port: portNum,
+            secure: finalSecure,
             auth: { user, pass },
             defaults: {
                 from: `"${fromName}" <${fromEmail}>`,
@@ -48,6 +52,8 @@ export class EmailService {
                 rejectUnauthorized: false
             }
         };
+
+        console.log(`[EmailService] SMTP Debug: Host=${host}, Port=${config.port}, User=${user}, Secure=${finalSecure}`);
 
         // Use 'as any' to bypass potential type definition issues with addTransporter
         (this.mailerService as any).addTransporter('custom', config);
