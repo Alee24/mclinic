@@ -215,7 +215,7 @@ export default function AppointmentPaymentPage() {
 
                         {/* Payment Method Selector */}
                         <div className="grid grid-cols-3 gap-2 mb-6">
-                            {['mpesa', 'card', 'cash'].map(method => (
+                            {['mpesa', 'card', 'bank'].map(method => (
                                 <button
                                     key={method}
                                     onClick={() => setPaymentMethod(method)}
@@ -224,7 +224,7 @@ export default function AppointmentPaymentPage() {
                                         : 'bg-gray-50 dark:bg-black text-gray-400 border-transparent hover:border-gray-200'
                                         }`}
                                 >
-                                    {method}
+                                    {method === 'bank' ? 'Bank Transfer' : method}
                                 </button>
                             ))}
                         </div>
@@ -297,8 +297,8 @@ export default function AppointmentPaymentPage() {
                                 )}
                             </form>
                         ) : (
-                            <div className="text-center py-8 text-gray-500 text-sm">
-                                {paymentMethod === 'card' ? 'Card payments coming soon.' : 'Please pay cash at the facility.'}
+                            <div className="text-center py-8 text-gray-500 text-sm italic">
+                                {paymentMethod === 'card' ? 'Card payments coming soon.' : 'Bank transfer coming soon.'}
                             </div>
                         )}
                     </div>
