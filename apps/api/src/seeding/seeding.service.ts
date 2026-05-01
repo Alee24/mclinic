@@ -99,6 +99,13 @@ export class SeedingService {
       { key: 'sms_api_key', value: 'YOUR_API_KEY_HERE', description: 'Advanta SMS API Key', isSecure: true },
       { key: 'sms_partner_id', value: 'YOUR_PARTNER_ID_HERE', description: 'Advanta SMS Partner ID', isSecure: false },
       { key: 'sms_shortcode', value: 'M-CLINIC', description: 'Advanta SMS Sender ID / Shortcode', isSecure: false },
+
+      // SMTP Settings (For VPS Email Fix)
+      { key: 'EMAIL_SMTP_HOST', value: 'smtp.gmail.com', description: 'SMTP Host (e.g. smtp.gmail.com)', isSecure: false },
+      { key: 'EMAIL_SMTP_PORT', value: '587', description: 'SMTP Port (587 for TLS, 465 for SSL)', isSecure: false },
+      { key: 'EMAIL_SMTP_USER', value: '', description: 'SMTP Username/Email', isSecure: false },
+      { key: 'EMAIL_SMTP_PASS', value: '', description: 'SMTP Password/App Password', isSecure: true },
+      { key: 'EMAIL_SMTP_SECURE', value: 'false', description: 'Use SSL (true for 465, false for 587)', isSecure: false },
     ];
 
     for (const s of defaultSettings) {
@@ -369,6 +376,7 @@ export class SeedingService {
         'Ambulance',
         'Dental Checkup',
         'Video Consult',
+        'Medical Concierge',
       ];
       for (const s of services) {
         const price = this.priceRepo.create({
