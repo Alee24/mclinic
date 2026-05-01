@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: mysql:8.0
@@ -23,6 +21,8 @@ services:
     restart: always
     ports:
       - "7899:7899"
+    volumes:
+      - uploads_data:/app/apps/api/uploads
     environment:
       - PORT=7899
       - DB_HOST=db
@@ -50,3 +50,4 @@ services:
 
 volumes:
   db_data:
+  uploads_data:
