@@ -274,7 +274,7 @@ export class AppointmentsService {
   async findByPatient(patientId: number): Promise<Appointment[]> {
     return this.appointmentsRepository.find({
       where: { patientId },
-      relations: ['doctor', 'service'],
+      relations: ['patient', 'doctor', 'service', 'invoice'],
     });
   }
 
@@ -304,7 +304,7 @@ export class AppointmentsService {
   async findByDoctor(doctorId: number): Promise<Appointment[]> {
     return this.appointmentsRepository.find({
       where: { doctorId },
-      relations: ['patient', 'service'],
+      relations: ['patient', 'doctor', 'service', 'invoice'],
     });
   }
 
@@ -390,7 +390,7 @@ export class AppointmentsService {
     console.log(`[Appointments] Fetching for Patient: ${user.email}`);
     return this.appointmentsRepository.find({
       where: { patientId: user.sub || user.id },
-      relations: ['doctor', 'service', 'invoice'], // Added invoice relation for patient view
+      relations: ['patient', 'doctor', 'service', 'invoice'], // Added invoice relation for patient view
       order: { appointment_date: 'DESC' },
     });
   }

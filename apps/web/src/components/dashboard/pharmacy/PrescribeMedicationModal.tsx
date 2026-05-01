@@ -72,11 +72,11 @@ export default function PrescribeMedicationModal({ appointment, onClose, onSucce
         setSubmitting(true);
         try {
             const payload = {
-                doctorId: appointment.doctor?.id,
-                patientId: appointment.patient?.id, // Use User ID directly
+                doctorId: appointment.doctorId || appointment.doctor?.id,
+                patientId: appointment.patientId || appointment.patient?.id,
                 appointmentId: appointment.id,
                 items: selectedMeds.map(m => ({
-                    medicationId: m.medicationId, // Ensure this is the ID from the meds list
+                    medicationId: m.medicationId,
                     medicationName: m.name,
                     quantity: Number(m.quantity),
                     dosage: m.dosage,
