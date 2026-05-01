@@ -96,8 +96,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(userData));
         setUser(userData);
-        router.push('/dashboard');
-        refreshUser(); // Ensure we have latest data on login too (though login response is usually fresh)
+        window.location.href = '/dashboard';
+        // refreshUser(); // No longer needed with full reload
     };
 
     const logout = () => {
