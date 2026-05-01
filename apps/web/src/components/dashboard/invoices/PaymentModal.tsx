@@ -78,7 +78,7 @@ export default function PaymentModal({ invoice, onClose, onSuccess }: PaymentMod
                             onChange={(e) => setPaymentMethod(e.target.value)}
                         >
                             <option value="MPESA">M-Pesa (STK Push)</option>
-                            <option value="CASH">Cash</option>
+                            <option value="BANK">Bank Transfer (Coming Soon)</option>
                             <option value="VISA">Card/Visa</option>
                             <option value="PAYPAL">PayPal</option>
                         </select>
