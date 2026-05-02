@@ -12,11 +12,11 @@ API_PORT=7899
 WEB_PORT=7898
 
 echo ""
-echo "📥 Step 1: Pulling latest changes from Git..."
+echo "📥 Step 1: Pulling latest changes from Git (MobileApp branch)..."
 cd "$APP_DIR"
 git fetch origin
-git reset --hard origin/main
-echo "   ✅ Code updated to latest version"
+git reset --hard origin/MobileApp
+echo "   ✅ Code updated to latest version from MobileApp branch"
 
 echo ""
 echo "🔧 Step 2: Setting up Node.js 20..."
