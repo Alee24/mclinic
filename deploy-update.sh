@@ -6,7 +6,7 @@ echo "  M-CLINIC DEPLOYMENT UPDATE"
 echo "  Pulling latest changes and restarting"
 echo "=============================================="
 
-# Configuration (Corrected to match ecosystem.config.js)
+# Configuration
 APP_DIR="/var/www/mclinicportal"
 API_PORT=7899
 WEB_PORT=7898
@@ -40,14 +40,9 @@ echo ""
 echo "🗄️  Step 5: Updating database schema..."
 cd "$APP_DIR/apps/api"
 
-# Use the Node.js helper to get the DATABASE_URL (only capture stdout)
+# Use the Node.js helper to get the DATABASE_URL
 echo "   Constructing DATABASE_URL..."
 export DATABASE_URL=$(node prisma-url-helper.js 2>/tmp/prisma_debug.log) || true
-
-# Print debug info if available
-if [ -f /tmp/prisma_debug.log ]; then
-    cat /tmp/prisma_debug.log
-fi
 
 if [ -z "$DATABASE_URL" ]; then
     echo "   ❌ ERROR: Failed to construct DATABASE_URL."
@@ -79,7 +74,6 @@ elif [ -f "next.config.js" ]; then
 fi
 
 if [ -n "$CONFIG_FILE" ]; then
-    # Ensure TypeScript checks are disabled for build stability on VPS
     if ! grep -q "ignoreBuildErrors: true" "$CONFIG_FILE"; then
         echo "   Injecting ignoreBuildErrors into $CONFIG_FILE..."
         if [ "$CONFIG_FILE" == "next.config.ts" ]; then
@@ -97,25 +91,35 @@ echo ""
 echo "🔄 Step 8: Restarting PM2 services..."
 cd "$APP_DIR"
 
-# Restart PM2 services
-pm2 restart ecosystem.config.js
+# Force reload for clean environment
+pm2 delete mclinic-api mclinic-web || true
+pm2 start ecosystem.config.js
 pm2 save
 echo "   ✅ Services restarted"
 
 echo ""
 echo "⏳ Step 9: Waiting for services to stabilize..."
-sleep 10
+sleep 15
 
 echo ""
 echo "🔍 Step 10: Testing endpoints..."
 echo ""
 echo "Testing API (port $API_PORT):"
-curl -s http://localhost:$API_PORT/users/count-active || echo "   ⚠️  API not responding yet"
+# Try with /api prefix
+curl -s http://localhost:$API_PORT/api/users/count-active || echo "   ⚠️  API test failed"
 
 echo ""
 echo ""
 echo "Testing Web (port $WEB_PORT):"
-curl -s -o /dev/null -w "HTTP Status: %{http_code}\n" http://localhost:$WEB_PORT
+WEB_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$WEB_PORT)
+echo "HTTP Status: $WEB_STATUS"
+
+if [ "$WEB_STATUS" == "000" ] || [ "$WEB_STATUS" == "502" ]; then
+    echo ""
+    echo "❌ ERROR: Web service seems to be down or crashing."
+    echo "Showing last 20 lines of web logs:"
+    pm2 logs mclinic-web --lines 20 --no-daemon
+fi
 
 echo ""
 echo "=============================================="
@@ -129,12 +133,7 @@ echo "🌐 Your Application:"
 echo "   - Website: https://portal.mclinic.co.ke"
 echo "   - API: https://portal.mclinic.co.ke/api"
 echo ""
-echo "📝 View Logs:"
-echo "   - pm2 logs mclinic-api"
-echo "   - pm2 logs mclinic-web"
-echo ""
 echo "🔄 Quick Commands:"
-echo "   - Restart all: pm2 restart all"
-echo "   - View logs: pm2 logs"
-echo "   - Service status: pm2 status"
+echo "   - pm2 logs mclinic-web (To see why it crashed)"
+echo "   - pm2 restart mclinic-web"
 echo "=============================================="
