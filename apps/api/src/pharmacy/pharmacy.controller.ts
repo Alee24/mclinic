@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, Param, Patch, Delete, UseGuards, Res, UseInterceptors, UploadedFile } from '@nestjs/common';
-import { Response as ExpressResponse } from 'express';
+import type { Response as ExpressResponse } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { PharmacyService } from './pharmacy.service';
 import { PrescriptionStatus } from './entities/prescription.entity';
@@ -50,12 +50,12 @@ export class PharmacyController {
 
     @Get('prescriptions')
     getAllPrescriptions() {
-        return this.pharmacyService.findAllPrescriptions();
+        return this.pharmacyService.getAllPrescriptions();
     }
 
     @Get('prescriptions/patient/:id')
     getPatientPrescriptions(@Param('id') id: string) {
-        return this.pharmacyService.findPrescriptionsByPatient(+id);
+        return this.pharmacyService.getPatientPrescriptions(+id);
     }
 
     @Post('prescriptions')
@@ -68,19 +68,19 @@ export class PharmacyController {
         @Param('id') id: string,
         @Body('status') status: PrescriptionStatus,
     ) {
-        return this.pharmacyService.updatePrescriptionStatus(id, status);
+        return this.pharmacyService.updatePrescriptionStatus(+id, status);
     }
 
     // --- Orders ---
 
     @Get('orders')
     getAllOrders() {
-        return this.pharmacyService.findAllOrders();
+        return this.pharmacyService.getAllOrders();
     }
 
     @Get('orders/user/:id')
     getUserOrders(@Param('id') id: string) {
-        return this.pharmacyService.findOrdersByUser(+id);
+        return this.pharmacyService.getUserOrders(+id);
     }
 
     @Post('orders')
