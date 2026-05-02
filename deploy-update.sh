@@ -40,22 +40,38 @@ echo ""
 echo "🗄️  Step 5: Updating database schema..."
 cd "$APP_DIR/apps/api"
 
-# Load DATABASE_URL from .env if it exists in current or parent directory
-if [ -f .env ]; then
-    echo "   Loading environment from apps/api/.env"
-    export $(grep -v '^#' .env | xargs)
-elif [ -f ../../.env ]; then
-    echo "   Loading environment from root .env"
-    export $(grep -v '^#' ../../.env | xargs)
+# Aggressive .env discovery
+ENV_PATH=""
+if [ -f ".env" ]; then
+    ENV_PATH=".env"
+elif [ -f "../../.env" ]; then
+    ENV_PATH="../../.env"
+elif [ -f "../../../.env" ]; then
+    ENV_PATH="../../../.env"
+else
+    # Search for any .env file in the project
+    SEARCH_ENV=$(find "$APP_DIR" -maxdepth 4 -name ".env" -not -path "*/node_modules/*" | head -n 1)
+    if [ -n "$SEARCH_ENV" ]; then
+        ENV_PATH="$SEARCH_ENV"
+    fi
+fi
+
+if [ -n "$ENV_PATH" ]; then
+    echo "   ✅ Found environment file at: $ENV_PATH"
+    # Export variables using a more robust method
+    set -a
+    source "$ENV_PATH"
+    set +a
+else
+    echo "   ❌ ERROR: No .env file found in $APP_DIR"
 fi
 
 # Final check for DATABASE_URL before running prisma
 if [ -z "$DATABASE_URL" ]; then
-    echo "   ⚠️  DATABASE_URL not found in environment. Attempting manual source..."
-    set -a
-    [ -f .env ] && . ./.env
-    [ -f ../../.env ] && . ../../.env
-    set +a
+    echo "   ❌ ERROR: DATABASE_URL is still missing. Prisma cannot update the schema."
+    echo "   Path checked: $(pwd)"
+    echo "   Environment Variables: $(env | grep DATABASE || echo "None found")"
+    exit 1
 fi
 
 npx prisma generate --schema=prisma/schema.prisma
