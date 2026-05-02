@@ -28,8 +28,10 @@ export default function PrivacyPolicyPage() {
                             <ul className="list-disc pl-6 space-y-2">
                                 <li><strong>Personal Identification:</strong> Name, email address, phone number, and physical address.</li>
                                 <li><strong>Medical Information:</strong> Health history, diagnoses, prescriptions, and lab results provided during consultations.</li>
-                                <li><strong>Payment Information:</strong> M-Pesa transaction IDs and billing details (we do not store your M-Pesa PIN).</li>
+                                <li><strong>Payment Information:</strong> M-Pesa transaction IDs and billing details.</li>
                                 <li><strong>Location Data:</strong> Precise GPS coordinates (with your permission) to facilitate home visits and ambulance services.</li>
+                                <li><strong>Camera & Media:</strong> Access to your camera and gallery to allow you to upload medical documents and take profile photos.</li>
+                                <li><strong>Audio & Microphone:</strong> Used exclusively for telemedicine video consultations between you and your healthcare provider.</li>
                             </ul>
                         </section>
 
