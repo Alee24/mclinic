@@ -40,53 +40,16 @@ echo ""
 echo "🗄️  Step 5: Updating database schema..."
 cd "$APP_DIR/apps/api"
 
-# Targeted .env discovery
-ENV_PATH=""
-if [ -f "$APP_DIR/apps/api/.env" ]; then
-    ENV_PATH="$APP_DIR/apps/api/.env"
-elif [ -f "$APP_DIR/.env" ]; then
-    ENV_PATH="$APP_DIR/.env"
-fi
+# Use the Node.js helper to get the DATABASE_URL
+echo "   Constructing DATABASE_URL using Node.js helper..."
+export DATABASE_URL=$(node prisma-url-helper.js)
 
-if [ -n "$ENV_PATH" ]; then
-    echo "   ✅ Found environment file at: $ENV_PATH"
-    # Export variables (using set -a and source for reliability)
-    set -a
-    source "$ENV_PATH"
-    set +a
-else
-    echo "   ⚠️  WARNING: No .env file found in $APP_DIR or its API folder."
-fi
-
-# Robust DATABASE_URL construction from various possible variable names
 if [ -z "$DATABASE_URL" ]; then
-    echo "   ⚠️  DATABASE_URL missing. Attempting to construct from components..."
-    
-    # Try all common variations
-    FINAL_USER="${DB_USER:-${DB_USERNAME:-${USER}}}"
-    FINAL_PASS="${DB_PASSWORD:-${DB_PASS:-${PASSWORD}}}"
-    FINAL_HOST="${DB_HOST:-${DB_HOSTNAME:-"localhost"}}"
-    FINAL_PORT="${DB_PORT:-3306}"
-    FINAL_NAME="${DB_NAME:-${DB_DATABASE:-"mclinic"}}"
-    
-    # Debug info (masked)
-    echo "   Checking: User=$FINAL_USER, Host=$FINAL_HOST, Port=$FINAL_PORT, DB=$FINAL_NAME"
-    
-    if [ -n "$FINAL_USER" ] && [ -n "$FINAL_NAME" ]; then
-        # Note: Password can technically be empty, but we usually expect one
-        export DATABASE_URL="mysql://$FINAL_USER:$FINAL_PASS@$FINAL_HOST:$FINAL_PORT/$FINAL_NAME"
-        echo "   ✅ Successfully constructed DATABASE_URL"
-    else
-        echo "   ❌ Failed to construct DATABASE_URL: Required fields (User/DB Name) are empty."
-    fi
-fi
-
-# Final check before running Prisma
-if [ -z "$DATABASE_URL" ]; then
-    echo "   ❌ CRITICAL ERROR: DATABASE_URL is not set."
-    echo "   The .env file at $ENV_PATH does not seem to contain valid DB credentials."
+    echo "   ❌ ERROR: Failed to construct DATABASE_URL."
     exit 1
 fi
+
+echo "   ✅ DATABASE_URL constructed successfully"
 
 npx prisma generate --schema=prisma/schema.prisma
 npx prisma db push --schema=prisma/schema.prisma --skip-generate
