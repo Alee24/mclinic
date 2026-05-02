@@ -234,7 +234,7 @@ export default function LoginPage() {
                                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
                                                 Password
                                             </label>
-                                            <Link href="/forgot-password" size="sm" className="text-[10px] font-black text-green-600 hover:text-green-500 uppercase tracking-widest">
+                                            <Link href="/forgot-password" className="text-[10px] font-black text-green-600 hover:text-green-500 uppercase tracking-widest">
                                                 Forgot?
                                             </Link>
                                         </div>
