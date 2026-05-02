@@ -903,49 +903,83 @@ export class FinancialService {
         `).join('');
 
         const html = `
-            <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; border: 1px solid #eee;">
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <h1 style="color: #2c3e50;">${receiptData.clinicName}</h1>
-                    <p style="color: #7f8c8d;">${receiptData.clinicAddress}</p>
-                    <h2 style="margin-top: 10px;">OFFICIAL RECEIPT</h2>
-                </div>
-                
-                <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 40px; border: 1px solid #f0f0f0; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); color: #333;">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 40px;">
                     <div>
-                        <p><strong>Receipt #:</strong> ${receiptData.receiptNumber}</p>
-                        <p><strong>Date:</strong> ${new Date(receiptData.date).toLocaleString()}</p>
-                        <p><strong>Payment Method:</strong> ${receiptData.paymentMethod}</p>
+                        <img src="https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png" style="height: 60px; margin-bottom: 20px;" alt="M-Clinic Logo">
+                        <h1 style="margin: 0; color: #16a34a; font-size: 28px; font-weight: 800;">OFFICIAL RECEIPT</h1>
+                        <p style="color: #666; font-size: 14px; margin-top: 5px;">${receiptData.clinicName}</p>
                     </div>
                     <div style="text-align: right;">
-                        <p><strong>Patient:</strong> ${receiptData.patientName}</p>
-                        ${receiptData.insurance !== 'N/A' ? `<p><strong>Insurance:</strong> ${receiptData.insurance}</p>` : ''}
-                        ${receiptData.doctor ? `<p><strong>Doctor:</strong> ${receiptData.doctor}</p>` : ''}
+                        <p style="margin: 0; color: #999; font-size: 12px; font-weight: 700; text-transform: uppercase;">Receipt Number</p>
+                        <p style="margin: 0 0 15px 0; font-weight: 700; font-size: 18px; color: #111;">${receiptData.receiptNumber}</p>
+                        <p style="margin: 0; color: #999; font-size: 12px; font-weight: 700; text-transform: uppercase;">Date</p>
+                        <p style="margin: 0; font-weight: 600; color: #444;">${new Date(receiptData.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
                     </div>
                 </div>
                 
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px; padding: 20px; background-color: #f9fafb; border-radius: 8px;">
+                    <div>
+                        <h3 style="margin: 0 0 10px 0; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 1px;">Patient Details</h3>
+                        <p style="margin: 0; font-weight: 700; font-size: 16px;">${receiptData.patientName}</p>
+                        ${receiptData.insurance !== 'N/A' ? `<p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Insurance: ${receiptData.insurance}</p>` : ''}
+                    </div>
+                    <div>
+                        <h3 style="margin: 0 0 10px 0; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 1px;">Provider Details</h3>
+                        <p style="margin: 0; font-weight: 700; font-size: 16px;">${receiptData.doctor || 'M-Clinic Specialist'}</p>
+                        <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">M-Clinic Health Centre</p>
+                    </div>
+                </div>
+                
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
                     <thead>
-                        <tr style="background-color: #f8f9fa;">
-                            <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Description</th>
-                            <th style="padding: 12px; text-align: right; border-bottom: 2px solid #ddd;">Qty</th>
-                            <th style="padding: 12px; text-align: right; border-bottom: 2px solid #ddd;">Unit Price</th>
-                            <th style="padding: 12px; text-align: right; border-bottom: 2px solid #ddd;">Amount</th>
+                        <tr style="border-bottom: 2px solid #16a34a;">
+                            <th style="padding: 15px 10px; text-align: left; font-size: 13px; color: #16a34a; text-transform: uppercase;">Description</th>
+                            <th style="padding: 15px 10px; text-align: center; font-size: 13px; color: #16a34a; text-transform: uppercase;">Qty</th>
+                            <th style="padding: 15px 10px; text-align: right; font-size: 13px; color: #16a34a; text-transform: uppercase;">Unit Price</th>
+                            <th style="padding: 15px 10px; text-align: right; font-size: 13px; color: #16a34a; text-transform: uppercase;">Total</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${rows}
+                        ${receiptData.items.map(item => `
+                            <tr style="border-bottom: 1px solid #eee;">
+                                <td style="padding: 15px 10px; font-weight: 600;">${item.description}</td>
+                                <td style="padding: 15px 10px; text-align: center; color: #666;">${item.quantity}</td>
+                                <td style="padding: 15px 10px; text-align: right; color: #666;">KES ${Number(item.unitPrice).toLocaleString()}</td>
+                                <td style="padding: 15px 10px; text-align: right; font-weight: 700;">KES ${Number(item.amount).toLocaleString()}</td>
+                            </tr>
+                        `).join('')}
                     </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="3" style="padding: 12px; text-align: right; font-weight: bold;">TOTAL</td>
-                            <td style="padding: 12px; text-align: right; font-weight: bold; font-size: 1.1em;">${receiptData.totalAmount}</td>
-                        </tr>
-                    </tfoot>
                 </table>
                 
-                <div style="text-align: center; margin-top: 40px; color: #95a5a6; font-size: 0.9em;">
-                    <p>Thank you for choosing M-Clinic.</p>
+                <div style="margin-left: auto; width: 300px; padding: 20px; background-color: #f9fafb; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span style="color: #666; font-weight: 600;">Payment Method:</span>
+                        <span style="font-weight: 700; color: #16a34a;">${receiptData.paymentMethod}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding-top: 10px; border-top: 2px solid #ddd;">
+                        <span style="font-size: 18px; font-weight: 800; color: #111;">TOTAL PAID</span>
+                        <span style="font-size: 20px; font-weight: 900; color: #16a34a;">KES ${Number(receiptData.totalAmount).toLocaleString()}</span>
+                    </div>
                 </div>
+                
+                <div style="text-align: center; margin-top: 60px; padding-top: 30px; border-top: 1px dashed #ddd;">
+                    <p style="margin: 0; color: #111; font-weight: 700;">Thank you for choosing M-Clinic.</p>
+                    <p style="margin: 5px 0 0 0; color: #999; font-size: 12px;">This is a computer-generated receipt. No signature required.</p>
+                    <p style="margin: 15px 0 0 0; font-size: 11px; color: #bbb;">M-Clinic Kenya • Nairobi • support@mclinic.co.ke</p>
+                </div>
+
+                <div style="margin-top: 40px; text-align: center; no-print">
+                    <button onclick="window.print()" style="padding: 12px 30px; background-color: #16a34a; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 10px rgba(22,163,74,0.3);">Print or Download PDF</button>
+                </div>
+
+                <style>
+                    @media print {
+                        button { display: none; }
+                        body { background: white; margin: 0; padding: 0; }
+                        div { box-shadow: none !important; border: none !important; margin: 0 !important; }
+                    }
+                </style>
             </div>
         `;
 
