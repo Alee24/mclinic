@@ -39,6 +39,25 @@ echo "   ✅ Prisma downgraded to 5.10.2"
 echo ""
 echo "🗄️  Step 5: Updating database schema..."
 cd "$APP_DIR/apps/api"
+
+# Load DATABASE_URL from .env if it exists in current or parent directory
+if [ -f .env ]; then
+    echo "   Loading environment from apps/api/.env"
+    export $(grep -v '^#' .env | xargs)
+elif [ -f ../../.env ]; then
+    echo "   Loading environment from root .env"
+    export $(grep -v '^#' ../../.env | xargs)
+fi
+
+# Final check for DATABASE_URL before running prisma
+if [ -z "$DATABASE_URL" ]; then
+    echo "   ⚠️  DATABASE_URL not found in environment. Attempting manual source..."
+    set -a
+    [ -f .env ] && . ./.env
+    [ -f ../../.env ] && . ../../.env
+    set +a
+fi
+
 npx prisma generate --schema=prisma/schema.prisma
 npx prisma db push --schema=prisma/schema.prisma --skip-generate
 echo "   ✅ Database schema updated"
