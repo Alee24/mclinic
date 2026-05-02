@@ -40,37 +40,49 @@ echo ""
 echo "🗄️  Step 5: Updating database schema..."
 cd "$APP_DIR/apps/api"
 
-# Aggressive .env discovery
+# Priority-based .env discovery
 ENV_PATH=""
 if [ -f ".env" ]; then
     ENV_PATH=".env"
 elif [ -f "../../.env" ]; then
     ENV_PATH="../../.env"
 elif [ -f "../../../.env" ]; then
+    # Only use this if it's the only one found, but prefer closer ones
     ENV_PATH="../../../.env"
-else
-    # Search for any .env file in the project
-    SEARCH_ENV=$(find "$APP_DIR" -maxdepth 4 -name ".env" -not -path "*/node_modules/*" | head -n 1)
-    if [ -n "$SEARCH_ENV" ]; then
-        ENV_PATH="$SEARCH_ENV"
-    fi
 fi
 
 if [ -n "$ENV_PATH" ]; then
     echo "   ✅ Found environment file at: $ENV_PATH"
-    # Export variables using a more robust method
     set -a
     source "$ENV_PATH"
     set +a
 else
-    echo "   ❌ ERROR: No .env file found in $APP_DIR"
+    echo "   ❌ ERROR: No .env file found in standard locations."
 fi
 
-# Final check for DATABASE_URL before running prisma
+# If DATABASE_URL is missing, try to construct it from individual variables
+if [ -z "$DATABASE_URL" ]; then
+    echo "   ⚠️  DATABASE_URL missing. Attempting to construct from individual DB_* variables..."
+    
+    # Map common variations
+    U=${DB_USER:-$USER}
+    P=${DB_PASSWORD:-$PASSWORD}
+    H=${DB_HOST:-"localhost"}
+    PORT=${DB_PORT:-3306}
+    N=${DB_NAME:-${DB_DATABASE:-"mclinic"}}
+    
+    if [ -n "$U" ] && [ -n "$P" ] && [ -n "$N" ]; then
+        export DATABASE_URL="mysql://$U:$P@$H:$PORT/$N"
+        echo "   ✅ Constructed DATABASE_URL from components"
+    fi
+fi
+
+# Final check
 if [ -z "$DATABASE_URL" ]; then
     echo "   ❌ ERROR: DATABASE_URL is still missing. Prisma cannot update the schema."
-    echo "   Path checked: $(pwd)"
-    echo "   Environment Variables: $(env | grep DATABASE || echo "None found")"
+    echo "   Current directory: $(pwd)"
+    echo "   Available environment variables (filtered):"
+    env | grep -E "DB_|DATABASE|PORT" | sed 's/=.*/=******/'
     exit 1
 fi
 
