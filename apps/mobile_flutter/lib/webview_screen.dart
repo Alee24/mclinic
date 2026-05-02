@@ -73,6 +73,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
       // Critical for GPS and Camera support within the WebView
       androidController.setOnPlatformPermissionRequest((request) {
         debugPrint('WebView Permission Request for: ${request.types}');
+        // Explicitly grant all requested permissions (Location, Camera, Mic)
         request.grant();
       });
 

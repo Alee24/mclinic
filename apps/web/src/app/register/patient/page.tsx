@@ -37,7 +37,7 @@ export default function PatientRegisterPage() {
     const handleGetLocation = () => {
         setLocationStatus('loading');
         if (!navigator.geolocation) {
-            alert('Geolocation is not supported by your browser');
+            toast.error('Geolocation is not supported by your browser');
             setLocationStatus('error');
             return;
         }
@@ -47,13 +47,23 @@ export default function PatientRegisterPage() {
                 const { latitude, longitude } = position.coords;
                 setFormData(prev => ({ ...prev, latitude, longitude }));
                 setLocationStatus('success');
+                toast.success('Location acquired!');
             },
             (error) => {
-                console.error(error);
-                alert('Unable to retrieve location. Please enable location services.');
+                console.error('Location Error:', error);
+                let msg = 'Unable to retrieve location.';
+                if (error.code === 1) msg = 'Permission denied. Please allow location access in your browser/app settings.';
+                else if (error.code === 2) msg = 'Position unavailable. Please check if your GPS is turned on.';
+                else if (error.code === 3) msg = 'Request timed out. Please try again.';
+                
+                alert(msg);
                 setLocationStatus('error');
             },
-            { enableHighAccuracy: true }
+            { 
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0 
+            }
         );
     };
 
