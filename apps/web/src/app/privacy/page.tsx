@@ -33,7 +33,8 @@ export default function PrivacyPolicyPage() {
                                 <li><strong>Camera & Media:</strong> Access to your camera and gallery to allow you to upload medical documents and take profile photos.</li>
                                 <li><strong>Audio & Microphone:</strong> Used exclusively for telemedicine video consultations between you and your healthcare provider.</li>
                             </ul>
-                        </section>
+                        </div>
+                    </section>
 
                     <section>
                         <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6 flex items-center gap-3">
