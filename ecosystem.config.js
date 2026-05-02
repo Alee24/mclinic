@@ -31,8 +31,8 @@ module.exports = {
         },
         {
             name: 'mclinic-web',
-            script: 'node_modules/next/dist/bin/next',
-            args: 'start',
+            script: 'npm',
+            args: 'run start',
             cwd: '/var/www/mclinicportal/apps/web',
             env: {
                 PORT: 7898,
