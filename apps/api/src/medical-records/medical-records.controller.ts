@@ -1,10 +1,14 @@
 import { Controller, Get, Post, Body, Param, UseGuards, Request, ForbiddenException } from '@nestjs/common';
 import { MedicalRecordsService } from './medical-records.service';
 import { AuthGuard } from '@nestjs/passport';
+import { AppointmentsService } from '../appointments/appointments.service';
 
 @Controller('medical-records')
 export class MedicalRecordsController {
-  constructor(private readonly medicalRecordsService: MedicalRecordsService) { }
+  constructor(
+    private readonly medicalRecordsService: MedicalRecordsService,
+    private readonly appointmentsService: AppointmentsService,
+  ) { }
 
   @UseGuards(AuthGuard('jwt'))
   @Post()
@@ -45,8 +49,34 @@ export class MedicalRecordsController {
   @UseGuards(AuthGuard('jwt'))
   @Get('appointment/:id')
   async findByAppointment(@Param('id') id: string, @Request() req: any) {
-    // Get records by appointment
-    // TODO: Add ownership verification - check if user is patient or doctor for this appointment
-    return this.medicalRecordsService.findByAppointment(+id);
+    const appointmentId = +id;
+    const currentUserId = req.user.sub || req.user.id;
+    const userRole = req.user.role;
+
+    const appointment = await this.appointmentsService.findOne(appointmentId);
+    if (!appointment) {
+      throw new ForbiddenException('Appointment not found');
+    }
+
+    // Authorization check: Only allow if:
+    // 1. User is the patient for this appointment
+    // 2. User is the doctor for this appointment
+    // 3. User is admin
+    const isPatient = Number(appointment.patientId) === Number(currentUserId);
+    
+    // For doctor check, we need to check if the user's doctor profile ID matches the appointment's doctorId
+    // But for simplicity in this check, we can also check if the user has a medic role.
+    // However, the best way is to check the doctor profile's user_id.
+    const isDoctor = appointment.doctor && Number(appointment.doctor.user_id) === Number(currentUserId);
+
+    if (
+      !isPatient &&
+      !isDoctor &&
+      userRole !== 'admin'
+    ) {
+      throw new ForbiddenException('You do not have permission to view records for this appointment');
+    }
+
+    return this.medicalRecordsService.findByAppointment(appointmentId);
   }
 }

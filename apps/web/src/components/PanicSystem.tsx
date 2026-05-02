@@ -125,10 +125,11 @@ export default function PanicSystem() {
                 formData.append('audio', blob, `panic-${id}-${Date.now()}.webm`);
 
                 try {
-                    await fetch(`/api/emergency/${id}/audio`, {
+                    const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
+                    await fetch(`${apiUrl}/emergency/${id}/audio`, {
                         method: 'POST',
                         headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
                         },
                         body: formData
                     });

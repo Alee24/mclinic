@@ -7,6 +7,7 @@ import { Prescription } from './entities/prescription.entity';
 import { PrescriptionItem } from './entities/prescription-item.entity';
 import { DoctorsModule } from '../doctors/doctors.module';
 import { FinancialModule } from '../financial/financial.module';
+import { NotificationModule } from '../notification/notification.module';
 
 import { PharmacyOrder } from './entities/pharmacy-order.entity';
 import { PharmacyOrderItem } from './entities/pharmacy-order-item.entity';
@@ -16,6 +17,7 @@ import { PharmacyOrderItem } from './entities/pharmacy-order-item.entity';
         TypeOrmModule.forFeature([Medication, Prescription, PrescriptionItem, PharmacyOrder, PharmacyOrderItem]),
         DoctorsModule,
         forwardRef(() => FinancialModule),
+        NotificationModule,
     ],
     controllers: [PharmacyController],
     providers: [PharmacyService],

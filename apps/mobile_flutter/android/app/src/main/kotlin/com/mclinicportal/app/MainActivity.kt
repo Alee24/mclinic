@@ -1,4 +1,4 @@
-package com.mclinic.app
+package com.mclinicportal.app
 
 import io.flutter.embedding.android.FlutterActivity
 

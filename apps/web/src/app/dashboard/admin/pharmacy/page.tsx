@@ -9,11 +9,10 @@ import {
     FiEdit2,
     FiTrash2,
     FiX,
-    FiCheck,
-    FiAlertCircle,
     FiUpload,
     FiDownload
 } from 'react-icons/fi';
+import toast from 'react-hot-toast';
 import UploadMedicationsModal from '@/components/dashboard/admin/inventory/UploadMedicationsModal';
 
 export default function AdminPharmacyPage() {
@@ -53,34 +52,27 @@ export default function AdminPharmacyPage() {
     }, []);
 
     const handleCreateOrUpdate = async () => {
-        if (!formData.name || !formData.price || !formData.stock) return;
+        if (!formData.name || !formData.price || !formData.stock) {
+            toast.error('Please fill in all required fields');
+            return;
+        }
 
         try {
-            // Since we only have a create endpoint in the plan (POST), we might not have PUT/PATCH yet.
-            // But based on common sense, we should check if we can update. 
-            // The plan said "Admin Pharmacy Management... Add/Edit".
-            // I'll stick to mostly Create for MVP until confirmation of Update endpoint
-            // BUT wait, standard API usually has it. I'll focus on CREATE first as per previous controller inspection
-            // which only had POST /pharmacy/medications.
-            // So if editing, we might need to add that logic to backend or just simulate for now.
-
-            // Re-checking controller... PharmacyController has only POST meds.
-            // So I will just implement CREATE for now and maybe alert user about edit limitation or add backend support.
-
-            // Better: Add ID to controller if needed, but for now assuming just CREATE works for MVP
-
             const payload = {
                 ...formData,
                 price: parseFloat(formData.price),
                 stock: parseInt(formData.stock),
             };
 
-            // If editingMed exists, we would normally PUT. But since we didn't explicitly implement PUT /medications/:id
-            // I'll assume standard POST for creation.
-            const res = await api.post('/pharmacy/medications', payload);
+            let res;
+            if (editingMed) {
+                res = await api.patch(`/pharmacy/medications/${editingMed.id}`, payload);
+            } else {
+                res = await api.post('/pharmacy/medications', payload);
+            }
 
             if (res?.ok) {
-                alert(editingMed ? 'Medication updated (simulated new)' : 'Medication added successfully');
+                toast.success(editingMed ? 'Medication updated successfully' : 'Medication added successfully');
                 setShowModal(false);
                 setEditingMed(null);
                 setFormData({
@@ -93,10 +85,29 @@ export default function AdminPharmacyPage() {
                 });
                 fetchMeds();
             } else {
-                alert('Failed to save medication');
+                const data = await res?.json();
+                toast.error(data?.message || 'Failed to save medication');
             }
         } catch (err) {
             console.error(err);
+            toast.error('An error occurred while saving');
+        }
+    };
+
+    const handleDelete = async (id: number) => {
+        if (!confirm('Are you sure you want to delete this medication?')) return;
+
+        try {
+            const res = await api.delete(`/pharmacy/medications/${id}`);
+            if (res?.ok) {
+                toast.success('Medication deleted');
+                fetchMeds();
+            } else {
+                toast.error('Failed to delete medication');
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error('Something went wrong');
         }
     };
 
@@ -221,14 +232,18 @@ export default function AdminPharmacyPage() {
                                     <td className="px-6 py-4 font-bold dark:text-gray-300">
                                         KES {Number(med.price).toLocaleString()}
                                     </td>
-                                    <td className="px-6 py-4 text-right">
+                                    <td className="px-6 py-4 text-right flex justify-end gap-2">
                                         <button
-                                            // onClick={() => openEdit(med)} // Disabled until update endpoint exists
-                                            disabled={true}
-                                            title="Edit disabled in MVP"
-                                            className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-gray-400 cursor-not-allowed"
+                                            onClick={() => openEdit(med)}
+                                            className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-600 hover:bg-blue-100 transition-colors"
                                         >
                                             <FiEdit2 />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(med.id)}
+                                            className="p-2 bg-red-50 dark:bg-red-900/20 rounded-lg text-red-600 hover:bg-red-100 transition-colors"
+                                        >
+                                            <FiTrash2 />
                                         </button>
                                     </td>
                                 </tr>
@@ -321,6 +336,7 @@ export default function AdminPharmacyPage() {
                     </div>
                 </div>
             )}
+            <UploadMedicationsModal isOpen={showUploadModal} onClose={() => { setShowUploadModal(false); fetchMeds(); }} />
         </div>
     );
 }

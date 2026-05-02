@@ -8,6 +8,7 @@ import { PharmacyOrder, OrderStatus, PaymentMethod, PaymentStatus } from './enti
 import { PharmacyOrderItem } from './entities/pharmacy-order-item.entity'; // Import
 import { DoctorsService } from '../doctors/doctors.service';
 import { FinancialService } from '../financial/financial.service';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class PharmacyService {
@@ -23,6 +24,7 @@ export class PharmacyService {
         private readonly doctorsService: DoctorsService,
         @Inject(forwardRef(() => FinancialService))
         private readonly financialService: FinancialService,
+        private readonly notificationService: NotificationService,
     ) { }
 
     // --- Medications ---
@@ -38,6 +40,20 @@ export class PharmacyService {
     async createMedication(data: Partial<Medication>) {
         const med = this.medicationRepo.create(data);
         return this.medicationRepo.save(med);
+    }
+
+    async updateMedication(id: number, data: Partial<Medication>) {
+        const med = await this.findMedicationById(id);
+        if (!med) throw new NotFoundException('Medication not found');
+        
+        Object.assign(med, data);
+        return this.medicationRepo.save(med);
+    }
+
+    async deleteMedication(id: number) {
+        const result = await this.medicationRepo.delete(id);
+        if (result.affected === 0) throw new NotFoundException('Medication not found');
+        return { success: true };
     }
 
     getMedicationTemplate(): string {
@@ -277,7 +293,34 @@ export class PharmacyService {
     }
 
     async updateOrderStatus(id: string, status: OrderStatus) {
-        return this.pharmacyOrderRepo.update(id, { status });
+        const order = await this.pharmacyOrderRepo.findOne({
+            where: { id },
+            relations: ['user']
+        });
+
+        if (!order) throw new NotFoundException('Order not found');
+
+        await this.pharmacyOrderRepo.update(id, { status });
+
+        // Notify User
+        if (order.user?.mobile) {
+            let message = '';
+            if (status === OrderStatus.SHIPPED) {
+                message = `Hi ${order.user.fname}, your pharmacy order #${order.id.slice(0, 8)} has been SHIPPED and is on its way!`;
+            } else if (status === OrderStatus.DELIVERED) {
+                message = `Hi ${order.user.fname}, your pharmacy order #${order.id.slice(0, 8)} has been DELIVERED. Thank you for choosing M-Clinic!`;
+            }
+
+            if (message) {
+                try {
+                    await this.notificationService.sendCustomSms(order.user.mobile, message);
+                } catch (e) {
+                    console.error('Failed to send order status SMS', e);
+                }
+            }
+        }
+
+        return this.pharmacyOrderRepo.findOne({ where: { id } });
     }
 
     async uploadMedications(file: Express.Multer.File) {

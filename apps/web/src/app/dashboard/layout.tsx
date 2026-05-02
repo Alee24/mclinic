@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ReactNode, useEffect, useState } from 'react';
-import { FiGrid, FiList, FiCalendar, FiBarChart2, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiSearch, FiBell, FiMail, FiMap, FiPackage, FiFileText, FiDatabase, FiPlusCircle, FiUser, FiTruck, FiCheckCircle, FiActivity, FiMenu, FiX, FiTrash2, FiMessageSquare, FiBook } from 'react-icons/fi';
+import { FiGrid, FiList, FiCalendar, FiBarChart2, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiSearch, FiBell, FiMail, FiMap, FiPackage, FiFileText, FiDatabase, FiPlusCircle, FiUser, FiTruck, FiCheckCircle, FiActivity, FiMenu, FiX, FiTrash2, FiMessageSquare, FiBook, FiShield } from 'react-icons/fi';
 import { useAuth, UserRole } from '@/lib/auth';
 import UserAvatar from '@/components/dashboard/UserAvatar';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -240,7 +240,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4 px-2">General</div>
                         <nav className="space-y-1">
                             <NavItem href="/terms-and-conditions" icon={<FiFileText />} label="Terms & Conditions" active={pathname === '/terms-and-conditions'} />
-                            <NavItem href="/dashboard/settings/data-deletion" icon={<FiTrash2 />} label="Delete My Data" active={pathname === '/dashboard/settings/data-deletion'} />
+                            <NavItem href="/privacy" icon={<FiShield />} label="Privacy Policy" active={pathname === '/privacy'} />
+                            <NavItem href="/data-deletion" icon={<FiTrash2 />} label="Delete My Data" active={pathname === '/data-deletion'} />
                             <NavItem href="#" icon={<FiHelpCircle />} label="Help" active={false} />
 
                             {/* Mobile PWA Install Button */}
@@ -431,21 +432,21 @@ function NavItem({ href, icon, label, active, badge }: { href: string; icon: any
         <Link
             href={href}
             className={`flex items-center justify-between px-3 py-2.5 rounded-xl transition-all group ${active
-                ? 'bg-donezo-dark/10 text-donezo-dark font-bold relative'
+                ? 'bg-blue-600/10 text-blue-600 font-bold relative'
                 : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
                 }`}
         >
             <div className="flex items-center gap-3">
-                <span className={`text-xl ${active ? 'text-donezo-dark' : 'text-gray-400 group-hover:text-gray-600'}`}>
+                <span className={`text-xl ${active ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'}`}>
                     {icon}
                 </span>
                 <span className="text-sm">{label}</span>
             </div>
             {active && (
-                <div className="absolute left-0 w-1 h-6 bg-donezo-dark rounded-r-full"></div>
+                <div className="absolute left-0 w-1 h-6 bg-blue-600 rounded-r-full"></div>
             )}
             {badge && (
-                <span className="bg-donezo-dark text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">
+                <span className="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">
                     {badge}
                 </span>
             )}
@@ -456,7 +457,7 @@ function NavItem({ href, icon, label, active, badge }: { href: string; icon: any
 function NavGroup({ label, icon, active, items, pathname }: { label: string; icon: any; active?: boolean; items: { href: string; label: string }[]; pathname: string | null }) {
     return (
         <details className="group/navgroup" open={active}>
-            <summary className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all list-none ${active ? 'bg-donezo-dark/5 text-donezo-dark font-bold' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}>
+            <summary className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all list-none ${active ? 'bg-blue-600/5 text-blue-600 font-bold' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}>
                 <div className="flex items-center gap-3">
                     <span className="text-xl">{icon}</span>
                     <span className="text-sm">{label}</span>
@@ -472,7 +473,7 @@ function NavGroup({ label, icon, active, items, pathname }: { label: string; ico
                     <NavItem
                         key={item.href}
                         href={item.href}
-                        icon={<div className={`w-1.5 h-1.5 rounded-full ${pathname === item.href ? 'bg-donezo-dark' : 'bg-gray-400'}`} />}
+                        icon={<div className={`w-1.5 h-1.5 rounded-full ${pathname === item.href ? 'bg-blue-600' : 'bg-gray-400'}`} />}
                         label={item.label}
                         active={pathname === item.href}
                     />
