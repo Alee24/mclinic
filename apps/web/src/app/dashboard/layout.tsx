@@ -187,9 +187,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                             {(user.role === UserRole.DOCTOR || user.role === UserRole.NURSE || user.role === UserRole.CLINICIAN || user.role === UserRole.MEDIC) && (
                                 <>
                                     <div className="mt-4">
-                                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">Practice</div>
+                                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">Clinical Care</div>
+                                        <NavItem href="/dashboard/services-hub" icon={<FiGrid />} label="Services Hub" active={pathname === '/dashboard/services-hub'} />
+                                        <NavItem href="/dashboard/records" icon={<FiPlusCircle />} label="My Medical Records" active={pathname === '/dashboard/records'} />
                                         <NavItem href="/dashboard/map" icon={<FiMap />} label="Live Map" active={pathname === '/dashboard/map'} />
-                                        <NavItem href="/dashboard/appointments" icon={<FiCalendar />} label="My Appointments" active={pathname === '/dashboard/appointments'} />
+                                        <NavItem href="/dashboard/appointments" icon={<FiCalendar />} label="Practice Appointments" active={pathname === '/dashboard/appointments'} />
                                         <NavItem href="/dashboard/patients" icon={<FiList />} label="My Patients" active={pathname === '/dashboard/patients'} />
                                         <NavItem href="/dashboard/ambulance" icon={<FiTruck />} label="Ambulance Service" active={pathname?.startsWith('/dashboard/ambulance')} />
                                     </div>

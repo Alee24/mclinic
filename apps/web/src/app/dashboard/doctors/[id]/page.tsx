@@ -64,8 +64,8 @@ export default function DoctorDetailsPage() {
     const isMedicUser = ['doctor', 'nurse', 'clinician', 'medic', 'pharmacist'].includes(user?.role || '');
     const isOwner = isMedicUser && (user?.doctorId == doctor.id || user?.id === doctor.user_id);
 
-    // Is Patient (able to book)
-    const isPatient = user?.role === UserRole.PATIENT;
+    // Any authenticated user can book as a patient, unless they are viewing their own doctor profile
+    const canBook = !isOwner;
 
     // Derived Fees from Settings
     const getSetting = (key: string) => settings.find(s => s.key === key)?.value;
@@ -284,7 +284,7 @@ export default function DoctorDetailsPage() {
                             )}
                         </div>
                         <div className="space-y-6">
-                            {isPatient && (
+                            {canBook && (
                                 <section className="bg-white dark:bg-[#161616] rounded-xl p-8 border-2 border-primary/20 shadow-xl shadow-primary/5">
                                     <h3 className="text-xl font-black dark:text-white mb-6 flex items-center gap-2">
                                         <span className="w-2 h-8 bg-primary rounded-full"></span>

@@ -77,12 +77,12 @@ export default function AppointmentsPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold dark:text-white">Appointments</h1>
-                {(isAdmin || isPatient) && (
+                {(isAdmin || isPatient || isDoctor) && (
                     <button
-                        onClick={() => isPatient ? setShowBookModal(true) : setShowModal(true)}
+                        onClick={() => (isPatient || isDoctor) ? setShowBookModal(true) : setShowModal(true)}
                         className="bg-primary text-black font-bold px-4 py-2 rounded-lg hover:opacity-90 transition shadow-lg hover:translate-y-[-2px]"
                     >
-                        {isPatient ? '+ Book Appointment' : '+ New Booking'}
+                        {(isPatient || isDoctor) ? '+ Book Appointment' : '+ New Booking'}
                     </button>
                 )}
             </div>
@@ -121,8 +121,9 @@ export default function AppointmentsPage() {
                                     <td className="px-6 py-4 text-gray-500">
                                         {apt.doctor ? `${apt.doctor.fname} ${apt.doctor.lname}` : 'Unassigned'}
                                     </td>
-                                    <td className="px-6 py-4 text-gray-500">
-                                        {isPatient
+                                     <td className="px-6 py-4 text-gray-500">
+                                        {/* Show the 'other' party's contact info */}
+                                        {user?.id === apt.patientId 
                                             ? (apt.doctor?.mobile || 'N/A')
                                             : (apt.patient?.mobile || apt.patient?.user?.mobile || 'N/A')
                                         }
@@ -179,8 +180,8 @@ export default function AppointmentsPage() {
                                     )}
                                     <td className="px-6 py-4">
                                         <div className="flex gap-2 items-center flex-wrap">
-                                            {/* Patient Actions */}
-                                            {isPatient && (
+                                            {/* Patient-side Actions (Available if you are the patient in this apt) */}
+                                            {user?.id === Number(apt.patientId) && (
                                                 <>
                                                     {apt.status === 'completed' && (
                                                         <button
@@ -201,20 +202,11 @@ export default function AppointmentsPage() {
                                                             <FiVideo /> Join
                                                         </Link>
                                                     )}
-                                                    <button
-                                                        onClick={() => {
-                                                            setSelectedAppointment(apt);
-                                                            setShowDetailsModal(true);
-                                                        }}
-                                                        className="text-xs font-bold px-3 py-1.5 rounded border border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800 transition"
-                                                    >
-                                                        Details
-                                                    </button>
                                                 </>
                                             )}
 
-                                            {/* Doctor Actions */}
-                                            {isDoctor && (
+                                            {/* Doctor-side Actions (Available if you are the doctor assigned to this apt) */}
+                                            {isDoctor && Number(user?.doctorId) === Number(apt.doctorId) && (
                                                 <>
                                                     {apt.status === 'confirmed' && (
                                                         <div className="flex gap-1">
@@ -243,17 +235,19 @@ export default function AppointmentsPage() {
                                                             Missed
                                                         </button>
                                                     )}
-                                                    <button
-                                                        onClick={() => {
-                                                            setSelectedAppointment(apt);
-                                                            setShowDetailsModal(true);
-                                                        }}
-                                                        className="text-xs font-bold px-2 py-1 rounded border border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800 transition"
-                                                    >
-                                                        Details
-                                                    </button>
                                                 </>
                                             )}
+
+                                            {/* General Details button for everyone */}
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedAppointment(apt);
+                                                    setShowDetailsModal(true);
+                                                }}
+                                                className="text-xs font-bold px-3 py-1.5 rounded border border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800 transition"
+                                            >
+                                                Details
+                                            </button>
 
                                             {/* Admin Actions */}
                                             {isAdmin && (
