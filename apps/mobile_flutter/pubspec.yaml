@@ -39,8 +39,6 @@ dependencies:
   webview_flutter_android: ^4.3.2
   webview_flutter_wkwebview: ^3.16.3
   flutter_riverpod: ^2.6.1
-  firebase_core: ^4.7.0
-  firebase_messaging: ^16.2.0
   permission_handler: ^11.3.1
   shared_preferences: ^2.3.2
   url_launcher: ^6.3.0
