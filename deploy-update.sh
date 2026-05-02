@@ -40,16 +40,21 @@ echo ""
 echo "🗄️  Step 5: Updating database schema..."
 cd "$APP_DIR/apps/api"
 
-# Use the Node.js helper to get the DATABASE_URL
-echo "   Constructing DATABASE_URL using Node.js helper..."
-export DATABASE_URL=$(node prisma-url-helper.js)
+# Use the Node.js helper to get the DATABASE_URL (only capture stdout)
+echo "   Constructing DATABASE_URL..."
+export DATABASE_URL=$(node prisma-url-helper.js 2>/tmp/prisma_debug.log) || true
+
+# Print debug info if available
+if [ -f /tmp/prisma_debug.log ]; then
+    cat /tmp/prisma_debug.log
+fi
 
 if [ -z "$DATABASE_URL" ]; then
     echo "   ❌ ERROR: Failed to construct DATABASE_URL."
     exit 1
 fi
 
-echo "   ✅ DATABASE_URL constructed successfully"
+echo "   ✅ DATABASE_URL ready"
 
 npx prisma generate --schema=prisma/schema.prisma
 npx prisma db push --schema=prisma/schema.prisma --skip-generate
