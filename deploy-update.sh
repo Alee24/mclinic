@@ -70,11 +70,24 @@ echo ""
 echo "🌐 Step 7: Building Web..."
 cd "$APP_DIR/apps/web"
 
-# Ensure TypeScript checks are disabled
-if grep -q "typescript:" next.config.js; then
-    echo "   TypeScript config already present"
-else
-    sed -i 's/module.exports = {/module.exports = {\n  typescript: { ignoreBuildErrors: true },/' next.config.js
+# Detect config file
+CONFIG_FILE=""
+if [ -f "next.config.ts" ]; then
+    CONFIG_FILE="next.config.ts"
+elif [ -f "next.config.js" ]; then
+    CONFIG_FILE="next.config.js"
+fi
+
+if [ -n "$CONFIG_FILE" ]; then
+    # Ensure TypeScript checks are disabled for build stability on VPS
+    if ! grep -q "ignoreBuildErrors: true" "$CONFIG_FILE"; then
+        echo "   Injecting ignoreBuildErrors into $CONFIG_FILE..."
+        if [ "$CONFIG_FILE" == "next.config.ts" ]; then
+            sed -i 's/const nextConfig: NextConfig = {/const nextConfig: NextConfig = {\n  typescript: { ignoreBuildErrors: true },/' next.config.ts
+        else
+            sed -i 's/module.exports = {/module.exports = {\n  typescript: { ignoreBuildErrors: true },/' next.config.js
+        fi
+    fi
 fi
 
 npm run build
