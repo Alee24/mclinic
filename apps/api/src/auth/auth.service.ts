@@ -56,54 +56,31 @@ export class AuthService {
     }
   }
 
-  async validateUser(email: string, pass: string, userType: string = 'patient'): Promise<any> {
-    if (userType === 'provider') {
-      const doctor = await this.doctorsService.findByEmail(email);
-      if (doctor) {
-        if (await this.comparePassword(pass, doctor.password, 'doctor', doctor.id)) {
-          if (!doctor.status || doctor.status === 0) {
-            throw new UnauthorizedException('Account is suspended or inactive. Contact admin.');
-          }
-          const role = this.mapDrTypeToRole(doctor.dr_type);
-          const { password, ...result } = doctor;
-          return { ...result, role };
-        } else {
-          throw new UnauthorizedException('Invalid password. Please try again.');
-        }
-      }
-
-      const admin = await this.usersService.findOne(email);
-      if (admin && admin.role === UserRole.ADMIN) {
-        if (await this.comparePassword(pass, admin.password, 'user', admin.id)) {
-          const { password, ...result } = admin;
-          return result;
-        } else {
-          throw new UnauthorizedException('Invalid admin password.');
-        }
-      }
-
-      const patientInstead = await this.usersService.findOne(email);
-      if (patientInstead) {
-        throw new UnauthorizedException('This account is registered as a Patient. Please switch to "Patient" login.');
-      }
-    } else {
-      const user = await this.usersService.findOne(email);
-      if (user) {
-        if (await this.comparePassword(pass, user.password, 'user', user.id)) {
-          const { password, ...result } = user;
-          return result;
-        } else {
-          throw new UnauthorizedException('Invalid password. Please try again.');
-        }
-      }
-
-      const doctorInstead = await this.doctorsService.findByEmail(email);
-      if (doctorInstead) {
-        throw new UnauthorizedException('This account is registered as a Healthcare Professional. Please switch to "Provider" login.');
+  async validateUser(email: string, pass: string, _unused_userType?: string): Promise<any> {
+    // 1. Try checking the Users table first (Patients/Admins)
+    const user = await this.usersService.findOne(email);
+    if (user) {
+      if (await this.comparePassword(pass, user.password, 'user', user.id)) {
+        const { password, ...result } = user;
+        return result;
       }
     }
 
-    throw new UnauthorizedException('No account found with this email. Please register to continue.');
+    // 2. Try checking the Doctors table (Healthcare Professionals)
+    const doctor = await this.doctorsService.findByEmail(email);
+    if (doctor) {
+      if (await this.comparePassword(pass, doctor.password, 'doctor', doctor.id)) {
+        if (!doctor.status || doctor.status === 0) {
+          throw new UnauthorizedException('Account is suspended or inactive. Contact admin.');
+        }
+        const role = this.mapDrTypeToRole(doctor.dr_type);
+        const { password, ...result } = doctor;
+        return { ...result, role };
+      }
+    }
+
+    // If we reached here, no match was found in either table
+    throw new UnauthorizedException('Invalid email or password. Please try again.');
   }
 
   private mapDrTypeToRole(drType: string): string {
@@ -447,10 +424,14 @@ export class AuthService {
     }
 
     let account: any = null;
-    if (userType === 'provider') {
+    let type: 'patient' | 'provider' = 'patient';
+
+    // 1. Try Patient
+    account = await this.usersService.findOneByMobile(formattedMobile);
+    if (!account) {
+      // 2. Try Provider
       account = await this.doctorsService.findOneByMobile(formattedMobile);
-    } else {
-      account = await this.usersService.findOneByMobile(formattedMobile);
+      if (account) type = 'provider';
     }
 
     if (!account) {
@@ -460,7 +441,7 @@ export class AuthService {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
 
-    if (userType === 'provider') {
+    if (type === 'provider') {
       await this.doctorsService.update(account.id, { otp, otp_expires: expiry });
     } else {
       await this.usersService.update(account.id, { otp, otp_expires: expiry });
@@ -484,10 +465,14 @@ export class AuthService {
     if (!formattedMobile) throw new BadRequestException('Invalid mobile number');
 
     let account: any = null;
-    if (userType === 'provider') {
-      account = await this.doctorsService.findOneByMobile(formattedMobile);
-    } else {
-      account = await this.usersService.findOneByMobile(formattedMobile);
+    let type: 'patient' | 'provider' = 'patient';
+
+    // 1. Try Patient
+    account = await this.usersService.findOneByMobile(formattedMobile);
+    if (!account || account.otp !== otp) {
+        // 2. Try Provider
+        account = await this.doctorsService.findOneByMobile(formattedMobile);
+        if (account) type = 'provider';
     }
 
     if (!account || account.otp !== otp) {
@@ -499,7 +484,7 @@ export class AuthService {
     }
 
     // Clear OTP
-    if (userType === 'provider') {
+    if (type === 'provider') {
       await this.doctorsService.update(account.id, { otp: null, otp_expires: null });
     } else {
       await this.usersService.update(account.id, { otp: null, otp_expires: null });
@@ -507,7 +492,7 @@ export class AuthService {
 
     // Map role
     let role = account.role;
-    if (userType === 'provider') {
+    if (type === 'provider') {
       role = this.mapDrTypeToRole(account.dr_type);
     }
 

@@ -10,17 +10,9 @@ import { api } from '@/lib/api';
 
 type UserType = 'patient' | 'provider';
 
-export default function LoginPage() {
-    const router = useRouter();
-    const { login, user } = useAuth();
-    const [loading, setLoading] = useState(false);
-    const [userType, setUserType] = useState<UserType>('patient');
-    const [loginMethod, setLoginMethod] = useState<'password' | 'otp'>('password');
-    const [mobile, setMobile] = useState('');
-    const [otp, setOtp] = useState('');
-    const [otpSent, setOtpSent] = useState(false);
-    const [showRegister, setShowRegister] = useState(false);
-    const [showPass, setShowPass] = useState(false);
+    // Login State
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
 
     // Redirect if already logged in
     useEffect(() => {
@@ -31,26 +23,30 @@ export default function LoginPage() {
 
     const handleSendOtp = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!mobile) return toast.error('Please enter your mobile number');
         setLoading(true);
         try {
-            const res = await api.post('/auth/otp/send', { mobile, userType });
+            const res = await api.post('/auth/otp/send', { mobile });
             const data = await res?.json();
             if (res && res.ok) {
-                // Show masked email info to user
-                if (data.accounts && data.accounts.length > 0) {
-                    const emailList = data.accounts.map((acc: any) => `${acc.email} (${acc.type})`).join(', ');
-                    toast.success(`OTP sent to ${emailList}`);
-                } else if (data.email) {
-                    toast.success(`OTP sent to ${data.email}`);
-                } else {
-                    toast.success('OTP sent successfully!');
-                }
+                toast.success('Professional secure PIN sent to your registered mobile number.', {
+                    icon: '🛡️',
+                    duration: 5000,
+                    style: {
+                        borderRadius: '12px',
+                        background: '#161616',
+                        color: '#fff',
+                        fontSize: '14px',
+                        fontWeight: 'bold',
+                        border: '1px solid #22c55e'
+                    }
+                });
                 setOtpSent(true);
             } else {
-                toast.error(data.message || 'Failed to send OTP.');
+                toast.error(data.message || 'Verification failed. Please check your number.');
             }
         } catch (error) {
-            toast.error('Connection failed.');
+            toast.error('System synchronization failed. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -60,35 +56,26 @@ export default function LoginPage() {
         e.preventDefault();
         setLoading(true);
         try {
-            const res = await api.post('/auth/otp/login', { mobile, otp, userType });
-
+            const res = await api.post('/auth/otp/login', { mobile, otp });
             if (res && res.ok) {
                 const data = await res.json();
-
-                // Validate user type matches selection (Optional for OTP but good for consistency)
-                const userRole = data.user.role.toLowerCase();
-                const isProvider = ['doctor', 'nurse', 'clinician', 'medic', 'lab_tech', 'admin', 'pharmacist'].includes(userRole);
-
-                if (userType === 'provider' && !isProvider) {
-                    toast.error('This account is registered as a Patient. Please switch to Patient login.');
-                    setLoading(false);
-                    return;
-                }
-
-                if (userType === 'patient' && isProvider && userRole !== 'admin') {
-                    toast.error('This account is registered as a Healthcare Provider. Please switch to Provider login.');
-                    setLoading(false);
-                    return;
-                }
-
-                toast.success(`Welcome back, ${data.user.fname || 'User'}!`);
+                toast.success(`Access Granted. Welcome, ${data.user.fname}!`, {
+                    icon: '✅',
+                    style: {
+                        borderRadius: '12px',
+                        background: '#161616',
+                        color: '#fff',
+                        fontWeight: 'bold',
+                        border: '1px solid #22c55e'
+                    }
+                });
                 login(data.user, data.access_token);
             } else {
                 const errorData = await res?.json().catch(() => ({}));
-                toast.error(errorData?.message || 'Invalid OTP.');
+                toast.error(errorData?.message || 'Security PIN verification failed.');
             }
         } catch (error) {
-            toast.error('Connection failed.');
+            toast.error('System authentication error.');
         } finally {
             setLoading(false);
         }
@@ -96,329 +83,243 @@ export default function LoginPage() {
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!email || !password) return toast.error('Credentials required.');
         setLoading(true);
 
-        const formData = new FormData(e.currentTarget as HTMLFormElement);
-        const email = formData.get('email');
-        const password = formData.get('password');
-
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
-            const apiUrl = `${API_URL}/auth/login`;
-            const res = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password, userType }),
-            });
+            const res = await api.post('/auth/login', { email, password });
 
             if (res && res.ok) {
                 const data = await res.json();
-
-                // Validate user type matches selection
-                const userRole = data.user.role.toLowerCase();
-                const isProvider = ['doctor', 'nurse', 'clinician', 'medic', 'lab_tech', 'admin', 'pharmacist'].includes(userRole);
-
-                if (userType === 'provider' && !isProvider) {
-                    toast.error('This account is registered as a Patient. Please switch to Patient login.');
-                    setLoading(false);
-                    return;
-                }
-
-                if (userType === 'patient' && isProvider && userRole !== 'admin') {
-                    toast.error('This account is registered as a Healthcare Provider. Please switch to Provider login.');
-                    setLoading(false);
-                    return;
-                }
-
-                // Success toast? usually redirect is enough, but 'Login Successful' is nice.
-                toast.success(`Welcome back, ${data.user.fname || 'User'}!`);
+                toast.success(`Authenticated Successfully. Welcome back, ${data.user.fname}!`, {
+                    icon: '🔓',
+                    style: {
+                        borderRadius: '12px',
+                        background: '#161616',
+                        color: '#fff',
+                        fontWeight: 'bold',
+                        border: '1px solid #22c55e'
+                    }
+                });
                 login(data.user, data.access_token);
             } else {
                 const errorData = await res.json().catch(() => ({}));
-                const errorMessage = errorData.message || res.statusText || 'Login failed';
-                toast.error(`Login Failed: ${errorMessage}`);
+                toast.error(`Authentication Denied: ${errorData.message || 'Invalid Credentials'}`);
             }
         } catch (err) {
-            toast.error('Connection error. Please check your internet connection.');
+            toast.error('Secure connection failed. Verify your network.');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-[#050505] dark:via-[#0a0a0a] dark:to-[#050505] p-4">
-            <div className="max-w-5xl w-full bg-white dark:bg-[#121212] rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden flex flex-col md:flex-row">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-[#020202] dark:via-[#080808] dark:to-[#020202] p-4 font-inter">
+            <div className="max-w-5xl w-full bg-white dark:bg-[#0f0f0f] rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-gray-100 dark:border-white/5 overflow-hidden flex flex-col md:flex-row min-h-[650px]">
 
                 {/* Left Side - Branding */}
-                <div className="md:w-5/12 bg-gradient-to-br from-green-600 to-green-700 dark:from-green-900/40 dark:to-green-900/20 p-12 text-white flex flex-col justify-between relative overflow-hidden">
+                <div className="md:w-5/12 bg-black p-12 text-white flex flex-col justify-between relative overflow-hidden">
                     <div className="relative z-10">
-                        <Link href="/" className="flex items-center gap-2 mb-12 group">
-                            <div className="w-12 h-12 bg-white text-green-600 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-lg group-hover:scale-110 transition-transform">
+                        <Link href="/" className="flex items-center gap-3 mb-16 group">
+                            <div className="w-12 h-12 bg-white text-black rounded-2xl flex items-center justify-center font-black text-2xl shadow-[0_0_20px_rgba(255,255,255,0.3)] group-hover:scale-105 transition-transform">
                                 M
                             </div>
-                            <span className="font-bold text-2xl">M-Clinic</span>
+                            <span className="font-black text-2xl tracking-tighter">M-CLINIC</span>
                         </Link>
 
-                        <h2 className="text-4xl font-black mb-4">Welcome Back</h2>
-                        <p className="opacity-90 leading-relaxed text-green-50 mb-8">
-                            Sign in to access your {userType === 'patient' ? 'health records and book appointments' : 'provider dashboard and manage patients'}.
-                        </p>
+                        <div className="space-y-6">
+                            <h2 className="text-5xl font-black leading-tight tracking-tighter">
+                                Secure<br />
+                                <span className="text-green-500">Access</span> Portal
+                            </h2>
+                            <p className="text-gray-400 text-lg leading-relaxed max-w-xs">
+                                Single unified gateway for patients, doctors, and medical staff.
+                            </p>
+                        </div>
 
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-3 opacity-90 bg-white/10 backdrop-blur-sm p-4 rounded-xl">
-                                <span className="bg-white/20 p-3 rounded-lg">🔒</span>
+                        <div className="mt-12 space-y-4">
+                            <div className="flex items-center gap-4 bg-white/5 backdrop-blur-md p-5 rounded-2xl border border-white/10 group hover:bg-white/10 transition-colors">
+                                <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center text-green-500">
+                                    <FiUser size={20} />
+                                </div>
                                 <div>
-                                    <div className="font-bold">Secure Access</div>
-                                    <div className="text-xs text-green-100">Your data is encrypted</div>
+                                    <div className="font-bold text-sm">Unified Identity</div>
+                                    <div className="text-[10px] text-gray-500 uppercase tracking-widest font-black">Role Auto-Detection</div>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3 opacity-90 bg-white/10 backdrop-blur-sm p-4 rounded-xl">
-                                <span className="bg-white/20 p-3 rounded-lg">⚡</span>
+                            <div className="flex items-center gap-4 bg-white/5 backdrop-blur-md p-5 rounded-2xl border border-white/10 group hover:bg-white/10 transition-colors">
+                                <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-500">
+                                    <FiHeart size={20} />
+                                </div>
                                 <div>
-                                    <div className="font-bold">Instant Access</div>
-                                    <div className="text-xs text-green-100">Get started in seconds</div>
+                                    <div className="font-bold text-sm">Health Records</div>
+                                    <div className="text-[10px] text-gray-500 uppercase tracking-widest font-black">Encrypted & Secure</div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Decorative elements */}
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
-                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-green-400/20 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl"></div>
+                    <div className="relative z-10 pt-8 border-t border-white/5">
+                        <p className="text-[10px] text-gray-600 font-black uppercase tracking-[0.2em]">
+                            &copy; {new Date().getFullYear()} M-Clinic Global Health
+                        </p>
+                    </div>
+
+                    {/* Aesthetic Gradients */}
+                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-green-500/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2"></div>
+                    <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2"></div>
                 </div>
 
-                {/* Right Side - Login Form */}
-                <div className="flex-1 p-8 md:p-12">
-                    <div className="mb-8">
-                        <h2 className="text-3xl font-black text-gray-900 dark:text-white mb-2">Sign In</h2>
-                        <p className="text-gray-500 text-sm">Choose your account type to continue</p>
-                    </div>
-
-                    {/* User Type Toggle */}
-                    <div className="mb-8">
-                        <div className="grid grid-cols-2 gap-4">
-                            <button
-                                type="button"
-                                onClick={() => setUserType('patient')}
-                                className={`relative p-6 rounded-2xl border-2 transition-all ${userType === 'patient'
-                                    ? 'border-green-600 bg-green-50 dark:bg-green-900/20'
-                                    : 'border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-800'
-                                    }`}
-                            >
-                                <div className="flex flex-col items-center text-center">
-                                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-3 transition-colors ${userType === 'patient'
-                                        ? 'bg-green-600 text-white'
-                                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
-                                        }`}>
-                                        <FiUser className="text-2xl" />
-                                    </div>
-                                    <div className={`font-bold transition-colors ${userType === 'patient'
-                                        ? 'text-green-600 dark:text-green-400'
-                                        : 'text-gray-700 dark:text-gray-300'
-                                        }`}>
-                                        Patient
-                                    </div>
-                                    <div className="text-xs text-gray-500 mt-1">Book appointments</div>
-                                </div>
-                                {userType === 'patient' && (
-                                    <div className="absolute top-3 right-3 w-6 h-6 bg-green-600 rounded-full flex items-center justify-center">
-                                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                        </svg>
-                                    </div>
-                                )}
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() => setUserType('provider')}
-                                className={`relative p-6 rounded-2xl border-2 transition-all ${userType === 'provider'
-                                    ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
-                                    : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-800'
-                                    }`}
-                            >
-                                <div className="flex flex-col items-center text-center">
-                                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-3 transition-colors ${userType === 'provider'
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
-                                        }`}>
-                                        <FiHeart className="text-2xl" />
-                                    </div>
-                                    <div className={`font-bold transition-colors ${userType === 'provider'
-                                        ? 'text-blue-600 dark:text-blue-400'
-                                        : 'text-gray-700 dark:text-gray-300'
-                                        }`}>
-                                        Provider
-                                    </div>
-                                    <div className="text-xs text-gray-500 mt-1">Doctors & Medics</div>
-                                </div>
-                                {userType === 'provider' && (
-                                    <div className="absolute top-3 right-3 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
-                                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                        </svg>
-                                    </div>
-                                )}
-                            </button>
+                {/* Right Side - Unified Form */}
+                <div className="flex-1 p-8 md:p-16 flex flex-col justify-center">
+                    <div className="max-w-sm mx-auto w-full">
+                        <div className="mb-10">
+                            <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">Sign In</h2>
+                            <p className="text-gray-500 text-sm mt-2 font-medium">Identity-based secure authentication</p>
                         </div>
-                    </div>
 
-
-
-                    {/* Login Method Toggle */}
-                    <div className="flex justify-center mb-6">
-                        <div className="bg-gray-100 dark:bg-gray-800 p-1 rounded-xl flex">
+                        {/* Login Method Toggle */}
+                        <div className="inline-flex bg-gray-100 dark:bg-white/5 p-1 rounded-2xl mb-8">
                             <button
-                                type="button"
                                 onClick={() => setLoginMethod('password')}
-                                className={`px-4 py-2 rounded-lg text-sm font-bold transition ${loginMethod === 'password'
-                                    ? 'bg-white dark:bg-gray-700 shadow text-gray-900 dark:text-white'
+                                className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${loginMethod === 'password'
+                                    ? 'bg-white dark:bg-white/10 shadow-sm text-gray-900 dark:text-white'
                                     : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                                     }`}
                             >
                                 Password
                             </button>
                             <button
-                                type="button"
                                 onClick={() => setLoginMethod('otp')}
-                                className={`px-4 py-2 rounded-lg text-sm font-bold transition ${loginMethod === 'otp'
-                                    ? 'bg-white dark:bg-gray-700 shadow text-gray-900 dark:text-white'
+                                className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${loginMethod === 'otp'
+                                    ? 'bg-white dark:bg-white/10 shadow-sm text-gray-900 dark:text-white'
                                     : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                                     }`}
                             >
-                                One-Time PIN
+                                OTP PIN
                             </button>
                         </div>
-                    </div>
 
-                    {/* Login Form */}
-                    <form onSubmit={loginMethod === 'password' ? handleLogin : (otpSent ? handleVerifyOtp : handleSendOtp)} className="space-y-5">
-                        {loginMethod === 'password' ? (
-                            <>
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">
-                                        Email Address
-                                    </label>
-                                    <input
-                                        type="email"
-                                        name="email"
-                                        required
-                                        className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:border-green-500 dark:focus:border-green-500 outline-none transition"
-                                        placeholder={userType === 'patient' ? 'patient@example.com' : 'doctor@mclinic.com'}
-                                    />
-                                </div>
-
-                            <div className="relative">
-                                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">
-                                        Password
-                                    </label>
-                                    <div className="relative">
-                                        <input
-                                            type={showPass ? 'text' : 'password'}
-                                            name="password"
-                                            required
-                                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:border-green-500 dark:focus:border-green-500 outline-none transition"
-                                            placeholder="Enter your password"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowPass(!showPass)}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                                        >
-                                            {showPass ? <FiEyeOff size={20} /> : <FiEye size={20} />}
-                                        </button>
-                                    </div>
-                                </div>
-                            </>
-                        ) : (
-                            <>
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">
-                                        Mobile Number
-                                    </label>
-                                    <input
-                                        type="tel"
-                                        name="mobile"
-                                        required
-                                        value={mobile}
-                                        onChange={(e) => setMobile(e.target.value)}
-                                        className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:border-green-500 dark:focus:border-green-500 outline-none transition"
-                                        placeholder="e.g. 0712345678"
-                                    />
-                                </div>
-
-                                {otpSent && (
-                                    <div className="animate-in fade-in slide-in-from-top-2">
-                                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">
-                                            Enter OTP
+                        <form onSubmit={loginMethod === 'password' ? handleLogin : (otpSent ? handleVerifyOtp : handleSendOtp)} className="space-y-6">
+                            {loginMethod === 'password' ? (
+                                <>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">
+                                            Registered Email
                                         </label>
                                         <input
-                                            type="text"
-                                            name="otp"
+                                            type="email"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
                                             required
-                                            value={otp}
-                                            onChange={(e) => setOtp(e.target.value)}
-                                            className="w-full px-4 py-3 rounded-xl border-2 border-green-500 bg-green-50/50 dark:bg-green-900/10 dark:text-white outline-none transition text-center text-2xl tracking-widest font-mono"
-                                            placeholder="••••••"
-                                            maxLength={6}
+                                            className="w-full px-5 py-4 rounded-2xl border border-gray-200 dark:border-white/5 bg-gray-50/50 dark:bg-white/5 dark:text-white focus:border-green-500 dark:focus:border-green-500 outline-none transition-all placeholder:text-gray-400 text-sm font-medium"
+                                            placeholder="name@example.com"
                                         />
-                                        <p className="text-xs text-center mt-2 text-green-600">OTP sent to {mobile}</p>
                                     </div>
-                                )}
-                            </>
-                        )}
 
-                        <div className="flex justify-between items-center">
-                            {loginMethod === 'password' && (
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500" />
-                                    <span className="text-sm text-gray-600 dark:text-gray-400">Remember me</span>
-                                </label>
-                            )}
-                            <Link href="/forgot-password" className={`text-sm text-green-600 hover:text-green-700 font-bold hover:underline ${loginMethod !== 'password' ? 'ml-auto' : ''}`}>
-                                Forgot Password?
-                            </Link>
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className={`w-full py-4 rounded-xl font-bold text-white transition shadow-lg flex items-center justify-center gap-2 group ${userType === 'patient'
-                                ? 'bg-green-600 hover:bg-green-700 shadow-green-500/30'
-                                : 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/30'
-                                } disabled:opacity-50 disabled:cursor-not-allowed`}
-                        >
-                            {loading ? (
-                                'Processing...'
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between items-center ml-1">
+                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+                                                Password
+                                            </label>
+                                            <Link href="/forgot-password" size="sm" className="text-[10px] font-black text-green-600 hover:text-green-500 uppercase tracking-widest">
+                                                Forgot?
+                                            </Link>
+                                        </div>
+                                        <div className="relative">
+                                            <input
+                                                type={showPass ? 'text' : 'password'}
+                                                value={password}
+                                                onChange={(e) => setPassword(e.target.value)}
+                                                required
+                                                className="w-full px-5 py-4 rounded-2xl border border-gray-200 dark:border-white/5 bg-gray-50/50 dark:bg-white/5 dark:text-white focus:border-green-500 dark:focus:border-green-500 outline-none transition-all placeholder:text-gray-400 text-sm font-medium"
+                                                placeholder="••••••••"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPass(!showPass)}
+                                                className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                                            >
+                                                {showPass ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </>
                             ) : (
                                 <>
-                                    {loginMethod === 'password'
-                                        ? `Sign In as ${userType === 'patient' ? 'Patient' : 'Provider'}`
-                                        : (otpSent ? 'Verify & Login' : 'Send One-Time PIN')
-                                    }
-                                    <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">
+                                            Mobile Number
+                                        </label>
+                                        <input
+                                            type="tel"
+                                            required
+                                            value={mobile}
+                                            onChange={(e) => setMobile(e.target.value)}
+                                            disabled={otpSent}
+                                            className="w-full px-5 py-4 rounded-2xl border border-gray-200 dark:border-white/5 bg-gray-50/50 dark:bg-white/5 dark:text-white focus:border-green-500 dark:focus:border-green-500 outline-none transition-all placeholder:text-gray-400 text-sm font-medium disabled:opacity-50"
+                                            placeholder="0712 XXX XXX"
+                                        />
+                                    </div>
+
+                                    {otpSent && (
+                                        <div className="space-y-2 animate-in fade-in slide-in-from-top-4">
+                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">
+                                                Verification PIN
+                                            </label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={otp}
+                                                onChange={(e) => setOtp(e.target.value)}
+                                                className="w-full px-5 py-6 rounded-2xl border-2 border-green-500 bg-green-500/5 dark:text-white outline-none transition-all text-center text-3xl tracking-[0.5em] font-black"
+                                                placeholder="••••••"
+                                                maxLength={6}
+                                            />
+                                            <div className="flex justify-between items-center px-1">
+                                                <p className="text-[10px] font-bold text-green-600 uppercase">PIN Sent Successfully</p>
+                                                <button type="button" onClick={() => setOtpSent(false)} className="text-[10px] font-black text-gray-400 hover:text-gray-600 uppercase tracking-widest">Change Number</button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </>
                             )}
-                        </button>
-                    </form>
 
-                    {/* Simple Register Links */}
-                    <div className="mt-8 pt-6 border-t dark:border-gray-800 flex justify-center gap-8">
-                        <Link href="/register/patient" className="text-xs font-bold text-gray-400 hover:text-green-600 uppercase tracking-widest transition-colors">
-                            Register as Patient
-                        </Link>
-                        <Link href="/register/medic" className="text-xs font-bold text-gray-400 hover:text-blue-600 uppercase tracking-widest transition-colors">
-                            Register as Medic
-                        </Link>
-                    </div>
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full py-5 rounded-2xl bg-black dark:bg-white text-white dark:text-black font-black text-xs uppercase tracking-[0.2em] hover:translate-y-[-2px] active:scale-[0.98] transition-all shadow-[0_10px_20px_rgba(0,0,0,0.1)] disabled:opacity-50 flex items-center justify-center gap-3"
+                            >
+                                {loading ? (
+                                    <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                                ) : (
+                                    <>
+                                        {loginMethod === 'password' ? 'Verify Credentials' : (otpSent ? 'Confirm Access' : 'Request Secure PIN')}
+                                        <FiArrowRight />
+                                    </>
+                                )}
+                            </button>
+                        </form>
 
-                    <div className="mt-8 text-center">
-                        <Link
-                            href="/support"
-                            className="text-sm font-medium text-gray-400 hover:text-green-600 transition flex items-center justify-center gap-1.5"
-                        >
-                            <FiMessageSquare /> Need Help? Contact Support
-                        </Link>
+                        <div className="mt-12 pt-8 border-t border-gray-100 dark:border-white/5">
+                            <div className="flex flex-col gap-4">
+                                <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">New to M-Clinic?</div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <Link href="/register/patient" className="py-3 px-4 rounded-xl border border-gray-200 dark:border-white/5 text-[10px] font-black uppercase tracking-widest text-center hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                                        As Patient
+                                    </Link>
+                                    <Link href="/register/medic" className="py-3 px-4 rounded-xl border border-gray-200 dark:border-white/5 text-[10px] font-black uppercase tracking-widest text-center hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                                        As Medic
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-8 text-center">
+                            <Link href="/support" className="text-[10px] font-black text-gray-400 hover:text-black dark:hover:text-white uppercase tracking-widest transition-colors flex items-center justify-center gap-2">
+                                <FiMessageSquare size={14} /> System Support
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </div>
