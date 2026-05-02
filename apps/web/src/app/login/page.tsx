@@ -8,11 +8,23 @@ import { FiUser, FiHeart, FiArrowRight, FiMessageSquare, FiEye, FiEyeOff } from 
 import { toast } from 'react-hot-toast';
 import { api } from '@/lib/api';
 
-type UserType = 'patient' | 'provider';
+type UserType = 'password' | 'otp';
 
-    // Login State
+export default function LoginPage() {
+    const router = useRouter();
+    const { user, login } = useAuth();
+    const [loginMethod, setLoginMethod] = useState<UserType>('password');
+    const [loading, setLoading] = useState(false);
+    const [showPass, setShowPass] = useState(false);
+
+    // Password State
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+
+    // OTP State
+    const [mobile, setMobile] = useState('');
+    const [otp, setOtp] = useState('');
+    const [otpSent, setOtpSent] = useState(false);
 
     // Redirect if already logged in
     useEffect(() => {
