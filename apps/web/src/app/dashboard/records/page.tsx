@@ -116,7 +116,8 @@ export default function MedicalRecordsPage() {
             const doc = new jsPDF();
             const prescription = item.prescription;
             const serialNumber = `RX-${prescription.id}-${new Date(item.date).getFullYear()}${new Date(item.date).getMonth() + 1}`;
-            const verificationUrl = `https://www.mclinic.co.ke/verify?id=${serialNumber}`;
+            const origin = typeof window !== 'undefined' ? window.location.origin : 'https://portal.mclinic.co.ke';
+            const verificationUrl = `${origin}/verify?id=${serialNumber}`;
 
             // --- Load Assets ---
             const logoData = await getDataUrl('https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png').catch(() => null);
@@ -245,7 +246,8 @@ export default function MedicalRecordsPage() {
             doc.setTextColor(50);
             doc.text('Scan the QR code or visit:', 20, bottomY + 12);
             doc.setTextColor(0, 0, 255);
-            doc.textWithLink('www.mclinic.co.ke/verify', 20, bottomY + 17, { url: verificationUrl });
+            const displayLink = origin.replace(/^https?:\/\//, '');
+            doc.textWithLink(displayLink + '/verify', 20, bottomY + 17, { url: verificationUrl });
 
             doc.setTextColor(50);
             doc.text(`Enter Serial Number: ${serialNumber}`, 20, bottomY + 25);

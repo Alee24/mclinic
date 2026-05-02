@@ -18,7 +18,19 @@ class _WebViewScreenState extends State<WebViewScreen> {
   @override
   void initState() {
     super.initState();
+    _requestPermissions();
+    _initController();
+  }
 
+  Future<void> _requestPermissions() async {
+    await [
+      Permission.location,
+      Permission.camera,
+      Permission.microphone,
+    ].request();
+  }
+
+  void _initController() {
     late final PlatformWebViewControllerCreationParams params;
     if (WebViewPlatform.instance is WebKitWebViewPlatform) {
       params = WebKitWebViewControllerCreationParams(

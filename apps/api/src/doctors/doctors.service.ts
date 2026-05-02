@@ -594,7 +594,8 @@ export class DoctorsService implements OnModuleInit {
 
         const paddedId = id.toString().padStart(3, '0');
         const serialNumber = `MCK-${new Date().getFullYear()}-${paddedId}`;
-        const verificationUrl = `https://mclinic.co.ke/verify/doctor/${doctor.id}`;
+        const frontendUrl = process.env.FRONTEND_URL || 'https://portal.mclinic.co.ke';
+        const verificationUrl = `${frontendUrl}/verify/doctor/${doctor.id}`;
         const qrCodeDataUrl = await QRCode.toDataURL(verificationUrl);
 
         return {
