@@ -186,7 +186,11 @@ export default function UsersPage() {
 
             return matchesSearch && matchesRole && matchesStatus;
         })
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        .sort((a, b) => {
+            const timeA = a.lastAccess ? new Date(a.lastAccess).getTime() : 0;
+            const timeB = b.lastAccess ? new Date(b.lastAccess).getTime() : 0;
+            return timeB - timeA || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">

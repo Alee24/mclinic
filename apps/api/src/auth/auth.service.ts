@@ -103,8 +103,14 @@ export class AuthService {
 
     // Update last access timestamp on every successful login
     try {
-      // For providers (doctors), find their matching user record by email
-      const userRecord = await this.usersService.findOne(validUser.email);
+      let userRecord = await this.usersService.findOne(validUser.email);
+      
+      // If it's a doctor/medic and no user record exists, sync it now to enable tracking
+      const isDoctorRole = ['doctor', 'medic', 'nurse', 'clinician', 'lab_tech', 'pharmacist'].includes(validUser.role);
+      if (!userRecord && isDoctorRole) {
+         userRecord = await this.usersService.syncUserFromDoctor(validUser);
+      }
+
       if (userRecord) {
         await this.usersService.updateLastAccess(userRecord.id);
       }
@@ -152,6 +158,9 @@ export class AuthService {
       isImpersonated: true,
       adminId: admin.id
     };
+
+    // Update last access for the target user
+    await this.usersService.updateLastAccess(targetUser.id);
 
     let finalUser = { ...targetUser };
     if (finalUser.password) delete (finalUser as any).password;

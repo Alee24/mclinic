@@ -124,6 +124,6 @@ export class User {
   @Column({ type: 'timestamp', nullable: true })
   deletionScheduledAt: Date | null;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ name: 'last_access', type: 'timestamp', nullable: true })
   lastAccess: Date;
 }

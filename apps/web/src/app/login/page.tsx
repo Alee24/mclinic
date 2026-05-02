@@ -39,7 +39,7 @@ export default function LoginPage() {
         setLoading(true);
         try {
             const res = await api.post('/auth/otp/send', { mobile });
-            const data = await res?.json();
+            const data = res ? await res.json() : {};
             if (res && res.ok) {
                 toast.success('Professional secure PIN sent to your registered mobile number.', {
                     icon: '🛡️',
@@ -83,7 +83,7 @@ export default function LoginPage() {
                 });
                 login(data.user, data.access_token);
             } else {
-                const errorData = await res?.json().catch(() => ({}));
+                const errorData = res ? await res.json().catch(() => ({})) : {};
                 toast.error(errorData?.message || 'Security PIN verification failed.');
             }
         } catch (error) {
@@ -115,7 +115,7 @@ export default function LoginPage() {
                 });
                 login(data.user, data.access_token);
             } else {
-                const errorData = await res.json().catch(() => ({}));
+                const errorData = res ? await res.json().catch(() => ({})) : {};
                 toast.error(`Authentication Denied: ${errorData.message || 'Invalid Credentials'}`);
             }
         } catch (err) {
