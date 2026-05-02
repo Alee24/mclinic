@@ -6,10 +6,10 @@ echo "  M-CLINIC DEPLOYMENT UPDATE"
 echo "  Pulling latest changes and restarting"
 echo "=============================================="
 
-# Configuration
+# Configuration (Corrected to match ecosystem.config.js)
 APP_DIR="/var/www/mclinicportal"
-API_PORT=5454
-WEB_PORT=5054
+API_PORT=7899
+WEB_PORT=7898
 
 echo ""
 echo "📥 Step 1: Pulling latest changes from Git..."
@@ -104,7 +104,7 @@ echo "   ✅ Services restarted"
 
 echo ""
 echo "⏳ Step 9: Waiting for services to stabilize..."
-sleep 5
+sleep 10
 
 echo ""
 echo "🔍 Step 10: Testing endpoints..."
