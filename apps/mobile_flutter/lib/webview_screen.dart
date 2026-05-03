@@ -78,8 +78,8 @@ class _WebViewScreenState extends State<WebViewScreen> {
       });
 
       // Explicitly handle HTML5 Geolocation API requests
-      androidController.setGeolocationPermissionsShowPrompt(
-          (GeolocationPermissionsPromptRequest request) async {
+      androidController.setGeolocationPermissionsPromptCallbacks(
+          onShowPrompt: (GeolocationPermissionsRequestParams request) async {
         debugPrint('Geolocation requested by ${request.origin}');
         return const GeolocationPermissionsResponse(allow: true, retain: true);
       });
