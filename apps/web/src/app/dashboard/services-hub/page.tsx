@@ -3,9 +3,12 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FiCalendar, FiPackage, FiActivity, FiTruck, FiMessageSquare, FiMail, FiPhone, FiGrid, FiUser, FiFileText } from 'react-icons/fi';
+import { useState } from 'react';
+import MedicalConciergeModal from '@/components/dashboard/appointments/MedicalConciergeModal';
 
 export default function ServicesHubPage() {
     const router = useRouter();
+    const [showConciergeModal, setShowConciergeModal] = useState(false);
 
     const services = [
         {
@@ -35,7 +38,7 @@ export default function ServicesHubPage() {
             description: 'Your personal healthcare coordinator for priority bookings and end-to-end management.',
             icon: <FiUser />,
             color: 'bg-rose-500',
-            action: () => alert('Medical Concierge service selected. An agent will contact you shortly.')
+            action: () => setShowConciergeModal(true)
         },
         {
             title: 'Lab & Diagnostics',
@@ -135,6 +138,16 @@ export default function ServicesHubPage() {
                 <div className="absolute top-0 right-0 w-96 h-96 bg-green-500/20 rounded-full blur-3xl -mr-32 -mt-32"></div>
                 <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl -ml-20 -mb-20"></div>
             </div>
+
+            {showConciergeModal && (
+                <MedicalConciergeModal 
+                    onClose={() => setShowConciergeModal(false)}
+                    onSuccess={() => {
+                        setShowConciergeModal(false);
+                        router.push('/dashboard/appointments');
+                    }}
+                />
+            )}
         </div>
     );
 }

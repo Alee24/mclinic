@@ -58,11 +58,16 @@ export class AppointmentsService {
     }
 
     // Fetch doctor once for fee and location calculations
-    const doctor = await this.appointmentsRepository.manager
-      .getRepository(Doctor)
-      .findOne({ where: { id: createAppointmentDto.doctorId } });
-    if (!doctor) {
-      throw new BadRequestException('Doctor not found.');
+    let doctor = null;
+    if (createAppointmentDto.doctorId) {
+      doctor = await this.appointmentsRepository.manager
+        .getRepository(Doctor)
+        .findOne({ where: { id: createAppointmentDto.doctorId } });
+      if (!doctor && !createAppointmentDto.isConcierge) {
+        throw new BadRequestException('Doctor not found.');
+      }
+    } else if (!createAppointmentDto.isConcierge) {
+      throw new BadRequestException('Doctor ID is required for standard appointments.');
     }
 
     // Calculate Fees using dynamic settings
@@ -75,7 +80,11 @@ export class AppointmentsService {
     let serviceName = 'Consultation';
 
     // Check if a specific service was selected
-    if (finalServiceId) {
+    if (createAppointmentDto.isConcierge) {
+      const hours = createAppointmentDto.durationHours || 6;
+      fee = (hours / 6) * 6000;
+      serviceName = `Medical Concierge (${createAppointmentDto.conciergeType || 'General'})`;
+    } else if (finalServiceId) {
       const service = await this.servicesRepository.findOne({
         where: { id: finalServiceId },
       });
@@ -83,7 +92,7 @@ export class AppointmentsService {
         fee = Number(service.price);
         serviceName = service.name;
       }
-    } else {
+    } else if (doctor) {
       const drType = (doctor.dr_type || '').toLowerCase();
       if (drType.includes('nurse') || drType.includes('clinician')) {
         fee = defaultPhysicalFee;
@@ -247,7 +256,9 @@ export class AppointmentsService {
 
       // 1. SMS to Patient: Initial Booking
       if (patientUser?.mobile) {
-        const patientMsg = `Dear ${patientName}, you have successfully booked an appointment with ${doctorName}. Please complete your payment to confirm. View details: ${portalUrl}/dashboard/appointments`;
+        const patientMsg = createAppointmentDto.isConcierge 
+          ? `Dear ${patientName}, your Medical Concierge booking (${createAppointmentDto.conciergeType}) has been received. Please complete your payment of KES ${totalPatientFee} to confirm. An agent will be assigned shortly.`
+          : `Dear ${patientName}, you have successfully booked an appointment with ${doctorName}. Please complete your payment to confirm. View details: ${portalUrl}/dashboard/appointments`;
         await this.notificationService.sendCustomSms(patientUser.mobile, patientMsg);
       }
 

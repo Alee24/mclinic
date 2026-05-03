@@ -48,6 +48,11 @@ android {
         release {
             // Signing with release keys
             signingConfig = signingConfigs.release
+            
+            // Include native debug symbols to resolve Play Store warnings
+            ndk {
+                debugSymbolLevel 'full'
+            }
         }
     }
 }

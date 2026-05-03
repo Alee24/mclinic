@@ -33,10 +33,10 @@ export class Appointment {
   @Column({ type: 'bigint', unsigned: true })
   patientId: number;
 
-  @ManyToOne(() => Doctor)
+  @ManyToOne(() => Doctor, { nullable: true })
   doctor: Doctor;
 
-  @Column({ type: 'bigint', unsigned: true })
+  @Column({ type: 'bigint', unsigned: true, nullable: true })
   doctorId: number;
 
   @ManyToOne(() => Service, { nullable: true, onDelete: 'SET NULL' })
@@ -104,6 +104,15 @@ export class Appointment {
 
   @Column({ nullable: true })
   homeAddress: string;
+
+  @Column({ nullable: true })
+  conciergeType: string;
+
+  @Column({ default: 6 })
+  durationHours: number;
+
+  @Column({ default: false })
+  isConcierge: boolean;
 
   // -------------------------------
 
