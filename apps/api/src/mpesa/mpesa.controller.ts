@@ -26,6 +26,11 @@ export class MpesaController {
         );
     }
 
+    @Get('callback')
+    async checkCallback() {
+        return { status: 'M-Pesa Callback Endpoint is Active', method: 'POST required for data' };
+    }
+
     @Post('c')
     @Post('callback')
     async handleCallback(@Body() callbackData: any) {
