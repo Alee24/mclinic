@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.mclinicportal.app",
+      "sha256_cert_fingerprints": [
+        "0D:37:DD:57:69:C4:7C:08:E1:F8:92:59:04:47:88:94:10:E0:1B:36:2C:25:DA:4F:0A:5C:AD:B0:F5:5C:D8:3F",
+        "13:E7:E9:97:86:55:48:DD:28:66:05:07:CA:A4:50:0E:DF:E6:8D:3A:24:19:E6:79:54:4B:49:72:16:17:7F:50:22"
+      ]
+    }
+  }
+]
