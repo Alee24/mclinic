@@ -26,7 +26,7 @@ export default function Footer() {
                             <Link href="/contact" className="block hover:text-white">Contact</Link>
                             <Link href="/terms-and-conditions" className="block hover:text-white">Terms & Conditions</Link>
                             <Link href="/privacy" className="block hover:text-white">Privacy Policy</Link>
-                            <Link href="/data-deletion" className="block hover:text-white">Delete My Data</Link>
+                            <Link href="/delete-my-data" className="block hover:text-white">Delete My Data</Link>
                         </div>
                     </div>
 
@@ -37,7 +37,7 @@ export default function Footer() {
                             <Link href="/login" className="block hover:text-white">Provider Login</Link>
                             <Link href="/terms-and-conditions" className="block hover:text-white">Terms & Conditions</Link>
                             <Link href="/privacy" className="block hover:text-white">Privacy Policy</Link>
-                            <Link href="/data-deletion" className="block hover:text-white">Delete My Data</Link>
+                            <Link href="/delete-my-data" className="block hover:text-white">Delete My Data</Link>
                         </div>
                     </div>
 

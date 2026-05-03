@@ -70,7 +70,7 @@ export default function PrivacyPolicyPage() {
                         <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800">
                             <p className="text-gray-900 dark:text-white font-bold mb-2">Request Data Deletion</p>
                             <p className="text-sm text-gray-500 mb-4">You can request the permanent deletion of your account and all associated data through our dedicated portal.</p>
-                            <Link href="/data-deletion" className="text-primary font-bold hover:underline">Go to Data Deletion Page &rarr;</Link>
+                            <Link href="/delete-my-data" className="text-primary font-bold hover:underline">Go to Data Deletion Page &rarr;</Link>
                         </div>
                     </section>
 

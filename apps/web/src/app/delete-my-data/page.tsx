@@ -115,7 +115,7 @@ export default function PublicDataDeletionPage() {
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             <Link 
-                                href="/login?redirect=/data-deletion" 
+                                href="/login?redirect=/delete-my-data" 
                                 className="px-8 py-4 bg-primary text-black font-bold rounded-xl shadow-lg shadow-primary/20 hover:opacity-90 transition"
                             >
                                 Login to Manage Data

@@ -241,7 +241,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         <nav className="space-y-1">
                             <NavItem href="/terms-and-conditions" icon={<FiFileText />} label="Terms & Conditions" active={pathname === '/terms-and-conditions'} />
                             <NavItem href="/privacy" icon={<FiShield />} label="Privacy Policy" active={pathname === '/privacy'} />
-                            <NavItem href="/data-deletion" icon={<FiTrash2 />} label="Delete My Data" active={pathname === '/data-deletion'} />
+                            <NavItem href="/delete-my-data" icon={<FiTrash2 />} label="Delete My Data" active={pathname === '/delete-my-data'} />
                             <NavItem href="#" icon={<FiHelpCircle />} label="Help" active={false} />
 
                             {/* Mobile PWA Install Button */}
