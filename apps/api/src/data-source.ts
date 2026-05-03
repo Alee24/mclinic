@@ -1,7 +1,10 @@
 import { DataSource } from 'typeorm';
 import * as dotenv from 'dotenv';
 
-dotenv.config();
+import * as path from 'path';
+
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+dotenv.config({ path: path.resolve(process.cwd(), 'apps/api/.env') }); // Fallback for monorepo root execution
 
 export const AppDataSource = new DataSource({
     type: 'mysql',
