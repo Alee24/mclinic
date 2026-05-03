@@ -3,8 +3,10 @@ import * as dotenv from 'dotenv';
 
 import * as path from 'path';
 
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
-dotenv.config({ path: path.resolve(process.cwd(), 'apps/api/.env') }); // Fallback for monorepo root execution
+// Use absolute paths relative to this file to find the .env file reliably on VPS
+const envPath = path.resolve(__dirname, '../.env');
+dotenv.config({ path: envPath });
+dotenv.config({ path: path.resolve(process.cwd(), '.env') }); // Fallback for various execution contexts
 
 export const AppDataSource = new DataSource({
     type: 'mysql',
