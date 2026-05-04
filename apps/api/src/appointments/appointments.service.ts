@@ -251,7 +251,7 @@ export class AppointmentsService {
         .findOne({ where: { id: createAppointmentDto.patientId } });
 
       const patientName = patientUser?.fname || 'Patient';
-      const doctorName = doctor.fname ? `Dr. ${doctor.fname} ${doctor.lname}` : 'the Specialist';
+      const doctorName = (doctor && doctor.fname) ? `Dr. ${doctor.fname} ${doctor.lname}` : 'the Specialist';
       const portalUrl = 'https://portal.mclinic.co.ke';
 
       // 1. SMS to Patient: Initial Booking
