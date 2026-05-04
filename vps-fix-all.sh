@@ -51,8 +51,8 @@ cat <<EOF | sudo tee $APACHE_FILE > /dev/null
     ProxyRequests Off
     
     # MClinic API - Port $API_PORT
-    ProxyPass /api/ http://127.0.0.1:$API_PORT/
-    ProxyPassReverse /api/ http://127.0.0.1:$API_PORT/
+    ProxyPass /api/ http://127.0.0.1:$API_PORT/api/
+    ProxyPassReverse /api/ http://127.0.0.1:$API_PORT/api/
     
     # MClinic Web - Port $WEB_PORT
     ProxyPass / http://127.0.0.1:$WEB_PORT/

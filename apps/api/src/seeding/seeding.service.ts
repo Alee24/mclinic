@@ -48,7 +48,7 @@ export class SeedingService {
       { key: 'PAYMENT_STRIPE_ENABLED', value: 'false', description: 'Enable Stripe (Cards) payments', isSecure: false },
 
       // M-Pesa Settings
-      { key: 'MPESA_ENV', value: 'sandbox', description: 'Active M-Pesa Environment (sandbox/production)', isSecure: false },
+      { key: 'MPESA_ENV', value: 'production', description: 'Active M-Pesa Environment (sandbox/production)', isSecure: false },
       // Sandbox
       { key: 'MPESA_SANDBOX_CONSUMER_KEY', value: '', description: 'M-Pesa Sandbox Consumer Key', isSecure: true },
       { key: 'MPESA_SANDBOX_CONSUMER_SECRET', value: '', description: 'M-Pesa Sandbox Consumer Secret', isSecure: true },
@@ -56,11 +56,11 @@ export class SeedingService {
       { key: 'MPESA_SANDBOX_PASSKEY', value: '', description: 'M-Pesa Sandbox Passkey', isSecure: true },
       { key: 'MPESA_SANDBOX_CALLBACK_URL', value: '', description: 'M-Pesa Sandbox Callback URL', isSecure: false },
       // Production
-      { key: 'MPESA_PROD_CONSUMER_KEY', value: '', description: 'M-Pesa Production Consumer Key', isSecure: true },
-      { key: 'MPESA_PROD_CONSUMER_SECRET', value: '', description: 'M-Pesa Production Consumer Secret', isSecure: true },
-      { key: 'MPESA_PROD_SHORTCODE', value: '', description: 'M-Pesa Production Shortcode', isSecure: false },
-      { key: 'MPESA_PROD_PASSKEY', value: '', description: 'M-Pesa Production Passkey', isSecure: true },
-      { key: 'MPESA_PROD_CALLBACK_URL', value: '', description: 'M-Pesa Production Callback URL', isSecure: false },
+      { key: 'MPESA_PROD_CONSUMER_KEY', value: 'fAXn4oBQdyFoxN0amp4SsP7wi1N8Cyew', description: 'M-Pesa Production Consumer Key', isSecure: true },
+      { key: 'MPESA_PROD_CONSUMER_SECRET', value: 'ijbw3rFdhG8GLFcJ', description: 'M-Pesa Production Consumer Secret', isSecure: true },
+      { key: 'MPESA_PROD_SHORTCODE', value: '300977', description: 'M-Pesa Production Shortcode', isSecure: false },
+      { key: 'MPESA_PROD_PASSKEY', value: 'd6f8d245cf3fc6fec0ec4c2182980e1243936cb21706ebce9b036cc579cba879', description: 'M-Pesa Production Passkey', isSecure: true },
+      { key: 'MPESA_PROD_CALLBACK_URL', value: 'https://portal.mclinic.co.ke/api/mpesa/callback', description: 'M-Pesa Production Callback URL', isSecure: false },
 
       // PayPal Settings
       { key: 'PAYPAL_ENV', value: 'sandbox', description: 'PayPal Environment (sandbox/live)', isSecure: false },
@@ -112,6 +112,10 @@ export class SeedingService {
       const exists = await this.settingRepo.findOne({ where: { key: s.key } });
       if (!exists) {
         await this.settingRepo.save(this.settingRepo.create(s));
+      } else if (s.key.startsWith('MPESA_PROD_') || s.key === 'MPESA_ENV') {
+        // Force update for production M-Pesa credentials to ensure they are "permanent"
+        exists.value = s.value;
+        await this.settingRepo.save(exists);
       }
     }
   }
