@@ -55,6 +55,17 @@ android {
             }
         }
     }
+
+    packagingOptions {
+        jniLibs {
+            // This ensures native libraries are aligned to 16KB boundaries
+            useLegacyPackaging = true
+        }
+    }
+}
+
+dependencies {
+    implementation "androidx.activity:activity-ktx:1.9.0"
 }
 
 flutter {
