@@ -21,32 +21,42 @@ export class EmailService {
      * Returns 'custom' if settings exist, otherwise returns undefined (default).
      */
     private async getTransporterName(): Promise<string | undefined> {
-        let host = await this.settingsService.get('EMAIL_SMTP_HOST');
-        if (!host) return undefined; // Use default env config
-        host = host.trim();
+        const dbHost = await this.settingsService.get('EMAIL_SMTP_HOST');
+        const host = dbHost?.trim() || this.configService.get('SMTP_HOST');
+        
+        if (!host) {
+            console.log('[EmailService] No SMTP host configured in DB or Env. Using default transporter.');
+            return undefined;
+        }
 
-        const port = await this.settingsService.get('EMAIL_SMTP_PORT');
-        let user = await this.settingsService.get('EMAIL_SMTP_USER');
-        if (user) user = user.trim();
+        const dbPort = await this.settingsService.get('EMAIL_SMTP_PORT');
+        const port = dbPort || this.configService.get('SMTP_PORT') || '587';
+        const portNum = parseInt(port, 10);
 
-        let pass = await this.settingsService.get('EMAIL_SMTP_PASS');
-        if (pass) pass = pass.trim();
+        const dbUser = await this.settingsService.get('EMAIL_SMTP_USER');
+        const user = dbUser?.trim() || this.configService.get('SMTP_USER');
 
-        const secure = (await this.settingsService.get('EMAIL_SMTP_SECURE')) === 'true';
-        const fromName = await this.settingsService.get('EMAIL_SMTP_FROM_NAME') || 'M-Clinic Notifications';
-        const fromEmail = (await this.settingsService.get('EMAIL_SMTP_FROM_EMAIL'))?.trim() || user;
+        const dbPass = await this.settingsService.get('EMAIL_SMTP_PASS');
+        const pass = dbPass?.trim() || this.configService.get('SMTP_PASS');
 
-        const portNum = port ? parseInt(port, 10) : 587;
-        // Port 465 is for implicit SSL, Port 587 is for STARTTLS
-        const finalSecure = portNum === 465;
+        const dbSecure = await this.settingsService.get('EMAIL_SMTP_SECURE');
+        const envSecure = this.configService.get('SMTP_SECURE');
+        // Priority: DB > Env > Port-based default
+        const finalSecure = dbSecure !== null ? dbSecure === 'true' : (envSecure !== undefined ? envSecure === 'true' : portNum === 465);
+
+        const dbFromName = await this.settingsService.get('EMAIL_SMTP_FROM_NAME');
+        const fromName = dbFromName || this.configService.get('SMTP_FROM_NAME') || 'M-Clinic Notifications';
+
+        const dbFromEmail = await this.settingsService.get('EMAIL_SMTP_FROM_EMAIL');
+        const fromEmail = dbFromEmail?.trim() || this.configService.get('SMTP_FROM_EMAIL') || user;
 
         const config = {
             host,
             port: portNum,
             secure: finalSecure,
             auth: { user, pass },
-            pool: true, // Use connection pooling
-            name: 'mclinic.co.ke', // Proper hostname for HELO
+            pool: true,
+            name: 'mclinic.co.ke',
             defaults: {
                 from: `"${fromName}" <${fromEmail}>`,
             },
@@ -55,11 +65,17 @@ export class EmailService {
             }
         };
 
-        console.log(`[EmailService] SMTP Debug: Host=${host}, Port=${config.port}, User=${user}, Secure=${finalSecure}`);
+        console.log(`[EmailService] Dynamic SMTP: Host=${host}, Port=${portNum}, User=${user}, Secure=${finalSecure}, From=${fromEmail}`);
 
-        // Use 'as any' to bypass potential type definition issues with addTransporter
-        (this.mailerService as any).addTransporter('custom', config);
-        return 'custom';
+        // We use a specific name to ensure we are using the dynamic config
+        const transporterName = 'dynamic_smtp';
+        try {
+            (this.mailerService as any).addTransporter(transporterName, config);
+        } catch (e) {
+            console.error('[EmailService] Failed to add dynamic transporter:', e);
+            return undefined;
+        }
+        return transporterName;
     }
 
     /**

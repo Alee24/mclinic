@@ -112,10 +112,6 @@ export class SeedingService {
       const exists = await this.settingRepo.findOne({ where: { key: s.key } });
       if (!exists) {
         await this.settingRepo.save(this.settingRepo.create(s));
-      } else if (s.key.startsWith('MPESA_PROD_') || s.key === 'MPESA_ENV' || s.key.startsWith('EMAIL_SMTP_') || s.key.startsWith('sms_')) {
-        // Force update for production credentials to ensure they are "permanent"
-        exists.value = s.value;
-        await this.settingRepo.save(exists);
       }
     }
   }

@@ -50,17 +50,20 @@ export class SmsService {
                 mobile: mobile
             };
 
-            this.logger.log(`Sending SMS to ${mobile}`);
-
+            this.logger.log(`Sending SMS to ${mobile} via QuickSMS (Shortcode: ${creds.shortcode})`);
+            
             const response = await firstValueFrom(
                 this.httpService.post(this.API_URL, payload)
             ) as any;
 
-            if (response.data && response.data.responses && response.data.responses[0]['response-code'] === 200) {
-                this.logger.log(`SMS sent successfully to ${mobile}`);
+            this.logger.debug(`SMS Response for ${mobile}: ${JSON.stringify(response.data)}`);
+
+            // Advanta QuickSMS usually returns a 200 with a specific response structure
+            if (response.data && response.data.responses && response.data.responses[0] && response.data.responses[0]['response-code'] === 200) {
+                this.logger.log(`SMS accepted by gateway for ${mobile}. Response: ${response.data.responses[0]['response-description']}`);
                 return true;
             } else {
-                this.logger.error(`SMS API Error: ${JSON.stringify(response.data)}`);
+                this.logger.error(`SMS Gateway Error for ${mobile}: ${JSON.stringify(response.data)}`);
                 return false;
             }
 
