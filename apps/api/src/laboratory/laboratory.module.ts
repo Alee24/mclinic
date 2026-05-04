@@ -6,10 +6,10 @@ import { LabTest } from './entities/lab-test.entity';
 import { LabOrder } from './entities/lab-order.entity';
 import { LabResult } from './entities/lab-result.entity';
 import { User } from '../users/entities/user.entity';
-import { EmailModule } from '../email/email.module';
+import { FinancialModule } from '../financial/financial.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([LabTest, LabOrder, LabResult, User]), EmailModule],
+    imports: [TypeOrmModule.forFeature([LabTest, LabOrder, LabResult, User]), EmailModule, FinancialModule],
     controllers: [LaboratoryController],
     providers: [LaboratoryService],
 })

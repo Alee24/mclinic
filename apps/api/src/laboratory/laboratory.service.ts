@@ -7,6 +7,8 @@ import { LabResult } from './entities/lab-result.entity';
 import { User, UserRole } from '../users/entities/user.entity';
 import { EmailService } from '../email/email.service';
 
+import { FinancialService } from '../financial/financial.service';
+
 @Injectable()
 export class LaboratoryService {
     constructor(
@@ -14,6 +16,7 @@ export class LaboratoryService {
         @InjectRepository(LabOrder) private orderRepo: Repository<LabOrder>,
         @InjectRepository(LabResult) private resultRepo: Repository<LabResult>,
         private emailService: EmailService,
+        private financialService: FinancialService,
     ) { }
 
     async uploadReport(orderId: string, filename: string, notes?: string) {
@@ -52,10 +55,28 @@ export class LaboratoryService {
             beneficiaryName: beneficiaryData?.beneficiaryName,
             beneficiaryAge: beneficiaryData?.beneficiaryAge,
             beneficiaryGender: beneficiaryData?.beneficiaryGender,
-            beneficiaryRelation: beneficiaryData?.beneficiaryRelation,
             sample_collection_date: beneficiaryData?.sampleDate ? new Date(beneficiaryData.sampleDate) : undefined
         });
-        return this.orderRepo.save(order);
+        const savedOrder = await this.orderRepo.save(order);
+
+        // Create Invoice for Lab Order
+        const test = await this.testRepo.findOne({ where: { id: testId } });
+        if (test) {
+            const user = await this.orderRepo.manager.getRepository(User).findOne({ where: { id: patientId } });
+            await this.financialService.createInvoice({
+                customerName: beneficiaryData?.beneficiaryName || (user ? `${user.fname} ${user.lname}` : 'Lab Patient'),
+                customerEmail: user?.email || '',
+                dueDate: new Date(),
+                items: [{
+                    description: `Laboratory Test: ${test.name}`,
+                    quantity: 1,
+                    unitPrice: Number(test.price)
+                }],
+                invoiceNumber: `LB-${Date.now().toString().slice(-8)}`
+            });
+        }
+
+        return savedOrder;
     }
 
     async seedTests() {

@@ -235,9 +235,10 @@ export class PharmacyService {
         let invoiceId: number | null = null;
         try {
             // Fetch user details for invoice
+            const user = await this.pharmacyOrderRepo.manager.getRepository(User).findOne({ where: { id: Number(data.userId) } });
             const invoice = await this.financialService.createInvoice({
-                customerName: `User #${data.userId}`, // Will be updated with actual name
-                customerEmail: `user${data.userId}@mclinic.co.ke`, // Placeholder
+                customerName: user ? `${user.fname} ${user.lname}` : `User #${data.userId}`,
+                customerEmail: user?.email || '',
                 dueDate: new Date(),
                 items: orderItems.map(item => ({
                     description: `${item.medicationName} (Qty: ${item.quantity})`,

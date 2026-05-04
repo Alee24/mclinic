@@ -275,11 +275,44 @@ export class AppointmentsService {
     return savedAppointment;
   }
 
-  async findAll(): Promise<Appointment[]> {
-    return this.appointmentsRepository.find({
+  async findAll(): Promise<any[]> {
+    const appointments = await this.appointmentsRepository.find({
       relations: ['patient', 'doctor', 'service', 'invoice'],
       order: { appointment_date: 'DESC' },
     });
+
+    const subscriptions = await this.appointmentsRepository.manager
+      .getRepository(AmbulanceSubscription)
+      .find({ relations: ['user'] });
+
+    // Merge into a unified format
+    const merged = [
+      ...appointments.map(apt => ({
+        ...apt,
+        service: apt.service ? apt.service : (apt.isConcierge ? { name: `Medical Concierge (${apt.conciergeType || 'General'})` } : apt.service)
+      })),
+      ...subscriptions.map(sub => ({
+        id: `AMB-${sub.id}`,
+        patientId: sub.user_id,
+        patient: {
+          id: sub.user_id,
+          fname: sub.primary_subscriber_name.split(' ')[0],
+          lname: sub.primary_subscriber_name.split(' ').slice(1).join(' ') || '',
+          mobile: sub.primary_phone,
+        },
+        doctor: null,
+        service: { name: `Ambulance: ${sub.package_type}` },
+        appointment_date: sub.created_at,
+        appointment_time: 'All Day',
+        status: sub.status === 'pending_payment' ? 'pending' : (sub.status === 'active' ? 'confirmed' : sub.status),
+        fee: sub.total_amount,
+        isAmbulance: true,
+        // Invoices for ambulance are handled separately but we can mock a minimal one if needed
+        // Or better, fetch the actual invoice by invoiceNumber pattern
+      }))
+    ];
+
+    return merged.sort((a, b) => new Date(b.appointment_date || b.created_at).getTime() - new Date(a.appointment_date || a.created_at).getTime());
   }
 
   async findByPatient(patientId: number): Promise<Appointment[]> {
@@ -399,11 +432,34 @@ export class AppointmentsService {
 
     // Patient View
     console.log(`[Appointments] Fetching for Patient: ${user.email}`);
-    return this.appointmentsRepository.find({
+    const patientAppointments = await this.appointmentsRepository.find({
       where: { patientId: user.sub || user.id },
-      relations: ['patient', 'doctor', 'service', 'invoice'], // Added invoice relation for patient view
+      relations: ['patient', 'doctor', 'service', 'invoice'],
       order: { appointment_date: 'DESC' },
     });
+
+    const patientSubscriptions = await this.appointmentsRepository.manager
+      .getRepository(AmbulanceSubscription)
+      .find({ where: { user_id: user.sub || user.id } });
+
+    const merged = [
+      ...patientAppointments.map(apt => ({
+        ...apt,
+        service: apt.service ? apt.service : (apt.isConcierge ? { name: `Medical Concierge (${apt.conciergeType || 'General'})` } : apt.service)
+      })),
+      ...patientSubscriptions.map(sub => ({
+        id: `AMB-${sub.id}`,
+        patientId: sub.user_id,
+        service: { name: `Ambulance: ${sub.package_type}` },
+        appointment_date: sub.created_at,
+        appointment_time: 'Annual',
+        status: sub.status === 'pending_payment' ? 'pending' : (sub.status === 'active' ? 'confirmed' : sub.status),
+        fee: sub.total_amount,
+        isAmbulance: true
+      }))
+    ];
+
+    return merged.sort((a, b) => new Date(b.appointment_date || b.created_at).getTime() - new Date(a.appointment_date || a.created_at).getTime());
   }
 
   async findOne(id: number): Promise<Appointment | null> {
