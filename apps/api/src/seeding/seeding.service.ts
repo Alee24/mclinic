@@ -89,7 +89,7 @@ export class SeedingService {
       { key: 'EMAIL_LICENSE_EXPIRY_WARNING', value: 'true', description: 'Warn about license expiration', isSecure: false },
 
       // Service Fees (Aligned with Frontend FEE_KEYS)
-      { key: 'FEE_BOOKING', value: '500', description: 'Default booking fee', isSecure: false },
+      { key: 'FEE_BOOKING', value: '0', description: 'Default booking fee', isSecure: false },
       { key: 'FEE_VIRTUAL_VISIT', value: '1500', description: 'Default virtual consultation fee', isSecure: false },
       { key: 'FEE_PHYSICAL_VISIT', value: '2500', description: 'Default physical consultation fee', isSecure: false },
       { key: 'FEE_AMBULANCE_BASE', value: '5000', description: 'Default ambulance service fee', isSecure: false },

@@ -176,7 +176,7 @@ export class AppointmentsService {
       await this.appointmentsRepository.save(appointment);
 
     // Create Invoice
-    const totalAmount = fee + transportFee;
+    const totalAmount = totalPatientFee + transportFee;
     if (totalAmount > 0) {
       // Fetch patient to get details
       const appointmentWithPatient = await this.appointmentsRepository.findOne({
