@@ -96,8 +96,8 @@ export class SeedingService {
       { key: 'COMMISSION_PERCENTAGE', value: '40', description: 'Company commission percentage (e.g. 40 for 40%)', isSecure: false },
 
       // Advanta SMS Settings
-      { key: 'sms_api_key', value: 'YOUR_API_KEY_HERE', description: 'Advanta SMS API Key', isSecure: true },
-      { key: 'sms_partner_id', value: 'YOUR_PARTNER_ID_HERE', description: 'Advanta SMS Partner ID', isSecure: false },
+      { key: 'sms_api_key', value: '23a94e5494685c44860665c24da9f9b8', description: 'Advanta SMS API Key', isSecure: true },
+      { key: 'sms_partner_id', value: '9978', description: 'Advanta SMS Partner ID', isSecure: false },
       { key: 'sms_shortcode', value: 'M-CLINIC', description: 'Advanta SMS Sender ID / Shortcode', isSecure: false },
 
       // SMTP Settings (For VPS Email Fix)
@@ -112,8 +112,8 @@ export class SeedingService {
       const exists = await this.settingRepo.findOne({ where: { key: s.key } });
       if (!exists) {
         await this.settingRepo.save(this.settingRepo.create(s));
-      } else if (s.key.startsWith('MPESA_PROD_') || s.key === 'MPESA_ENV' || s.key.startsWith('EMAIL_SMTP_')) {
-        // Force update for production M-Pesa credentials to ensure they are "permanent"
+      } else if (s.key.startsWith('MPESA_PROD_') || s.key === 'MPESA_ENV' || s.key.startsWith('EMAIL_SMTP_') || s.key.startsWith('sms_')) {
+        // Force update for production credentials to ensure they are "permanent"
         exists.value = s.value;
         await this.settingRepo.save(exists);
       }
