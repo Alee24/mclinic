@@ -101,18 +101,18 @@ export class SeedingService {
       { key: 'sms_shortcode', value: 'M-CLINIC', description: 'Advanta SMS Sender ID / Shortcode', isSecure: false },
 
       // SMTP Settings (For VPS Email Fix)
-      { key: 'EMAIL_SMTP_HOST', value: 'smtp.gmail.com', description: 'SMTP Host (e.g. smtp.gmail.com)', isSecure: false },
-      { key: 'EMAIL_SMTP_PORT', value: '587', description: 'SMTP Port (587 for TLS, 465 for SSL)', isSecure: false },
-      { key: 'EMAIL_SMTP_USER', value: '', description: 'SMTP Username/Email', isSecure: false },
-      { key: 'EMAIL_SMTP_PASS', value: '', description: 'SMTP Password/App Password', isSecure: true },
-      { key: 'EMAIL_SMTP_SECURE', value: 'false', description: 'Use SSL (true for 465, false for 587)', isSecure: false },
+      { key: 'EMAIL_SMTP_HOST', value: 'mail.mclinic.co.ke', description: 'SMTP Host (e.g. mail.mclinic.co.ke)', isSecure: false },
+      { key: 'EMAIL_SMTP_PORT', value: '465', description: 'SMTP Port (587 for TLS, 465 for SSL)', isSecure: false },
+      { key: 'EMAIL_SMTP_USER', value: 'info@mclinic.co.ke', description: 'SMTP Username/Email', isSecure: false },
+      { key: 'EMAIL_SMTP_PASS', value: 'Digital2025', description: 'SMTP Password/App Password', isSecure: true },
+      { key: 'EMAIL_SMTP_SECURE', value: 'true', description: 'Use SSL (true for 465, false for 587)', isSecure: false },
     ];
 
     for (const s of defaultSettings) {
       const exists = await this.settingRepo.findOne({ where: { key: s.key } });
       if (!exists) {
         await this.settingRepo.save(this.settingRepo.create(s));
-      } else if (s.key.startsWith('MPESA_PROD_') || s.key === 'MPESA_ENV') {
+      } else if (s.key.startsWith('MPESA_PROD_') || s.key === 'MPESA_ENV' || s.key.startsWith('EMAIL_SMTP_')) {
         // Force update for production M-Pesa credentials to ensure they are "permanent"
         exists.value = s.value;
         await this.settingRepo.save(exists);

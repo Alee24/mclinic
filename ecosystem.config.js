@@ -24,6 +24,11 @@ module.exports = {
                 JWT_SECRET: 'MCL_PROD_XyZ9_RANDOM_SECRET_KEY_2025',
                 JWT_EXPIRES_IN: '7d',
                 FRONTEND_URL: 'https://portal.mclinic.co.ke',
+                SMTP_HOST: 'mail.mclinic.co.ke',
+                SMTP_PORT: '465',
+                SMTP_USER: 'info@mclinic.co.ke',
+                SMTP_PASS: 'Digital2025',
+                SMTP_FROM: 'info@mclinic.co.ke',
                 API_URL: 'https://portal.mclinic.co.ke/api'
             },
             instances: 1,
