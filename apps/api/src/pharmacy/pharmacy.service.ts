@@ -9,6 +9,7 @@ import { PharmacyOrderItem } from './entities/pharmacy-order-item.entity'; // Im
 import { DoctorsService } from '../doctors/doctors.service';
 import { FinancialService } from '../financial/financial.service';
 import { NotificationService } from '../notification/notification.service';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class PharmacyService {

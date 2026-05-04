@@ -12,6 +12,7 @@ import { SmsService } from '../sms/sms.service';
 import { NotificationService } from '../notification/notification.service';
 import { User } from '../users/entities/user.entity';
 import { SystemSettingsService } from '../system-settings/system-settings.service';
+import { AmbulanceSubscription } from '../ambulance/entities/ambulance-subscription.entity';
 
 
 @Injectable()
@@ -312,7 +313,11 @@ export class AppointmentsService {
       }))
     ];
 
-    return merged.sort((a, b) => new Date(b.appointment_date || b.created_at).getTime() - new Date(a.appointment_date || a.created_at).getTime());
+    return merged.sort((a, b) => {
+      const dateA = new Date(a.appointment_date || (a as any).created_at || (a as any).createdAt).getTime();
+      const dateB = new Date(b.appointment_date || (b as any).created_at || (b as any).createdAt).getTime();
+      return dateB - dateA;
+    });
   }
 
   async findByPatient(patientId: number): Promise<Appointment[]> {
@@ -345,14 +350,15 @@ export class AppointmentsService {
     };
   }
 
-  async findByDoctor(doctorId: number): Promise<Appointment[]> {
+  async findByDoctor(doctorId: number): Promise<any[]> {
     return this.appointmentsRepository.find({
       where: { doctorId },
       relations: ['patient', 'doctor', 'service', 'invoice'],
+      order: { appointment_date: 'DESC' },
     });
   }
 
-  async findAllForUser(user: any): Promise<Appointment[]> {
+  async findAllForUser(user: any): Promise<any[]> {
     // Admin should see all appointments system-wide
     if (user.role === 'admin') {
       return this.findAll();
@@ -459,7 +465,11 @@ export class AppointmentsService {
       }))
     ];
 
-    return merged.sort((a, b) => new Date(b.appointment_date || b.created_at).getTime() - new Date(a.appointment_date || a.created_at).getTime());
+    return merged.sort((a, b) => {
+      const dateA = new Date(a.appointment_date || (a as any).created_at || (a as any).createdAt).getTime();
+      const dateB = new Date(b.appointment_date || (b as any).created_at || (b as any).createdAt).getTime();
+      return dateB - dateA;
+    });
   }
 
   async findOne(id: number): Promise<Appointment | null> {

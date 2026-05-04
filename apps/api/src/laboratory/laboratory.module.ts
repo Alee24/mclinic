@@ -7,6 +7,7 @@ import { LabOrder } from './entities/lab-order.entity';
 import { LabResult } from './entities/lab-result.entity';
 import { User } from '../users/entities/user.entity';
 import { FinancialModule } from '../financial/financial.module';
+import { EmailModule } from '../email/email.module';
 
 @Module({
     imports: [TypeOrmModule.forFeature([LabTest, LabOrder, LabResult, User]), EmailModule, FinancialModule],
