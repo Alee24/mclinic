@@ -19,6 +19,8 @@ import { EmailController } from './email.controller';
                         user: config.get('SMTP_USER'),
                         pass: config.get('SMTP_PASS'),
                     },
+                    pool: true,
+                    name: 'mclinic.co.ke',
                     tls: {
                         rejectUnauthorized: false
                     }

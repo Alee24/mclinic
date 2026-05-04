@@ -45,6 +45,8 @@ export class EmailService {
             port: portNum,
             secure: finalSecure,
             auth: { user, pass },
+            pool: true, // Use connection pooling
+            name: 'mclinic.co.ke', // Proper hostname for HELO
             defaults: {
                 from: `"${fromName}" <${fromEmail}>`,
             },

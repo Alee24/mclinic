@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import Link from 'next/link';
-import { FiUser, FiHeart, FiArrowRight, FiMessageSquare, FiEye, FiEyeOff } from 'react-icons/fi';
+import { FiUser, FiHeart, FiArrowRight, FiMessageSquare, FiEye, FiEyeOff, FiHome } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
 import { api } from '@/lib/api';
+import Image from 'next/image';
 
 type UserType = 'password' | 'otp';
 
@@ -126,15 +127,28 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-[#020202] dark:via-[#080808] dark:to-[#020202] p-4 font-inter">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-[#020202] dark:via-[#080808] dark:to-[#020202] p-4 font-inter relative">
+            
+            {/* Top Navigation / Back Button */}
+            <div className="absolute top-8 left-8 right-8 flex justify-between items-center pointer-events-none">
+                <Link href="/" className="pointer-events-auto flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md border border-white/10 rounded-xl text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/20 transition-all">
+                    <FiHome size={14} /> Back to Home
+                </Link>
+            </div>
+
             <div className="max-w-5xl w-full bg-white dark:bg-[#0f0f0f] rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-gray-100 dark:border-white/5 overflow-hidden flex flex-col md:flex-row min-h-[650px]">
 
                 {/* Left Side - Branding */}
                 <div className="md:w-5/12 bg-black p-12 text-white flex flex-col justify-between relative overflow-hidden">
                     <div className="relative z-10">
-                        <Link href="/" className="flex items-center gap-3 mb-16 group">
-                            <div className="w-12 h-12 bg-white text-black rounded-2xl flex items-center justify-center font-black text-2xl shadow-[0_0_20px_rgba(255,255,255,0.3)] group-hover:scale-105 transition-transform">
-                                M
+                        <Link href="/" className="flex items-center gap-4 mb-16 group">
+                            <div className="relative w-12 h-12 rounded-2xl overflow-hidden shadow-[0_0_20px_rgba(255,255,255,0.3)] group-hover:scale-105 transition-transform">
+                                <Image 
+                                    src="/logo.png" 
+                                    alt="M-Clinic Logo" 
+                                    fill
+                                    className="object-cover"
+                                />
                             </div>
                             <span className="font-black text-2xl tracking-tighter">M-CLINIC</span>
                         </Link>
