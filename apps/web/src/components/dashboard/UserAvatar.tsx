@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { User } from '@/lib/auth';
+import { User, UserRole } from '@/lib/auth';
+import { FiUser, FiActivity, FiShield } from 'react-icons/fi';
 
 interface UserAvatarProps {
-    user: User;
+    user: any;
     className?: string;
-    showStatus?: boolean; // Optional: to show online status dot if we had that info
+    showStatus?: boolean;
 }
 
 export default function UserAvatar({ user, className = "w-full h-full object-cover" }: UserAvatarProps) {
@@ -13,8 +14,6 @@ export default function UserAvatar({ user, className = "w-full h-full object-cov
 
     useEffect(() => {
         if (user?.profilePicture) {
-            // Check if it's already a full URL (unlikely but good practice) 
-            // or construct it from API
             if (user.profilePicture.startsWith('http')) {
                 setImageUrl(user.profilePicture);
             } else {
@@ -26,13 +25,39 @@ export default function UserAvatar({ user, className = "w-full h-full object-cov
         }
     }, [user?.profilePicture]);
 
-    const fallbackUrl = `https://ui-avatars.com/api/?name=${user?.fname}+${user?.lname || user?.role}&background=random&color=fff&size=256`;
+    const isMedic = ['doctor', 'nurse', 'clinician', 'medic'].includes(user?.role?.toLowerCase() || '');
+    const isPatient = user?.role?.toLowerCase() === 'patient';
+    const isAdmin = user?.role?.toLowerCase() === 'admin';
 
     if (!user) return <div className={`bg-gray-200 animate-pulse ${className}`} />;
 
+    if ((!imageUrl || imageError)) {
+        let bgColor = 'bg-gray-200';
+        let icon = <FiUser className="text-gray-500" />;
+
+        if (isPatient) {
+            bgColor = 'bg-blue-100 dark:bg-blue-900/30';
+            icon = <FiUser className="text-blue-600 dark:text-blue-400" />;
+        } else if (isMedic) {
+            bgColor = 'bg-green-100 dark:bg-green-900/30';
+            icon = <FiActivity className="text-green-600 dark:text-green-400" />;
+        } else if (isAdmin) {
+            bgColor = 'bg-purple-100 dark:bg-purple-900/30';
+            icon = <FiShield className="text-purple-600 dark:text-purple-400" />;
+        }
+
+        return (
+            <div className={`${bgColor} flex items-center justify-center ${className} overflow-hidden`}>
+                <div className="text-2xl font-bold">
+                    {icon}
+                </div>
+            </div>
+        );
+    }
+
     return (
         <img
-            src={(imageUrl && !imageError) ? imageUrl : fallbackUrl}
+            src={imageUrl}
             alt={`${user.fname} ${user.lname}`}
             className={className}
             onError={() => setImageError(true)}

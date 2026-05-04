@@ -16,8 +16,19 @@ async function bootstrap() {
     credentials: true,
   });
 
+  // Ensure uploads directory exists
+  const fs = require('fs');
+  const uploadsDir = join(__dirname, '..', 'uploads');
+  const profilesDir = join(uploadsDir, 'profiles');
+  const sigsDir = join(uploadsDir, 'signatures');
+  const stampsDir = join(uploadsDir, 'stamps');
+  
+  [uploadsDir, profilesDir, sigsDir, stampsDir].forEach(dir => {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  });
+
   // Serve static files from 'uploads' directory
-  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+  app.useStaticAssets(uploadsDir, {
     prefix: '/uploads/',
   });
 

@@ -126,35 +126,27 @@ export default function ProfilePage() {
         const formData = new FormData();
         formData.append('file', file);
 
-        let uploadUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434'}/users/${user.id}/upload-profile`;
-        // If doctor/medic, use doctor endpoint to sync with doctor entity if needed
+        let endpoint = `/users/${user.id}/upload-profile`;
         if (isMedic && docProfile?.id) {
-            uploadUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434'}/doctors/${docProfile.id}/upload-profile`;
+            endpoint = `/doctors/${docProfile.id}/upload-profile`;
         }
 
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(uploadUrl, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: formData
-            });
+            const res = await api.post(endpoint, formData);
 
             if (res && res.ok) {
                 alert('Profile picture updated!');
                 reloadUser();
                 if (isMedic) {
-                    // trigger refetch doc profile
-                    setShowEditDocModal(prev => !prev); // tiny hack to re-trigger effect or just manually call fetch
+                    setShowEditDocModal(prev => !prev);
                 }
             } else {
-                alert('Failed to upload image');
+                const errData = res ? await res.json() : {};
+                alert(errData.message || 'Failed to upload image');
             }
         } catch (err) {
             console.error(err);
-            alert('Upload error');
+            alert('Upload error. Please try a smaller image.');
         }
     };
 

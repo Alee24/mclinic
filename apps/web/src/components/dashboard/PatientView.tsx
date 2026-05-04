@@ -86,7 +86,9 @@ export default function PatientView() {
                     <div className="lg:col-span-7">
                         <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 backdrop-blur-md mb-6 hover:bg-white/10 transition-colors cursor-default">
                             <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
-                            <span className="text-xs font-bold uppercase tracking-widest text-green-300">System Active</span>
+                            <span className="text-xs font-bold uppercase tracking-widest text-green-300">
+                                {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                            </span>
                         </div>
 
                         <h1 className="mb-4 text-4xl font-black leading-tight tracking-tight md:text-6xl bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400">
@@ -279,7 +281,7 @@ export default function PatientView() {
                             <p className="opacity-90 font-medium">Payment required to activate your <strong>{subscriptions.find((s: any) => s.status === 'pending_payment').package_type}</strong> plan.</p>
                         </div>
                     </div>
-                    <Link href="/dashboard/invoices" className="hidden md:block bg-white text-orange-600 px-6 py-3 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-orange-50 transition-colors">
+                    <Link href="/dashboard/finance/invoices" className="hidden md:block bg-white text-orange-600 px-6 py-3 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-orange-50 transition-all animate-slow-pulse">
                         Pay Now
                     </Link>
                     <div className="absolute -right-10 -bottom-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>

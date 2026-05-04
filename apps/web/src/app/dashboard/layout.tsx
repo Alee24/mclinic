@@ -332,7 +332,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     </div>
 
                     {/* Right Actions */}
-                    < div className="flex items-center gap-2 md:gap-6" >
+                    <div className="flex items-center gap-2 md:gap-6">
                         <ThemeToggle />
                         <div className="flex items-center gap-2 md:gap-4">
                             <button className="hidden md:flex w-10 h-10 bg-white dark:bg-[#161616] rounded-full items-center justify-center text-gray-500 hover:text-gray-900 transition-colors shadow-sm text-lg">
@@ -342,18 +342,40 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                 <FiBell />
                             </button>
                         </div>
-                        <div className="flex items-center gap-3 pl-6 border-l border-gray-200 dark:border-gray-700">
-                            <div className="text-right hidden md:block">
-                                <div className="text-sm font-bold text-gray-900 dark:text-white capitalize">{user.fname} {user.lname || user.role}</div>
-                                <div className="text-xs text-gray-500">{user.email}</div>
-                            </div>
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-green-400 to-blue-500 p-0.5">
-                                <div className="w-full h-full rounded-full bg-white dark:bg-gray-900 border-2 border-transparent overflow-hidden">
-                                    <UserAvatar user={user} />
+                        
+                        <div className="relative group">
+                            <button 
+                                className="flex items-center gap-3 pl-6 border-l border-gray-200 dark:border-gray-700 cursor-pointer hover:opacity-80 transition-opacity"
+                            >
+                                <div className="text-right hidden md:block">
+                                    <div className="text-sm font-bold text-gray-900 dark:text-white capitalize">{user.fname} {user.lname || user.role}</div>
+                                    <div className="text-xs text-gray-500">{user.email}</div>
                                 </div>
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-green-400 to-blue-500 p-0.5">
+                                    <div className="w-full h-full rounded-full bg-white dark:bg-gray-900 border-2 border-transparent overflow-hidden">
+                                        <UserAvatar user={user} />
+                                    </div>
+                                </div>
+                            </button>
+
+                            {/* Profile Dropdown */}
+                            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-[#121212] rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 py-2 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 z-50 transform origin-top-right">
+                                <div className="px-4 py-2 border-b border-gray-50 dark:border-gray-800 md:hidden">
+                                    <div className="text-sm font-bold dark:text-white truncate">{user.fname}</div>
+                                    <div className="text-xs text-gray-500 truncate">{user.email}</div>
+                                </div>
+                                <Link href="/dashboard/profile" className="flex items-center gap-3 px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                    <FiUser size={16} /> My Profile
+                                </Link>
+                                <button 
+                                    onClick={logout}
+                                    className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
+                                >
+                                    <FiLogOut size={16} /> Logout
+                                </button>
                             </div>
                         </div>
-                    </div >
+                    </div>
                 </header >
 
                 {/* Horizontal Quick Navigation */}
