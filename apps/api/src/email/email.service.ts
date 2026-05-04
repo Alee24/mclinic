@@ -57,12 +57,16 @@ export class EmailService {
             auth: { user, pass },
             pool: true,
             name: 'mclinic.co.ke',
+            logger: true, // Enable logging to console
+            debug: true,  // Include debug output in logs
             defaults: {
-                from: `"${fromName}" <${fromEmail}>`,
+                from: `${fromName} <${fromEmail}>`, // Simplified from format
             },
             tls: {
-                rejectUnauthorized: false
-            }
+                rejectUnauthorized: false,
+                ciphers: 'SSLv3'
+            },
+            requireTLS: portNum === 587 // Force STARTTLS for 587
         };
 
         console.log(`[EmailService] Dynamic SMTP: Host=${host}, Port=${portNum}, User=${user}, Secure=${finalSecure}, From=${fromEmail}`);
