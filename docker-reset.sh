@@ -30,6 +30,6 @@ docker exec mclinic-api npx ts-node -r tsconfig-paths/register src/database/seed
 }
 
 echo "✅ System Reset Complete!"
-echo "👤 Admin Login: mettoalex@gmail.com / Digital2025"
+echo "👤 Admin Login: mettohalex@gmail.com / Digital2025"
 echo "🌐 Portal: https://portal.mclinic.co.ke"
 docker-compose ps

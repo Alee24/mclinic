@@ -10,7 +10,7 @@ async function main() {
         database: process.env.DB_NAME || 'mclinic'
     });
 
-    const email = 'mettoalex@gmail.com';
+    const email = 'mettohalex@gmail.com';
     // Hash for "Digital2025"
     const hash = '$2b$10$s0kgtJ1FgpTk5jW1T5CwiuDpt2Jn3zeSNICuU16vvejZPyInkG26O';
 
@@ -27,7 +27,7 @@ async function main() {
                 VALUES (?, ?, 'admin', 1, 'Alex', 'Metto')
             `, [email, hash]);
         }
-        console.log('✅ Success! Login with: mettoalex@gmail.com / Digital2025');
+        console.log('✅ Success! Login with: mettohalex@gmail.com / Digital2025');
     } catch (e) {
         console.error('Error:', e);
     } finally {

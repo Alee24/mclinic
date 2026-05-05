@@ -165,7 +165,7 @@ export class SeedingService {
     // Create Admin Account
     const adminPassword = await bcrypt.hash('Digital2025', 10);
     const adminUser = this.userRepo.create({
-      email: 'mettoalex@gmail.com',
+      email: 'mettohalex@gmail.com',
       password: adminPassword,
       role: UserRole.ADMIN,
       status: true,
@@ -175,7 +175,7 @@ export class SeedingService {
       emailVerifiedAt: new Date(),
     });
     await this.userRepo.save(adminUser);
-    console.log('Created Admin Account: mettoalex@gmail.com / Digital2025');
+    console.log('Created Admin Account: mettohalex@gmail.com / Digital2025');
 
     return { message: 'System reset and essential data (Admin & Settings) seeded.' };
   }
