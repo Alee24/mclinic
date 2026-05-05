@@ -16,7 +16,7 @@ echo "🚀 Starting Full System Reinstall & Reset..."
 
 echo "📥 Updating code from repository..."
 git fetch origin
-git reset --hard origin/main
+git reset --hard origin/MobileApp
 
 echo "🧹 Clearing old builds and dependencies..."
 find . -name "node_modules" -type d -prune -exec rm -rf '{}' +
@@ -39,7 +39,8 @@ echo "🌱 Seeding Essential Data (Admin & Settings)..."
 npx ts-node -r tsconfig-paths/register src/database/seed-essential.ts || {
   echo "⚠️  Standalone seed failed, trying via API endpoint..."
   pm2 restart mclinic-api || pm2 start dist/main.js --name mclinic-api
-  sleep 10
+  echo "Waiting 30 seconds for API to start..."
+  sleep 30
   curl -X POST http://localhost:3434/seeding/reset-fresh
 }
 
