@@ -14,20 +14,25 @@ class WebViewScreen extends StatefulWidget {
 class _WebViewScreenState extends State<WebViewScreen> {
   late final WebViewController _controller;
   bool _isLoading = true;
+  double _progress = 0;
 
   @override
   void initState() {
     super.initState();
-    _requestPermissions();
     _initController();
+    _requestPermissions();
   }
 
   Future<void> _requestPermissions() async {
-    await [
+    // Request precise location permissions for Android 12+
+    Map<Permission, PermissionStatus> statuses = await [
       Permission.location,
+      Permission.locationWhenInUse,
       Permission.camera,
       Permission.microphone,
     ].request();
+    
+    debugPrint('Permissions Status: $statuses');
   }
 
   void _initController() {
@@ -48,6 +53,11 @@ class _WebViewScreenState extends State<WebViewScreen> {
       ..setBackgroundColor(const Color(0x00000000))
       ..setNavigationDelegate(
         NavigationDelegate(
+          onProgress: (int progress) {
+            setState(() {
+              _progress = progress / 100;
+            });
+          },
           onPageStarted: (String url) {
             setState(() => _isLoading = true);
           },
@@ -71,9 +81,18 @@ class _WebViewScreenState extends State<WebViewScreen> {
       androidController.setMediaPlaybackRequiresUserGesture(false);
       
       // Critical for GPS and Camera support within the WebView
-      androidController.setOnPlatformPermissionRequest((request) {
+      androidController.setOnPlatformPermissionRequest((request) async {
         debugPrint('WebView Permission Request for: ${request.types}');
-        // Explicitly grant all requested permissions (Location, Camera, Mic)
+        
+        // Ensure app has permissions before granting to WebView
+        bool isLocationRequest = request.types.any((t) => t.toString().contains('geolocation'));
+        if (isLocationRequest) {
+          final status = await Permission.location.status;
+          if (!status.isGranted) {
+            await Permission.location.request();
+          }
+        }
+        
         request.grant();
       });
 
@@ -83,9 +102,6 @@ class _WebViewScreenState extends State<WebViewScreen> {
         debugPrint('Geolocation requested by ${request.origin}');
         return const GeolocationPermissionsResponse(allow: true, retain: true);
       });
-
-      // Enable basic geolocation settings
-      AndroidWebViewController.enableDebugging(true);
     }
 
     _controller = controller;
@@ -95,11 +111,54 @@ class _WebViewScreenState extends State<WebViewScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
+          onPressed: () async {
+            if (await _controller.canGoBack()) {
+              await _controller.goBack();
+            } else {
+              if (mounted) Navigator.pop(context);
+            }
+          },
+        ),
+        title: Image.network(
+          'https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png',
+          height: 30,
+          errorBuilder: (_, __, ___) => const Text(
+            'M-CLINIC',
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+        ),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.refresh,
+              color: _isLoading ? Colors.grey : Colors.green,
+            ),
+            onPressed: _isLoading ? null : () => _controller.reload(),
+          ),
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(2),
+          child: _isLoading
+              ? LinearProgressIndicator(
+                  value: _progress > 0 ? _progress : null,
+                  backgroundColor: Colors.transparent,
+                  color: const Color(0xFF16A34A),
+                  minHeight: 2,
+                )
+              : const SizedBox(height: 2),
+        ),
+      ),
       body: SafeArea(
         child: Stack(
           children: [
             WebViewWidget(controller: _controller),
-            if (_isLoading)
+            if (_isLoading && _progress == 0)
               const Center(
                 child: CircularProgressIndicator(
                   color: Color(0xFF16A34A),

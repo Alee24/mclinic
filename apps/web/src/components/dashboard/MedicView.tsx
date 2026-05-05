@@ -20,6 +20,7 @@ export default function DoctorView() {
         stats,
         upcomingAppointments,
         isOnline,
+        statusUpdating,
         toggleOnlineStatus,
         loading,
         refresh
@@ -99,15 +100,23 @@ export default function DoctorView() {
                     >
                         Edit Profile
                     </button>
-                    <div className="flex items-center gap-3 bg-white dark:bg-gray-800 px-4 py-2 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm">
-                        <span className={`text-sm font-bold ${isOnline ? 'text-green-600' : 'text-gray-400'}`}>
-                            {isOnline ? 'ONLINE' : 'OFFLINE'}
-                        </span>
+                    <div className="flex items-center gap-3 bg-white dark:bg-gray-800 px-4 py-2 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm group">
+                        <div className="flex flex-col items-end">
+                            <span className={`text-[10px] font-black tracking-widest leading-none ${isOnline ? 'text-green-600' : 'text-gray-400'}`}>
+                                {isOnline ? 'LIVE' : 'OFFLINE'}
+                            </span>
+                            <span className="text-[9px] text-gray-400 font-bold">Location Sync</span>
+                        </div>
                         <button
                             onClick={toggleOnlineStatus}
-                            className={`w-12 h-6 rounded-full p-1 transition-colors duration-300 ${isOnline ? 'bg-green-500' : 'bg-gray-300'}`}
+                            disabled={statusUpdating}
+                            className={`relative w-14 h-7 rounded-full p-1 transition-all duration-500 ${isOnline ? 'bg-green-500 shadow-lg shadow-green-500/30' : 'bg-gray-200 dark:bg-gray-700'} ${statusUpdating ? 'opacity-70 cursor-not-allowed' : 'hover:scale-105'}`}
                         >
-                            <div className={`w-4 h-4 rounded-full bg-white shadow-md transform transition-transform duration-300 ${isOnline ? 'translate-x-6' : 'translate-x-0'}`} />
+                            <div className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform duration-500 flex items-center justify-center ${isOnline ? 'translate-x-7' : 'translate-x-0'}`}>
+                                {statusUpdating && (
+                                    <div className="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                )}
+                            </div>
                         </button>
                     </div>
 

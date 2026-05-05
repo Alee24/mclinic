@@ -113,9 +113,14 @@ export default function PatientRegisterPage() {
                 {/* Sidebar Info */}
                 <div className="bg-gradient-to-br from-green-600 to-green-700 dark:from-green-900/40 dark:to-green-900/20 md:w-5/12 p-12 text-white flex flex-col justify-between relative overflow-hidden">
                     <div className="relative z-10">
-                        <Link href="/" className="flex items-center gap-2 mb-12 group">
-                            <div className="w-12 h-12 bg-white text-green-600 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-lg group-hover:scale-110 transition-transform">M</div>
-                            <span className="font-bold text-2xl">M-Clinic</span>
+                        <Link href="/" className="flex items-center justify-center mb-12 group">
+                            <div className="relative w-40 h-20 group-hover:scale-105 transition-transform duration-500">
+                                <img 
+                                    src="https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png" 
+                                    alt="M-Clinic Logo" 
+                                    className="h-full w-full object-contain brightness-0 invert"
+                                />
+                            </div>
                         </Link>
                         <h2 className="text-4xl font-black mb-4">Quick Sign Up</h2>
                         <p className="opacity-90 leading-relaxed text-green-50 mb-8">

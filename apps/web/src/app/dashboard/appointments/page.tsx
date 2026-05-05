@@ -33,14 +33,22 @@ export default function AppointmentsPage() {
         }
     }, [searchParams]);
 
+    const [subscriptions, setSubscriptions] = useState<any[]>([]);
+
     const fetchData = async (isPolling = false) => {
-        // ... (existing)
         if (!isPolling) setLoading(true);
         try {
             const aptRes = await api.get('/appointments');
             if (aptRes?.ok) {
                 let data = await aptRes.json();
                 setAppointments(data);
+            }
+
+            // Also fetch subscriptions for patients
+            const subRes = await api.get('/ambulance/my-subscriptions');
+            if (subRes?.ok) {
+                const subs = await subRes.json();
+                setSubscriptions(subs);
             }
         } catch (err) {
             console.error(err);
@@ -86,6 +94,24 @@ export default function AppointmentsPage() {
                     </button>
                 )}
             </div>
+
+            {/* Active Subscriptions Display */}
+            {subscriptions.some(s => s.status === 'active') && (
+                <div className="flex flex-wrap gap-4 mb-6">
+                    {subscriptions.filter(s => s.status === 'active').map(sub => (
+                        <div key={sub.id} className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/50 p-4 rounded-2xl flex items-center gap-4 shadow-sm">
+                            <div className="w-10 h-10 bg-white dark:bg-emerald-500/20 rounded-xl flex items-center justify-center text-xl shadow-sm">
+                                {sub.package_type?.toLowerCase().includes('concierge') ? '🏥' : '🚑'}
+                            </div>
+                            <div>
+                                <div className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Active Plan</div>
+                                <div className="font-bold text-gray-900 dark:text-white text-sm">{sub.package_type}</div>
+                                <div className="text-[9px] text-gray-500 font-bold uppercase tracking-tighter">Expires: {new Date(sub.end_date).toLocaleDateString()}</div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             <div className="bg-white dark:bg-[#121212] rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
                 <table className="w-full text-left">

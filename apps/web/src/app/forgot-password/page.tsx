@@ -37,6 +37,15 @@ export default function ForgotPasswordPage() {
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-[#050505] dark:via-[#0a0a0a] dark:to-[#050505] p-4">
             <div className="max-w-md w-full bg-white dark:bg-[#121212] rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-800 p-8 md:p-10">
+                <div className="flex justify-center mb-8">
+                    <Link href="/">
+                        <img 
+                            src="https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png" 
+                            alt="M-Clinic Logo" 
+                            className="h-16 w-auto object-contain"
+                        />
+                    </Link>
+                </div>
                 <div className="mb-8">
                     <Link href="/login" className="inline-flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-green-600 transition-colors mb-6">
                         <FiArrowLeft /> Back to Login

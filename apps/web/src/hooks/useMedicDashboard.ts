@@ -22,6 +22,7 @@ export function useMedicDashboard() {
     });
     const [upcomingAppointments, setUpcomingAppointments] = useState<any[]>([]);
     const [isOnline, setIsOnline] = useState(false);
+    const [statusUpdating, setStatusUpdating] = useState(false);
 
     const fetchData = useCallback(async () => {
         if (!user?.email) return;
@@ -89,33 +90,55 @@ export function useMedicDashboard() {
     }, [fetchData]);
 
     const toggleOnlineStatus = async () => {
-        if (!doctorProfile) return;
+        if (!doctorProfile || statusUpdating) return;
 
         const newStatus = !isOnline;
+        setStatusUpdating(true);
+
         try {
             if (newStatus) {
                 // Going Online - Get Location
                 if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(async (pos) => {
-                        const { latitude, longitude } = pos.coords;
-                        await api.patch(`/doctors/${doctorProfile.id}/online-status`, { status: 1, latitude, longitude });
-                        setIsOnline(true);
-                        toast.success('You are now Online');
-                    }, (err) => {
-                        toast.error('Location access required to go online.');
-                    });
+                    navigator.geolocation.getCurrentPosition(
+                        async (pos) => {
+                            try {
+                                const { latitude, longitude } = pos.coords;
+                                await api.patch(`/doctors/${doctorProfile.id}/online-status`, { status: 1, latitude, longitude });
+                                setIsOnline(true);
+                                toast.success('You are now Online');
+                            } catch (e) {
+                                console.error(e);
+                                toast.error('Failed to update status');
+                            } finally {
+                                setStatusUpdating(false);
+                            }
+                        },
+                        (err) => {
+                            console.error('Geolocation error:', err);
+                            toast.error('Location access required to go online.');
+                            setStatusUpdating(false);
+                        },
+                        {
+                            enableHighAccuracy: true,
+                            timeout: 15000,
+                            maximumAge: 0
+                        }
+                    );
                 } else {
                     toast.error('Geolocation not supported.');
+                    setStatusUpdating(false);
                 }
             } else {
                 // Going Offline
                 await api.patch(`/doctors/${doctorProfile.id}/online-status`, { status: 0 });
                 setIsOnline(false);
                 toast.success('You are now Offline');
+                setStatusUpdating(false);
             }
         } catch (error) {
             console.error(error);
             toast.error('Failed to update status');
+            setStatusUpdating(false);
         }
     };
 
@@ -125,6 +148,7 @@ export function useMedicDashboard() {
         stats,
         upcomingAppointments,
         isOnline,
+        statusUpdating,
         toggleOnlineStatus,
         refresh: fetchData
     };

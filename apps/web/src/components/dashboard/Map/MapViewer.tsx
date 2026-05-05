@@ -94,9 +94,19 @@ export default function MapViewer() {
 
     useEffect(() => {
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((pos) => {
-                setPosition([pos.coords.latitude, pos.coords.longitude]);
-            });
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    setPosition([pos.coords.latitude, pos.coords.longitude]);
+                },
+                (err) => {
+                    console.error('MapViewer Geolocation error:', err);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
         }
     }, []);
 

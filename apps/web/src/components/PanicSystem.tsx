@@ -58,28 +58,36 @@ export default function PanicSystem() {
 
         // 1. Get Location
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(async (position) => {
-                const { latitude, longitude } = position.coords;
-                // Send Alert API
-                try {
-                    const res = await api.post('/emergency/alert', { lat: latitude, lng: longitude });
-                    if (res && res.ok) {
-                        const data = await res.json();
-                        setAlertId(data.id);
-                        startRecording(data.id);
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const { latitude, longitude } = position.coords;
+                    // Send Alert API
+                    try {
+                        const res = await api.post('/emergency/alert', { lat: latitude, lng: longitude });
+                        if (res && res.ok) {
+                            const data = await res.json();
+                            setAlertId(data.id);
+                            startRecording(data.id);
+                        }
+                    } catch (e) {
+                        console.error('Failed to send panic alert', e);
                     }
-                } catch (e) {
-                    console.error('Failed to send panic alert', e);
+                },
+                (err) => {
+                    console.error('Geolocation failed', err);
+                    // Try sending without location?
+                    api.post('/emergency/alert', { lat: 0, lng: 0 }).then(res => {
+                        if (res?.ok) {
+                            res.json().then((d: any) => startRecording(d.id));
+                        }
+                    });
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
                 }
-            }, (err) => {
-                console.error('Geolocation failed', err);
-                // Try sending without location?
-                api.post('/emergency/alert', { lat: 0, lng: 0 }).then(res => {
-                    if (res?.ok) {
-                        res.json().then((d: any) => startRecording(d.id));
-                    }
-                });
-            });
+            );
         }
     };
 

@@ -1,13 +1,13 @@
 package com.mclinicportal.app
 
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
+import androidx.core.view.WindowCompat
 import io.flutter.embedding.android.FlutterActivity
 
 class MainActivity: FlutterActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Enable edge-to-edge display for Android 15+ compatibility
-        enableEdgeToEdge()
+        // Use WindowCompat for better compatibility if enableEdgeToEdge() has issues
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         super.onCreate(savedInstanceState)
     }
 }

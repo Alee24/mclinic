@@ -141,16 +141,16 @@ export default function LoginPage() {
                 {/* Left Side - Branding */}
                 <div className="md:w-5/12 bg-black p-12 text-white flex flex-col justify-between relative overflow-hidden">
                     <div className="relative z-10">
-                        <Link href="/" className="flex items-center gap-4 mb-16 group">
-                            <div className="relative w-12 h-12 rounded-2xl overflow-hidden shadow-[0_0_20px_rgba(255,255,255,0.3)] group-hover:scale-105 transition-transform">
+                        <Link href="/" className="flex items-center justify-center mb-16 group">
+                            <div className="relative w-40 h-20 group-hover:scale-105 transition-transform duration-500">
                                 <Image 
-                                    src="/logo.png" 
+                                    src="https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png" 
                                     alt="M-Clinic Logo" 
                                     fill
-                                    className="object-cover"
+                                    className="object-contain"
+                                    priority
                                 />
                             </div>
-                            <span className="font-black text-2xl tracking-tighter">M-CLINIC</span>
                         </Link>
 
                         <div className="space-y-6">

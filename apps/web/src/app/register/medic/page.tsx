@@ -148,10 +148,15 @@ export default function MedicRegisterPage() {
                 {/* Sidebar / Progress */}
                 <div className="bg-blue-600 dark:bg-blue-900/20 md:w-1/3 p-8 text-white flex flex-col justify-between relative overflow-hidden">
                     <div className="relative z-10">
-                        <div className="flex items-center gap-2 mb-8">
-                            <div className="w-10 h-10 bg-white text-blue-600 rounded-full flex items-center justify-center font-bold text-xl">M</div>
-                            <span className="font-bold text-xl">Medic Registration</span>
-                        </div>
+                        <Link href="/" className="flex items-center justify-center mb-8 group">
+                            <div className="relative w-40 h-20 group-hover:scale-105 transition-transform duration-500">
+                                <img 
+                                    src="https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png" 
+                                    alt="M-Clinic Logo" 
+                                    className="h-full w-full object-contain brightness-0 invert"
+                                />
+                            </div>
+                        </Link>
 
                         <div className="space-y-6">
                             <div className={`flex items-center gap-4 p-3 rounded-xl transition ${step === 1 ? 'bg-white/20 font-bold' : 'opacity-70'}`}>
