@@ -10,7 +10,9 @@ git fetch origin MobileApp
 git reset --hard origin/MobileApp
 
 # 2. Complete Shutdown
-echo "🛑 Shutting down existing containers and wiping volumes..."
+echo "🛑 Stopping existing PM2 processes and Docker containers..."
+pm2 stop all || true
+pm2 delete all || true
 docker-compose down -v --remove-orphans
 docker system prune -f
 
