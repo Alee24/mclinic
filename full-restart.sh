@@ -6,8 +6,8 @@ echo "    M-CLINIC FULL STACK RESTART SCRIPT"
 echo "=============================================="
 
 # 1. Configuration
-API_PORT=5454
-WEB_PORT=5054
+API_PORT=7899
+WEB_PORT=7898
 APP_DIR="/var/www/mclinicportal"
 
 echo "🔄 1. Refreshing Codebase..."
