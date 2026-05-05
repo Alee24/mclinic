@@ -65,9 +65,11 @@ export default function MedicRegisterPage() {
         const regulatoryBody = getRegulatoryBody(selectedCadre);
 
         // Fee Logic
-        const fixedFeeCadres = ['Nursing', 'Clinical Officers'];
+        const fixedFeeCadres = ['Nursing', 'Clinical Officers', 'Care Givers'];
         const isFixedFee = fixedFeeCadres.includes(selectedCadre);
-        const newFee = isFixedFee ? 1500 : 2500; // Default base fee
+        let newFee = 2500; // Default base fee for Doctors/Dental
+        if (selectedCadre === 'Care Givers') newFee = 1200;
+        else if (isFixedFee) newFee = 1500;
 
         setAvailableTitles(titles);
         setAvailableSpecialties(specialties);
@@ -139,7 +141,7 @@ export default function MedicRegisterPage() {
     const prevStep = () => setStep(s => s - 1);
 
     const cadres = getCadres();
-    const isFixedFee = ['Nursing', 'Clinical Officers'].includes(formData.cadre);
+    const isFixedFee = ['Nursing', 'Clinical Officers', 'Care Givers'].includes(formData.cadre);
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#050505] p-4 py-12">

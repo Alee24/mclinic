@@ -84,7 +84,13 @@ export const specialties = [
     { cadre: "Allied Health", title: "Occupational Therapist", specialty: "Rehabilitation", body: "KOTA" },
     { cadre: "Allied Health", title: "Radiographer", specialty: "Diagnostic Radiography (X-Ray/CT)", body: "Radiography Society" },
     { cadre: "Allied Health", title: "Radiographer", specialty: "Sonography (Ultrasound)", body: "Radiography Society" },
-    { cadre: "Allied Health", title: "Optometrist", specialty: "Optometry", body: "OOA" }
+    { cadre: "Allied Health", title: "Optometrist", specialty: "Optometry", body: "OOA" },
+    
+    // Care Givers
+    { cadre: "Care Givers", title: "Certified Caregiver", specialty: "Elderly Care", body: "M-Clinic / Certification Body" },
+    { cadre: "Care Givers", title: "Certified Caregiver", specialty: "Home Nursing Assistant", body: "M-Clinic / Certification Body" },
+    { cadre: "Care Givers", title: "Certified Caregiver", specialty: "Palliative Care Support", body: "M-Clinic / Certification Body" },
+    { cadre: "Care Givers", title: "Certified Caregiver", specialty: "Post-Surgical Care", body: "M-Clinic / Certification Body" }
 ];
 
 // Helper to get unique Cadres
