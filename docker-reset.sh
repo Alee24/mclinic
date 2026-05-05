@@ -25,7 +25,7 @@ sleep 45
 echo "🌱 Seeding Essential Data (Admin & Settings)..."
 docker exec mclinic-api npx ts-node -r tsconfig-paths/register src/database/seed-essential.ts || {
   echo "⚠️ Standalone seed failed, trying via API endpoint..."
-  curl -X POST http://localhost:3434/seeding/reset-fresh
+  curl -X POST http://localhost:7899/seeding/reset-fresh
 }
 
 echo "✅ System Reset Complete!"

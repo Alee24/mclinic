@@ -20,12 +20,12 @@ services:
     container_name: mclinic-api
     restart: always
     ports:
-      - "3434:3434"
+      - "7899:7899"
     volumes:
       - uploads_data:/app/apps/api/uploads
       - ./apps/api/.env:/app/apps/api/.env
     environment:
-      - PORT=3434
+      - PORT=7899
       - DB_HOST=db
       - DB_PORT=3306
       - DB_USER=m-cl-app
@@ -43,9 +43,9 @@ services:
     container_name: mclinic-web
     restart: always
     ports:
-      - "3000:3000"
+      - "7898:7898"
     environment:
-      - PORT=3000
+      - PORT=7898
       - NEXT_PUBLIC_API_URL=https://portal.mclinic.co.ke/api
     depends_on:
       - api
