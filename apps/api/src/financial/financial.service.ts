@@ -537,9 +537,7 @@ export class FinancialService {
 
         // Credit Doctor Balance Immediately
         if (invoice.doctorId) {
-            // Strict Check: ONLY credit for Bookings/Appointments
             const isAppointmentInvoice = invoice.invoiceNumber?.startsWith('INV-') || invoice.appointmentId;
-
             if (isAppointmentInvoice) {
                 const total = Number(invoice.totalAmount);
                 const doctorShare = total * 0.60;
@@ -552,25 +550,23 @@ export class FinancialService {
                 if (doctor && doctor.email) {
                     await this.walletsService.creditByEmail(doctor.email, doctorShare, `Payment for Invoice #${invoiceId}`);
                 }
+            }
+        }
 
-                // Update Appointment Status
-                let appId: number | null = invoice.appointmentId;
-                // Fallback
-                if (!appId && invoice.invoiceNumber && invoice.invoiceNumber.startsWith('INV-')) {
-                    const parts = invoice.invoiceNumber.split('-');
-                    appId = parts.length > 2 ? parseInt(parts[2]) : null;
-                }
+        // --- Appointment Logic (Update Status & SMS) ---
+        let appId: number | null = invoice.appointmentId;
+        if (!appId && invoice.invoiceNumber && invoice.invoiceNumber.startsWith('INV-')) {
+            const parts = invoice.invoiceNumber.split('-');
+            appId = parts.length > 2 ? parseInt(parts[2]) : null;
+        }
 
-                if (appId) {
-                    try {
-                        console.log(`[FINANCIAL] Confirming Appointment #${appId} for Paid Invoice #${invoiceId}`);
-                        await this.doctorRepo.manager.update('appointment', { id: appId }, { status: 'confirmed' });
-                    } catch (err) {
-                        console.error(`[FINANCIAL] Failed to update appointment status for #${appId}:`, err);
-                    }
-                }
-            } else {
-                console.log(`[FINANCIAL] Skipped Wallet Credit/Appt Update for Non-Appointment Invoice #${invoice.invoiceNumber}`);
+        if (appId) {
+            try {
+                console.log(`[FINANCIAL] Confirming Appointment #${appId} for Paid Invoice #${invoiceId}`);
+                await this.doctorRepo.manager.update('appointment', { id: appId }, { status: 'confirmed' });
+                await this.sendConfirmationSms(appId);
+            } catch (err) {
+                console.error(`[FINANCIAL] Failed to update appointment status for #${appId}:`, err);
             }
         }
 
@@ -594,15 +590,7 @@ export class FinancialService {
             }
         }
 
-        let appId: number | null = invoice.appointmentId;
-        if (!appId && invoice.invoiceNumber && invoice.invoiceNumber.startsWith('INV-')) {
-            const parts = invoice.invoiceNumber.split('-');
-            appId = parts.length > 2 ? parseInt(parts[2]) : null;
-        }
-
-        if (appId) {
-            await this.sendConfirmationSms(appId);
-        }
+        // ... (Transcation record and Ambulance logic already handled)
 
         return { success: true, message: 'Payment confirmed successfully', invoice };
     }
@@ -614,24 +602,30 @@ export class FinancialService {
                 relations: ['patient', 'doctor']
             });
 
-            if (appt && appt.patient && appt.doctor) {
+            if (appt && appt.patient) {
                 const patient = appt.patient;
                 const doctor = appt.doctor;
                 const portalUrl = 'https://portal.mclinic.co.ke';
                 const apptTime = `${new Date(appt.appointment_date).toDateString()} @ ${appt.appointment_time}`;
 
-                // 1. SMS to Patient: Confirmation + Doctor Contact
-                const patientMsg = `Appointment Confirmed! You have an appointment with Dr. ${doctor.fname} ${doctor.lname} on ${apptTime}. Medic Contact: ${doctor.mobile || 'N/A'}. View details: ${portalUrl}/dashboard/appointments`;
-                await this.notificationService.sendCustomSms(patient.mobile, patientMsg);
+                if (doctor) {
+                    // 1. SMS to Patient: Confirmation + Doctor Contact
+                    const patientMsg = `Appointment Confirmed! You have an appointment with Dr. ${doctor.fname} ${doctor.lname} on ${apptTime}. Medic Contact: ${doctor.mobile || 'N/A'}. View details: ${portalUrl}/dashboard/appointments`;
+                    await this.notificationService.sendCustomSms(patient.mobile, patientMsg);
 
-                // 2. SMS to Doctor: Confirmation + Patient Contact
-                const doctorMsg = `Confirmed Appointment: ${patient.fname} ${patient.lname} has paid for their appointment on ${apptTime}. Patient Contact: ${patient.mobile || 'N/A'}. View details: ${portalUrl}/dashboard/appointments`;
-                await this.notificationService.sendCustomSms(doctor.mobile, doctorMsg);
+                    // 2. SMS to Doctor: Confirmation + Patient Contact
+                    const doctorMsg = `Confirmed Appointment: ${patient.fname} ${patient.lname} has paid for their appointment on ${apptTime}. Patient Contact: ${patient.mobile || 'N/A'}. View details: ${portalUrl}/dashboard/appointments`;
+                    await this.notificationService.sendCustomSms(doctor.mobile, doctorMsg);
+                } else if (appt.isConcierge) {
+                    // Concierge Confirmation
+                    const patientMsg = `Medical Concierge Confirmed! Your booking for ${apptTime} has been paid. A personal healthcare coordinator will be assigned to you shortly. View: ${portalUrl}/dashboard/appointments`;
+                    await this.notificationService.sendCustomSms(patient.mobile, patientMsg);
+                }
 
                 // 3. Notify Admin
                 await this.notificationService.notifyAdmin(
                     'booking',
-                    `Payment Confirmed for Appt #${appointmentId}: ${patient.fname} vs Dr. ${doctor.lname}. Notification sent to both.`
+                    `Payment Confirmed for Appt #${appointmentId}: ${patient.fname} ${appt.isConcierge ? '(Concierge)' : `vs Dr. ${doctor?.lname}`}. Notification sent.`
                 );
             }
         } catch (error) {

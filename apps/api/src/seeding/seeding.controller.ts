@@ -10,6 +10,11 @@ export class SeedingController {
     return this.seedingService.seedAll();
   }
 
+  @Post('reset-fresh')
+  async resetFresh() {
+    return this.seedingService.seedEssential();
+  }
+
   @Post('clear')
   async clearData() {
     return this.seedingService.clearAll();

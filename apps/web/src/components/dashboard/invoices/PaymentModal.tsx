@@ -27,10 +27,12 @@ export default function PaymentModal({ invoice, onClose, onSuccess }: PaymentMod
                 });
                 if (res?.ok) {
                     const data = await res.json();
-                    alert(data.message + ' Payment will be confirmed automatically.');
+                    alert((data.message || 'STK Push initiated!') + ' Please check your phone to confirm.');
                     onSuccess();
                 } else {
-                    alert('STK Push failed. Please try again.');
+                    const errorData = await res?.json().catch(() => ({}));
+                    const errorMsg = errorData?.message || 'STK Push failed. Please check your phone number and try again.';
+                    alert(`M-Pesa Error: ${errorMsg}`);
                 }
             } else {
                 const res = await api.post(`/financial/invoices/${invoice.id}/confirm-payment`, {
@@ -41,12 +43,14 @@ export default function PaymentModal({ invoice, onClose, onSuccess }: PaymentMod
                     alert('Payment confirmed successfully!');
                     onSuccess();
                 } else {
-                    alert('Payment confirmation failed.');
+                    const errorData = await res?.json().catch(() => ({}));
+                    const errorMsg = errorData?.message || 'Payment confirmation failed.';
+                    alert(`Error: ${errorMsg}`);
                 }
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            alert('An error occurred during payment.');
+            alert(`System Error: ${err.message || 'An error occurred during payment.'}`);
         } finally {
             setProcessing(false);
         }

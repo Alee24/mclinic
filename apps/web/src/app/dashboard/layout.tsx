@@ -7,16 +7,14 @@ import { useAuth, UserRole } from '@/lib/auth';
 import UserAvatar from '@/components/dashboard/UserAvatar';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import SecureLoader from '@/components/SecureLoader';
-import InstallInstructions from '@/components/InstallInstructions';
+
 import { usePathname, useRouter } from 'next/navigation';
-import { usePWA } from '@/providers/PWAProvider';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
     const { user, loading, logout } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const { isInstallable, install } = usePWA();
 
     // Close mobile menu on path change
     useEffect(() => {
@@ -244,20 +242,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                             <NavItem href="/delete-my-data" icon={<FiTrash2 />} label="Delete My Data" active={pathname === '/delete-my-data'} />
                             <NavItem href="#" icon={<FiHelpCircle />} label="Help" active={false} />
 
-                            {/* Mobile PWA Install Button */}
-                            {isInstallable && (
-                                <button
-                                    onClick={install}
-                                    className="md:hidden w-full flex items-center gap-3 px-3 py-2.5 text-white bg-gradient-to-r from-[#00C65E] to-[#1B4D3E] hover:from-[#00A850] hover:to-[#164030] transition-all rounded-xl shadow-md"
-                                >
-                                    <span className="text-xl">
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                        </svg>
-                                    </span>
-                                    <span className="font-bold text-sm">Install App</span>
-                                </button>
-                            )}
+
 
                             <button
                                 onClick={logout}
@@ -272,30 +257,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     </div>
                 </div>
 
-                {/* Promo Card */}
-                {isInstallable && (
-                    <div className="mt-6 bg-gradient-to-br from-[#00C65E] to-[#1B4D3E] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg">
-                        <div className="relative z-10">
-                            <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center mb-3">
-                                <FiGrid className="text-lg" />
-                            </div>
-                            <h4 className="font-bold mb-1 text-sm">Install M-Clinic App</h4>
-                            <p className="text-xs text-white/80 mb-4 leading-relaxed">Add to your home screen for instant access, offline mode & faster performance</p>
-                            <button
-                                onClick={install}
-                                className="w-full py-2.5 bg-white text-[#1B4D3E] rounded-lg text-xs font-bold transition-all hover:bg-white/90 hover:scale-105 shadow-md flex items-center justify-center gap-2"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                </svg>
-                                Install PWA Now
-                            </button>
-                        </div>
-                        {/* Abstract circles */}
-                        <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
-                        <div className="absolute -top-5 -left-5 w-20 h-20 bg-white/5 rounded-full blur-lg"></div>
-                    </div>
-                )}
+
 
                 <div className="mt-auto pt-6 border-t border-gray-100 dark:border-gray-800 text-[10px] text-gray-400 text-center opacity-60">
                     Developed by | <a href="https://kkdes.co.ke/" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 transition-colors underline underline-offset-4">KKDES</a>
@@ -444,7 +406,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     {children}
                 </ div >
             </ main >
-            <InstallInstructions />
+
         </ div >
     );
 }

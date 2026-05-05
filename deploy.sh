@@ -24,10 +24,8 @@ cd apps/api
 npm install
 npx prisma generate
 
-echo "⚠️  SKIPPING Database Schema Update to protect data."
-echo "   If you made changes to the database schema (schema.prisma),"
-echo "   please run 'npx prisma db push' manually inside apps/api."
-# npx prisma db push 
+echo "🗄️  Running Database Migrations..."
+npm run migration:run:prod || echo "⚠️  Migration failed or nothing to run. Continuing..."
 
 echo "🏗️  Building API..."
 npm run build

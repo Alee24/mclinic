@@ -115,7 +115,7 @@ export class DoctorsService implements OnModuleInit {
         console.log('[DoctorsService] Syncing Doctors from Users table...');
         const allUsers = await this.usersService.findAll();
         const doctorUsers = allUsers.filter(u =>
-            ['doctor', 'medic', 'nurse', 'clinician', 'lab_tech', 'pharmacist', 'admin'].includes(u.role)
+            ['doctor', 'medic', 'nurse', 'clinician', 'lab_tech', 'pharmacist'].includes(u.role)
         );
 
         let createdCount = 0;
@@ -194,6 +194,12 @@ export class DoctorsService implements OnModuleInit {
 
             // Map doctor type to user role
             const correctRole = this.mapDrTypeToUserRole(doctor.dr_type);
+
+            // PROTECT ADMINS: Never downgrade or change role for an existing admin user
+            if (user.role === UserRole.ADMIN) {
+                console.log(`[DoctorsService] Protecting admin role for ${doctor.email}, skipping sync.`);
+                continue;
+            }
 
             // Only update if role is different
             if ((user.role as string) !== (correctRole as string)) {

@@ -278,6 +278,11 @@ export class UsersService implements OnModuleInit {
     };
 
     if (user) {
+      // PROTECT ADMINS: Never downgrade or change role for an existing admin user
+      if (user.role === UserRole.ADMIN) {
+        console.log(`[UsersService] Protecting admin role for ${email}, skipping doctor sync.`);
+        return user;
+      }
       await this.usersRepository.update(user.id, userData);
       return this.usersRepository.findOne({ where: { id: user.id } });
     } else {

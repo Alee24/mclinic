@@ -94,9 +94,11 @@ export default function AppointmentPaymentPage() {
 
                 if (res && res.ok) {
                     setWaitingForMpesa(true);
-                    setProcessing(false); // Enable "Pay" if they need to retry? No, show waiting UI
+                    setProcessing(false);
                 } else {
-                    alert('Failed to initiate M-Pesa payment. Please try again.');
+                    const errorData = await res?.json().catch(() => ({}));
+                    const errorMsg = errorData?.message || 'Failed to initiate M-Pesa payment. Please ensure your number is valid and try again.';
+                    alert(`M-Pesa Error: ${errorMsg}`);
                     setProcessing(false);
                 }
 
@@ -112,13 +114,15 @@ export default function AppointmentPaymentPage() {
                     setSuccess(true);
                     setTimeout(() => router.push('/dashboard/appointments'), 3000);
                 } else {
-                    alert('Payment processing failed.');
+                    const errorData = await res?.json().catch(() => ({}));
+                    const errorMsg = errorData?.message || 'Payment processing failed.';
+                    alert(`Error: ${errorMsg}`);
                 }
                 setProcessing(false);
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            alert('An error occurred.');
+            alert(`System Error: ${err.message || 'An unexpected error occurred.'}`);
             setProcessing(false);
         }
     };

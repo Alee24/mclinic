@@ -130,6 +130,56 @@ export class SeedingService {
     return { message: 'All data dropped successfully.' };
   }
 
+  async seedEssential() {
+    await this.clearAll();
+    await this.seedSettings();
+
+    // 6. Seed Service Prices (Required for booking flow)
+    const serviceData = [
+      { name: 'Nurses & Clinicians (Virtual)', amount: 1700, desc: 'Professional virtual clinical consultation and assessment.' },
+      { name: 'Nurses & Clinicians (Physical)', amount: 3500, desc: 'Home-based nursing care, wound dressing, and monitoring.' },
+      { name: 'Therapies (Virtual)', amount: 3500, desc: 'Virtual sessions for Speech or Mental health therapy.' },
+      { name: 'Therapies (Physical)', amount: 5000, desc: 'In-person sessions for Speech, Mental, Physiotherapy, or Occupational therapy.' },
+      { name: 'GP Consultation (Virtual)', amount: 3500, desc: 'Virtual consultation with a General Practitioner.' },
+      { name: 'GP Consultation (Physical)', amount: 6000, desc: 'Home/Physical visit by a General Practitioner.' },
+      { name: 'Specialist Consultation (Virtual)', amount: 4500, desc: 'Virtual specialist consultation (Cardiology, Dermatology, etc.).' },
+      { name: 'Specialist Consultation (Physical)', amount: 8000, desc: 'Physical/Home visit by a medical specialist.' },
+      { name: 'Medical Concierge', amount: 6000, desc: 'Your personal healthcare coordinator.' },
+      { name: 'Ambulance (Individual)', amount: 6000, desc: '24/7 Individual ambulance subscription.' },
+      { name: 'Ambulance (Family)', amount: 12000, desc: 'Ambulance coverage for the entire family.' },
+      { name: 'Ambulance (Parents)', amount: 5000, desc: 'Ambulance coverage for parents/elderly.' },
+      { name: 'Ambulance (Students)', amount: 1600, desc: 'Affordable ambulance coverage for students.' },
+      { name: 'Ambulance (Corporate)', amount: 1400, desc: 'Corporate ambulance coverage per employee.' },
+      { name: 'Ambulance (Instant Dispatch)', amount: 15000, desc: 'One-time emergency ambulance dispatch.' },
+    ];
+
+    for (const s of serviceData) {
+      await this.priceRepo.save(this.priceRepo.create({
+        serviceName: s.name,
+        amount: s.amount,
+        currency: 'KES',
+        description: s.desc,
+      }));
+    }
+
+    // Create Admin Account
+    const adminPassword = await bcrypt.hash('Digital2025', 10);
+    const adminUser = this.userRepo.create({
+      email: 'mettoalex@gmail.com',
+      password: adminPassword,
+      role: UserRole.ADMIN,
+      status: true,
+      fname: 'Alex',
+      lname: 'Metto',
+      mobile: '254724454757',
+      emailVerifiedAt: new Date(),
+    });
+    await this.userRepo.save(adminUser);
+    console.log('Created Admin Account: mettoalex@gmail.com / Digital2025');
+
+    return { message: 'System reset and essential data (Admin & Settings) seeded.' };
+  }
+
   async seedAll() {
     try {
       // 0. CLEAR DATA

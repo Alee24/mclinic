@@ -2,14 +2,14 @@
 
 import Link from 'next/link';
 import { FiCheckCircle, FiHeart, FiShield, FiZap, FiMapPin, FiStar, FiArrowRight, FiPlay } from 'react-icons/fi';
-import InstallPWA from '../components/InstallPWA';
+
 import { usePWA } from '@/providers/PWAProvider';
 import Image from 'next/image';
 import Header from '@/components/landing/Header';
 import Footer from '@/components/landing/Footer';
 
 export default function Home() {
-  const { install } = usePWA();
+
 
   return (
     <div className="font-sans text-gray-800 bg-white">
@@ -303,7 +303,7 @@ export default function Home() {
       <Footer />
 
       {/* PWA Install */}
-      <InstallPWA />
+
     </div >
   );
 }
