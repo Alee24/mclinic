@@ -318,8 +318,12 @@ export class FinancialService {
         }
 
         if (!doctor) {
-            console.error(`[FINANCIAL] getDoctorStats: FAILED to find doctor with email '${email}' or ID ${userId}`);
-            throw new NotFoundException('Doctor profile not found');
+            console.warn(`[FINANCIAL] getDoctorStats: No doctor profile for ${email}. Returning empty stats.`);
+            return {
+                balance: 0,
+                pendingClearance: 0,
+                transactions: []
+            };
         }
 
         console.log(`[FINANCIAL] getDoctorStats: Found provider ${doctor.email} (ID: ${doctor.id}, Role: ${doctor.dr_type}) for User ID: ${userId}`);

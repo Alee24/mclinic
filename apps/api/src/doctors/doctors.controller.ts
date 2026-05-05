@@ -30,13 +30,25 @@ export class DoctorsController {
   @UseGuards(AuthGuard('jwt'))
   @Get('profile/me')
   async getProfile(@Request() req: any) {
-    return this.doctorsService.findByEmail(req.user.email);
+    let doctor = await this.doctorsService.findByEmail(req.user.email);
+    if (!doctor) {
+      console.log(`[DoctorsController] No doctor profile for ${req.user.email}. Attempting auto-sync...`);
+      await this.doctorsService.syncDoctorsWithUsers();
+      doctor = await this.doctorsService.findByEmail(req.user.email);
+    }
+    return doctor;
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Get('dashboard-stats')
   async getDashboardStats(@Request() req: any) {
-    const doctor = await this.doctorsService.findByEmail(req.user.email);
+    let doctor = await this.doctorsService.findByEmail(req.user.email);
+    if (!doctor) {
+      console.log(`[DoctorsController] No doctor profile for stats ${req.user.email}. Syncing...`);
+      await this.doctorsService.syncDoctorsWithUsers();
+      doctor = await this.doctorsService.findByEmail(req.user.email);
+    }
+
     if (!doctor) {
       return {
         appointmentsToday: 0,

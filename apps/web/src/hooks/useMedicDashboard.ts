@@ -40,23 +40,44 @@ export function useMedicDashboard() {
             // 1. Fetch Profile
             const profileRes = await api.get('/doctors/profile/me');
             if (profileRes?.ok) {
-                const profile = await profileRes.json();
-                setDoctorProfile(profile);
-                setIsOnline(profile?.is_online === 1);
+                const text = await profileRes.text();
+                if (text) {
+                    try {
+                        const profile = JSON.parse(text);
+                        setDoctorProfile(profile);
+                        setIsOnline(profile?.is_online === 1);
+                    } catch (e) {
+                        console.error('Failed to parse profile JSON', e);
+                    }
+                }
             }
 
             // 2. Fetch Dashboard Stats (New Endpoint)
             const statsRes = await api.get('/doctors/dashboard-stats');
             let dashboardStats = { totalPatients: 0, appointmentsToday: 0, pendingReports: 0 };
             if (statsRes?.ok) {
-                dashboardStats = await statsRes.json();
+                const statsText = await statsRes.text();
+                if (statsText) {
+                    try {
+                        dashboardStats = JSON.parse(statsText);
+                    } catch (e) {
+                        console.error('Failed to parse stats JSON', e);
+                    }
+                }
             }
 
             // 3. Fetch Financials (Balance)
             const finRes = await api.get('/financial/stats');
             let finances = { balance: 0 };
             if (finRes?.ok) {
-                finances = await finRes.json();
+                const finText = await finRes.text();
+                if (finText) {
+                    try {
+                        finances = JSON.parse(finText);
+                    } catch (e) {
+                        console.error('Failed to parse financial JSON', e);
+                    }
+                }
             }
 
             setStats({
@@ -67,14 +88,15 @@ export function useMedicDashboard() {
             // 4. Fetch Appointments for List
             const aptRes = await api.get('/appointments');
             if (aptRes?.ok) {
-                const allAppointments = await aptRes.json();
-                // Filter for upcoming (today onwards, not completed/cancelled) logic could be here, 
-                // but let's just take top 5 recent ones or today's.
-                // The existing view sorted by date DESC generally.
-                // We want "Upcoming" so maybe future dates?
-                // The current backend returns generic list. Let's filter for relevant display.
-                // For now, mimic existing behavior: slice 0, 5.
-                setUpcomingAppointments(allAppointments.slice(0, 5));
+                const aptText = await aptRes.text();
+                if (aptText) {
+                    try {
+                        const allAppointments = JSON.parse(aptText);
+                        setUpcomingAppointments(Array.isArray(allAppointments) ? allAppointments.slice(0, 5) : []);
+                    } catch (e) {
+                        console.error('Failed to parse appointments JSON', e);
+                    }
+                }
             }
 
         } catch (error) {
