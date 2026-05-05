@@ -145,6 +145,12 @@ PORT=$WEB_PORT pm2 start npm --name $WEB_NAME -- start
 # Save PM2 list
 pm2 save
 
+# Create and fix permissions for uploads
+mkdir -p "$APP_DIR/$API_PATH/uploads/profiles"
+mkdir -p "$APP_DIR/$API_PATH/uploads/signatures"
+mkdir -p "$APP_DIR/$API_PATH/uploads/stamps"
+chmod -R 777 "$APP_DIR/$API_PATH/uploads"
+
 echo "✅ Deployment Complete!"
 echo "   - API running on Port $API_PORT ($API_NAME)"
 echo "   - Web running on Port $WEB_PORT ($WEB_NAME)"

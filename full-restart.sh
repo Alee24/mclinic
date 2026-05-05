@@ -13,7 +13,7 @@ APP_DIR="/var/www/mclinicportal"
 echo "🔄 1. Refreshing Codebase..."
 git fetch origin
 git reset --hard origin/main
-git clean -fd
+git clean -fd -e uploads/ -e apps/api/uploads/
 
 # 2. Update Apache Config (Requires Sudo)
 # We use sed to replace the proxy ports dynamically in the apache config
