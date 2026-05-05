@@ -101,11 +101,15 @@ export class SeedingService {
       { key: 'sms_shortcode', value: 'M-CLINIC', description: 'Advanta SMS Sender ID / Shortcode', isSecure: false },
 
       // SMTP Settings (For VPS Email Fix)
-      { key: 'EMAIL_SMTP_HOST', value: 'mail.mclinic.co.ke', description: 'SMTP Host (e.g. mail.mclinic.co.ke)', isSecure: false },
-      { key: 'EMAIL_SMTP_PORT', value: '465', description: 'SMTP Port (587 for TLS, 465 for SSL)', isSecure: false },
-      { key: 'EMAIL_SMTP_USER', value: 'info@mclinic.co.ke', description: 'SMTP Username/Email', isSecure: false },
-      { key: 'EMAIL_SMTP_PASS', value: 'Digital2025', description: 'SMTP Password/App Password', isSecure: true },
-      { key: 'EMAIL_SMTP_SECURE', value: 'true', description: 'Use SSL (true for 465, false for 587)', isSecure: false },
+      { key: 'MAIL_HOST', value: 'mail.mclinic.co.ke', category: 'mail' },
+      { key: 'MAIL_PORT', value: '465', category: 'mail' },
+      { key: 'MAIL_USER', value: 'notifications@mclinic.co.ke', category: 'mail' },
+      { key: 'MAIL_PASSWORD', value: 'ChangeMe2025!', category: 'mail' },
+      { key: 'MAIL_FROM', value: 'M-Clinic <notifications@mclinic.co.ke>', category: 'mail' },
+      { key: 'MAIL_ENCRYPTION', value: 'ssl', category: 'mail' }, // or tls for 587
+      { key: 'SMS_SENDER_ID', value: 'MCLINIC', category: 'sms' },
+      { key: 'SMS_PARTNER_ID', value: '1234', category: 'sms' },
+      { key: 'SMS_API_KEY', value: 'your_api_key', category: 'sms' },
     ];
 
     for (const s of defaultSettings) {
