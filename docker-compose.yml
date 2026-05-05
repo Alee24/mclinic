@@ -9,7 +9,7 @@ services:
       MYSQL_PASSWORD: Mclinic@App2023?
       MYSQL_ROOT_PASSWORD: root_password_change_me
     ports:
-      - "3309:3306"
+      - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
 
@@ -20,17 +20,19 @@ services:
     container_name: mclinic-api
     restart: always
     ports:
-      - "7899:7899"
+      - "3434:3434"
     volumes:
       - uploads_data:/app/apps/api/uploads
+      - ./apps/api/.env:/app/apps/api/.env
     environment:
-      - PORT=7899
+      - PORT=3434
       - DB_HOST=db
       - DB_PORT=3306
       - DB_USER=m-cl-app
       - DB_PASSWORD=Mclinic@App2023?
       - DB_NAME=mclinicportal
       - JWT_SECRET=your_jwt_secret_change_me
+      - FRONTEND_URL=https://portal.mclinic.co.ke
     depends_on:
       - db
 
@@ -41,10 +43,10 @@ services:
     container_name: mclinic-web
     restart: always
     ports:
-      - "7898:3000"
+      - "3000:3000"
     environment:
       - PORT=3000
-      - NEXT_PUBLIC_API_URL=/api
+      - NEXT_PUBLIC_API_URL=https://portal.mclinic.co.ke/api
     depends_on:
       - api
 
