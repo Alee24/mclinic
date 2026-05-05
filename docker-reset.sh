@@ -33,11 +33,13 @@ done
 
 # 5. Run Essential Seed inside the container
 echo "🌱 Seeding Essential Data (Admin & Settings)..."
-# Inside the container, the path is /app/apps/api/src/database/seed-essential.ts
-docker exec mclinic-api npx ts-node -r tsconfig-paths/register apps/api/src/database/seed-essential.ts || {
-  echo "⚠️ Standalone seed failed, trying via API endpoint..."
-  curl -X POST http://localhost:7899/seeding/reset-fresh
-}
+# Try via API endpoint first (most reliable in Docker)
+if curl -s -X POST http://localhost:7899/api/seeding/reset-fresh | grep -q "seeded"; then
+  echo "✅ Seeding Successful!"
+else
+  echo "⚠️ API seed failed, trying standalone script..."
+  docker exec mclinic-api npx ts-node apps/api/src/database/seed-essential.ts || echo "❌ Standalone seed also failed. Please check logs."
+fi
 
 echo "✅ System Reset Complete!"
 echo "👤 Admin Login: mettohalex@gmail.com / Digital2025"
