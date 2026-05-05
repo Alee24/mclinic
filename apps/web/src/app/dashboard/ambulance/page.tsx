@@ -62,7 +62,7 @@ export default function AmbulanceSubscriptionPage() {
         });
     }, []);
 
-    const handleChange = (e: any) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
@@ -240,10 +240,10 @@ export default function AmbulanceSubscriptionPage() {
                                 <div className="bg-gray-50 dark:bg-black/20 p-5 rounded-2xl border border-gray-100 dark:border-gray-800">
                                     <div className="text-xs font-black uppercase text-gray-400 mb-4">Spouse Details</div>
                                     <div className="grid grid-cols-2 gap-4">
-                                        <FormInput label="Spouse Full Name" value={formData.spouse.name} onChange={e => updateSpouse('name', e.target.value)} />
-                                        <FormInput label="ID Number" value={formData.spouse.identification_number} onChange={e => updateSpouse('identification_number', e.target.value)} />
-                                        <FormInput label="Date of Birth" type="date" value={formData.spouse.dob} onChange={e => updateSpouse('dob', e.target.value)} />
-                                        <FormInput label="Medical Conditions" value={formData.spouse.medical_conditions} onChange={e => updateSpouse('medical_conditions', e.target.value)} placeholder="e.g. None" />
+                                        <FormInput label="Spouse Full Name" value={formData.spouse.name} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSpouse('name', e.target.value)} />
+                                        <FormInput label="ID Number" value={formData.spouse.identification_number} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSpouse('identification_number', e.target.value)} />
+                                        <FormInput label="Date of Birth" type="date" value={formData.spouse.dob} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSpouse('dob', e.target.value)} />
+                                        <FormInput label="Medical Conditions" value={formData.spouse.medical_conditions} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSpouse('medical_conditions', e.target.value)} placeholder="e.g. None" />
                                     </div>
                                 </div>
 
@@ -259,19 +259,19 @@ export default function AmbulanceSubscriptionPage() {
                                                         placeholder="Child Name" 
                                                         className="w-full text-xs p-2 bg-gray-50 dark:bg-black/30 border border-gray-100 dark:border-gray-700 rounded outline-none"
                                                         value={child.name}
-                                                        onChange={e => updateChild(idx, 'name', e.target.value)}
+                                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateChild(idx, 'name', e.target.value)}
                                                     />
                                                     <div className="grid grid-cols-2 gap-2">
                                                         <input 
                                                             type="date" 
                                                             className="w-full text-[10px] p-2 bg-gray-50 dark:bg-black/30 border border-gray-100 dark:border-gray-700 rounded outline-none"
                                                             value={child.dob}
-                                                            onChange={e => updateChild(idx, 'dob', e.target.value)}
+                                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateChild(idx, 'dob', e.target.value)}
                                                         />
                                                         <select 
                                                             className="w-full text-[10px] p-2 bg-gray-50 dark:bg-black/30 border border-gray-100 dark:border-gray-700 rounded outline-none"
                                                             value={child.gender}
-                                                            onChange={e => updateChild(idx, 'gender', e.target.value)}
+                                                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => updateChild(idx, 'gender', e.target.value)}
                                                         >
                                                             <option>Male</option>
                                                             <option>Female</option>
@@ -296,10 +296,10 @@ export default function AmbulanceSubscriptionPage() {
                                         <div key={idx} className="bg-gray-50 dark:bg-black/20 p-5 rounded-2xl border border-gray-100 dark:border-gray-800">
                                             <div className="text-xs font-black uppercase text-blue-600 mb-4">{parent.relationship} Details</div>
                                             <div className="space-y-3">
-                                                <FormInput label="Full Name" value={parent.name} onChange={e => updateParent(idx, 'name', e.target.value)} />
-                                                <FormInput label="ID Number" value={parent.identification_number} onChange={e => updateParent(idx, 'identification_number', e.target.value)} />
-                                                <FormInput label="Date of Birth" type="date" value={parent.dob} onChange={e => updateParent(idx, 'dob', e.target.value)} />
-                                                <FormInput label="Medical Conditions" value={parent.medical_conditions} onChange={e => updateParent(idx, 'medical_conditions', e.target.value)} placeholder="e.g. Hypertension" />
+                                                <FormInput label="Full Name" value={parent.name} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateParent(idx, 'name', e.target.value)} />
+                                                <FormInput label="ID Number" value={parent.identification_number} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateParent(idx, 'identification_number', e.target.value)} />
+                                                <FormInput label="Date of Birth" type="date" value={parent.dob} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateParent(idx, 'dob', e.target.value)} />
+                                                <FormInput label="Medical Conditions" value={parent.medical_conditions} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateParent(idx, 'medical_conditions', e.target.value)} placeholder="e.g. Hypertension" />
                                             </div>
                                         </div>
                                     ))}
