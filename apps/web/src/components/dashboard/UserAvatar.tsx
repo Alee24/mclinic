@@ -17,7 +17,9 @@ export default function UserAvatar({ user, className = "w-full h-full object-cov
             if (user.profilePicture.startsWith('http')) {
                 setImageUrl(user.profilePicture);
             } else {
-                setImageUrl(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434'}/uploads/profiles/${user.profilePicture}`);
+                // Use relative path for web, which works with the proxy
+                const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+                setImageUrl(`${baseUrl}/api/uploads/profiles/${user.profilePicture}`);
             }
             setImageError(false);
         } else {

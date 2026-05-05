@@ -29,7 +29,7 @@ async function bootstrap() {
 
   // Serve static files from 'uploads' directory
   app.useStaticAssets(uploadsDir, {
-    prefix: '/uploads/',
+    prefix: '/api/uploads/',
   });
 
   const port = process.env.PORT ?? 7899;

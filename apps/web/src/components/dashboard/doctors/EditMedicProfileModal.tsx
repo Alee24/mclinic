@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/auth';
 import toast from 'react-hot-toast';
 import { MEDICAL_SPECIALITIES, MEDICAL_QUALIFICATIONS, KENYAN_HOSPITALS, REGULATORY_BODIES } from '@/lib/medical-constants';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 interface EditMedicProfileModalProps {
     doctor: any;
@@ -81,7 +81,7 @@ export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: Ed
                 if (doctor.profile_image.startsWith('http') || doctor.profile_image.startsWith('blob:')) {
                     setProfilePreview(doctor.profile_image);
                 } else {
-                    setProfilePreview(`${API_URL}/uploads/profiles/${doctor.profile_image}`);
+                    setProfilePreview(`${API_URL}/api/uploads/profiles/${doctor.profile_image}`);
                 }
             } else {
                 setProfilePreview('');
