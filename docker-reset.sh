@@ -12,6 +12,7 @@ git reset --hard origin/MobileApp
 # 2. Complete Shutdown
 echo "🛑 Shutting down existing containers and wiping volumes..."
 docker-compose down -v --remove-orphans
+docker system prune -f
 
 # 3. Rebuild and Start
 echo "🛠️ Rebuilding and starting services..."
