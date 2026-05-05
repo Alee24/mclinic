@@ -20,13 +20,21 @@ docker system prune -f
 echo "🛠️ Rebuilding and starting services..."
 docker-compose up -d --build
 
-# 4. Wait for DB and API
-echo "⏳ Waiting for services to initialize (45 seconds)..."
-sleep 45
+# 4. Wait for API to be ready
+echo "⏳ Waiting for API to be fully online..."
+for i in {1..30}; do
+  if curl -s http://localhost:7899 > /dev/null; then
+    echo "✅ API is up!"
+    break
+  fi
+  echo "Still waiting... ($i/30)"
+  sleep 5
+done
 
 # 5. Run Essential Seed inside the container
 echo "🌱 Seeding Essential Data (Admin & Settings)..."
-docker exec mclinic-api npx ts-node -r tsconfig-paths/register src/database/seed-essential.ts || {
+# Inside the container, the path is /app/apps/api/src/database/seed-essential.ts
+docker exec mclinic-api npx ts-node -r tsconfig-paths/register apps/api/src/database/seed-essential.ts || {
   echo "⚠️ Standalone seed failed, trying via API endpoint..."
   curl -X POST http://localhost:7899/seeding/reset-fresh
 }
