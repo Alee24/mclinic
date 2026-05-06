@@ -615,7 +615,7 @@ export class DoctorsService implements OnModuleInit {
                 licenseNumber: doctor.licenceNo,
                 licenseExpiry: doctor.updated_at, // Using updated_at as a placeholder if expiry is missing
                 drType: doctor.dr_type,
-                profileImage: doctor.profile_image?.startsWith('http') ? doctor.profile_image : (doctor.profile_image ? `${frontendUrl}/api/uploads/profiles/${doctor.profile_image}` : null),
+                profileImage: doctor.profile_image?.startsWith('http') ? doctor.profile_image : (doctor.profile_image ? `/api/uploads/profiles/${doctor.profile_image}` : null),
             },
             qrCode: qrCodeDataUrl,
             issuedDate: new Date().toISOString(),

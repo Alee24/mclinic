@@ -26,10 +26,11 @@ async function bootstrap() {
   [uploadsDir, profilesDir, sigsDir, stampsDir].forEach(dir => {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   });
+  console.log(`[API] Static Assets mounted at: ${uploadsDir}`);
 
   // Serve static files from 'uploads' directory
   app.useStaticAssets(uploadsDir, {
-    prefix: '/api/uploads/',
+    prefix: '/uploads/',
   });
 
   const port = process.env.PORT ?? 7899;
