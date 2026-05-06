@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
                 <div className="flex justify-center mb-8">
                     <Link href="/">
                         <img 
-                            src="https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png" 
+                            src="/logo.png" 
                             alt="M-Clinic Logo" 
                             className="h-16 w-auto object-contain"
                         />

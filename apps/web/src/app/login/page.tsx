@@ -144,7 +144,7 @@ export default function LoginPage() {
                         <Link href="/" className="flex items-center justify-center mb-16 group">
                             <div className="relative w-40 h-20 group-hover:scale-105 transition-transform duration-500">
                                 <Image 
-                                    src="https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png" 
+                                    src="/logo.png" 
                                     alt="M-Clinic Logo" 
                                     fill
                                     className="object-contain"

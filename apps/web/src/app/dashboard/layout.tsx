@@ -53,7 +53,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 <div className="flex items-center justify-between mb-10 px-2">
                     <Link href="/dashboard">
                         <img
-                            src="https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png"
+                            src="/logo.png"
                             alt="M-Clinic Kenya"
                             className="h-9 w-auto object-contain"
                         />

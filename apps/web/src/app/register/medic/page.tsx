@@ -153,7 +153,7 @@ export default function MedicRegisterPage() {
                         <Link href="/" className="flex items-center justify-center mb-8 group">
                             <div className="relative w-40 h-20 group-hover:scale-105 transition-transform duration-500">
                                 <img 
-                                    src="https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png" 
+                                    src="/logo.png" 
                                     alt="M-Clinic Logo" 
                                     className="h-full w-full object-contain brightness-0 invert"
                                 />
