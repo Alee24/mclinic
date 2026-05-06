@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { api } from '@/lib/api';
-import { Download, Printer } from 'lucide-react';
+import { Download, Printer, FileDown } from 'lucide-react';
+import html2canvas from 'html2canvas';
 
 interface IdCardProps {
     doctorId: number;
@@ -30,8 +31,32 @@ export default function DoctorIdCard({ doctorId }: IdCardProps) {
         }
     };
 
+    const cardRef = useRef<HTMLDivElement>(null);
+
     const handlePrint = () => {
         window.print();
+    };
+
+    const handleDownload = async () => {
+        if (!cardRef.current) return;
+        setLoading(true);
+        try {
+            const canvas = await html2canvas(cardRef.current, {
+                useCORS: true,
+                scale: 3, // High-res
+                backgroundColor: null,
+                logging: false,
+            });
+            const link = document.createElement('a');
+            link.download = `M-Clinic-ID-${idCardData?.serialNumber || 'Card'}.png`;
+            link.href = canvas.toDataURL('image/png', 1.0);
+            link.click();
+        } catch (error) {
+            console.error('Download failed:', error);
+            alert('Failed to download image. Try printing to PDF instead.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     if (!idCardData) {
@@ -49,34 +74,42 @@ export default function DoctorIdCard({ doctorId }: IdCardProps) {
 
     return (
         <div className="space-y-4">
-            <div className="flex gap-3 print:hidden">
+            <div className="flex flex-wrap gap-3 print:hidden">
+                <button
+                    onClick={handleDownload}
+                    disabled={loading}
+                    className="bg-primary hover:bg-primary/90 text-black px-6 py-3 rounded-xl font-black transition flex items-center gap-2 shadow-lg shadow-primary/20 active:scale-95"
+                >
+                    <FileDown className="h-5 w-5" />
+                    {loading ? 'Processing...' : 'Download ID'}
+                </button>
                 <button
                     onClick={handlePrint}
-                    className="bg-primary hover:bg-primary/90 text-black px-4 py-2 rounded-lg font-medium transition flex items-center gap-2"
+                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2"
                 >
                     <Printer className="h-5 w-5" />
-                    Print ID Card
+                    Print
                 </button>
                 <button
                     onClick={() => setIdCardData(null)}
-                    className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg font-medium transition"
+                    className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-xl font-medium transition ml-auto"
                 >
                     Close
                 </button>
             </div>
 
             {/* ID Card Design */}
-            <div className="bg-white p-8 rounded-xl shadow-2xl max-w-2xl mx-auto print:shadow-none print:p-0">
+            <div ref={cardRef} className="bg-white p-8 rounded-xl shadow-2xl max-w-2xl mx-auto print:shadow-none print:p-0">
                 {/* Front Side */}
                 <div className="border-[6px] border-primary rounded-2xl p-6 bg-gradient-to-br from-white to-gray-50 relative overflow-hidden shadow-inner">
                     {/* Watermark/Background Decoration */}
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.03] pointer-events-none rotate-12">
-                        <img src="https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png" alt="Watermark" className="w-[400px] grayscale" />
+                        <img src="/logo.png" alt="Watermark" className="w-[400px] grayscale" />
                     </div>
 
                     {/* Header */}
                     <div className="flex items-center justify-between border-b-2 border-primary pb-4 mb-6 relative z-10">
-                        <img src="https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png" alt="M-Clinic Kenya" className="h-10 object-contain" />
+                        <img src="/logo.png" alt="M-Clinic Kenya" className="h-10 object-contain" />
                         <div className="text-right">
                             <h1 className="text-lg font-black text-primary leading-tight">PROFESSIONAL MEDICAL ID</h1>
                             <p className="text-[10px] text-gray-500 font-mono font-bold">{idCardData.serialNumber}</p>
