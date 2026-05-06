@@ -359,56 +359,102 @@ export class AuthService {
     }
   }
 
-  async forgotPassword(email: string) {
-    const user = await this.usersService.findOne(email);
-    if (!user) {
-      // Return success anyway to prevent email enumeration
-      return { message: 'If an account exists with this email, a reset link has been sent.' };
+  async forgotPassword(input: string) {
+    let user: any = null;
+    let doctor: any = null;
+    let isMobile = false;
+
+    // 1. Check if input is a mobile number
+    const formattedMobile = this.smsService.formatMobile(input);
+    if (formattedMobile && (input.startsWith('0') || input.startsWith('254') || input.startsWith('+'))) {
+      isMobile = true;
+      user = await this.usersService.findOneByMobile(formattedMobile);
+      if (!user) {
+        doctor = await this.doctorsService.findOneByMobile(formattedMobile);
+      }
+    } else {
+      // 2. Treat as email
+      user = await this.usersService.findOne(input);
+      if (!user) {
+        doctor = await this.doctorsService.findByEmail(input);
+      }
+    }
+
+    if (!user && !doctor) {
+      return { message: 'If an account exists, a reset link has been sent.' };
     }
 
     const token = randomBytes(32).toString('hex');
     const expiry = new Date();
-    expiry.setHours(expiry.getHours() + 1); // 1 hour expiry
+    expiry.setHours(expiry.getHours() + 1);
 
-    await this.usersService.update(user.id, {
-      resetToken: token,
-      resetTokenExpires: expiry
-    } as any);
+    const target = user || doctor;
+    const targetType = user ? 'user' : 'doctor';
 
-    try {
-      await this.emailService.sendPasswordResetEmail(user, token);
-      
-      // Send SMS Notification
-      if (user.mobile) {
-        const formattedMobile = this.smsService.formatMobile(user.mobile);
-        if (formattedMobile) {
-          const shortMessage = `M-Clinic: A password reset was requested for your account. Please check your registered email for instructions.`;
-          await this.smsService.sendSms(formattedMobile, shortMessage);
-        }
-      }
-    } catch (e) {
-      console.error('Failed to send password reset notifications', e);
+    if (targetType === 'user') {
+      await this.usersService.update(target.id, { resetToken: token, resetTokenExpires: expiry } as any);
+    } else {
+      await this.doctorsService.update(target.id, { resetToken: token, resetTokenExpiry: expiry } as any);
     }
 
-    return { message: 'If an account exists with this email, a reset link has been sent.' };
+    const frontendUrl = process.env.FRONTEND_URL || 'https://portal.mclinic.co.ke';
+    const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
+
+    try {
+      // Send Email if available
+      if (target.email) {
+        await this.emailService.sendPasswordResetEmail(target, token);
+      }
+      
+      // Send SMS if mobile is available or was the primary input
+      const mobileToSend = isMobile ? formattedMobile : (target.mobile ? this.smsService.formatMobile(target.mobile) : null);
+      if (mobileToSend) {
+        const message = `M-Clinic: Use this link to reset your password: ${resetUrl}. Link expires in 1 hour.`;
+        await this.smsService.sendSms(mobileToSend, message);
+      }
+    } catch (e) {
+      console.error('Failed to send reset notifications', e);
+    }
+
+    return { message: 'If an account exists, a reset link has been sent.' };
   }
 
   async resetPassword(token: string, newPassword: string) {
-    const user = await this.usersService.findByToken(token);
-    if (!user) {
+    // 1. Try finding in Users
+    let target = await this.usersService.findByToken(token);
+    let targetType: 'user' | 'doctor' = 'user';
+    let expiryField = 'resetTokenExpires';
+
+    // 2. Try finding in Doctors
+    if (!target) {
+      target = await this.doctorsService.findOneByResetToken(token);
+      targetType = 'doctor';
+      expiryField = 'resetTokenExpiry';
+    }
+
+    if (!target) {
       throw new UnauthorizedException('Invalid or expired reset token');
     }
 
-    if (user.resetTokenExpires && new Date() > user.resetTokenExpires) {
+    const expiry = target[expiryField];
+    if (expiry && new Date() > new Date(expiry)) {
       throw new UnauthorizedException('Reset token has expired');
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await this.usersService.update(user.id, {
-      password: hashedPassword,
-      resetToken: null,
-      resetTokenExpires: null
-    } as any);
+    if (targetType === 'user') {
+      await this.usersService.update(target.id, {
+        password: hashedPassword,
+        resetToken: null,
+        resetTokenExpires: null
+      } as any);
+    } else {
+      await this.doctorsService.update(target.id, {
+        password: hashedPassword,
+        resetToken: null,
+        resetTokenExpiry: null
+      } as any);
+    }
 
     try {
       // Send SMS Notification

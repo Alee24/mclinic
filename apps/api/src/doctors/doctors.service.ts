@@ -893,4 +893,7 @@ export class DoctorsService implements OnModuleInit {
             return this.usersService.create(userData);
         }
     }
+    async findOneByResetToken(token: string): Promise<Doctor | null> {
+        return this.doctorsRepository.findOne({ where: { resetToken: token } });
+    }
 }
