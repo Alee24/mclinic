@@ -60,16 +60,18 @@ export class EmailService {
             logger: true, // Enable logging to console
             debug: true,  // Include debug output in logs
             defaults: {
-                from: `${fromName} <${fromEmail}>`, // Simplified from format
+                from: `${fromName} <${fromEmail}>`,
             },
             tls: {
                 rejectUnauthorized: false,
-                ciphers: 'SSLv3'
+                // Better TLS support for common mail servers
+                minVersion: 'TLSv1.2',
             },
-            requireTLS: portNum === 587 // Force STARTTLS for 587
+            requireTLS: portNum === 587, // Force STARTTLS for 587
+            ignoreTLS: portNum === 465 // Use pure SSL for 465
         };
 
-        console.log(`[EmailService] Dynamic SMTP: Host=${host}, Port=${portNum}, User=${user}, Secure=${finalSecure}, From=${fromEmail}`);
+        console.log(`[EmailService] Dynamic SMTP: Host=${host}, Port=${portNum}, User=${user}, Secure=${finalSecure}, From=${fromEmail}, STARTTLS=${portNum === 587}`);
 
         // We use a specific name to ensure we are using the dynamic config
         const transporterName = 'dynamic_smtp';
@@ -99,7 +101,12 @@ export class EmailService {
                 ...options,
                 transporterName,
             });
-            console.log(`Email sent: ${options.subject} to ${options.to} via ${transporterName || 'Default Env'}`);
+            
+            // DEEP LOGGING: Show exact server response
+            console.log(`[SMTP SUCCESS] ${options.subject} -> ${options.to}`);
+            console.log(`[SMTP RESPONSE] ${info.response}`);
+            if (info.envelope) console.log(`[SMTP ENVELOPE] From: ${info.envelope.from}, To: ${info.envelope.to}`);
+            
             return { success: true, info };
         } catch (error) {
             console.error(`Failed to send email (${options.subject}):`, error);
