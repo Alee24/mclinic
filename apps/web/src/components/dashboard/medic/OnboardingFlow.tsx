@@ -23,7 +23,7 @@ export default function OnboardingFlow({ doctor, onComplete }: Props) {
     const [showOtherRegulatory, setShowOtherRegulatory] = useState(false);
 
     const [profileFile, setProfileFile] = useState<File | null>(null);
-    const [profilePreview, setProfilePreview] = useState(doctor.profile_image ? (doctor.profile_image.startsWith('http') ? doctor.profile_image : `${API_URL}/uploads/profiles/${doctor.profile_image}`) : '');
+    const [profilePreview, setProfilePreview] = useState(doctor.profile_image ? (doctor.profile_image.startsWith('http') ? doctor.profile_image : `/api/uploads/profiles/${doctor.profile_image}`) : '');
 
     const [formData, setFormData] = useState({
         about: doctor.about || '',

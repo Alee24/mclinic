@@ -82,8 +82,7 @@ export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: Ed
                     setProfilePreview(doctor.profile_image);
                 } else {
                     const baseUrl = API_URL || '';
-                    const path = baseUrl.endsWith('/api') ? '/uploads/profiles/' : '/api/uploads/profiles/';
-                    setProfilePreview(`${baseUrl}${path}${doctor.profile_image}`);
+                    setProfilePreview(`/api/uploads/profiles/${doctor.profile_image}`);
                 }
             } else {
                 setProfilePreview('');

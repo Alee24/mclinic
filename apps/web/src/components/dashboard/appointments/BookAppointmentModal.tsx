@@ -77,7 +77,7 @@ const DoctorAvatar = ({ doctor }: { doctor: Doctor }) => {
 
     return (
         <img
-            src={(doctor.profile_image.startsWith('http') ? doctor.profile_image : `${API_URL}/uploads/profiles/${doctor.profile_image}`)}
+            src={(doctor.profile_image.startsWith('http') ? doctor.profile_image : `/api/uploads/profiles/${doctor.profile_image}`)}
             alt={doctor.fname}
             className="w-full h-full object-cover"
             onError={() => setError(true)}

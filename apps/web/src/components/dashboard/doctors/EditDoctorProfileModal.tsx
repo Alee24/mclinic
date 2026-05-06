@@ -66,7 +66,7 @@ export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: Ed
                 if (doctor.profile_image.startsWith('http') || doctor.profile_image.startsWith('blob:')) {
                     setProfilePreview(doctor.profile_image);
                 } else {
-                    setProfilePreview(`${API_URL}/uploads/profiles/${doctor.profile_image}`);
+                    setProfilePreview(`/api/uploads/profiles/${doctor.profile_image}`);
                 }
             } else {
                 setProfilePreview('');

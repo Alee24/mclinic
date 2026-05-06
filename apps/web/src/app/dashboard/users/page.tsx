@@ -360,7 +360,7 @@ export default function UsersPage() {
                                                 <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-700">
                                                     {user.profilePicture ? (
                                                         <img
-                                                            src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434'}/uploads/profiles/${user.profilePicture}`}
+                                                            src={`/api/uploads/profiles/${user.profilePicture}`}
                                                             alt="Profile"
                                                             className="w-full h-full object-cover"
                                                         />
@@ -473,7 +473,7 @@ export default function UsersPage() {
                                     <div className="w-24 h-24 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden border-4 border-white dark:border-[#1A1A1A] shadow-lg">
                                         {(editForm.profilePicture || editingUser.profilePicture) ? (
                                             <img
-                                                src={editForm.profilePicture ? URL.createObjectURL(editForm.profilePicture) : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434'}/uploads/profiles/${editingUser.profilePicture}`}
+                                                src={editForm.profilePicture ? URL.createObjectURL(editForm.profilePicture) : `/api/uploads/profiles/${editingUser.profilePicture}`}
                                                 alt="Profile"
                                                 className="w-full h-full object-cover"
                                             />

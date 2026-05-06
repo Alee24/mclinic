@@ -62,7 +62,7 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
                         if (data.profile_image.startsWith('http') || data.profile_image.startsWith('blob:')) {
                             setPreviewUrl(data.profile_image);
                         } else {
-                            setPreviewUrl(`${API_URL}/uploads/profiles/${data.profile_image}`);
+                            setPreviewUrl(`/api/uploads/profiles/${data.profile_image}`);
                         }
                     }
                 }

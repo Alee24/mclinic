@@ -140,7 +140,7 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
                         <div className="relative">
                             {(isDoctor || isAdmin) && patient.profilePicture ? (
                                 <img
-                                    src={`${API_URL}/uploads/profiles/${patient.profilePicture}`}
+                                    src={`/api/uploads/profiles/${patient.profilePicture}`}
                                     alt={`${patient.fname} ${patient.lname}`}
                                     className="w-24 h-24 rounded-2xl object-cover shadow-lg"
                                     onError={(e) => {
@@ -151,7 +151,7 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
                                 />
                             ) : (!isDoctor && !isAdmin) && doctor.profile_image ? (
                                 <img
-                                    src={doctor.profile_image.startsWith('http') ? doctor.profile_image : `${API_URL}/uploads/profiles/${doctor.profile_image}`}
+                                    src={doctor.profile_image.startsWith('http') ? doctor.profile_image : `/api/uploads/profiles/${doctor.profile_image}`}
                                     alt={`${doctor.fname} ${doctor.lname}`}
                                     className="w-24 h-24 rounded-2xl object-cover shadow-lg"
                                     onLoad={() => {

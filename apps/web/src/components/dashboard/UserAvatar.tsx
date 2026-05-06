@@ -18,12 +18,7 @@ export default function UserAvatar({ user, className = "w-full h-full object-cov
                 setImageUrl(user.profilePicture);
             } else {
                 // Use relative path for web, handle potential double /api if baseUrl already has it
-                let baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
-                if (baseUrl.endsWith('/api')) {
-                    setImageUrl(`${baseUrl}/uploads/profiles/${user.profilePicture}`);
-                } else {
-                    setImageUrl(`${baseUrl}/api/uploads/profiles/${user.profilePicture}`);
-                }
+                setImageUrl(`/api/uploads/profiles/${user.profilePicture}`);
             }
             setImageError(false);
         } else {
