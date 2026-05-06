@@ -421,7 +421,7 @@ export class AuthService {
 
   async resetPassword(token: string, newPassword: string) {
     // 1. Try finding in Users
-    let target = await this.usersService.findByToken(token);
+    let target: any = await this.usersService.findByToken(token);
     let targetType: 'user' | 'doctor' = 'user';
     let expiryField = 'resetTokenExpires';
 
@@ -458,8 +458,8 @@ export class AuthService {
 
     try {
       // Send SMS Notification
-      if (user.mobile) {
-        const formattedMobile = this.smsService.formatMobile(user.mobile);
+      if (target.mobile) {
+        const formattedMobile = this.smsService.formatMobile(target.mobile);
         if (formattedMobile) {
           const message = `M-Clinic: Your account password has been successfully reset. If this was not you, please contact support immediately.`;
           await this.smsService.sendSms(formattedMobile, message);
