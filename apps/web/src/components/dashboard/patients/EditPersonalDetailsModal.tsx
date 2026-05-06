@@ -75,7 +75,6 @@ export default function EditPersonalDetailsModal({ user, onClose, onSuccess }: E
                                         <input type="text" name="lname" value={formData.lname} onChange={handleChange} className="w-full p-3 rounded-xl border-2 border-gray-100 dark:bg-black dark:border-gray-800 dark:text-white text-sm focus:border-blue-500 outline-none transition" required />
                                     </div>
                                 </div>
-                                </div>
 
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wider">Email Address</label>
