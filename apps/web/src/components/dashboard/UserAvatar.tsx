@@ -14,11 +14,12 @@ export default function UserAvatar({ user, className = "w-full h-full object-cov
 
     useEffect(() => {
         if (user?.profilePicture) {
-            if (user.profilePicture.startsWith('http')) {
+            if (user.profilePicture.startsWith('http') || user.profilePicture.startsWith('blob:')) {
                 setImageUrl(user.profilePicture);
             } else {
-                // Use relative path for web, handle potential double /api if baseUrl already has it
-                setImageUrl(`/api/uploads/profiles/${user.profilePicture}`);
+                // Strip any prefixes and just take the filename
+                const filename = user.profilePicture.split('/').pop();
+                setImageUrl(`/api/uploads/profiles/${filename}`);
             }
             setImageError(false);
         } else {
