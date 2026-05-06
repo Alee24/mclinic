@@ -15,8 +15,8 @@ echo "========================================"
 # --- 1. CONFIGURATION CHECK ---
 
 # M-Clinic Config
-MC_API_PORT=3434
-MC_WEB_PORT=3034
+MC_API_PORT=7899
+MC_WEB_PORT=7898
 
 # PesaFlow Config
 PF_API_PORT=5454

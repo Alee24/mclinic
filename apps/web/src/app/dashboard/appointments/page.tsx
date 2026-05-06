@@ -68,6 +68,22 @@ export default function AppointmentsPage() {
         }
     };
 
+    const deleteAppointment = async (id: number) => {
+        if (!confirm('Are you sure you want to PERMANENTLY DELETE this appointment? This action cannot be undone.')) return;
+        try {
+            const res = await api.delete(`/appointments/${id}`);
+            if (res?.ok) {
+                alert('Appointment deleted successfully');
+                fetchData();
+            } else {
+                alert('Failed to delete appointment');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Error deleting appointment');
+        }
+    };
+
     useEffect(() => {
         if (user) {
             fetchData();
@@ -205,117 +221,137 @@ export default function AppointmentsPage() {
                                         </td>
                                     )}
                                     <td className="px-6 py-4">
-                                        <div className="flex gap-2 items-center flex-wrap">
-                                            {/* Patient-side Actions (Available if you are the patient in this apt) */}
-                                            {user?.id === Number(apt.patientId) && (
-                                                <>
-                                                    {apt.status === 'completed' && (
-                                                        <button
-                                                            onClick={() => {
-                                                                setSelectedAppointment(apt);
-                                                                setShowRateModal(true);
-                                                            }}
-                                                            className="text-xs font-bold px-3 py-1.5 rounded bg-yellow-400 text-black hover:bg-yellow-500 transition"
-                                                        >
-                                                            Rate Medic
-                                                        </button>
-                                                    )}
-                                                    {apt.meetingLink && apt.meetingId && apt.status === 'confirmed' && (
-                                                        <Link
-                                                            href={`/dashboard/meetings/${apt.meetingId}`}
-                                                            className="flex items-center gap-1.5 bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-blue-700 transition"
-                                                        >
-                                                            <FiVideo /> Join
-                                                        </Link>
-                                                    )}
-                                                </>
-                                            )}
+                                         <div className="flex gap-2 items-center flex-wrap">
+                                             {/* General Details button for everyone */}
+                                             <button
+                                                 onClick={() => {
+                                                     setSelectedAppointment(apt);
+                                                     setShowDetailsModal(true);
+                                                 }}
+                                                 className="text-[10px] font-black px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition uppercase tracking-tighter"
+                                                 title="View Full Details"
+                                             >
+                                                 Details
+                                             </button>
 
-                                            {/* Doctor-side Actions (Available if you are the doctor assigned to this apt) */}
-                                            {isDoctor && Number(user?.doctorId) === Number(apt.doctorId) && (
-                                                <>
-                                                    {apt.status === 'confirmed' && (
-                                                        <div className="flex gap-1">
-                                                            <button
-                                                                onClick={() => updateStatus(apt.id, 'completed')}
-                                                                className="text-xs font-bold px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-                                                                title="Mark Completed & Release Funds"
-                                                            >
-                                                                Complete
-                                                            </button>
-                                                            {apt.meetingLink && (
-                                                                <Link
-                                                                    href={`/dashboard/meetings/${apt.meetingId}`}
-                                                                    className="flex items-center gap-1.5 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded hover:bg-blue-700 transition"
-                                                                >
-                                                                    <FiVideo />
-                                                                </Link>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                    {apt.status === 'confirmed' && (
-                                                        <button
-                                                            onClick={() => updateStatus(apt.id, 'missed')}
-                                                            className="text-xs font-bold px-2 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200"
-                                                        >
-                                                            Missed
-                                                        </button>
-                                                    )}
-                                                </>
-                                            )}
+                                             {/* Patient-side Actions */}
+                                             {user?.id === Number(apt.patientId) && (
+                                                 <>
+                                                     {apt.status === 'completed' && (
+                                                         <button
+                                                             onClick={() => {
+                                                                 setSelectedAppointment(apt);
+                                                                 setShowRateModal(true);
+                                                             }}
+                                                             className="text-[10px] font-black px-3 py-1.5 rounded-lg bg-yellow-400 text-black hover:bg-yellow-500 transition uppercase tracking-tighter"
+                                                         >
+                                                             Rate Medic
+                                                         </button>
+                                                     )}
+                                                     {apt.meetingLink && apt.meetingId && apt.status === 'confirmed' && (
+                                                         <Link
+                                                             href={`/dashboard/meetings/${apt.meetingId}`}
+                                                             className="flex items-center gap-1.5 bg-blue-600 text-white text-[10px] font-black px-3 py-1.5 rounded-lg hover:bg-blue-700 transition uppercase tracking-tighter"
+                                                         >
+                                                             <FiVideo /> Join Session
+                                                         </Link>
+                                                     )}
+                                                     {['pending', 'confirmed'].includes(apt.status) && (
+                                                         <button
+                                                             onClick={() => updateStatus(apt.id, 'cancelled')}
+                                                             className="text-[10px] font-black px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition uppercase tracking-tighter"
+                                                         >
+                                                             Cancel
+                                                         </button>
+                                                     )}
+                                                 </>
+                                             )}
 
-                                            {/* General Details button for everyone */}
-                                            <button
-                                                onClick={() => {
-                                                    setSelectedAppointment(apt);
-                                                    setShowDetailsModal(true);
-                                                }}
-                                                className="text-xs font-bold px-3 py-1.5 rounded border border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800 transition"
-                                            >
-                                                Details
-                                            </button>
+                                             {/* Doctor-side Actions */}
+                                             {isDoctor && Number(user?.doctorId) === Number(apt.doctorId) && (
+                                                 <>
+                                                     {apt.status === 'confirmed' && (
+                                                         <>
+                                                             <button
+                                                                 onClick={() => updateStatus(apt.id, 'completed')}
+                                                                 className="text-[10px] font-black px-3 py-1.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 uppercase tracking-tighter"
+                                                             >
+                                                                 Complete
+                                                             </button>
+                                                             {apt.meetingLink && (
+                                                                 <Link
+                                                                     href={`/dashboard/meetings/${apt.meetingId}`}
+                                                                     className="flex items-center gap-1.5 bg-blue-600 text-white text-[10px] font-black px-3 py-1.5 rounded-lg hover:bg-blue-700 transition"
+                                                                 >
+                                                                     <FiVideo />
+                                                                 </Link>
+                                                             )}
+                                                             <button
+                                                                 onClick={() => updateStatus(apt.id, 'missed')}
+                                                                 className="text-[10px] font-black px-3 py-1.5 bg-rose-100 text-rose-600 rounded-lg hover:bg-rose-200 uppercase tracking-tighter"
+                                                             >
+                                                                 Missed
+                                                             </button>
+                                                         </>
+                                                     )}
+                                                 </>
+                                             )}
 
-                                            {/* Admin Actions */}
-                                            {isAdmin && (
-                                                <>
-                                                    {apt.invoice && apt.invoice.status !== 'paid' && apt.invoice.status !== 'PAID' && (
-                                                        <button
-                                                            onClick={async () => {
-                                                                if (!confirm('Confirm payment for this appointment? This will:\n- Mark invoice as PAID\n- Confirm the appointment\n- Credit the doctor\'s wallet (60%)')) return;
-                                                                try {
-                                                                    const res = await api.post(`/financial/invoices/${apt.invoice.id}/confirm-payment`, {
-                                                                        paymentMethod: 'MANUAL',
-                                                                        transactionId: `ADMIN-${Date.now()}`
-                                                                    });
-                                                                    if (res?.ok) {
-                                                                        alert('Payment confirmed successfully! Wallet has been credited.');
-                                                                        fetchData();
-                                                                    } else {
-                                                                        alert('Failed to confirm payment. Please try again.');
-                                                                    }
-                                                                } catch (err) {
-                                                                    console.error(err);
-                                                                    alert('Error confirming payment.');
-                                                                }
-                                                            }}
-                                                            className="text-xs font-bold px-3 py-1.5 rounded bg-green-600 text-white hover:bg-green-700 transition"
-                                                        >
-                                                            ✓ Confirm Payment
-                                                        </button>
-                                                    )}
-                                                    <button
-                                                        onClick={() => {
-                                                            setSelectedAppointment(apt);
-                                                            setShowDetailsModal(true);
-                                                        }}
-                                                        className="text-xs font-bold px-3 py-1.5 rounded border border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800 transition"
-                                                    >
-                                                        View Details
-                                                    </button>
-                                                </>
-                                            )}
-                                        </div>
-                                    </td>
+                                             {/* Admin Actions */}
+                                             {isAdmin && (
+                                                 <>
+                                                     {apt.invoice && apt.invoice.status !== 'paid' && apt.invoice.status !== 'PAID' && (
+                                                         <button
+                                                             onClick={async () => {
+                                                                 if (!confirm('Confirm payment for this appointment?')) return;
+                                                                 try {
+                                                                     const res = await api.post(`/financial/invoices/${apt.invoice.id}/confirm-payment`, {
+                                                                         paymentMethod: 'MANUAL',
+                                                                         transactionId: `ADMIN-${Date.now()}`
+                                                                     });
+                                                                     if (res?.ok) {
+                                                                         alert('Payment confirmed!');
+                                                                         fetchData();
+                                                                     }
+                                                                 } catch (err) {
+                                                                     console.error(err);
+                                                                 }
+                                                             }}
+                                                             className="text-[10px] font-black px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition uppercase tracking-tighter"
+                                                         >
+                                                             Paid
+                                                         </button>
+                                                     )}
+                                                     
+                                                     <button
+                                                         onClick={() => {
+                                                             setSelectedAppointment(apt);
+                                                             setShowModal(true);
+                                                         }}
+                                                         className="text-[10px] font-black px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition uppercase tracking-tighter"
+                                                     >
+                                                         Edit
+                                                     </button>
+
+                                                     <button
+                                                         onClick={() => deleteAppointment(apt.id)}
+                                                         className="text-[10px] font-black px-3 py-1.5 rounded-lg bg-rose-600 text-white hover:bg-rose-700 transition uppercase tracking-tighter"
+                                                     >
+                                                         Delete
+                                                     </button>
+
+                                                     {['pending', 'confirmed'].includes(apt.status) && (
+                                                         <button
+                                                             onClick={() => updateStatus(apt.id, 'cancelled')}
+                                                             className="text-[10px] font-black px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition uppercase tracking-tighter"
+                                                         >
+                                                             Cancel
+                                                         </button>
+                                                     )}
+                                                 </>
+                                             )}
+                                         </div>
+                                     </td>
                                 </tr>
                             ))
                         )}
@@ -325,9 +361,14 @@ export default function AppointmentsPage() {
 
             {showModal && (
                 <CreateAppointmentModal
-                    onClose={() => setShowModal(false)}
+                    initialData={selectedAppointment}
+                    onClose={() => {
+                        setShowModal(false);
+                        setSelectedAppointment(null);
+                    }}
                     onSuccess={() => {
                         setShowModal(false);
+                        setSelectedAppointment(null);
                         fetchData();
                     }}
                 />

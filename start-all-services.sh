@@ -6,8 +6,8 @@
 # This script starts all services for both systems with proper port separation
 # 
 # Port Assignments:
-#   M-Clinic API:  3434
-#   M-Clinic Web:  3034
+#   M-Clinic API:  7899
+#   M-Clinic Web:  7898
 #   PesaFlow API:  5454
 #   PesaFlow Web:  5054
 ################################################################################
@@ -84,8 +84,8 @@ echo "========================================"
 echo "🎯 PORT VERIFICATION:"
 echo "========================================"
 echo "Expected:"
-echo "  M-Clinic API:  3434"
-echo "  M-Clinic Web:  3034"
+echo "  M-Clinic API:  7899"
+echo "  M-Clinic Web:  7898"
 echo "  PesaFlow API:  5454"
 echo "  PesaFlow Web:  5054"
 echo ""
@@ -125,8 +125,8 @@ test_service() {
     return 1
 }
 
-test_service "M-Clinic API" 3434 false
-test_service "M-Clinic Web" 3034 true
+test_service "M-Clinic API" 7899 false
+test_service "M-Clinic Web" 7898 true
 test_service "PesaFlow API" 5454 false
 test_service "PesaFlow Web" 5054 true
 

@@ -98,12 +98,16 @@
             <p>Best regards,<br>The M-Clinic Kenya Team</p>
         </div>
         <div class="footer">
-            <p>&copy; 2025 M-Clinic Kenya. All rights reserved.</p>
+            <p>&copy; {{year}} M-Clinic Kenya. All rights reserved.</p>
             <p>
                 <strong>Contact Us:</strong><br>
                 Phone: 0700448448 | Email: info@mclinic.co.ke | Web: www.mclinic.co.ke
             </p>
-            <p style="font-size: 10px; color: #999; margin-top: 10px;">This is an automated email, please do not reply.
+            <p style="margin: 20px 0;">
+                <a href="{{dashboardUrl}}/profile" style="color: #666; text-decoration: underline;">Unsubscribe from these emails</a> | 
+                <a href="{{dashboardUrl}}/profile" style="color: #666; text-decoration: underline;">Email Preferences</a>
+            </p>
+            <p style="font-size: 10px; color: #999; margin-top: 10px;">This is an automated email sent to {{name}}. Please do not reply.
             </p>
         </div>
     </div>

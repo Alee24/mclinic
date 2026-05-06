@@ -2,24 +2,48 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #1A2C35;
+  --mc-crimson: #C2003F;
+  --mc-green: #00C65E;
+  --mc-dark: #1A2C35;
+  --mc-light: #F8FAFC;
+  --radius-xl: 2rem;
+  --radius-2xl: 3rem;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-outfit);
 
-  /* M-Clinic Brand Colors */
-  --color-primary: #00F090;
-  --color-brand-red: #E91E63;
-  --color-brand-blue: #B3E5FC;
+  /* M-Clinic Premium Palette */
+  --color-mc-crimson: #C2003F;
+  --color-mc-green: #00C65E;
+  --color-mc-dark: #1A2C35;
+  --color-mc-light: #F8FAFC;
+  --color-mc-accent: #FF4D6D;
+}
 
-  /* Donezo Theme */
-  --color-donezo-dark: #1B4D3E;
-  --color-donezo-green: #4ADE80;
-  --color-donezo-bg: #F8FAFC;
+/* Glassmorphism */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Organic Blobs */
+.blob-shape {
+  border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+}
+
+/* Card Transitions */
+.premium-card {
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.premium-card:hover {
+  transform: translateY(-10px) scale(1.02);
 }
 
 :root.dark {

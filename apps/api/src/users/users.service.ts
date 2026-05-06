@@ -21,6 +21,7 @@ export class UsersService implements OnModuleInit {
       await this.ensureLastAccessColumn();
       await this.ensureIsPublicColumn();
       await this.ensureResetTokenExpiresColumn();
+      await this.ensureProfileImageColumn();
     } catch (e) {
       console.error('[UsersService] ensureLastAccessColumn failed:', e);
     }
@@ -89,6 +90,23 @@ export class UsersService implements OnModuleInit {
       }
     } catch (err) {
       console.error('[UsersService] Could not ensure resetTokenExpires column:', err);
+    }
+  }
+
+  // Ensure profile_image column exists
+  private async ensureProfileImageColumn() {
+    try {
+      const cols = await this.dataSource.query(
+        `SHOW COLUMNS FROM users LIKE 'profile_image'`
+      );
+      if (cols.length === 0) {
+        await this.dataSource.query(
+          `ALTER TABLE users ADD COLUMN profile_image VARCHAR(255) DEFAULT NULL`
+        );
+        console.log('[UsersService] profile_image column created.');
+      }
+    } catch (err) {
+      console.error('[UsersService] Could not ensure profile_image column:', err);
     }
   }
 

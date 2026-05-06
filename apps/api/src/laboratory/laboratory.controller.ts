@@ -4,6 +4,7 @@ import { diskStorage } from 'multer';
 import { LaboratoryService } from './laboratory.service';
 import { AuthGuard } from '@nestjs/passport';
 import { UserRole } from '../users/entities/user.entity';
+import { join } from 'path';
 
 @Controller('laboratory')
 export class LaboratoryController {
@@ -61,7 +62,7 @@ export class LaboratoryController {
     @UseInterceptors(
         FileInterceptor('file', {
             storage: diskStorage({
-                destination: './uploads/reports',
+                destination: join(__dirname, '..', '..', 'uploads', 'reports'),
                 filename: (req, file, cb) => {
                     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
                     const ext = file.originalname.split('.').pop();

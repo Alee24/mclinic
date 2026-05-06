@@ -12,6 +12,7 @@
     "test": "npm run test --workspaces --if-present",
     "deploy": "git pull && npm run build && pm2 restart all"
   },
+  "packageManager": "npm@10.8.2",
   "devDependencies": {
     "ts-node": "^10.9.2",
     "turbo": "latest"

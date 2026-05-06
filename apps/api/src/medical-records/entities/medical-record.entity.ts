@@ -10,6 +10,8 @@ import { User } from '../../users/entities/user.entity';
 import { Doctor } from '../../doctors/entities/doctor.entity';
 import { Appointment } from '../../appointments/entities/appointment.entity';
 
+import { Encrypt } from '../../common/transformers/encryption.transformer';
+
 @Entity('medical_record')
 export class MedicalRecord {
   @PrimaryGeneratedColumn()
@@ -33,13 +35,13 @@ export class MedicalRecord {
   @Column({ nullable: true })
   appointmentId: number;
 
-  @Column()
+  @Column({ transformer: Encrypt })
   diagnosis: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, transformer: Encrypt })
   prescription: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, transformer: Encrypt })
   notes: string;
 
   @CreateDateColumn()

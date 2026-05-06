@@ -22,19 +22,19 @@ export class Patient {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ length: 40, nullable: true })
+  @Column({ length: 40, nullable: true, transformer: Encrypt })
   fname: string;
 
-  @Column({ length: 50, nullable: true })
+  @Column({ length: 50, nullable: true, transformer: Encrypt })
   lname: string;
 
-  @Column({ length: 40, nullable: true })
+  @Column({ length: 40, nullable: true, transformer: Encrypt })
   mobile: string;
 
-  @Column({ length: 20, nullable: true })
+  @Column({ length: 20, nullable: true, transformer: Encrypt })
   dob: string;
 
-  @Column({ length: 20, nullable: true })
+  @Column({ length: 20, nullable: true, transformer: Encrypt })
   sex: string;
 
   @Column({ type: 'text', nullable: true, transformer: Encrypt })
@@ -76,13 +76,13 @@ export class Patient {
   social_history: string;
 
   // Emergency Contact
-  @Column({ length: 100, nullable: true })
+  @Column({ length: 100, nullable: true, transformer: Encrypt })
   emergency_contact_name: string;
 
   @Column({ length: 255, nullable: true, transformer: Encrypt })
   emergency_contact_phone: string;
 
-  @Column({ length: 40, nullable: true })
+  @Column({ length: 40, nullable: true, transformer: Encrypt })
   emergency_contact_relation: string;
 
   // Insurance

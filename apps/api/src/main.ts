@@ -4,11 +4,23 @@ import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { AllExceptionsFilter } from './http-exception.filter';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useGlobalFilters(new AllExceptionsFilter());
+  app.use(helmet({
+    crossOriginEmbedderPolicy: false,
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: [`'self'`],
+        styleSrc: [`'self'`, `'unsafe-inline'`],
+        imgSrc: [`'self'`, 'data:', 'blob:', 'https:'],
+        scriptSrc: [`'self'`, `'unsafe-inline'`],
+      },
+    },
+  }));
   app.setGlobalPrefix('api');
   app.enableCors({
     origin: true,
@@ -22,15 +34,16 @@ async function bootstrap() {
   const profilesDir = join(uploadsDir, 'profiles');
   const sigsDir = join(uploadsDir, 'signatures');
   const stampsDir = join(uploadsDir, 'stamps');
+  const reportsDir = join(uploadsDir, 'reports');
   
-  [uploadsDir, profilesDir, sigsDir, stampsDir].forEach(dir => {
+  [uploadsDir, profilesDir, sigsDir, stampsDir, reportsDir].forEach(dir => {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   });
   console.log(`[API] Static Assets mounted at: ${uploadsDir}`);
 
   // Serve static files from 'uploads' directory
   app.useStaticAssets(uploadsDir, {
-    prefix: '/api/uploads/',
+    prefix: '/uploads/',
   });
 
   const port = process.env.PORT ?? 7899;

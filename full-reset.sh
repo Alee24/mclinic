@@ -12,36 +12,28 @@ DB_PASS=${DB_PASSWORD:-"Mclinic@App2023?"}
 DB_NAME=${DB_NAME:-"mclinicportal"}
 DB_HOST=${DB_HOST:-"127.0.0.1"}
 
-echo "🚀 Starting Full System Reinstall & Reset..."
+echo "🚀 Starting Full System Update..."
 
 echo "📥 Updating code from repository..."
 git fetch origin
 git reset --hard origin/MobileApp
 
-echo "🧹 Clearing old builds and dependencies..."
-find . -name "node_modules" -type d -prune -exec rm -rf '{}' +
-find . -name "dist" -type d -prune -exec rm -rf '{}' +
-find . -name ".next" -type d -prune -exec rm -rf '{}' +
-
 echo "📦 Installing dependencies..."
-npm install
-
-echo "🗄️  Resetting Database ($DB_NAME)..."
-mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" -e "DROP DATABASE IF EXISTS $DB_NAME; CREATE DATABASE $DB_NAME;"
+npm install --legacy-peer-deps
 
 echo "🔧 Building API..."
 cd apps/api
-npm install
+npm install --legacy-peer-deps
 npm run build
 
-echo "🌱 Seeding Essential Data (Admin & Settings)..."
+echo "🌱 Ensuring Essential Data (Admin & Settings)..."
 # We use a standalone script to avoid needing the API to be running yet
 npx ts-node -r tsconfig-paths/register src/database/seed-essential.ts || {
-  echo "⚠️  Standalone seed failed, trying via API endpoint..."
-  pm2 restart mclinic-api || pm2 start dist/main.js --name mclinic-api
-  echo "Waiting 30 seconds for API to start..."
-  sleep 30
-  curl -X POST http://localhost:3434/seeding/reset-fresh
+  echo "⚠️  Standalone maintenance failed, trying via API endpoint..."
+  pm2 restart mclinic-api --update-env || PORT=7899 pm2 start dist/main.js --name mclinic-api
+  echo "Waiting 10 seconds for API to start..."
+  sleep 10
+  curl -X POST http://localhost:7899/api/seeding/settings
 }
 
 echo "🏗️  Building Web App..."

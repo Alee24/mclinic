@@ -35,6 +35,7 @@ import { EmergencyModule } from './emergency/emergency.module';
 import { SmsModule } from './sms/sms.module';
 import { SupportModule } from './support/support.module';
 import { NotificationModule } from './notification/notification.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -91,6 +92,10 @@ import { NotificationModule } from './notification/notification.module';
     SmsModule,
     SupportModule,
     NotificationModule,
+    ThrottlerModule.forRoot([{
+      ttl: 60000,
+      limit: 100, // 100 requests per minute
+    }]),
   ],
   controllers: [AppController],
   providers: [

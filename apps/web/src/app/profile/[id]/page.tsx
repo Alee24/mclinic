@@ -89,7 +89,7 @@ export default function MedicProfilePage() {
               <div className="relative group">
                 <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-emerald-500/10 mb-6">
                   <img 
-                    src={medic.profilePicture ? `/uploads/profiles/${medic.profilePicture}` : `https://ui-avatars.com/api/?name=${medic.fname}+${medic.lname}&background=10b981&color=fff&size=512`}
+                    src={medic.profilePicture ? `/api/uploads/profiles/${medic.profilePicture}` : `https://ui-avatars.com/api/?name=${medic.fname}+${medic.lname}&background=10b981&color=fff&size=512`}
                     alt={`${medic.fname} ${medic.lname}`}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />

@@ -49,14 +49,14 @@ pm2 status
 
 echo ""
 echo ">>> Checking if ports are listening..."
-netstat -tlnp | grep -E '3034|3434'
+netstat -tlnp | grep -E '7898|7899'
 
 echo ""
 echo "========================================="
 echo "M-Clinic Services Started!"
 echo "========================================="
-echo "Frontend (Internal): http://localhost:3034"
-echo "API (Internal):      http://localhost:3434"
+echo "Frontend (Internal): http://localhost:7898"
+echo "API (Internal):      http://localhost:7899"
 echo "Public URL:          https://portal.mclinic.co.ke"
 echo ""
 echo "To view logs:"

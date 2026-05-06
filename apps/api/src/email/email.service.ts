@@ -62,6 +62,13 @@ export class EmailService {
             defaults: {
                 from: `${fromName} <${fromEmail}>`,
             },
+            // DKIM Signature (Essential for deliverability)
+            // To enable, add these to your .env: DKIM_DOMAIN, DKIM_KEY_SELECTOR, DKIM_PRIVATE_KEY
+            dkim: this.configService.get('DKIM_PRIVATE_KEY') ? {
+                domainName: this.configService.get('DKIM_DOMAIN') || 'mclinic.co.ke',
+                keySelector: this.configService.get('DKIM_KEY_SELECTOR') || 'default',
+                privateKey: this.configService.get('DKIM_PRIVATE_KEY'),
+            } : undefined,
             tls: {
                 rejectUnauthorized: false,
                 // Better TLS support for common mail servers
@@ -103,10 +110,22 @@ export class EmailService {
             const smtpUser = await this.settingsService.get('EMAIL_SMTP_USER');
             const fromEmail = dbFromEmail?.trim() || this.configService.get('SMTP_FROM_EMAIL') || smtpUser;
 
+            // Generate text version if not provided to avoid spam filters (they hate HTML-only emails)
+            let textVersion = options.text;
+            if (!textVersion && options.html) {
+                textVersion = (options.html as string).replace(/<[^>]*>?/gm, '').trim();
+            }
+
             const info = await this.mailerService.sendMail({
                 ...options,
                 from: options.from || `"${fromName}" <${fromEmail}>`,
+                text: textVersion,
                 transporterName,
+                headers: {
+                    'List-Unsubscribe': `<mailto:notifications@mclinic.co.ke?subject=unsubscribe>, <${this.frontendUrl}/profile>`,
+                    'X-Entity-Ref-ID': Date.now().toString(),
+                    'Precedence': 'bulk',
+                },
             });
             
             // DEEP LOGGING: Show exact server response
@@ -133,6 +152,7 @@ export class EmailService {
                 isMedic: ['doctor', 'medic', 'nurse', 'clinician', 'pharmacy', 'lab_tech'].includes(role.toLowerCase()),
                 loginUrl: `${this.frontendUrl}/login`,
                 dashboardUrl: `${this.frontendUrl}/dashboard`,
+                year: new Date().getFullYear(),
             },
         });
     }

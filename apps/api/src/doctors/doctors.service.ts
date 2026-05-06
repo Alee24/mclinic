@@ -76,6 +76,11 @@ export class DoctorsService implements OnModuleInit {
 
     async onModuleInit() {
         console.log('[DoctorsService] Startup checks bypassed (Strict Separation Active)');
+        try {
+            await this.ensureColumnsExist();
+        } catch (e) {
+            console.error('[DoctorsService] Column checks failed:', e);
+        }
         // try {
         //     await this.backfillUserIds();
         //     await this.syncDoctorsWithUsers();
@@ -85,6 +90,30 @@ export class DoctorsService implements OnModuleInit {
         //     console.error('[DoctorsService] Startup sync failed:', error);
         //     // Don't throw, let the app start
         // }
+    }
+
+    private async ensureColumnsExist() {
+        const columns = [
+            { name: 'profile_image', definition: 'VARCHAR(255) DEFAULT NULL' },
+            { name: 'signatureUrl', definition: 'VARCHAR(255) DEFAULT NULL' },
+            { name: 'stampUrl', definition: 'VARCHAR(255) DEFAULT NULL' }
+        ];
+
+        for (const col of columns) {
+            try {
+                const cols = await this.doctorsRepository.query(
+                    `SHOW COLUMNS FROM doctors LIKE '${col.name}'`
+                );
+                if (cols.length === 0) {
+                    await this.doctorsRepository.query(
+                        `ALTER TABLE doctors ADD COLUMN ${col.name} ${col.definition}`
+                    );
+                    console.log(`[DoctorsService] ${col.name} column created.`);
+                }
+            } catch (err) {
+                console.error(`[DoctorsService] Could not ensure ${col.name} column:`, err);
+            }
+        }
     }
 
     private async backfillUserIds() {
@@ -824,7 +853,7 @@ export class DoctorsService implements OnModuleInit {
 
     private async downloadProfileImage(url: string, doctorId: number): Promise<string | null> {
         try {
-            const destDir = path.resolve(process.cwd(), 'uploads', 'profiles');
+            const destDir = path.join(__dirname, '..', '..', 'uploads', 'profiles');
             if (!fs.existsSync(destDir)) {
                 fs.mkdirSync(destDir, { recursive: true });
             }

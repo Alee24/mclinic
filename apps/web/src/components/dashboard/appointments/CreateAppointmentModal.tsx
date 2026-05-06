@@ -5,21 +5,22 @@ import { FiX } from 'react-icons/fi';
 interface CreateAppointmentModalProps {
     onClose: () => void;
     onSuccess: () => void;
+    initialData?: any;
 }
 
-export default function CreateAppointmentModal({ onClose, onSuccess }: CreateAppointmentModalProps) {
+export default function CreateAppointmentModal({ onClose, onSuccess, initialData }: CreateAppointmentModalProps) {
     const [loading, setLoading] = useState(false);
     const [patients, setPatients] = useState<any[]>([]);
     const [doctors, setDoctors] = useState<any[]>([]);
     const [services, setServices] = useState<any[]>([]);
 
     const [formData, setFormData] = useState({
-        patientId: '',
-        doctorId: '',
-        serviceId: '',
-        date: '',
-        time: '',
-        notes: ''
+        patientId: initialData?.patientId || '',
+        doctorId: initialData?.doctorId || '',
+        serviceId: initialData?.serviceId || '',
+        date: initialData?.appointment_date ? new Date(initialData.appointment_date).toISOString().split('T')[0] : '',
+        time: initialData?.appointment_time || '',
+        notes: initialData?.notes || ''
     });
 
     useEffect(() => {
@@ -47,31 +48,24 @@ export default function CreateAppointmentModal({ onClose, onSuccess }: CreateApp
                 return;
             }
 
-            const dateTimeStr = `${formData.date}T${formData.time}`;
-            const dateTime = new Date(dateTimeStr);
-
-            if (isNaN(dateTime.getTime())) {
-                alert('Invalid date or time');
-                setLoading(false);
-                return;
-            }
-
-            const res = await api.post('/appointments', {
+            const data = {
                 patientId: parseInt(formData.patientId),
                 doctorId: parseInt(formData.doctorId),
                 appointmentDate: formData.date,
                 appointmentTime: formData.time,
                 serviceId: formData.serviceId ? parseInt(formData.serviceId) : null,
-                isVirtual: false,
                 notes: formData.notes,
-                status: 'pending'
-            });
+            };
+
+            const res = initialData 
+                ? await api.patch(`/appointments/${initialData.id}/reschedule`, { date: formData.date, time: formData.time })
+                : await api.post('/appointments', { ...data, isVirtual: false, status: 'pending' });
 
             if (res && res.ok) {
-                alert('Appointment created successfully! Invoice has been generated.');
+                alert(initialData ? 'Appointment updated successfully!' : 'Appointment created successfully!');
                 onSuccess();
             } else {
-                alert('Failed to create appointment');
+                alert('Failed to process appointment');
             }
         } catch (err) {
             console.error(err);
@@ -81,44 +75,55 @@ export default function CreateAppointmentModal({ onClose, onSuccess }: CreateApp
         }
     };
 
-
-
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white dark:bg-[#1A1A1A] w-full max-w-lg rounded-xl shadow-2xl p-6">
                 <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-bold dark:text-white">New Appointment Booking</h2>
+                    <h2 className="text-xl font-bold dark:text-white">
+                        {initialData ? 'Edit Appointment' : 'New Appointment Booking'}
+                    </h2>
                     <button onClick={onClose} className="text-gray-500 hover:text-black dark:hover:text-white"><FiX size={24} /></button>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Select Patient</label>
-                        <select
-                            className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white"
-                            required
-                            value={formData.patientId}
-                            onChange={(e) => setFormData({ ...formData, patientId: e.target.value })}
-                        >
-                            <option value="">-- Choose Patient --</option>
-                            {patients.map(p => <option key={p.id} value={p.id}>{p.fname} {p.lname}</option>)}
-                        </select>
-                    </div>
+                    {!initialData && (
+                        <>
+                            <div>
+                                <label className="block text-sm font-medium mb-1 dark:text-gray-300">Select Patient</label>
+                                <select
+                                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white"
+                                    required
+                                    value={formData.patientId}
+                                    onChange={(e) => setFormData({ ...formData, patientId: e.target.value })}
+                                >
+                                    <option value="">-- Choose Patient --</option>
+                                    {patients.map(p => <option key={p.id} value={p.id}>{p.fname} {p.lname}</option>)}
+                                </select>
+                            </div>
 
-                    <div>
-                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Select Doctor</label>
-                        <select
-                            className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white"
-                            required
-                            value={formData.doctorId}
-                            onChange={(e) => setFormData({ ...formData, doctorId: e.target.value })}
-                        >
-                            <option value="">-- Choose Doctor --</option>
-                            {doctors.map(d => <option key={d.id} value={d.id}>{d.fname} {d.lname} - {d.specialty || d.dr_type}</option>)}
-                        </select>
-                    </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1 dark:text-gray-300">Select Doctor</label>
+                                <select
+                                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white"
+                                    required
+                                    value={formData.doctorId}
+                                    onChange={(e) => setFormData({ ...formData, doctorId: e.target.value })}
+                                >
+                                    <option value="">-- Choose Doctor --</option>
+                                    {doctors.map(d => <option key={d.id} value={d.id}>{d.fname} {d.lname} - {d.specialty || d.dr_type}</option>)}
+                                </select>
+                            </div>
+                        </>
+                    )}
 
-
+                    {initialData && (
+                        <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg mb-4">
+                            <p className="text-xs text-blue-600 dark:text-blue-400 font-bold uppercase mb-1">Modifying Appointment</p>
+                            <p className="text-sm font-medium dark:text-white">
+                                {initialData.patient?.fname} {initialData.patient?.lname} with {initialData.doctor?.fname} {initialData.doctor?.lname}
+                            </p>
+                        </div>
+                    )}
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
@@ -143,21 +148,23 @@ export default function CreateAppointmentModal({ onClose, onSuccess }: CreateApp
                         </div>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Notes</label>
-                        <textarea
-                            rows={3}
-                            className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white"
-                            placeholder="Reason for visit..."
-                            value={formData.notes}
-                            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                        />
-                    </div>
+                    {!initialData && (
+                        <div>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Notes</label>
+                            <textarea
+                                rows={3}
+                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white"
+                                placeholder="Reason for visit..."
+                                value={formData.notes}
+                                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                            />
+                        </div>
+                    )}
 
                     <div className="pt-4 flex justify-end gap-3">
                         <button type="button" onClick={onClose} className="px-4 py-2 text-gray-600 dark:text-gray-300 font-medium hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">Cancel</button>
                         <button type="submit" disabled={loading} className="px-6 py-2 bg-primary text-black font-bold rounded-lg hover:opacity-90 disabled:opacity-50">
-                            {loading ? 'Booking...' : 'Confirm Booking'}
+                            {loading ? 'Processing...' : (initialData ? 'Update Appointment' : 'Confirm Booking')}
                         </button>
                     </div>
                 </form>

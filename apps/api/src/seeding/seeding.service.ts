@@ -121,21 +121,22 @@ export class SeedingService {
   }
 
   async clearAll() {
-    await this.itemRepo.delete({ id: MoreThanOrEqual(0) });
-    await this.invoiceRepo.delete({ id: MoreThanOrEqual(0) });
-    await this.txRepo.delete({ id: MoreThanOrEqual(0) });
-    await this.recordRepo.delete({ id: MoreThanOrEqual(0) });
-    await this.appointmentRepo.delete({ id: MoreThanOrEqual(0) });
-    await this.doctorRepo.delete({ id: MoreThanOrEqual(0) });
-    await this.patientRepo.delete({ id: MoreThanOrEqual(0) });
-    await this.priceRepo.delete({ id: MoreThanOrEqual(0) });
-    await this.profileRepo.delete({ id: MoreThanOrEqual(0) });
-    await this.userRepo.delete({ id: MoreThanOrEqual(0) });
-    return { message: 'All data dropped successfully.' };
+    console.log('⚠️  clearAll called - BLOCKED in production mode to prevent data loss.');
+    // await this.itemRepo.delete({ id: MoreThanOrEqual(0) });
+    // await this.invoiceRepo.delete({ id: MoreThanOrEqual(0) });
+    // await this.txRepo.delete({ id: MoreThanOrEqual(0) });
+    // await this.recordRepo.delete({ id: MoreThanOrEqual(0) });
+    // await this.appointmentRepo.delete({ id: MoreThanOrEqual(0) });
+    // await this.doctorRepo.delete({ id: MoreThanOrEqual(0) });
+    // await this.patientRepo.delete({ id: MoreThanOrEqual(0) });
+    // await this.priceRepo.delete({ id: MoreThanOrEqual(0) });
+    // await this.profileRepo.delete({ id: MoreThanOrEqual(0) });
+    // await this.userRepo.delete({ id: MoreThanOrEqual(0) });
+    return { message: 'Data clearing is currently disabled for safety.' };
   }
 
   async seedEssential() {
-    await this.clearAll();
+    // PROTECTED: No longer clearing all data
     await this.seedSettings();
 
     // 6. Seed Service Prices (Required for booking flow)
@@ -158,28 +159,37 @@ export class SeedingService {
     ];
 
     for (const s of serviceData) {
-      await this.priceRepo.save(this.priceRepo.create({
-        serviceName: s.name,
-        amount: s.amount,
-        currency: 'KES',
-        description: s.desc,
-      }));
+      const exists = await this.priceRepo.findOne({ where: { serviceName: s.name } });
+      if (!exists) {
+        await this.priceRepo.save(this.priceRepo.create({
+          serviceName: s.name,
+          amount: s.amount,
+          currency: 'KES',
+          description: s.desc,
+        }));
+      }
     }
 
-    // Create Admin Account
-    const adminPassword = await bcrypt.hash('Digital2025', 10);
-    const adminUser = this.userRepo.create({
-      email: 'mettohalex@gmail.com',
-      password: adminPassword,
-      role: UserRole.ADMIN,
-      status: true,
-      fname: 'Alex',
-      lname: 'Metto',
-      mobile: '254724454757',
-      emailVerifiedAt: new Date(),
-    });
-    await this.userRepo.save(adminUser);
-    console.log('Created Admin Account: mettohalex@gmail.com / Digital2025');
+    // Create Admin Account if not exists
+    const adminEmail = 'mettohalex@gmail.com';
+    const adminExists = await this.userRepo.findOne({ where: { email: adminEmail } });
+    if (!adminExists) {
+      const adminPassword = await bcrypt.hash('Digital2025', 10);
+      const adminUser = this.userRepo.create({
+        email: adminEmail,
+        password: adminPassword,
+        role: UserRole.ADMIN,
+        status: true,
+        fname: 'Alex',
+        lname: 'Metto',
+        mobile: '254724454757',
+        emailVerifiedAt: new Date(),
+      });
+      await this.userRepo.save(adminUser);
+      console.log(`Created Admin Account: ${adminEmail} / Digital2025`);
+    } else {
+      console.log(`Admin Account ${adminEmail} already exists.`);
+    }
 
     return { message: 'System reset and essential data (Admin & Settings) seeded.' };
   }

@@ -61,7 +61,9 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typeorm": "^0.3.28",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "helmet": "^8.0.0",
+    "@nestjs/throttler": "^6.4.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

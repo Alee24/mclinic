@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { useAuth, UserRole } from '@/lib/auth';
-import { FiUsers, FiLock, FiSearch, FiEdit2, FiTrash2, FiCheck, FiX, FiShield, FiCalendar, FiClock } from 'react-icons/fi';
+import { FiUsers, FiLock, FiSearch, FiEdit2, FiTrash2, FiCheck, FiX, FiShield, FiCalendar, FiClock, FiArrowUp, FiArrowDown } from 'react-icons/fi';
 import { formatDistanceToNow, format } from 'date-fns';
 
 export default function UsersPage() {
@@ -14,6 +14,7 @@ export default function UsersPage() {
     const [resettingUser, setResettingUser] = useState<any>(null);
     const [newPassword, setNewPassword] = useState('');
     const [resetLoading, setResetLoading] = useState(false);
+    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
 
     const getProfileUrl = (path: string) => {
         if (!path) return null;
@@ -76,26 +77,6 @@ export default function UsersPage() {
         }
     };
 
-    const handleSyncRoles = async () => {
-        if (!confirm('This will scan all registered Medics and update their User Roles correctly. Continue?')) return;
-
-        setLoading(true);
-        try {
-            const res = await api.post('/doctors/admin/sync-users-from-doctors', {});
-            if (res && res.ok) {
-                const data = await res.json();
-                alert(`Sync Complete!\n\n${data.message}`);
-                fetchUsers(); // Refresh list
-            } else {
-                alert('Failed to sync roles.');
-            }
-        } catch (error) {
-            console.error(error);
-            alert('Error syncing roles.');
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const [editingUser, setEditingUser] = useState<any>(null);
     const [editForm, setEditForm] = useState<{ fname: string; lname: string; email: string; role: string; status: boolean; profilePicture?: File | null }>({ fname: '', lname: '', email: '', role: '', status: true, profilePicture: null });
@@ -196,10 +177,44 @@ export default function UsersPage() {
             return matchesSearch && matchesRole && matchesStatus;
         })
         .sort((a, b) => {
+            if (sortConfig !== null) {
+                const { key, direction } = sortConfig;
+                let valA = a[key];
+                let valB = b[key];
+
+                if (key === 'user') {
+                    valA = `${a.fname} ${a.lname}`.toLowerCase();
+                    valB = `${b.fname} ${b.lname}`.toLowerCase();
+                } else if (key === 'registered') {
+                    valA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                    valB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                } else if (key === 'lastAccess') {
+                    valA = a.lastAccess ? new Date(a.lastAccess).getTime() : 0;
+                    valB = b.lastAccess ? new Date(b.lastAccess).getTime() : 0;
+                }
+
+                if (valA < valB) return direction === 'asc' ? -1 : 1;
+                if (valA > valB) return direction === 'asc' ? 1 : -1;
+                return 0;
+            }
+
             const timeA = a.lastAccess ? new Date(a.lastAccess).getTime() : 0;
             const timeB = b.lastAccess ? new Date(b.lastAccess).getTime() : 0;
             return timeB - timeA || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         });
+
+    const requestSort = (key: string) => {
+        let direction: 'asc' | 'desc' = 'asc';
+        if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const getSortIcon = (key: string) => {
+        if (!sortConfig || sortConfig.key !== key) return null;
+        return sortConfig.direction === 'asc' ? <FiArrowUp className="inline ml-1" /> : <FiArrowDown className="inline ml-1" />;
+    };
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
@@ -209,14 +224,6 @@ export default function UsersPage() {
                 </h1>
 
                 <div className="flex flex-wrap items-center gap-3">
-                    <button
-                        onClick={handleSyncRoles}
-                        className="bg-green-500 text-white hover:bg-green-600 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2 shadow-lg"
-                        title="Fix: Syncs User Roles based on Registered Medics"
-                    >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                        Sync Roles
-                    </button>
 
                     {/* Bulk Actions */}
                     <div className="flex items-center gap-2 border-l pl-3 ml-2 border-gray-300">
@@ -240,21 +247,6 @@ export default function UsersPage() {
                         </button>
 
                         {/* Clear All */}
-                        <button
-                            onClick={async () => {
-                                if (!confirm("DANGER: Delete ALL Medics and Patients?")) return;
-                                if (prompt("Type 'DELETE EVERYTHING'") !== "DELETE EVERYTHING") return;
-                                try {
-                                    await api.delete('/doctors/admin/clear-all');
-                                    await api.delete('/patients/admin/clear-all');
-                                    alert("All data cleared.");
-                                    fetchUsers();
-                                } catch (e) { alert("Error"); }
-                            }}
-                            className="bg-red-600 text-white px-3 py-2 rounded-lg font-bold text-xs hover:bg-red-700"
-                        >
-                            Start Fresh
-                        </button>
 
                         {/* Upload Medics */}
                         <label className="cursor-pointer bg-gray-800 text-white px-3 py-2 rounded-lg font-bold text-xs hover:bg-black flex items-center gap-1">
@@ -348,11 +340,21 @@ export default function UsersPage() {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="border-b border-gray-100 dark:border-gray-800">
-                                <th className="p-4 font-bold text-sm text-gray-500 uppercase">User</th>
-                                <th className="p-4 font-bold text-sm text-gray-500 uppercase">Role</th>
-                                <th className="p-4 font-bold text-sm text-gray-500 uppercase">Registered</th>
-                                <th className="p-4 font-bold text-sm text-gray-500 uppercase">Last Access</th>
-                                <th className="p-4 font-bold text-sm text-gray-500 uppercase">Status</th>
+                                <th className="p-4 font-bold text-sm text-gray-500 uppercase cursor-pointer hover:text-primary transition-colors" onClick={() => requestSort('user')}>
+                                    User {getSortIcon('user')}
+                                </th>
+                                <th className="p-4 font-bold text-sm text-gray-500 uppercase cursor-pointer hover:text-primary transition-colors" onClick={() => requestSort('role')}>
+                                    Role {getSortIcon('role')}
+                                </th>
+                                <th className="p-4 font-bold text-sm text-gray-500 uppercase cursor-pointer hover:text-primary transition-colors" onClick={() => requestSort('registered')}>
+                                    Registered {getSortIcon('registered')}
+                                </th>
+                                <th className="p-4 font-bold text-sm text-gray-500 uppercase cursor-pointer hover:text-primary transition-colors" onClick={() => requestSort('lastAccess')}>
+                                    Last Access {getSortIcon('lastAccess')}
+                                </th>
+                                <th className="p-4 font-bold text-sm text-gray-500 uppercase cursor-pointer hover:text-primary transition-colors" onClick={() => requestSort('status')}>
+                                    Status {getSortIcon('status')}
+                                </th>
                                 <th className="p-4 font-bold text-sm text-gray-500 uppercase text-right">Actions</th>
                             </tr>
                         </thead>

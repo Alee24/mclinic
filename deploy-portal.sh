@@ -118,7 +118,7 @@ if [ -f "prisma/schema.prisma" ]; then
     npx prisma generate
 fi
 
-# Start API on Port 3434
+# Start API on Port 7899
 echo "🔄 Starting API ($API_NAME) on port $API_PORT..."
 pm2 delete $API_NAME 2>/dev/null || true
 PORT=$API_PORT pm2 start dist/main.js --name $API_NAME --update-env
@@ -128,7 +128,7 @@ echo "🔹 Setting up Web Frontend..."
 cd "$APP_DIR/$WEB_PATH"
 
 # Set API URL for the build
-# We assume Apache proxies /api to localhost:5454
+# We assume Apache proxies /api to localhost:7899
 export NEXT_PUBLIC_API_URL="https://portal.mclinic.co.ke/api" 
 export PORT=$WEB_PORT
 
@@ -137,7 +137,7 @@ npm install --legacy-peer-deps
 echo "🏗️  Building Next.js app..."
 npm run build
 
-# Start Web on Port 3034
+# Start Web on Port 7898
 echo "🔄 Starting Web ($WEB_NAME) on port $WEB_PORT..."
 pm2 delete $WEB_NAME 2>/dev/null || true
 PORT=$WEB_PORT pm2 start npm --name $WEB_NAME -- start

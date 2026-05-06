@@ -527,4 +527,12 @@ export class AppointmentsService {
 
     return this.appointmentsRepository.save(appointment);
   }
+
+  async remove(id: number): Promise<void> {
+    const appointment = await this.appointmentsRepository.findOne({ where: { id } });
+    if (!appointment) {
+      throw new NotFoundException(`Appointment #${id} not found`);
+    }
+    await this.appointmentsRepository.delete(id);
+  }
 }

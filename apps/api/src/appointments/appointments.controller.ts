@@ -9,6 +9,7 @@ import {
   Request,
   NotFoundException,
   ForbiddenException,
+  Delete,
 } from '@nestjs/common';
 import { AppointmentsService } from './appointments.service';
 import { AppointmentStatus } from './entities/appointment.entity';
@@ -137,5 +138,11 @@ export class AppointmentsController {
     @Body() body: { date: string; time: string },
   ) {
     return this.appointmentsService.reschedule(+id, body.date, body.time);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.appointmentsService.remove(+id);
   }
 }

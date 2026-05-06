@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { FiPhone, FiMail, FiClock, FiMenu, FiX } from 'react-icons/fi';
+import { FiMenu, FiX, FiArrowRight } from 'react-icons/fi';
 
 export default function Header() {
     const [isScrolled, setIsScrolled] = useState(false);
@@ -10,78 +10,79 @@ export default function Header() {
 
     useEffect(() => {
         const handleScroll = () => {
-            setIsScrolled(window.scrollY > 50);
+            setIsScrolled(window.scrollY > 20);
         };
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
     return (
-        <>
-            {/* Top Bar */}
-            <div className="bg-gradient-to-r from-[#1D2B36] to-[#2a3f4f] text-white text-xs py-3 px-6 hidden lg:flex justify-between items-center">
-                <div className="flex items-center gap-6">
-                    <span className="flex items-center gap-2 hover:text-[#00C65E] transition cursor-pointer">
-                        <FiPhone className="text-[#00C65E]" /> 0700 448 448
-                    </span>
-                    <span className="flex items-center gap-2 hover:text-[#00C65E] transition cursor-pointer">
-                        <FiMail className="text-[#00C65E]" /> info@mclinic.co.ke
-                    </span>
-                    <span className="flex items-center gap-2">
-                        <FiClock className="text-[#00C65E]" /> 24/7 Available
-                    </span>
-                </div>
-                <div className="flex items-center gap-4">
-                    <Link href="/login" className="bg-[#00C65E] text-white px-4 py-1.5 rounded-full hover:bg-[#00a84d] transition font-medium">
-                        Login
-                    </Link>
-                </div>
-            </div>
-
-            {/* Navbar */}
-            <nav className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white/95 backdrop-blur-md shadow-lg py-3' : 'bg-white py-5'}`}>
-                <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
+        <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled ? 'py-4' : 'py-8'}`}>
+            <div className="max-w-7xl mx-auto px-6">
+                <div className={`glass rounded-[2rem] px-8 py-4 flex justify-between items-center transition-all ${isScrolled ? 'shadow-2xl border-mc-dark/5' : 'border-transparent'}`}>
+                    {/* Logo */}
                     <Link href="/" className="flex items-center gap-2 group">
-                        <img
-                            src="/logo.png"
-                            alt="M-Clinic Kenya"
-                            className="h-10 w-auto object-contain group-hover:scale-105 transition-transform"
-                        />
+                        <span className="text-2xl font-black tracking-tighter text-mc-dark">
+                            M-CLINIC<span className="text-mc-green">.</span>
+                        </span>
                     </Link>
 
                     {/* Desktop Menu */}
-                    <div className="hidden lg:flex items-center gap-8 font-semibold text-sm text-[#1D2B36]">
-                        <Link href="/" className="hover:text-[#C2003F] transition">Home</Link>
-                        <Link href="/services" className="hover:text-[#C2003F] transition">Services</Link>
-                        <Link href="/about" className="hover:text-[#C2003F] transition">About</Link>
-                        <Link href="/contact" className="hover:text-[#C2003F] transition">Contact</Link>
-                        <Link href="/register/patient" className="bg-gradient-to-r from-[#C2003F] to-[#FF4D6D] text-white px-6 py-2.5 rounded-full hover:shadow-lg hover:scale-105 transition-all">
-                            Get Started
+                    <div className="hidden lg:flex items-center gap-10">
+                        {['Solutions', 'Products', 'Resources', 'Pricing'].map((item) => (
+                            <Link 
+                                key={item} 
+                                href={`/${item.toLowerCase()}`} 
+                                className="text-sm font-bold text-mc-dark/70 hover:text-mc-crimson transition-colors"
+                            >
+                                {item}
+                            </Link>
+                        ))}
+                    </div>
+
+                    {/* CTA Buttons */}
+                    <div className="hidden lg:flex items-center gap-4">
+                        <Link href="/login" className="text-sm font-bold text-mc-dark hover:text-mc-crimson transition-colors px-4">
+                            Login
+                        </Link>
+                        <Link href="/register/patient" className="bg-mc-dark text-white px-8 py-3 rounded-2xl font-bold text-sm hover:bg-mc-crimson transition-all flex items-center gap-2 group">
+                            Join Now
+                            <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
                         </Link>
                     </div>
 
                     {/* Mobile Menu Button */}
-                    <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="lg:hidden text-[#1D2B36]">
+                    <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="lg:hidden text-mc-dark">
                         {mobileMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
                     </button>
                 </div>
+            </div>
 
-                {/* Mobile Menu */}
-                {mobileMenuOpen && (
-                    <div className="lg:hidden bg-white border-t shadow-lg">
-                        <div className="px-6 py-4 space-y-4">
-                            <Link href="/" className="block text-[#1D2B36] font-semibold hover:text-[#C2003F]">Home</Link>
-                            <Link href="/services" className="block text-[#1D2B36] font-semibold hover:text-[#C2003F]">Services</Link>
-                            <Link href="/about" className="block text-[#1D2B36] font-semibold hover:text-[#C2003F]">About</Link>
-                            <Link href="/contact" className="block text-[#1D2B36] font-semibold hover:text-[#C2003F]">Contact</Link>
-                            <Link href="/login" className="block text-[#1D2B36] font-semibold hover:text-[#C2003F]">Login</Link>
-                            <Link href="/register/patient" className="block bg-gradient-to-r from-[#C2003F] to-[#FF4D6D] text-white px-6 py-3 rounded-full text-center font-bold">
-                                Get Started
-                            </Link>
-                        </div>
+            {/* Mobile Menu Overlay */}
+            <div className={`lg:hidden fixed inset-0 bg-white z-[100] transition-all duration-500 ${mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none translate-y-10'}`}>
+                <div className="p-8 space-y-8">
+                    <div className="flex justify-between items-center">
+                        <span className="text-2xl font-black text-mc-dark">M-CLINIC<span className="text-mc-green">.</span></span>
+                        <button onClick={() => setMobileMenuOpen(false)}><FiX size={32} /></button>
                     </div>
-                )}
-            </nav>
-        </>
+                    <div className="flex flex-col gap-6 pt-10">
+                        {['Solutions', 'Products', 'Resources', 'Pricing'].map((item) => (
+                            <Link 
+                                key={item} 
+                                href={`/${item.toLowerCase()}`} 
+                                className="text-4xl font-black text-mc-dark hover:text-mc-crimson transition-colors"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                {item}
+                            </Link>
+                        ))}
+                    </div>
+                    <div className="pt-10 flex flex-col gap-4">
+                        <Link href="/login" className="w-full text-center py-5 rounded-2xl border-2 border-mc-dark font-black text-xl">Login</Link>
+                        <Link href="/register/patient" className="w-full text-center py-5 rounded-2xl bg-mc-crimson text-white font-black text-xl">Join Now</Link>
+                    </div>
+                </div>
+            </div>
+        </nav>
     );
 }
