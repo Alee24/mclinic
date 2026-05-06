@@ -93,10 +93,17 @@ export default function ForgotPasswordPage() {
                             <FiCheckCircle />
                         </div>
                         <h3 className="text-xl font-bold dark:text-white mb-2">{isSms ? 'Check Your Phone' : 'Check Your Email'}</h3>
-                        <p className="text-gray-500 text-sm mb-8 leading-relaxed">
+                        <p className="text-gray-500 text-sm mb-4 leading-relaxed">
                             We've sent a password reset link to <span className="font-bold text-gray-900 dark:text-gray-200">{input}</span>. 
-                            Please check your {isSms ? 'messages' : 'inbox and spam folder'}.
                         </p>
+                        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 p-4 rounded-xl mb-8">
+                            <p className="text-amber-800 dark:text-amber-400 text-xs font-bold uppercase tracking-tight">
+                                Important Note
+                            </p>
+                            <p className="text-amber-700 dark:text-amber-500 text-sm mt-1">
+                                Please check your <span className="font-black underline">SPAM/JUNK</span> folder if you don't see it in your inbox.
+                            </p>
+                        </div>
                         <button 
                             onClick={() => setSubmitted(false)}
                             className="text-sm font-bold text-green-600 hover:underline"

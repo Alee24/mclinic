@@ -57,7 +57,9 @@ export default function AmbulanceSubscriptionPage() {
         }).then(data => {
             setPackages(data || []);
             if (data && data.length > 0) {
-                setFormData(p => ({ ...p, package_type: data[0].name }));
+                // Try to find 'Instant Dispatch' package, otherwise use the first one
+                const defaultPkg = data.find((pkg: any) => pkg.name.toLowerCase().includes('instant')) || data[0];
+                setFormData(p => ({ ...p, package_type: defaultPkg.name }));
             }
         });
     }, []);
