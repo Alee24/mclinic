@@ -97,8 +97,15 @@ export class EmailService {
             }
 
             const transporterName = await this.getTransporterName();
+            const dbFromName = await this.settingsService.get('EMAIL_SMTP_FROM_NAME');
+            const fromName = dbFromName || this.configService.get('SMTP_FROM_NAME') || 'M-Clinic Notifications';
+            const dbFromEmail = await this.settingsService.get('EMAIL_SMTP_FROM_EMAIL');
+            const smtpUser = await this.settingsService.get('EMAIL_SMTP_USER');
+            const fromEmail = dbFromEmail?.trim() || this.configService.get('SMTP_FROM_EMAIL') || smtpUser;
+
             const info = await this.mailerService.sendMail({
                 ...options,
+                from: options.from || `"${fromName}" <${fromEmail}>`,
                 transporterName,
             });
             
