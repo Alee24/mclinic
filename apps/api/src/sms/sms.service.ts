@@ -5,6 +5,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SystemSetting } from '../system-settings/entities/system-setting.entity';
 
+import { CommunicationLog, CommunicationType } from '../notification/entities/communication-log.entity';
+
 @Injectable()
 export class SmsService {
     private readonly logger = new Logger(SmsService.name);
@@ -14,6 +16,8 @@ export class SmsService {
         private readonly httpService: HttpService,
         @InjectRepository(SystemSetting)
         private readonly settingsRepo: Repository<SystemSetting>,
+        @InjectRepository(CommunicationLog)
+        private readonly commsLogRepo: Repository<CommunicationLog>,
     ) { }
 
     private async getCredentials() {
@@ -61,6 +65,20 @@ export class SmsService {
             // Advanta QuickSMS usually returns a 200 with a specific response structure
             if (response.data && response.data.responses && response.data.responses[0] && response.data.responses[0]['response-code'] === 200) {
                 this.logger.log(`SMS accepted by gateway for ${mobile}. Response: ${response.data.responses[0]['response-description']}`);
+                
+                // Persist Log
+                try {
+                    const log = this.commsLogRepo.create({
+                        type: CommunicationType.SMS,
+                        recipient: mobile,
+                        content: message.substring(0, 200),
+                        status: 'sent',
+                    });
+                    await this.commsLogRepo.save(log);
+                } catch (e) {
+                    this.logger.error('Failed to log SMS', e);
+                }
+
                 return true;
             } else {
                 this.logger.error(`SMS Gateway Error for ${mobile}: ${JSON.stringify(response.data)}`);
@@ -130,6 +148,16 @@ export class SmsService {
 
                     if (response.data && response.data.responses && response.data.responses[0]['response-code'] === 200) {
                         sentCount++;
+                        // Persist Log
+                        try {
+                            const log = this.commsLogRepo.create({
+                                type: CommunicationType.SMS,
+                                recipient: formatted,
+                                content: message.substring(0, 200),
+                                status: 'sent',
+                            });
+                            await this.commsLogRepo.save(log);
+                        } catch (e) {}
                     } else {
                         failedCount++;
                         this.logger.error(`Bulk SMS Error for ${formatted}: ${JSON.stringify(response.data)}`);

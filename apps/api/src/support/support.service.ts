@@ -20,12 +20,16 @@ export class SupportService {
         const request = this.supportRepo.create(createSupportDto);
         const stored = await this.supportRepo.save(request);
 
-        // Notify Admin
-        const contact = request.mobile || request.email || request.name || 'Unknown';
-        await this.notificationService.notifyAdmin(
-            'support_request',
-            `New Support Request from ${contact}: ${request.message.substring(0, 50)}...`
-        );
+        // Notify Admin (Non-blocking failure)
+        try {
+            const contact = request.mobile || request.email || request.name || 'Unknown';
+            await this.notificationService.notifyAdmin(
+                'support_request',
+                `New Support Request from ${contact}: ${request.message.substring(0, 50)}...`
+            );
+        } catch (error) {
+            this.logger.error('Failed to notify admin about support request', error);
+        }
 
         return stored;
     }

@@ -5,9 +5,12 @@ import { join } from 'path';
 import { EmailService } from './email.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EmailController } from './email.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { CommunicationLog } from '../notification/entities/communication-log.entity';
 
 @Module({
     imports: [
+        TypeOrmModule.forFeature([CommunicationLog]),
         MailerModule.forRootAsync({
             imports: [ConfigModule],
             useFactory: async (config: ConfigService) => ({

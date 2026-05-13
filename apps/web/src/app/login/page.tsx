@@ -248,8 +248,8 @@ export default function LoginPage() {
                                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
                                                 Password
                                             </label>
-                                            <Link href="/forgot-password" className="text-[10px] font-black text-green-600 hover:text-green-500 uppercase tracking-widest">
-                                                Forgot?
+                                            <Link href="/forgot-password" university-title="Reset Password" className="text-[10px] font-black text-green-600 hover:text-green-500 uppercase tracking-widest">
+                                                Reset Password
                                             </Link>
                                         </div>
                                         <div className="relative">
@@ -329,7 +329,7 @@ export default function LoginPage() {
 
                         <div className="mt-12 pt-8 border-t border-gray-100 dark:border-white/5">
                             <div className="flex flex-col gap-4">
-                                <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">New to M-Clinic?</div>
+                                <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Create Account</div>
                                 <div className="grid grid-cols-2 gap-3">
                                     <Link href="/register/patient" className="py-3 px-4 rounded-xl border border-gray-200 dark:border-white/5 text-[10px] font-black uppercase tracking-widest text-center hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
                                         As Patient

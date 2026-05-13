@@ -171,7 +171,7 @@ export class SeedingService {
     }
 
     // Create Admin Account if not exists
-    const adminEmail = 'mettohalex@gmail.com';
+    const adminEmail = 'mettoalex@gmail.com';
     const adminExists = await this.userRepo.findOne({ where: { email: adminEmail } });
     if (!adminExists) {
       const adminPassword = await bcrypt.hash('Digital2025', 10);
@@ -188,7 +188,12 @@ export class SeedingService {
       await this.userRepo.save(adminUser);
       console.log(`Created Admin Account: ${adminEmail} / Digital2025`);
     } else {
-      console.log(`Admin Account ${adminEmail} already exists.`);
+      // Ensure role is admin if it exists but role is wrong
+      if (adminExists.role !== UserRole.ADMIN) {
+        adminExists.role = UserRole.ADMIN;
+        await this.userRepo.save(adminExists);
+      }
+      console.log(`Admin Account ${adminEmail} verified.`);
     }
 
     return { message: 'System reset and essential data (Admin & Settings) seeded.' };
@@ -265,19 +270,25 @@ export class SeedingService {
       // 1. Seed Patients
       const patients = [];
 
-      // Create Admin Account
-      const adminPassword = await bcrypt.hash('Digital2025', 10);
-      const adminUser = this.userRepo.create({
-        email: 'admin@mclinic.co.ke',
-        password: adminPassword,
-        role: UserRole.ADMIN,
-        status: true,
-        fname: 'Alex',
-        lname: 'Metto',
-        mobile: '254724454757',
-        emailVerifiedAt: new Date(),
-      });
-      await this.userRepo.save(adminUser);
+      // Create Admin Accounts
+      const adminEmails = ['admin@mclinic.co.ke', 'mettoalex@gmail.com'];
+      for (const email of adminEmails) {
+        const exists = await this.userRepo.findOne({ where: { email } });
+        if (!exists) {
+          const adminPassword = await bcrypt.hash('Digital2025', 10);
+          const adminUser = this.userRepo.create({
+            email,
+            password: adminPassword,
+            role: UserRole.ADMIN,
+            status: true,
+            fname: 'Alex',
+            lname: 'Metto',
+            mobile: '254724454757',
+            emailVerifiedAt: new Date(),
+          });
+          await this.userRepo.save(adminUser);
+        }
+      }
       console.log('Created Admin Account: admin@mclinic.co.ke / Digital2025');
 
       for (let i = 0; i < 15; i++) {

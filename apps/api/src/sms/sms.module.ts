@@ -6,11 +6,12 @@ import { SystemSetting } from '../system-settings/entities/system-setting.entity
 import { SmsController } from './sms.controller';
 import { UsersModule } from '../users/users.module';
 import { DoctorsModule } from '../doctors/doctors.module';
+import { CommunicationLog } from '../notification/entities/communication-log.entity';
 
 @Module({
     imports: [
         HttpModule,
-        TypeOrmModule.forFeature([SystemSetting]),
+        TypeOrmModule.forFeature([SystemSetting, CommunicationLog]),
         UsersModule,
         DoctorsModule
     ],

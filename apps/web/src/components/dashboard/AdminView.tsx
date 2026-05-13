@@ -20,7 +20,11 @@ export default function AdminView() {
         pendingDoctors: [] as any[],
         invoices: { pending: 12, paid: 45, total: 57 },
         paymentStats: { mpesa: 120000, visa: 85000, paypal: 140000, cash: 0, others: 0 },
-        recentTransactions: [] as any[]
+        recentTransactions: [] as any[],
+        comms: {
+            email: { today: 0, cumulative: 0 },
+            sms: { today: 0, cumulative: 0 }
+        }
     });
 
     const [selectedTx, setSelectedTx] = useState<any>(null);
@@ -74,12 +78,13 @@ export default function AdminView() {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const [patientsRes, doctorsRes, appointmentsRes, usersRes, financeRes] = await Promise.all([
+                const [patientsRes, doctorsRes, appointmentsRes, usersRes, financeRes, commsRes] = await Promise.all([
                     api.get('/patients'),
                     api.get('/doctors/admin/all'),
                     api.get('/appointments/admin/all'), // Admin-specific endpoint
                     api.get('/users/count-active'),
-                    api.get('/financial/stats') // Fetch real finance stats
+                    api.get('/financial/stats'), // Fetch real finance stats
+                    api.get('/notifications/stats')
                 ]);
 
                 if (patientsRes?.ok && doctorsRes?.ok && appointmentsRes?.ok) {
@@ -87,6 +92,7 @@ export default function AdminView() {
                     const doctors = await doctorsRes.json();
                     const appointments = await appointmentsRes.json();
                     const usersData = usersRes?.ok ? await usersRes.json() : { count: 0 };
+                    const commsData = commsRes?.ok ? await commsRes.json() : { email: { today: 0, cumulative: 0 }, sms: { today: 0, cumulative: 0 } };
                     console.log('STATS DEBUG:', usersData); // Debug log
 
                     // Handle both { count: 357 } and raw 357 responses
@@ -116,6 +122,7 @@ export default function AdminView() {
                             total: (financials.invoices?.pending || 0) + (financials.invoices?.paid || 0) // Total count (optional usage)
                         },
                         pendingDoctors: doctors.filter((d: any) => d.approvalStatus === 'pending' || !d.Verified_status),
+                        comms: commsData
                     }));
                 }
             } catch (err) {
@@ -157,23 +164,45 @@ export default function AdminView() {
                 </div>
 
                 <div className="lg:col-span-2 bg-white dark:bg-[#161616] rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
-                    <h3 className="font-bold text-gray-900 dark:text-white mb-6">System Performance</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <h3 className="font-bold text-gray-900 dark:text-white mb-6">System Performance & Communication</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
-                            <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Medic Activity</div>
-                            <div className="flex items-end gap-2 mb-2">
-                                <span className="text-3xl font-bold">{stats.activeDoctors}</span>
-                                <span className="text-sm text-green-500 mb-1 font-bold">Online</span>
+                            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                <FiMail className="text-mc-green" /> Email Volume
                             </div>
-                            <div className="text-sm text-gray-500 italic">Medics currently available for consultation.</div>
+                            <div className="flex flex-col gap-1">
+                                <div className="flex items-end gap-2">
+                                    <span className="text-2xl font-bold">{stats.comms.email.today}</span>
+                                    <span className="text-[10px] text-gray-400 mb-1 font-bold">Today</span>
+                                </div>
+                                <div className="text-xs text-gray-500 font-medium">
+                                    {stats.comms.email.cumulative.toLocaleString()} Cumulative
+                                </div>
+                            </div>
                         </div>
+
                         <div>
-                            <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Global Health</div>
-                            <div className="flex items-end gap-2 mb-2">
-                                <span className="text-3xl font-bold">98.4%</span>
-                                <span className="text-sm text-blue-500 mb-1 font-bold">Uptime</span>
+                            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                <FiBell className="text-mc-crimson" /> SMS Volume
                             </div>
-                            <div className="text-sm text-gray-500 italic">System is running optimally with low latency.</div>
+                            <div className="flex flex-col gap-1">
+                                <div className="flex items-end gap-2">
+                                    <span className="text-2xl font-bold">{stats.comms.sms.today}</span>
+                                    <span className="text-[10px] text-gray-400 mb-1 font-bold">Today</span>
+                                </div>
+                                <div className="text-xs text-gray-500 font-medium">
+                                    {stats.comms.sms.cumulative.toLocaleString()} Cumulative
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Service Health</div>
+                            <div className="flex items-end gap-2 mb-1">
+                                <span className="text-2xl font-bold">99.9%</span>
+                                <span className="text-[10px] text-green-500 mb-1 font-bold">Optimal</span>
+                            </div>
+                            <div className="text-[10px] text-gray-500 italic font-medium leading-tight">API latency: 45ms</div>
                         </div>
                     </div>
                 </div>

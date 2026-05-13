@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
-import { FiPlus, FiActivity, FiDollarSign, FiSearch, FiList } from 'react-icons/fi';
+import { FiPlus, FiActivity, FiDollarSign, FiSearch, FiList, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 export default function LabTestsPage() {
     const [tests, setTests] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [editingTest, setEditingTest] = useState<any>(null);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -35,24 +36,53 @@ export default function LabTestsPage() {
         fetchTests();
     }, []);
 
+    const handleEdit = (test: any) => {
+        setEditingTest(test);
+        setFormData({
+            name: test.name,
+            description: test.description,
+            price: test.price.toString(),
+            category: test.category
+        });
+        setShowModal(true);
+    };
+
+    const handleDelete = async (id: number) => {
+        if (!confirm('Are you sure you want to delete this test?')) return;
+        try {
+            const res = await api.patch(`/laboratory/tests/${id}/delete`, {});
+            if (res && res.ok) {
+                toast.success('Test deleted');
+                fetchTests();
+            }
+        } catch (err) {
+            toast.error('Error deleting test');
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const res = await api.post('/laboratory/tests', {
+            const payload = {
                 ...formData,
                 price: parseFloat(formData.price)
-            });
+            };
+
+            const res = editingTest 
+                ? await api.patch(`/laboratory/tests/${editingTest.id}`, payload)
+                : await api.post('/laboratory/tests', payload);
 
             if (res && res.ok) {
-                toast.success('Test created successfully');
+                toast.success(`Test ${editingTest ? 'updated' : 'created'} successfully`);
                 setShowModal(false);
+                setEditingTest(null);
                 setFormData({ name: '', description: '', price: '', category: 'Other' });
                 fetchTests();
             } else {
-                toast.error('Failed to create test');
+                toast.error('Operation failed');
             }
         } catch (err) {
-            toast.error('Error creating test');
+            toast.error('System error');
         }
     };
 
@@ -64,7 +94,11 @@ export default function LabTestsPage() {
                     <p className="text-gray-500">Manage available tests and prices</p>
                 </div>
                 <button
-                    onClick={() => setShowModal(true)}
+                    onClick={() => {
+                        setEditingTest(null);
+                        setFormData({ name: '', description: '', price: '', category: 'Other' });
+                        setShowModal(true);
+                    }}
                     className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition"
                 >
                     <FiPlus /> Add New Test
@@ -78,7 +112,25 @@ export default function LabTestsPage() {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {tests.map((test) => (
-                        <div key={test.id} className="bg-white dark:bg-[#121212] p-6 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md transition">
+                        <div key={test.id} className="bg-white dark:bg-[#121212] p-6 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md transition group relative">
+                            {/* Action Buttons */}
+                            <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button 
+                                    onClick={() => handleEdit(test)}
+                                    className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"
+                                    title="Edit"
+                                >
+                                    <FiEdit2 size={14} />
+                                </button>
+                                <button 
+                                    onClick={() => handleDelete(test.id)}
+                                    className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"
+                                    title="Delete"
+                                >
+                                    <FiTrash2 size={14} />
+                                </button>
+                            </div>
+
                             <div className="flex justify-between items-start mb-4">
                                 <div className="p-3 bg-purple-50 text-purple-600 rounded-lg">
                                     <FiActivity size={24} />
@@ -100,11 +152,11 @@ export default function LabTestsPage() {
                 </div>
             )}
 
-            {/* Add Test Modal */}
+            {/* Modal */}
             {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
                     <div className="bg-white dark:bg-[#1E1E1E] w-full max-w-md rounded-2xl p-6 shadow-xl">
-                        <h2 className="text-xl font-bold mb-4 dark:text-white">Add New Lab Test</h2>
+                        <h2 className="text-xl font-bold mb-4 dark:text-white">{editingTest ? 'Edit Lab Test' : 'Add New Lab Test'}</h2>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Test Name</label>
@@ -152,7 +204,10 @@ export default function LabTestsPage() {
                             <div className="flex gap-3 pt-4">
                                 <button
                                     type="button"
-                                    onClick={() => setShowModal(false)}
+                                    onClick={() => {
+                                        setShowModal(false);
+                                        setEditingTest(null);
+                                    }}
                                     className="flex-1 py-2 text-gray-500 hover:bg-gray-100 rounded-lg transition"
                                 >
                                     Cancel
@@ -161,7 +216,7 @@ export default function LabTestsPage() {
                                     type="submit"
                                     className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-bold"
                                 >
-                                    Save Test
+                                    {editingTest ? 'Update Test' : 'Save Test'}
                                 </button>
                             </div>
                         </form>

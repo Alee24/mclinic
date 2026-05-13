@@ -1,8 +1,11 @@
 import { Injectable } from '@nestjs/common';
-// Force sync update
-import { MailerService, ISendMailOptions } from '@nestjs-modules/mailer';
+import { MailerService } from '@nestjs-modules/mailer';
+import { ISendMailOptions } from '@nestjs-modules/mailer';
 import { ConfigService } from '@nestjs/config';
 import { SystemSettingsService } from '../system-settings/system-settings.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { CommunicationLog, CommunicationType } from '../notification/entities/communication-log.entity';
 
 @Injectable()
 export class EmailService {
@@ -10,6 +13,8 @@ export class EmailService {
         private mailerService: MailerService,
         private configService: ConfigService,
         private settingsService: SystemSettingsService,
+        @InjectRepository(CommunicationLog)
+        private commsLogRepo: Repository<CommunicationLog>,
     ) { }
 
     private get frontendUrl(): string {
@@ -133,6 +138,19 @@ export class EmailService {
             console.log(`[SMTP RESPONSE] ${info.response}`);
             if (info.envelope) console.log(`[SMTP ENVELOPE] From: ${info.envelope.from}, To: ${info.envelope.to}`);
             
+            // Persist Log for Dashboard
+            try {
+                const log = this.commsLogRepo.create({
+                    type: CommunicationType.EMAIL,
+                    recipient: options.to as string,
+                    subject: options.subject,
+                    status: 'sent',
+                });
+                await this.commsLogRepo.save(log);
+            } catch (logErr) {
+                console.error('[EmailService] Failed to persist email log:', logErr);
+            }
+
             return { success: true, info };
         } catch (error) {
             console.error(`Failed to send email (${options.subject}):`, error);

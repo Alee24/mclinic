@@ -21,6 +21,16 @@ export class LaboratoryController {
         return this.labService.createTest(body);
     }
 
+    @Patch('tests/:id')
+    updateTest(@Param('id') id: number, @Body() body: any) {
+        return this.labService.updateTest(id, body);
+    }
+
+    @Patch('tests/:id/delete') // Using PATCH for soft delete
+    deleteTest(@Param('id') id: number) {
+        return this.labService.deleteTest(id);
+    }
+
     @Get('seed')
     seed() {
         return this.labService.seedTests();

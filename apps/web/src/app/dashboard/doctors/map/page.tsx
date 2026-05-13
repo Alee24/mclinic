@@ -20,7 +20,7 @@ export default function DoctorsMapPage() {
     useEffect(() => {
         const fetchDoctors = async () => {
             try {
-                const res = await api.get('/doctors');
+                const res = await api.get('/doctors?include_offline=true');
                 if (res && res.ok) {
                     const data = await res.json();
                     setDoctors(data);

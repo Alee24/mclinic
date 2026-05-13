@@ -5,6 +5,7 @@ import { FiArrowRight, FiPlay, FiStar, FiShield, FiHeart, FiZap, FiMapPin, FiChe
 import Image from 'next/image';
 import Header from '@/components/landing/Header';
 import Footer from '@/components/landing/Footer';
+import MedicSlider from '@/components/landing/MedicSlider';
 
 export default function Home() {
   return (
@@ -151,33 +152,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 text-center">
           <h3 className="text-5xl lg:text-6xl font-heading font-black mb-20">All the top doctors in one place</h3>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              { name: 'Dr. David Herison', specialty: 'General Practitioner', img: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&q=80' },
-              { name: 'Dr. Aligabeth Mac', specialty: 'Child Specialist', img: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=400&q=80' },
-              { name: 'Dr. Amada Cerini', specialty: 'Nurse Specialist', img: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&q=80' },
-              { name: 'Dr. Jalkie Aorom', specialty: 'Laboratory Tech', img: 'https://images.unsplash.com/photo-1559839734-2b71f1e59816?w=400&q=80' },
-            ].map((d, i) => (
-              <div key={i} className="group bg-mc-light rounded-[2.5rem] p-8 space-y-6 hover:bg-white hover:shadow-2xl transition-all border border-transparent hover:border-gray-100">
-                <div className="aspect-square rounded-3xl overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-500">
-                  <img src={d.img} alt={d.name} className="w-full h-full object-cover" />
-                </div>
-                <div className="text-left space-y-2">
-                  <h5 className="text-xl font-black">{d.name}</h5>
-                  <p className="text-mc-green font-bold text-sm uppercase tracking-wider">{d.specialty}</p>
-                </div>
-                <div className="flex gap-2">
-                  <button className="flex-1 bg-mc-dark text-white py-3 rounded-xl font-bold text-sm hover:bg-mc-crimson transition-all">Call Now</button>
-                  <button className="flex-1 border-2 border-mc-dark py-3 rounded-xl font-bold text-sm hover:bg-mc-dark hover:text-white transition-all">Availability</button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-20 flex justify-center gap-4">
-            <button className="w-14 h-14 rounded-full border-2 border-mc-dark flex items-center justify-center hover:bg-mc-dark hover:text-white transition-all"><FiArrowRight className="rotate-180" /></button>
-            <button className="w-14 h-14 rounded-full bg-mc-dark text-white flex items-center justify-center hover:bg-mc-crimson transition-all"><FiArrowRight /></button>
-          </div>
+          <MedicSlider />
         </div>
       </section>
 

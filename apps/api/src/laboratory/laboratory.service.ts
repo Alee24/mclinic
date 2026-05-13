@@ -45,6 +45,17 @@ export class LaboratoryService {
         return this.testRepo.save(test);
     }
 
+    async updateTest(id: number, data: Partial<LabTest>) {
+        await this.testRepo.update(id, data);
+        return this.testRepo.findOne({ where: { id } });
+    }
+
+    async deleteTest(id: number) {
+        // Soft delete to preserve history in LabOrder
+        await this.testRepo.update(id, { isActive: false });
+        return { success: true };
+    }
+
     // --- Orders ---
     async createOrder(patientId: number, testId: number, beneficiaryData?: any) {
         const order = this.orderRepo.create({

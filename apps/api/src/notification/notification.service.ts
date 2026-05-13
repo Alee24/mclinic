@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SystemSetting } from '../system-settings/entities/system-setting.entity';
 import { SmsService } from '../sms/sms.service';
+import { CommunicationLog, CommunicationType } from './entities/communication-log.entity';
 
 @Injectable()
 export class NotificationService {
@@ -13,8 +14,38 @@ export class NotificationService {
     constructor(
         @InjectRepository(SystemSetting)
         private readonly settingsRepo: Repository<SystemSetting>,
+        @InjectRepository(CommunicationLog)
+        private readonly commsLogRepo: Repository<CommunicationLog>,
         private readonly smsService: SmsService,
     ) { }
+
+    async getStats() {
+        const now = new Date();
+        const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+
+        const stats = await this.commsLogRepo.createQueryBuilder('log')
+            .select('log.type', 'type')
+            .addSelect('COUNT(*)', 'cumulative')
+            .addSelect('SUM(CASE WHEN log.createdAt >= :startOfDay THEN 1 ELSE 0 END)', 'today')
+            .setParameter('startOfDay', startOfDay)
+            .groupBy('log.type')
+            .getRawMany();
+
+        const result = {
+            email: { today: 0, cumulative: 0 },
+            sms: { today: 0, cumulative: 0 }
+        };
+
+        stats.forEach(s => {
+            if (s.type === CommunicationType.EMAIL) {
+                result.email = { today: parseInt(s.today) || 0, cumulative: parseInt(s.cumulative) || 0 };
+            } else if (s.type === CommunicationType.SMS) {
+                result.sms = { today: parseInt(s.today) || 0, cumulative: parseInt(s.cumulative) || 0 };
+            }
+        });
+
+        return result;
+    }
 
     private async getSetting(key: string): Promise<string | null> {
         const setting = await this.settingsRepo.findOne({ where: { key } });

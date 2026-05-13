@@ -206,6 +206,24 @@ export default function DoctorsPage() {
         }
     };
 
+    const handleBulkOnlineStatus = async (status: number) => {
+        const action = status === 1 ? 'online' : 'offline';
+        if (!confirm(`This will turn ALL medics ${action}. Continue?`)) return;
+        
+        try {
+            const res = await api.post('/doctors/admin/bulk-online', { status });
+            if (res && res.ok) {
+                toast.success(`All medics are now ${action}`);
+                fetchDoctors();
+            } else {
+                toast.error(`Failed to set medics ${action}`);
+            }
+        } catch (e) {
+            console.error(e);
+            toast.error(`Error setting medics ${action}`);
+        }
+    };
+
     const handleClearDatabase = async () => {
         const confirm1 = confirm("DANGER: This will delete ALL medics from the database permanently. Are you sure?");
         if (!confirm1) return;
@@ -305,6 +323,18 @@ export default function DoctorsPage() {
                         className="flex items-center gap-2 bg-green-100 text-green-700 hover:bg-green-200 border border-green-200 font-bold px-4 py-2 rounded-lg transition"
                     >
                         <FiCheckCircle /> Activate All
+                    </button>
+                    <button
+                        onClick={() => handleBulkOnlineStatus(1)}
+                        className="flex items-center gap-2 bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-200 font-bold px-4 py-2 rounded-lg transition"
+                    >
+                        <FiActivity /> Turn All Online
+                    </button>
+                    <button
+                        onClick={() => handleBulkOnlineStatus(0)}
+                        className="flex items-center gap-2 bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200 font-bold px-4 py-2 rounded-lg transition"
+                    >
+                        <FiActivity /> Turn All Offline
                     </button>
                     <button
                         onClick={() => setShowModal(true)}

@@ -60,17 +60,21 @@ export class DoctorsController {
     return this.doctorsService.getDashboardStats(doctor.id);
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Get()
   findAll(
+    @Request() req: any,
     @Query('search') search?: string,
     @Query('include_offline') includeOffline?: string
   ) {
     const isOfflineIncluded = includeOffline === 'true';
-    return this.doctorsService.findAllVerified(search, isOfflineIncluded);
+    return this.doctorsService.findAllVerified(search, isOfflineIncluded, req.user);
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Get('nearby')
   findNearby(
+    @Request() req: any,
     @Query('lat') lat: string,
     @Query('lng') lng: string,
     @Query('radius') radius?: string, // km
@@ -86,10 +90,12 @@ export class DoctorsController {
       return [];
     }
 
-    return this.doctorsService.getNearby(latNum, lngNum, radiusNum, shouldIncludeAll);
+    // Pass req.user for privacy masking
+    return this.doctorsService.getNearby(latNum, lngNum, radiusNum, shouldIncludeAll, req.user);
   }
 
   @Get('admin/all')
+  @UseGuards(AuthGuard('jwt'))
   findAllAdmin(
     @Query('dr_type') drType?: string,
     @Query('verified_status') verifiedStatus?: string,
@@ -122,9 +128,22 @@ export class DoctorsController {
     return this.doctorsService.syncUsersFromDoctors();
   }
 
+  @Post('admin/bulk-suspend')
+  @UseGuards(AuthGuard('jwt'))
+  bulkSuspend(@Body('ids') ids: number[], @Body('reason') reason: string) {
+    return this.doctorsService.bulkSuspend(ids, reason);
+  }
+
+  @Post('admin/bulk-activate')
+  @UseGuards(AuthGuard('jwt'))
+  bulkActivate(@Body('ids') ids: number[]) {
+    return this.doctorsService.bulkActivate(ids);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.doctorsService.findOne(+id);
+  findOne(@Param('id') id: string, @Request() req: any) {
+    return this.doctorsService.findOne(+id, req.user);
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -247,6 +266,12 @@ export class DoctorsController {
   @Patch(':id/deactivate')
   deactivate(@Param('id') id: string) {
     return this.doctorsService.updateStatus(+id, 0);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('admin/bulk-online')
+  bulkOnlineStatus(@Body('status') status: number) {
+    return this.doctorsService.bulkOnlineStatus(status);
   }
 
   @UseGuards(AuthGuard('jwt'))

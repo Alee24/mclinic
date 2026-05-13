@@ -23,8 +23,12 @@ docker-compose build api web
 echo "🔄 [3/4] Restarting services (preserving data)..."
 docker-compose up -d --no-deps api web
 
-# 4. Final Cleanup
-echo "🧹 [4/4] Cleaning up unused Docker images..."
+# 4. Run Migrations
+echo "🗄️ [4/5] Running database migrations..."
+docker-compose exec -T api npm run migration:run:prod
+
+# 5. Final Cleanup
+echo "🧹 [5/5] Cleaning up unused Docker images..."
 docker image prune -f
 
 echo "---------------------------------------------------"

@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DeepPartial, IsNull } from 'typeorm';
+import { Repository, DeepPartial, IsNull, In } from 'typeorm';
 import { Doctor } from './entities/doctor.entity';
 import { User, UserRole } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
@@ -298,7 +298,7 @@ export class DoctorsService implements OnModuleInit {
         }
     }
 
-    async getNearby(lat: number, lng: number, radiusKm: number = 50, includeAll: boolean = false): Promise<any[]> {
+    async getNearby(lat: number, lng: number, radiusKm: number = 50, includeAll: boolean = false, user?: any): Promise<any[]> {
         // Refactored to ensure we catch doctors with missing coordinates and assign them
         // so they show up on the map (Critical for demo/testing).
 
@@ -355,7 +355,10 @@ export class DoctorsService implements OnModuleInit {
             const distance = R * c; // Distance in km
 
             if (distance <= radiusKm) {
-                results.push({ ...doc, distance });
+                const finalDoc = (user && (user.role === 'admin' || user.role === 'doctor' || await this.hasUserPaidForDoctor(user.sub || user.id, doc.id)))
+                    ? doc 
+                    : this.maskDoctor(doc);
+                results.push({ ...finalDoc, distance });
             }
         }
 
@@ -372,11 +375,9 @@ export class DoctorsService implements OnModuleInit {
         return deg * (Math.PI / 180);
     }
 
-    async findAllVerified(search?: string, includeOffline: boolean = false): Promise<any[]> {
+    async findAllVerified(search?: string, includeOffline: boolean = false, user?: any): Promise<any[]> {
         const query = this.doctorsRepository.createQueryBuilder('doctor');
 
-        // Live Map View (default): Must be verified, active, and ONLINE
-        // Booking View (includeOffline=true): Must be verified and active, but can be OFFLINE
         query
             .where('doctor.Verified_status = :verified', { verified: 1 })
             .andWhere('doctor.status = :status', { status: 1 });
@@ -394,61 +395,64 @@ export class DoctorsService implements OnModuleInit {
 
         let activeDocs = await query.getMany();
 
-        // REMOVED DEMO AUTO-FIX to ensure strict production compliance.
-
-
-        // Ensure location data exists
-        const updates = [];
-        for (const doc of activeDocs) {
-            let changed = false;
-            // @ts-ignore
-            if (!doc.latitude || !doc.longitude) {
-                // @ts-ignore
-                doc.latitude = -1.2921 + (Math.random() - 0.5) * 0.1;
-                // @ts-ignore
-                doc.longitude = 36.8219 + (Math.random() - 0.5) * 0.1;
-                changed = true;
+        // Handle Privacy Masking
+        const results = await Promise.all(activeDocs.map(async (doc) => {
+            if (!user || user.role === 'admin' || user.role === 'doctor') {
+                return doc;
             }
-            if (changed) {
-                updates.push(this.doctorsRepository.save(doc));
-            }
-        }
-        if (updates.length > 0) await Promise.all(updates);
 
-        // Attach Active Booking simulation for map demo
-        const enrichedDocs = await Promise.all(activeDocs.map(async (doc) => {
-            const enriched: any = { ...doc };
+            const hasPaid = await this.hasUserPaidForDoctor(user.sub || user.id, doc.id);
+            if (hasPaid) return doc;
 
-            // SIMULATION for map demo:
-            // Assign active booking to 50% of doctors
-            if (Math.random() > 0.5) {
-                // @ts-ignore
-                const pLat = Number(doc.latitude) + (Math.random() - 0.5) * 0.02;
-                // @ts-ignore
-                const pLng = Number(doc.longitude) + (Math.random() - 0.5) * 0.02;
-
-                enriched.activeBooking = {
-                    id: 999000 + doc.id,
-                    status: 'IN_PROGRESS',
-                    startTime: new Date().toISOString(),
-                    eta: '14 mins',
-                    routeDistance: '4.8 km',
-                    patient: {
-                        id: 101,
-                        fname: 'Alex',
-                        lname: 'Metto',
-                        mobile: '+2547...000',
-                        location: {
-                            latitude: pLat,
-                            longitude: pLng
-                        }
-                    }
-                };
-            }
-            return enriched;
+            return this.maskDoctor(doc);
         }));
 
-        return enrichedDocs;
+        return results;
+    }
+
+    async hasUserPaidForDoctor(userId: number, doctorId: number): Promise<boolean> {
+        // Check for confirmed/completed appointments
+        const appointment = await this.appointmentsRepository.findOne({
+            where: {
+                patientId: userId,
+                doctorId: doctorId,
+                status: In(['confirmed', 'completed', 'in_progress'] as any)
+            }
+        });
+
+        if (appointment) return true;
+
+        // Check for paid invoices linked to this doctor
+        const paidInvoice = await this.appointmentsRepository.manager.getRepository('invoices').findOne({
+            where: {
+                patientId: userId, // Assuming patientId exists on invoice or relation
+                doctorId: doctorId,
+                status: In(['paid', 'PAID'] as any)
+            }
+        });
+
+        return !!paidInvoice;
+    }
+
+    maskDoctor(doctor: Doctor): any {
+        const mask = (str: string) => {
+            if (!str) return '***';
+            if (str.length <= 2) return str[0] + '*';
+            return str[0] + '*'.repeat(str.length - 2) + str[str.length - 1];
+        };
+
+        return {
+            ...doctor,
+            fname: mask(doctor.fname),
+            lname: mask(doctor.lname),
+            email: 'private@mclinic.co.ke',
+            mobile: '+2547***',
+            address: 'Private Location',
+            latitude: null,
+            longitude: null,
+            isPrivate: true,
+            unlockMessage: 'Book an appointment and complete payment to unlock full medic details.'
+        };
     }
 
     async findAll(drType?: string, verifiedStatus?: string, status?: string): Promise<Doctor[]> {
@@ -469,8 +473,18 @@ export class DoctorsService implements OnModuleInit {
         return query.getMany();
     }
 
-    async findOne(id: number): Promise<Doctor | null> {
-        return this.doctorsRepository.findOne({ where: { id } });
+    async findOne(id: number, user?: any): Promise<any | null> {
+        const doctor = await this.doctorsRepository.findOne({ where: { id } });
+        if (!doctor) return null;
+
+        if (!user || user.role === 'admin' || user.role === 'doctor') {
+            return doctor;
+        }
+
+        const hasPaid = await this.hasUserPaidForDoctor(user.sub || user.id, doctor.id);
+        if (hasPaid) return doctor;
+
+        return this.maskDoctor(doctor);
     }
 
     async findByUserId(userId: number): Promise<Doctor | null> {
@@ -822,6 +836,13 @@ export class DoctorsService implements OnModuleInit {
             approvalStatus: 'approved',
             rejectionReason: null as any
         });
+    }
+
+    async bulkOnlineStatus(status: number): Promise<any> {
+        await this.doctorsRepository.update({}, {
+            is_online: status
+        });
+        return { success: true, count: await this.doctorsRepository.count() };
     }
 
     /**
