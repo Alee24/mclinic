@@ -76,22 +76,22 @@ export class User {
   emailVerifiedAt: Date;
 
   // Patient-specific fields
-  @Column({ length: 40, nullable: true, transformer: Encrypt })
+  @Column({ length: 255, nullable: true, transformer: Encrypt })
   fname: string;
 
-  @Column({ length: 50, nullable: true, transformer: Encrypt })
+  @Column({ length: 255, nullable: true, transformer: Encrypt })
   lname: string;
 
-  @Column({ length: 40, nullable: true, transformer: Encrypt })
+  @Column({ length: 255, nullable: true, transformer: Encrypt })
   mobile: string;
 
   @Column({ length: 255, nullable: true, transformer: Encrypt })
   national_id: string;
 
-  @Column({ length: 20, nullable: true, transformer: Encrypt })
+  @Column({ length: 255, nullable: true, transformer: Encrypt })
   dob: string;
 
-  @Column({ length: 20, nullable: true, transformer: Encrypt })
+  @Column({ length: 255, nullable: true, transformer: Encrypt })
   sex: string;
 
   @Column({ type: 'text', nullable: true, transformer: Encrypt })

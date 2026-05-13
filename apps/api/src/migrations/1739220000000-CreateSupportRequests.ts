@@ -57,15 +57,15 @@ export class CreateSupportRequests1739220000000 implements MigrationInterface {
         }), true);
 
         // Seed some system settings for notifications
-        await queryRunner.query(`
-            INSERT INTO system_setting (\`key\`, \`value\`, \`description\`, \`isSecure\`) VALUES 
-            ('admin_notification_mobile', '0724454757', 'Mobile number for admin notifications', 0),
-            ('notify_on_signup', 'true', 'Enable admin notification on new user signup', 0),
-            ('notify_on_booking', 'true', 'Enable admin notification on new appointment', 0),
-            ('notify_on_payment_failure', 'true', 'Enable admin notification on payment failure', 0),
-            ('notify_on_support_request', 'true', 'Enable admin notification on new support request', 0)
-            ON DUPLICATE KEY UPDATE \`value\`=\`value\`
-        `);
+        // await queryRunner.query(`
+        //     INSERT INTO system_setting (\`key\`, \`value\`, \`description\`, \`isSecure\`) VALUES 
+        //     ('admin_notification_mobile', '0724454757', 'Mobile number for admin notifications', 0),
+        //     ('notify_on_signup', 'true', 'Enable admin notification on new user signup', 0),
+        //     ('notify_on_booking', 'true', 'Enable admin notification on new appointment', 0),
+        //     ('notify_on_payment_failure', 'true', 'Enable admin notification on payment failure', 0),
+        //     ('notify_on_support_request', 'true', 'Enable admin notification on new support request', 0)
+        //     ON DUPLICATE KEY UPDATE \`value\`=\`value\`
+        // `);
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
