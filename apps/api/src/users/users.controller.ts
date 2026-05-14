@@ -10,10 +10,13 @@ import {
   UseInterceptors,
   UploadedFile,
   Request,
+  Res,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { join } from 'path';
+import { Response } from 'express';
+import * as fs from 'fs';
 
 import { UsersService } from './users.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -108,5 +111,40 @@ export class UsersController {
   @Get(':id/deletion-status')
   async getDeletionStatus(@Param('id') id: string) {
     return this.usersService.getDeletionStatus(+id);
+  }
+
+  @Get('profile-image/:id')
+  async getProfileImage(@Param('id') id: string, @Res() res: Response) {
+    let user = await this.usersService.findById(+id);
+    
+    // Fallback: If not found by User ID, check if it's a Doctor ID
+    if (!user) {
+      const doctor = await this.dataSource.query(
+        'SELECT email FROM doctors WHERE id = ?',
+        [+id]
+      );
+      if (doctor && doctor.length > 0) {
+        user = await this.usersService.findOne(doctor[0].email);
+      }
+    }
+
+    if (!user || !user.profilePicture) {
+      return this.serveDefaultAvatar(user?.role, res);
+    }
+
+    const filePath = join(__dirname, '..', '..', 'uploads', 'profiles', user.profilePicture);
+    if (fs.existsSync(filePath)) {
+      return res.sendFile(filePath);
+    }
+
+    return this.serveDefaultAvatar(user?.role, res);
+  }
+
+  private serveDefaultAvatar(role: string, res: Response) {
+    // Return a color-coded default avatar or just a 404 for the browser to handle
+    // For now, let's redirect to a UI-avatar service as a robust fallback
+    const name = role || 'User';
+    const color = role === 'admin' ? '7c3aed' : role === 'doctor' ? '10b981' : '3b82f6';
+    return res.redirect(`https://ui-avatars.com/api/?name=${name}&background=${color}&color=fff&size=128`);
   }
 }

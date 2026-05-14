@@ -89,14 +89,18 @@ export default function MedicProfilePage() {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 flex flex-col items-center text-center sticky top-24">
               <div className="relative group">
-                <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-emerald-500/10 mb-6">
+                <div className="w-48 h-48 rounded-full overflow-hidden ring-4 ring-emerald-500/10 mb-6 shadow-xl relative">
                   <img 
-                    src={medic.profilePicture ? `/api/uploads/profiles/${medic.profilePicture}` : `https://ui-avatars.com/api/?name=${medic.fname}+${medic.lname}&background=10b981&color=fff&size=512`}
-                    alt={`${medic.fname} ${medic.lname}`}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    src={medic.id ? `/api/users/profile-image/${medic.id}` : `https://ui-avatars.com/api/?name=${medic.fname}+${medic.lname}&background=10b981&color=fff&size=512`}
+                    alt={`${medic.fname} ${medic.lname} profile`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    onError={(e: any) => {
+                      e.target.src = `https://ui-avatars.com/api/?name=${medic.fname}+${medic.lname}&background=10b981&color=fff&size=512`;
+                    }}
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
-                <div className="absolute bottom-6 right-4 bg-white p-1.5 rounded-full shadow-lg border border-emerald-50 font-bold">
+                <div className="absolute bottom-6 right-4 bg-white p-2 rounded-full shadow-lg border border-emerald-50 scale-110">
                   <BadgeCheck className="w-6 h-6 text-emerald-500" />
                 </div>
               </div>

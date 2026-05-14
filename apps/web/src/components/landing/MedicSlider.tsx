@@ -123,9 +123,12 @@ export default function MedicSlider() {
             >
               <div className="relative aspect-square rounded-3xl overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-500">
                 <img 
-                  src={doctor.profile_image ? (doctor.profile_image.startsWith('http') ? doctor.profile_image : `${process.env.NEXT_PUBLIC_API_URL || 'https://portal.mclinic.co.ke/api'}/uploads/profiles/${doctor.profile_image}`) : 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&q=80'} 
+                  src={doctor.profile_image ? `/api/users/profile-image/${doctor.id}` : 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&q=80'} 
                   alt={doctor.fname} 
                   className="w-full h-full object-cover" 
+                  onError={(e: any) => {
+                    e.target.src = 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&q=80';
+                  }}
                 />
                 {doctor.isPrivate && (
                   <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center">
