@@ -69,10 +69,10 @@ if $RESTART_NEEDED; then
   sleep 10
 
   echo "=== Running pending TypeORM migrations ==="
-  docker exec -i "$API_CONTAINER" npm run typeorm migration:run
+  docker exec -i -w /app/apps/api "$API_CONTAINER" npm run typeorm migration:run
 
   echo "=== Migration status after run ==="
-  docker exec -i "$API_CONTAINER" npm run typeorm migration:show
+  docker exec -i -w /app/apps/api "$API_CONTAINER" npm run typeorm migration:show
 
   echo "=== Final API health‑check ==="
   FINAL_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/api/health || echo "000")
