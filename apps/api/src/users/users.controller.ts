@@ -15,7 +15,8 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { join } from 'path';
-import { Response } from 'express';
+import type { Response } from 'express';
+import { DataSource } from 'typeorm';
 import * as fs from 'fs';
 
 import { UsersService } from './users.service';
@@ -23,7 +24,10 @@ import { AuthGuard } from '@nestjs/passport';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly dataSource: DataSource,
+  ) { }
 
   @UseGuards(AuthGuard('jwt'))
   @Get()
@@ -129,7 +133,7 @@ export class UsersController {
     }
 
     if (!user || !user.profilePicture) {
-      return this.serveDefaultAvatar(user?.role, res);
+      return this.serveDefaultAvatar(String(user?.role || 'User'), res);
     }
 
     const filePath = join(__dirname, '..', '..', 'uploads', 'profiles', user.profilePicture);
@@ -137,7 +141,7 @@ export class UsersController {
       return res.sendFile(filePath);
     }
 
-    return this.serveDefaultAvatar(user?.role, res);
+    return this.serveDefaultAvatar(String(user?.role || 'User'), res);
   }
 
   private serveDefaultAvatar(role: string, res: Response) {
