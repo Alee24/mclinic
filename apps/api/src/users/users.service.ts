@@ -345,17 +345,38 @@ export class UsersService implements OnModuleInit {
   }
 
   async findPublicProfile(id: number) {
-    const user = await this.usersRepository.findOne({
+    console.log(`[UsersService] Fetching public profile for ID: ${id}`);
+    
+    // 1. Try finding by User ID first
+    let user = await this.usersRepository.findOne({
       where: { id },
-      select: ['id', 'fname', 'lname', 'role', 'email', 'profilePicture', 'licenseNumber', 'specialization', 'bio', 'status', 'isPublic']
+      select: ['id', 'email', 'fname', 'lname', 'role', 'profilePicture', 'licenseNumber', 'specialization', 'bio', 'status', 'isPublic']
     });
 
+    // 2. Fallback: If not found, check if it's a Doctor ID
     if (!user) {
-      throw new NotFoundException('Medic profile not found');
+      console.log(`[UsersService] User ID ${id} not found, checking if it is a Doctor ID...`);
+      const doctor = await this.dataSource.query(
+        'SELECT email FROM doctors WHERE id = ?',
+        [id]
+      );
+
+      if (doctor && doctor.length > 0) {
+        user = await this.usersRepository.findOne({
+          where: { email: doctor[0].email },
+          select: ['id', 'email', 'fname', 'lname', 'role', 'profilePicture', 'licenseNumber', 'specialization', 'bio', 'status', 'isPublic']
+        });
+      }
+    }
+
+    if (!user) {
+      throw new NotFoundException(`Medic profile with ID ${id} not found.`);
     }
     
+    console.log(`[UsersService] Found user ${user.email}. isPublic: ${user.isPublic}`);
+
     if (!user.isPublic) {
-      throw new ConflictException('This profile is not currently public');
+      throw new ConflictException('PRIVATE_PROFILE');
     }
 
     return user;

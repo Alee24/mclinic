@@ -3,6 +3,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY apps/api/package*.json ./apps/api/
 RUN npm install
+RUN cd apps/api && npm install
 COPY . .
 RUN cd apps/api && npm run build
 

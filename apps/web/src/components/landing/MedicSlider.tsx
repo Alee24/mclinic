@@ -178,7 +178,6 @@ export default function MedicSlider() {
       {/* Booking Modal */}
       {showBooking && selectedDoctor && (
         <CreateAppointmentModal 
-          isOpen={showBooking}
           onClose={() => setShowBooking(false)}
           onSuccess={() => {
             setShowBooking(false);

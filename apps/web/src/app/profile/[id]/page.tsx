@@ -25,9 +25,10 @@ export default function MedicProfilePage() {
 
   useEffect(() => {
     if (id) {
-      fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7899'}/users/profile/${id}`)
+      const apiUrl = `/api/users/profile/${id}`;
+      fetch(apiUrl)
         .then(res => {
-          if (res.status === 409) throw new Error('PRIVATE_PROFILE');
+          if (res.status === 409) return res.json().then(d => { throw new Error(d.message || 'PRIVATE_PROFILE') });
           if (!res.ok) throw new Error('NOT_FOUND');
           return res.json();
         })
@@ -36,7 +37,8 @@ export default function MedicProfilePage() {
           setLoading(false);
         })
         .catch(err => {
-          setError(err.message);
+          console.error('[ProfilePage] Fetch error:', err);
+          setError(err.message === 'PRIVATE_PROFILE' || err.message === 'This profile is not currently public' ? 'PRIVATE_PROFILE' : 'NOT_FOUND');
           setLoading(false);
         });
     }

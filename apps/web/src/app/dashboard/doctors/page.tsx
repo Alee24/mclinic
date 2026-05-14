@@ -211,7 +211,7 @@ export default function DoctorsPage() {
         if (!confirm(`This will turn ALL medics ${action}. Continue?`)) return;
         
         try {
-            const res = await api.post('/doctors/admin/bulk-online', { status });
+            const res = await api.patch('/doctors/admin/bulk-online', { status });
             if (res && res.ok) {
                 toast.success(`All medics are now ${action}`);
                 fetchDoctors();

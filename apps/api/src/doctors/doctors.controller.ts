@@ -179,6 +179,7 @@ export class DoctorsController {
     return this.doctorsService.updateProfileImage(+id, file.filename);
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Patch(':id/online-status')
   updateOnlineStatus(
     @Param('id') id: string,
@@ -269,7 +270,7 @@ export class DoctorsController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Post('admin/bulk-online')
+  @Patch('admin/bulk-online')
   bulkOnlineStatus(@Body('status') status: number) {
     return this.doctorsService.bulkOnlineStatus(status);
   }

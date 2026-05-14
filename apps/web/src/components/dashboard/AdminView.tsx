@@ -75,6 +75,26 @@ export default function AdminView() {
         }
     };
 
+    const handleBulkOnlineStatus = async (status: number) => {
+        const action = status === 1 ? 'ONLINE' : 'OFFLINE';
+        if (!confirm(`Turn ALL medics ${action}?`)) return;
+
+        const toastId = toast.loading(`Setting all medics to ${action}...`);
+        try {
+            const res = await api.patch('/doctors/admin/bulk-online', { status });
+            if (res && res.ok) {
+                toast.success(`Success! All medics are now ${action}.`, { id: toastId });
+                // Refresh stats
+                window.location.reload();
+            } else {
+                toast.error(`Failed to update status.`, { id: toastId });
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error('Connection error.', { id: toastId });
+        }
+    };
+
     useEffect(() => {
         const fetchStats = async () => {
             try {
@@ -251,6 +271,21 @@ export default function AdminView() {
                         >
                             <FiActivity /> Verify NCK Licenses
                         </button>
+
+                        <button
+                            onClick={() => handleBulkOnlineStatus(1)}
+                            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-emerald-600/20 active:scale-95 transition"
+                        >
+                            <FiActivity /> Turn All Online
+                        </button>
+
+                        <button
+                            onClick={() => handleBulkOnlineStatus(0)}
+                            className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-gray-600/20 active:scale-95 transition"
+                        >
+                            <FiActivity /> Turn All Offline
+                        </button>
+
                         {stats.pendingDoctors.length > 0 && (
                             <button
                                 onClick={handleApproveAll}

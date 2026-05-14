@@ -121,34 +121,33 @@ export function useMedicDashboard() {
             if (newStatus) {
                 // Going Online - Get Location
                 if (navigator.geolocation) {
+                    // Set a safety timeout to prevent permanent "Locating..." state
+                    const geoTimeout = setTimeout(() => {
+                        console.warn('Geolocation timed out, proceeding with null coordinates');
+                        finishOnlineUpdate(null, null);
+                    }, 10000);
+
                     navigator.geolocation.getCurrentPosition(
                         async (pos) => {
-                            try {
-                                const { latitude, longitude } = pos.coords;
-                                await api.patch(`/doctors/${doctorProfile.id}/online-status`, { status: 1, latitude, longitude });
-                                setIsOnline(true);
-                                toast.success('You are now Online');
-                            } catch (e) {
-                                console.error(e);
-                                toast.error('Failed to update status');
-                            } finally {
-                                setStatusUpdating(false);
-                            }
+                            clearTimeout(geoTimeout);
+                            const { latitude, longitude } = pos.coords;
+                            await finishOnlineUpdate(latitude, longitude);
                         },
-                        (err) => {
+                        async (err) => {
+                            clearTimeout(geoTimeout);
                             console.error('Geolocation error:', err);
-                            toast.error('Location access required to go online.');
-                            setStatusUpdating(false);
+                            toast.error('Location access denied. Going online with last known position.');
+                            await finishOnlineUpdate(null, null);
                         },
                         {
-                            enableHighAccuracy: true,
-                            timeout: 15000,
-                            maximumAge: 0
+                            enableHighAccuracy: false, // Faster results
+                            timeout: 8000,
+                            maximumAge: 60000
                         }
                     );
                 } else {
-                    toast.error('Geolocation not supported.');
-                    setStatusUpdating(false);
+                    toast.error('Geolocation not supported. Going online without location.');
+                    await finishOnlineUpdate(null, null);
                 }
             } else {
                 // Going Offline
@@ -160,6 +159,23 @@ export function useMedicDashboard() {
         } catch (error) {
             console.error(error);
             toast.error('Failed to update status');
+            setStatusUpdating(false);
+        }
+    };
+
+    const finishOnlineUpdate = async (latitude: number | null, longitude: number | null) => {
+        try {
+            await api.patch(`/doctors/${doctorProfile.id}/online-status`, { 
+                status: 1, 
+                latitude: latitude || 0, 
+                longitude: longitude || 0 
+            });
+            setIsOnline(true);
+            toast.success('You are now Online');
+        } catch (e) {
+            console.error(e);
+            toast.error('Failed to go online');
+        } finally {
             setStatusUpdating(false);
         }
     };
