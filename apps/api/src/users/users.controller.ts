@@ -15,7 +15,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { join } from 'path';
-import type { Response } from 'express';
+import * as express from 'express';
 import { DataSource } from 'typeorm';
 import * as fs from 'fs';
 
@@ -118,7 +118,7 @@ export class UsersController {
   }
 
   @Get('profile-image/:id')
-  async getProfileImage(@Param('id') id: string, @Res() res: Response) {
+  async getProfileImage(@Param('id') id: string, @Res() res: express.Response) {
     let user = await this.usersService.findById(+id);
     
     // Fallback: If not found by User ID, check if it's a Doctor ID
@@ -144,7 +144,7 @@ export class UsersController {
     return this.serveDefaultAvatar(String(user?.role || 'User'), res);
   }
 
-  private serveDefaultAvatar(role: string, res: Response) {
+  private serveDefaultAvatar(role: string, res: express.Response) {
     // Return a color-coded default avatar or just a 404 for the browser to handle
     // For now, let's redirect to a UI-avatar service as a robust fallback
     const name = role || 'User';
