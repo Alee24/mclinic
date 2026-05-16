@@ -93,7 +93,7 @@ export default function OnboardingFlow({ doctor, onComplete }: Props) {
                                 <FiInfo />
                             </div>
                             <div>
-                                <h1 className="text-3xl font-black dark:text-white">Professional Agreements</h1>
+                                <h1 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white">Professional Agreements</h1>
                                 <p className="text-gray-500 font-medium tracking-tight">Please review our updated terms and conditions for Medics.</p>
                             </div>
                         </div>
@@ -141,7 +141,7 @@ export default function OnboardingFlow({ doctor, onComplete }: Props) {
                             <button
                                 onClick={handleAcceptTerms}
                                 disabled={loading}
-                                className="w-full md:w-auto px-8 py-4 bg-donezo-dark text-white font-bold rounded-2xl shadow-xl shadow-donezo-dark/20 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                                className="w-full md:w-auto px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-xl flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
                             >
                                 {loading ? 'Processing...' : 'Accept and Continue'} <FiArrowRight />
                             </button>
@@ -159,7 +159,7 @@ export default function OnboardingFlow({ doctor, onComplete }: Props) {
                 {[2, 3, 4, 5, 6].map((s) => (
                     <div
                         key={s}
-                        className={`w-10 h-2 rounded-full transition-all duration-500 ${step >= s ? 'bg-donezo-dark' : 'bg-gray-200 dark:bg-gray-800'}`}
+                        className={`w-10 h-2 rounded-full transition-all duration-500 ${step >= s ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-800'}`}
                     />
                 ))}
             </div>
@@ -171,13 +171,13 @@ export default function OnboardingFlow({ doctor, onComplete }: Props) {
                             <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-3xl flex items-center justify-center text-3xl mb-4">
                                 <FiCamera />
                             </div>
-                            <h2 className="text-3xl font-black dark:text-white">Profile Picture</h2>
+                            <h2 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white">Profile Picture</h2>
                             <p className="text-gray-500 font-medium tracking-tight">Upload a professional photo. Patients trust profiles with clear images.</p>
                         </div>
 
                         <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-[2.5rem] bg-gray-50/50 dark:bg-black/20">
-                            <div className="relative group cursor-pointer" onClick={() => document.getElementById('profile-upload')?.click()}>
-                                <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-white dark:border-gray-800 shadow-2xl relative">
+                            <label htmlFor="profile-upload" className="relative group cursor-pointer block">
+                                <div className="w-40 h-40 md:w-48 md:h-48 rounded-full overflow-hidden border-4 border-white dark:border-gray-800 shadow-2xl relative">
                                     {profilePreview ? (
                                         <img src={profilePreview} alt="Preview" className="w-full h-full object-cover" />
                                     ) : (
@@ -189,10 +189,10 @@ export default function OnboardingFlow({ doctor, onComplete }: Props) {
                                         <FiUpload />
                                     </div>
                                 </div>
-                                <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-donezo-dark text-white rounded-full flex items-center justify-center shadow-lg border-4 border-white dark:border-[#161616]">
+                                <div className="absolute bottom-0 right-0 md:-bottom-2 md:-right-2 w-10 h-10 md:w-12 md:h-12 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg border-4 border-white dark:border-[#161616]">
                                     <FiCamera />
                                 </div>
-                            </div>
+                            </label>
                             <input
                                 id="profile-upload"
                                 type="file"
@@ -207,7 +207,7 @@ export default function OnboardingFlow({ doctor, onComplete }: Props) {
                                 }}
                             />
                             <div className="mt-8 text-center">
-                                <h4 className="font-bold dark:text-white">Click to upload your photo</h4>
+                                <h4 className="font-bold text-gray-900 dark:text-white">Click to upload your photo</h4>
                                 <p className="text-sm text-gray-500 mt-1">Supports JPG, PNG or WebP. Max 5MB.</p>
                             </div>
                         </div>
@@ -217,7 +217,7 @@ export default function OnboardingFlow({ doctor, onComplete }: Props) {
                             <button
                                 onClick={() => handleUpdateProfile()}
                                 disabled={loading}
-                                className="flex-[2] py-4 bg-donezo-dark text-white font-bold rounded-2xl shadow-xl hover:scale-[1.02] transition-all disabled:opacity-50"
+                                className="flex-[2] py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-xl hover:scale-[1.02] transition-all disabled:opacity-50"
                             >
                                 {profileFile ? 'Upload & Continue' : 'Continue'}
                             </button>
@@ -231,7 +231,7 @@ export default function OnboardingFlow({ doctor, onComplete }: Props) {
                             <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-3xl flex items-center justify-center text-3xl mb-4">
                                 <FiUser />
                             </div>
-                            <h2 className="text-3xl font-black dark:text-white">Basic Information</h2>
+                            <h2 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white">Basic Information</h2>
                             <p className="text-gray-500 font-medium">Tell us about yourself. This bio will appear on your public profile.</p>
                         </div>
 
@@ -262,7 +262,7 @@ export default function OnboardingFlow({ doctor, onComplete }: Props) {
                             <button
                                 onClick={() => handleUpdateProfile()}
                                 disabled={!formData.about || !formData.address || loading}
-                                className="flex-[2] py-4 bg-donezo-dark text-white font-bold rounded-2xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                                className="flex-[2] py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
                             >
                                 Next Step
                             </button>
@@ -276,7 +276,7 @@ export default function OnboardingFlow({ doctor, onComplete }: Props) {
                             <div className="w-16 h-16 bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 rounded-3xl flex items-center justify-center text-3xl mb-4">
                                 <FiBriefcase />
                             </div>
-                            <h2 className="text-3xl font-black dark:text-white">Expertise & Experience</h2>
+                            <h2 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white">Expertise & Experience</h2>
                             <p className="text-gray-500 font-medium">Let patients know your specialities and where you work.</p>
                         </div>
 
@@ -401,7 +401,7 @@ export default function OnboardingFlow({ doctor, onComplete }: Props) {
                             <button
                                 onClick={() => handleUpdateProfile()}
                                 disabled={loading}
-                                className="flex-[2] py-4 bg-donezo-dark text-white font-bold rounded-2xl shadow-xl hover:scale-[1.02] transition-all disabled:opacity-50"
+                                className="flex-[2] py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-xl hover:scale-[1.02] transition-all disabled:opacity-50"
                             >
                                 Next Step
                             </button>
@@ -415,7 +415,7 @@ export default function OnboardingFlow({ doctor, onComplete }: Props) {
                             <div className="w-16 h-16 bg-rose-100 dark:bg-rose-900/30 text-rose-600 rounded-3xl flex items-center justify-center text-3xl mb-4">
                                 <FiShield />
                             </div>
-                            <h2 className="text-3xl font-black dark:text-white">Licensing & Credentials</h2>
+                            <h2 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white">Licensing & Credentials</h2>
                             <p className="text-gray-500 font-medium tracking-tight">Verify your professional credentials as per regulatory standards.</p>
                         </div>
 
@@ -494,7 +494,7 @@ export default function OnboardingFlow({ doctor, onComplete }: Props) {
                             <button
                                 onClick={() => handleUpdateProfile()}
                                 disabled={!formData.reg_code || !formData.licenceNo || loading}
-                                className="flex-[2] py-4 bg-donezo-dark text-white font-bold rounded-2xl shadow-xl hover:scale-[1.02] transition-all disabled:opacity-50"
+                                className="flex-[2] py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-xl hover:scale-[1.02] transition-all disabled:opacity-50"
                             >
                                 Next Step
                             </button>
@@ -508,7 +508,7 @@ export default function OnboardingFlow({ doctor, onComplete }: Props) {
                             <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 text-green-600 rounded-3xl flex items-center justify-center text-3xl mb-4">
                                 <FiDollarSign />
                             </div>
-                            <h2 className="text-3xl font-black dark:text-white">Fees & Earnings</h2>
+                            <h2 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white">Fees & Earnings</h2>
                             <p className="text-gray-500 font-medium tracking-tight">Set your consultation fee. Remember the platform commission.</p>
                         </div>
 
@@ -516,7 +516,7 @@ export default function OnboardingFlow({ doctor, onComplete }: Props) {
                             <label className="text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-widest block">Your Consultation Fee (KES)</label>
                             <input
                                 type="number"
-                                className="w-full max-w-xs mx-auto text-4xl font-black bg-transparent text-center focus:outline-none dark:text-white"
+                                className="w-full max-w-xs mx-auto text-4xl font-black bg-transparent text-center focus:outline-none text-gray-900 dark:text-white"
                                 value={formData.fee}
                                 onChange={(e) => setFormData({ ...formData, fee: parseInt(e.target.value) || 0 })}
                             />
@@ -538,7 +538,7 @@ export default function OnboardingFlow({ doctor, onComplete }: Props) {
                             <button
                                 onClick={() => handleUpdateProfile(true)}
                                 disabled={loading}
-                                className="flex-[2] py-4 bg-donezo-dark text-white font-bold rounded-2xl shadow-xl hover:scale-[1.02] transition-all disabled:opacity-50"
+                                className="flex-[2] py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-xl hover:scale-[1.02] transition-all disabled:opacity-50"
                             >
                                 Finish Setup
                             </button>
