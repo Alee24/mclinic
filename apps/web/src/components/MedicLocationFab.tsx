@@ -9,18 +9,11 @@ import { useMedicDashboard } from '@/hooks/useMedicDashboard';
 
 export default function MedicLocationFab() {
     const { user } = useAuth();
-    const { isOnline, toggleOnlineStatus, doctorProfile } = useMedicDashboard();
-    const [status, setStatus] = useState<'offline' | 'locating' | 'online'>('offline');
+    const { isOnline, toggleOnlineStatus, statusUpdating } = useMedicDashboard();
     const [isVisible, setIsVisible] = useState(false);
 
-    // Sync local status with dashboard state
-    useEffect(() => {
-        if (isOnline) {
-            setStatus('online');
-        } else {
-            setStatus('offline');
-        }
-    }, [isOnline]);
+    // Derived status from hook to ensure consistency
+    const status = statusUpdating ? 'locating' : (isOnline ? 'online' : 'offline');
 
     // Only show for medics
     const isMedic = user && (
@@ -31,23 +24,11 @@ export default function MedicLocationFab() {
     );
 
     useEffect(() => {
-        if (isMedic) {
-            setIsVisible(true);
-        } else {
-            setIsVisible(false);
-        }
-    }, [user, isMedic]);
+        setIsVisible(!!isMedic);
+    }, [isMedic]);
 
     const handleToggle = async () => {
-        if (!isOnline) {
-            // Going Online
-            setStatus('locating');
-            await toggleOnlineStatus();
-        } else {
-            // Going Offline
-            await toggleOnlineStatus();
-            setStatus('offline');
-        }
+        await toggleOnlineStatus();
     };
 
     if (!isVisible) return null;

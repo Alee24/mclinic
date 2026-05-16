@@ -112,10 +112,17 @@ export function useMedicDashboard() {
     }, [fetchData]);
 
     const toggleOnlineStatus = async () => {
-        if (!doctorProfile || statusUpdating) return;
+        if (!doctorProfile) {
+            toast.error('Doctor profile not loaded. Please refresh.');
+            return;
+        }
+        
+        if (statusUpdating) return;
 
         const newStatus = !isOnline;
         setStatusUpdating(true);
+
+        console.log(`[useMedicDashboard] Toggling online status to: ${newStatus}`);
 
         try {
             if (newStatus) {
@@ -123,58 +130,77 @@ export function useMedicDashboard() {
                 if (navigator.geolocation) {
                     // Set a safety timeout to prevent permanent "Locating..." state
                     const geoTimeout = setTimeout(() => {
-                        console.warn('Geolocation timed out, proceeding with null coordinates');
+                        console.warn('[useMedicDashboard] Geolocation timed out, proceeding with null coordinates');
                         finishOnlineUpdate(null, null);
-                    }, 10000);
+                    }, 12000); // 12s timeout
 
                     navigator.geolocation.getCurrentPosition(
                         async (pos) => {
                             clearTimeout(geoTimeout);
                             const { latitude, longitude } = pos.coords;
+                            console.log(`[useMedicDashboard] Location acquired: ${latitude}, ${longitude}`);
                             await finishOnlineUpdate(latitude, longitude);
                         },
                         async (err) => {
                             clearTimeout(geoTimeout);
-                            console.error('Geolocation error:', err);
-                            toast.error('Location access denied. Going online with last known position.');
+                            console.error('[useMedicDashboard] Geolocation error:', err);
+                            toast.error('Location access denied or unavailable. Going online without GPS.');
                             await finishOnlineUpdate(null, null);
                         },
                         {
                             enableHighAccuracy: false, // Faster results
-                            timeout: 8000,
+                            timeout: 10000,
                             maximumAge: 60000
                         }
                     );
                 } else {
+                    console.warn('[useMedicDashboard] Geolocation not supported');
                     toast.error('Geolocation not supported. Going online without location.');
                     await finishOnlineUpdate(null, null);
                 }
             } else {
                 // Going Offline
-                await api.patch(`/doctors/${doctorProfile.id}/online-status`, { status: 0 });
-                setIsOnline(false);
-                toast.success('You are now Offline');
-                setStatusUpdating(false);
+                console.log('[useMedicDashboard] Going offline...');
+                const res = await api.patch(`/doctors/${doctorProfile.id}/online-status`, { status: 0 });
+                if (res.ok) {
+                    setIsOnline(false);
+                    toast.success('You are now Offline');
+                } else {
+                    throw new Error('Failed to update status on server');
+                }
             }
         } catch (error) {
-            console.error(error);
-            toast.error('Failed to update status');
-            setStatusUpdating(false);
+            console.error('[useMedicDashboard] Error toggling status:', error);
+            toast.error('Failed to update status. Please try again.');
+        } finally {
+            // Ensure we only set statusUpdating to false if NOT going online (as finishOnlineUpdate handles it)
+            if (!newStatus) {
+                setStatusUpdating(false);
+            }
         }
     };
 
     const finishOnlineUpdate = async (latitude: number | null, longitude: number | null) => {
         try {
-            await api.patch(`/doctors/${doctorProfile.id}/online-status`, { 
+            console.log(`[useMedicDashboard] Syncing online status to server...`);
+            const res = await api.patch(`/doctors/${doctorProfile.id}/online-status`, { 
                 status: 1, 
                 latitude: latitude || 0, 
                 longitude: longitude || 0 
             });
-            setIsOnline(true);
-            toast.success('You are now Online');
+            
+            if (res.ok) {
+                setIsOnline(true);
+                toast.success('You are now Online');
+            } else {
+                const errText = await res.text();
+                console.error('[useMedicDashboard] Server error going online:', errText);
+                throw new Error('Server rejected status update');
+            }
         } catch (e) {
-            console.error(e);
-            toast.error('Failed to go online');
+            console.error('[useMedicDashboard] Error in finishOnlineUpdate:', e);
+            toast.error('Failed to go online on server.');
+            // Revert state if possible or just let the user try again
         } finally {
             setStatusUpdating(false);
         }
