@@ -277,7 +277,22 @@ export class DoctorsService implements OnModuleInit {
                 return obj;
             }, {});
 
-        // 3. Create record using filtered data
+        // 3. Check for existing doctor by email to allow "overwrite" behavior
+        if (filteredDto.email) {
+            const existing = await this.doctorsRepository.findOne({ where: { email: filteredDto.email } });
+            if (existing) {
+                console.log(`[DoctorsService] Overwriting existing doctor record for ${filteredDto.email}`);
+                await this.doctorsRepository.update(existing.id, {
+                    ...filteredDto,
+                    user_id: user ? user.id : (dto.user_id || existing.user_id),
+                    // If uploading via admin/migration, we might want to keep status OR force active
+                    // Let's assume the upload data includes status if it wants to change it
+                });
+                return this.findOne(existing.id);
+            }
+        }
+
+        // 4. Create record using filtered data
         const doctor = this.doctorsRepository.create({
             ...filteredDto,
             user_id: user ? user.id : (dto.user_id || null),
@@ -289,9 +304,6 @@ export class DoctorsService implements OnModuleInit {
             return await this.doctorsRepository.save(doctor);
         } catch (error) {
             console.error('[DoctorsService] Registration Error:', error);
-            if (error.code === 'ER_DUP_ENTRY') {
-                throw new BadRequestException('An account with this email already exists.');
-            }
             throw new BadRequestException('Could not complete registration. Please check your details.');
         }
     }

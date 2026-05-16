@@ -447,12 +447,18 @@ export class UsersService implements OnModuleInit {
         
         const updatePayload: any = { ...userData };
         if (userData.status !== undefined) {
-          updatePayload.status = userData.status === '1' || userData.status === 'true';
+          updatePayload.status = userData.status === '1' || userData.status === 'true' || userData.status === 'active';
         }
 
         if (existingUser) {
-          // Don't update password during bulk import unless explicitly provided (which we shouldn't export)
-          delete updatePayload.password;
+          // Rewrite user data with uploaded content
+          console.log(`[UsersService] Overwriting user ${userData.email} with uploaded content.`);
+          
+          // Remove sensitive or non-updatable fields if they shouldn't be touched by bulk import
+          delete updatePayload.id;
+          delete updatePayload.password; 
+          delete updatePayload.createdAt;
+
           await this.usersRepository.update(existingUser.id, updatePayload);
           updated++;
         } else {

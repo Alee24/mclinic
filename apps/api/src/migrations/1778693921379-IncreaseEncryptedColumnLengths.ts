@@ -97,6 +97,8 @@ export class IncreaseEncryptedColumnLengths1778693921379 implements MigrationInt
         try { await queryRunner.query(`ALTER TABLE \`doctors\` ADD UNIQUE INDEX \`IDX_62069f52ebba471c91de5d59d6\` (\`email\`)`); } catch (e) {}
         try { await queryRunner.query(`ALTER TABLE \`doctors\` CHANGE \`reg_code\` \`reg_code\` varchar(50) NULL`); } catch (e) {}
         try { await queryRunner.query(`ALTER TABLE \`doctors\` CHANGE \`updated_at\` \`updated_at\` datetime(6) NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)`); } catch (e) {}
+        try { await queryRunner.query(`ALTER TABLE \`doctors\` CHANGE \`licenceNo\` \`licenceNo\` varchar(255) NULL`); } catch (e) {}
+        try { await queryRunner.query(`ALTER TABLE \`doctor_licences\` CHANGE \`licence_no\` \`licence_no\` varchar(255) NULL`); } catch (e) {}
         
         // Foreign Key Additions
         try { await queryRunner.query(`ALTER TABLE \`wallets\` ADD CONSTRAINT \`FK_92558c08091598f7a4439586cda\` FOREIGN KEY (\`user_id\`) REFERENCES \`users\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`); } catch (e) {}
