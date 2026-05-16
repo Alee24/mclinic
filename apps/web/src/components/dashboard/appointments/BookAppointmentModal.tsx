@@ -140,6 +140,19 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
         }
     }, [initialDoctor, initialType]);
 
+    const getProviderName = (doc: Doctor | null) => {
+        if (!doc) return 'Mclinic Kenya';
+        const type = (doc.dr_type || '').toLowerCase();
+        const serviceName = (selectedService?.name || '').toLowerCase();
+        
+        // If it's an ambulance or concierge service, show Mclinic Kenya
+        if (serviceName.includes('ambulance') || serviceName.includes('concierge') || serviceName.includes('home nursing')) {
+            return 'Mclinic Kenya';
+        }
+        
+        return `${doc.fname} ${doc.lname}`;
+    };
+
     useEffect(() => {
         fixLeafletIcons();
 
@@ -499,8 +512,8 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
                         <h3 className="text-2xl font-black dark:text-white">Ready to Book?</h3>
                         <div className="bg-gray-50 dark:bg-[#121212] p-6 rounded-2xl text-left space-y-4">
                             <div className="flex justify-between">
-                                <span className="text-gray-500">Medic</span>
-                                <span className="font-bold dark:text-white">{selectedDoctor?.fname} {selectedDoctor?.lname}</span>
+                                <span className="text-gray-500">Medical Service Provider</span>
+                                <span className="font-bold dark:text-white">{getProviderName(selectedDoctor)}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-gray-500">Date & Time</span>
@@ -533,7 +546,7 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
                     <div className="flex items-start justify-between">
                         <div className="flex-1">
                             <h2 className="text-2xl font-black dark:text-white leading-tight">
-                                {selectedDoctor ? `Book ${selectedDoctor.fname}` : 'Find a Medic'}
+                                {selectedDoctor ? `Book ${getProviderName(selectedDoctor)}` : 'Find a Medic'}
                             </h2>
                             {!selectedDoctor && (
                                 <div className="flex items-center gap-4 mt-2">

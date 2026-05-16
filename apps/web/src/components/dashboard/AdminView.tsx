@@ -32,27 +32,40 @@ export default function AdminView() {
     const [approving, setApproving] = useState(false);
 
     const handleApproveAll = async () => {
-        if (!stats.pendingDoctors?.length) return;
-        if (!confirm(`Are you sure you want to approve all ${stats.pendingDoctors.length} pending medics? This will activate their accounts immediately.`)) return;
+        if (!confirm(`This will activate and verify ALL registered medics in the system, making them visible for booking. Continue?`)) return;
 
         setApproving(true);
-        const toastId = toast.loading('Processing approvals...');
+        const toastId = toast.loading('Activating all medics...');
 
         try {
             const res = await api.post('/doctors/admin/approve-all', {});
             if (res && res.ok) {
                 const data = await res.json();
-                toast.success(`Approved ${data.count} medics successfully!`, { id: toastId });
-                // Simple refresh of stats by reloading or re-fetching. Reload is safer to clear all states.
+                toast.success(`Success! Activated all medics.`, { id: toastId });
                 setTimeout(() => window.location.reload(), 1500);
             } else {
-                toast.error('Failed to approve medics. Please try again.', { id: toastId });
+                toast.error('Failed to activate medics.', { id: toastId });
             }
         } catch (err) {
             console.error(err);
             toast.error('Connection error occurred.', { id: toastId });
         } finally {
             setApproving(false);
+        }
+    };
+
+    const handleSyncMedics = async () => {
+        const toastId = toast.loading('Syncing medics with user accounts...');
+        try {
+            const res = await api.post('/doctors/sync', {});
+            if (res && res.ok) {
+                toast.success('Sync complete! Medic profiles updated.', { id: toastId });
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                toast.error('Sync failed.', { id: toastId });
+            }
+        } catch (err) {
+            toast.error('Sync error.', { id: toastId });
         }
     };
 
@@ -277,6 +290,13 @@ export default function AdminView() {
                             className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-emerald-600/20 active:scale-95 transition"
                         >
                             <FiActivity /> Turn All Online
+                        </button>
+
+                        <button
+                            onClick={handleSyncMedics}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-600/20 active:scale-95 transition"
+                        >
+                            <FiActivity /> Sync Medics
                         </button>
 
                         <button
