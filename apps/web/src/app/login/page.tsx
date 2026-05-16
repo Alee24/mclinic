@@ -238,7 +238,7 @@ export default function LoginPage() {
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
                                             required
-                                            className="w-full px-5 py-4 rounded-2xl border border-gray-200 dark:border-white/5 bg-gray-50/50 dark:bg-white/5 dark:text-white focus:border-green-500 dark:focus:border-green-500 outline-none transition-all placeholder:text-gray-400 text-sm font-medium"
+                                            className="w-full px-5 py-4 rounded-2xl border border-gray-200 dark:border-white/5 bg-gray-50/50 dark:bg-white/5 text-gray-900 dark:text-white focus:border-green-500 dark:focus:border-green-500 outline-none transition-all placeholder:text-gray-400 text-sm font-medium"
                                             placeholder="name@example.com"
                                         />
                                     </div>
@@ -258,7 +258,7 @@ export default function LoginPage() {
                                                 value={password}
                                                 onChange={(e) => setPassword(e.target.value)}
                                                 required
-                                                className="w-full px-5 py-4 rounded-2xl border border-gray-200 dark:border-white/5 bg-gray-50/50 dark:bg-white/5 dark:text-white focus:border-green-500 dark:focus:border-green-500 outline-none transition-all placeholder:text-gray-400 text-sm font-medium"
+                                                className="w-full px-5 py-4 rounded-2xl border border-gray-200 dark:border-white/5 bg-gray-50/50 dark:bg-white/5 text-gray-900 dark:text-white focus:border-green-500 dark:focus:border-green-500 outline-none transition-all placeholder:text-gray-400 text-sm font-medium"
                                                 placeholder="••••••••"
                                             />
                                             <button
@@ -283,7 +283,7 @@ export default function LoginPage() {
                                             value={mobile}
                                             onChange={(e) => setMobile(e.target.value)}
                                             disabled={otpSent}
-                                            className="w-full px-5 py-4 rounded-2xl border border-gray-200 dark:border-white/5 bg-gray-50/50 dark:bg-white/5 dark:text-white focus:border-green-500 dark:focus:border-green-500 outline-none transition-all placeholder:text-gray-400 text-sm font-medium disabled:opacity-50"
+                                            className="w-full px-5 py-4 rounded-2xl border border-gray-200 dark:border-white/5 bg-gray-50/50 dark:bg-white/5 text-gray-900 dark:text-white focus:border-green-500 dark:focus:border-green-500 outline-none transition-all placeholder:text-gray-400 text-sm font-medium disabled:opacity-50"
                                             placeholder="0712 XXX XXX"
                                         />
                                     </div>
@@ -298,7 +298,7 @@ export default function LoginPage() {
                                                 required
                                                 value={otp}
                                                 onChange={(e) => setOtp(e.target.value)}
-                                                className="w-full px-5 py-6 rounded-2xl border-2 border-green-500 bg-green-500/5 dark:text-white outline-none transition-all text-center text-3xl tracking-[0.5em] font-black"
+                                                className="w-full px-5 py-6 rounded-2xl border-2 border-green-500 bg-green-500/5 text-gray-900 dark:text-white outline-none transition-all text-center text-3xl tracking-[0.5em] font-black"
                                                 placeholder="••••••"
                                                 maxLength={6}
                                             />
@@ -331,10 +331,10 @@ export default function LoginPage() {
                             <div className="flex flex-col gap-4">
                                 <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Create Account</div>
                                 <div className="grid grid-cols-2 gap-3">
-                                    <Link href="/register/patient" className="py-3 px-4 rounded-xl border border-gray-200 dark:border-white/5 text-[10px] font-black uppercase tracking-widest text-center hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                                    <Link href="/register/patient" className="py-3 px-4 rounded-xl border border-gray-200 dark:border-white/5 text-[10px] font-black uppercase tracking-widest text-center text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
                                         As Patient
                                     </Link>
-                                    <Link href="/register/medic" className="py-3 px-4 rounded-xl border border-gray-200 dark:border-white/5 text-[10px] font-black uppercase tracking-widest text-center hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                                    <Link href="/register/medic" className="py-3 px-4 rounded-xl border border-gray-200 dark:border-white/5 text-[10px] font-black uppercase tracking-widest text-center text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
                                         As Medic
                                     </Link>
                                 </div>
