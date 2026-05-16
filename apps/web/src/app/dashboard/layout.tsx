@@ -315,7 +315,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                 </div>
                                 <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-green-400 to-blue-500 p-0.5">
                                     <div className="w-full h-full rounded-full bg-white dark:bg-gray-900 border-2 border-transparent overflow-hidden">
-                                        <UserAvatar user={user} />
+                                        <UserAvatar user={user} className="w-full h-full" />
                                     </div>
                                 </div>
                             </button>

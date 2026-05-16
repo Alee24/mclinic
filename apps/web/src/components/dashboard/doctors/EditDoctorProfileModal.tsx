@@ -77,17 +77,12 @@ export default function EditDoctorProfileModal({ doctor, onClose, onSuccess }: E
                 about: doctor.about || '',
             });
             
-            const getUrl = (val: string) => {
-                if (!val) return '';
-                if (val.startsWith('http') || val.startsWith('blob:')) return val;
-                return `/api/uploads/${val.includes('profiles') ? '' : 'profiles/'}${val}`;
-            };
-
+            
             setSigPreview(doctor.signatureUrl || '');
             setStampPreview(doctor.stampUrl || '');
             
-            if (doctor.profile_image) {
-                setProfilePreview(getUrl(doctor.profile_image));
+            if (doctor.id) {
+                setProfilePreview(`/api/users/profile-image/${doctor.id}`);
             }
 
             const isKnownSpeciality = doctor.speciality && MEDICAL_SPECIALITIES.includes(doctor.speciality) && doctor.speciality !== 'Other';

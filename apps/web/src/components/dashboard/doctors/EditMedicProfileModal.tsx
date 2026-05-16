@@ -79,18 +79,11 @@ export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: Ed
                 about: doctor.about || '',
             });
             
-            // Handle URL construction for previews
-            const getUrl = (val: string) => {
-                if (!val) return '';
-                if (val.startsWith('http') || val.startsWith('blob:')) return val;
-                return `/api/uploads/${val.includes('profiles') ? '' : 'profiles/'}${val}`;
-            };
-
             setSigPreview(doctor.signatureUrl || '');
             setStampPreview(doctor.stampUrl || '');
             
-            if (doctor.profile_image) {
-                setProfilePreview(getUrl(doctor.profile_image));
+            if (doctor.id) {
+                setProfilePreview(`/api/users/profile-image/${doctor.id}`);
             }
 
             // Initialize "Other" states

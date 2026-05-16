@@ -77,12 +77,22 @@ export class UsersController {
     return this.usersService.remove(+id);
   }
 
+  // Consistent uploads base path (matches main.ts)
+  private getUploadsPath(...segments: string[]) {
+    return join(process.cwd(), 'apps', 'api', 'uploads', ...segments);
+  }
+
   @UseGuards(AuthGuard('jwt'))
   @Post(':id/upload-profile')
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: join(__dirname, '..', '..', 'uploads', 'profiles'),
+        destination: (req, file, cb) => {
+          const dest = join(process.cwd(), 'apps', 'api', 'uploads', 'profiles');
+          // Ensure directory exists
+          if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
+          cb(null, dest);
+        },
         filename: (req, file, cb) => {
           const uniqueSuffix =
             Date.now() + '-' + Math.round(Math.random() * 1e9);
@@ -120,36 +130,51 @@ export class UsersController {
   @Get('profile-image/:id')
   async getProfileImage(@Param('id') id: string, @Res() res: express.Response) {
     let user = await this.usersService.findById(+id);
+    let doctorProfileImage: string | null = null;
     
     // Fallback: If not found by User ID, check if it's a Doctor ID
     if (!user) {
       const doctor = await this.dataSource.query(
-        'SELECT email FROM doctors WHERE id = ?',
+        'SELECT email, profile_image FROM doctors WHERE id = ?',
         [+id]
       );
       if (doctor && doctor.length > 0) {
         user = await this.usersService.findOne(doctor[0].email);
+        doctorProfileImage = doctor[0].profile_image;
       }
     }
 
-    if (!user || !user.profilePicture) {
-      return this.serveDefaultAvatar(String(user?.role || 'User'), res);
+    // If no user profile picture, check the doctor's profile_image field
+    const profileFilename = user?.profilePicture || doctorProfileImage;
+
+    if (!profileFilename) {
+      return this.serveDefaultAvatar(user?.fname || String(user?.role || 'User'), res);
     }
 
-    const filePath = join(__dirname, '..', '..', 'uploads', 'profiles', user.profilePicture);
-    if (fs.existsSync(filePath)) {
-      return res.sendFile(filePath);
+    // Try the consistent path first (process.cwd based - matches main.ts)
+    const primaryPath = this.getUploadsPath('profiles', profileFilename);
+    if (fs.existsSync(primaryPath)) {
+      return res.sendFile(primaryPath);
     }
 
-    return this.serveDefaultAvatar(String(user?.role || 'User'), res);
+    // Legacy fallback: try __dirname based path (for any files saved before this fix)
+    const legacyPath = join(__dirname, '..', '..', 'uploads', 'profiles', profileFilename);
+    if (fs.existsSync(legacyPath)) {
+      return res.sendFile(legacyPath);
+    }
+
+    // If it's a full URL (http), redirect to it
+    if (profileFilename.startsWith('http')) {
+      return res.redirect(profileFilename);
+    }
+
+    return this.serveDefaultAvatar(user?.fname || String(user?.role || 'User'), res);
   }
 
-  private serveDefaultAvatar(role: string, res: express.Response) {
-    // Return a color-coded default avatar or just a 404 for the browser to handle
-    // For now, let's redirect to a UI-avatar service as a robust fallback
-    const name = role || 'User';
-    const color = role === 'admin' ? '7c3aed' : role === 'doctor' ? '10b981' : '3b82f6';
-    return res.redirect(`https://ui-avatars.com/api/?name=${name}&background=${color}&color=fff&size=128`);
+  private serveDefaultAvatar(name: string, res: express.Response) {
+    const color = '6366f1';
+    const displayName = encodeURIComponent(name || 'User');
+    return res.redirect(`https://ui-avatars.com/api/?name=${displayName}&background=${color}&color=fff&size=128&bold=true`);
   }
 
   @UseGuards(AuthGuard('jwt'))

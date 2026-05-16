@@ -122,9 +122,7 @@ export default function MapViewer() {
 
     const createMarkerIcon = (doc: any, isSelected: boolean) => {
         const config = getDocConfig(doc);
-        const avatarUrl = doc.profile_image
-            ? (doc.profile_image.startsWith('http') ? doc.profile_image : `/api/uploads/profiles/${doc.profile_image}`)
-            : null;
+        const avatarUrl = `/api/users/profile-image/${doc.id}`;
 
         const initials = `${doc.fname?.[0] || ''}${doc.lname?.[0] || ''}`.toUpperCase() || config.code;
         const statusColor = doc.is_online === 1 ? '#22C55E' : '#9CA3AF';
@@ -271,10 +269,7 @@ export default function MapViewer() {
                             <div className="flex items-center gap-5 mb-6">
                                 <div className="w-20 h-20 rounded-[2rem] bg-gray-50 overflow-hidden shadow-inner border border-gray-100 shrink-0">
                                     <img
-                                        src={selectedDoctor.profile_image
-                                            ? (selectedDoctor.profile_image.startsWith('http') ? selectedDoctor.profile_image : `/api/uploads/profiles/${selectedDoctor.profile_image}`)
-                                            : `https://ui-avatars.com/api/?name=${selectedDoctor.fname}+${selectedDoctor.lname}&background=random`
-                                        }
+                                        src={`/api/users/profile-image/${selectedDoctor.id}`}
                                         className="w-full h-full object-cover"
                                         alt=""
                                     />

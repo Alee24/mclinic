@@ -16,13 +16,8 @@ export default function UsersPage() {
     const [resetLoading, setResetLoading] = useState(false);
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
 
-    const getProfileUrl = (path: string) => {
-        if (!path) return null;
-        if (path.startsWith('http')) return path;
-        if (path.startsWith('blob:')) return path;
-        // Strip any prefixes and just take the filename
-        const filename = path.split('/').pop();
-        return `/api/uploads/profiles/${filename}`;
+    const getProfileImageUrl = (userId: number) => {
+        return `/api/users/profile-image/${userId}`;
     };
 
     if (authLoading) return <div className="p-8 text-center">Loading auth...</div>;
@@ -395,22 +390,18 @@ export default function UsersPage() {
                                         <td className="p-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-700">
-                                                    {user.profilePicture ? (
-                                                        <img
-                                                            src={getProfileUrl(user.profilePicture) || ''}
-                                                            alt="Profile"
-                                                            className="w-full h-full object-cover"
-                                                            onError={(e) => {
-                                                                (e.target as any).src = '';
-                                                                (e.target as any).onerror = null;
-                                                                (e.target as any).parentElement.innerHTML = `<span class="text-xs font-bold text-gray-500 uppercase">${user.fname?.[0] || user.email?.[0] || '?'}</span>`;
-                                                            }}
-                                                        />
-                                                    ) : (
-                                                        <span className="text-sm font-bold text-gray-500 uppercase">
-                                                            {(user.fname?.[0] || user.email?.[0] || '?')}
-                                                        </span>
-                                                    )}
+                                                    <img
+                                                        src={getProfileImageUrl(user.id)}
+                                                        alt="Profile"
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            (e.target as any).style.display = 'none';
+                                                            (e.target as any).nextElementSibling?.classList.remove('hidden');
+                                                        }}
+                                                    />
+                                                    <span className="hidden text-sm font-bold text-gray-500 uppercase">
+                                                        {(user.fname?.[0] || user.email?.[0] || '?')}
+                                                    </span>
                                                 </div>
                                                 <div>
                                                     <div className="font-bold text-gray-900 dark:text-white">{user.fname} {user.lname}</div>
@@ -513,11 +504,15 @@ export default function UsersPage() {
                             <div className="flex justify-center mb-6">
                                 <div className="relative group">
                                     <div className="w-24 h-24 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden border-4 border-white dark:border-[#1A1A1A] shadow-lg">
-                                        {(editForm.profilePicture || editingUser.profilePicture) ? (
+                                        {(editForm.profilePicture || editingUser.id) ? (
                                             <img
-                                                src={editForm.profilePicture ? URL.createObjectURL(editForm.profilePicture) : getProfileUrl(editingUser.profilePicture) || ''}
+                                                src={editForm.profilePicture ? URL.createObjectURL(editForm.profilePicture) : getProfileImageUrl(editingUser.id)}
                                                 alt="Profile"
                                                 className="w-full h-full object-cover"
+                                                onError={(e) => {
+                                                    (e.target as any).style.display = 'none';
+                                                    (e.target as any).nextElementSibling?.classList.remove('hidden');
+                                                }}
                                             />
                                         ) : (
                                             <span className="text-3xl font-bold text-gray-300">

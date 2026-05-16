@@ -711,7 +711,7 @@ export class DoctorsService implements OnModuleInit {
                 licenseNumber: doctor.licenceNo,
                 licenseExpiry: doctor.updated_at, // Using updated_at as a placeholder if expiry is missing
                 drType: doctor.dr_type,
-                profileImage: doctor.profile_image?.startsWith('http') ? doctor.profile_image : (doctor.profile_image ? `/api/uploads/profiles/${doctor.profile_image}` : null),
+                profileImage: `/api/users/profile-image/${id}`,
             },
             qrCode: qrCodeDataUrl,
             issuedDate: new Date().toISOString(),
@@ -934,7 +934,7 @@ export class DoctorsService implements OnModuleInit {
 
     private async downloadProfileImage(url: string, doctorId: number): Promise<string | null> {
         try {
-            const destDir = path.join(__dirname, '..', '..', 'uploads', 'profiles');
+            const destDir = path.join(process.cwd(), 'apps', 'api', 'uploads', 'profiles');
             if (!fs.existsSync(destDir)) {
                 fs.mkdirSync(destDir, { recursive: true });
             }

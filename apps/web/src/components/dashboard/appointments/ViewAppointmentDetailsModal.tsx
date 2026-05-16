@@ -138,9 +138,9 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
                     <div className="flex items-start gap-6">
                         {/* Profile Picture */}
                         <div className="relative">
-                            {(isDoctor || isAdmin) && patient.profilePicture ? (
+                            {(isDoctor || isAdmin) && patient.id ? (
                                 <img
-                                    src={`/api/uploads/profiles/${patient.profilePicture}`}
+                                    src={`/api/users/profile-image/${patient.id}`}
                                     alt={`${patient.fname} ${patient.lname}`}
                                     className="w-24 h-24 rounded-2xl object-cover shadow-lg"
                                     onError={(e) => {
@@ -149,23 +149,18 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
                                         e.currentTarget.nextElementSibling?.classList.remove('hidden');
                                     }}
                                 />
-                            ) : (!isDoctor && !isAdmin) && doctor.profile_image ? (
+                            ) : (!isDoctor && !isAdmin) && doctor.id ? (
                                 <img
-                                    src={doctor.profile_image.startsWith('http') ? doctor.profile_image : `/api/uploads/profiles/${doctor.profile_image}`}
+                                    src={`/api/users/profile-image/${doctor.id}`}
                                     alt={`${doctor.fname} ${doctor.lname}`}
                                     className="w-24 h-24 rounded-2xl object-cover shadow-lg"
-                                    onLoad={() => {
-                                        console.log('Doctor image loaded successfully:', doctor.profile_image);
-                                    }}
                                     onError={(e) => {
-                                        console.error('Doctor image failed to load:', doctor.profile_image);
-                                        console.error('Attempted path:', e.currentTarget.src);
                                         e.currentTarget.style.display = 'none';
                                         e.currentTarget.nextElementSibling?.classList.remove('hidden');
                                     }}
                                 />
                             ) : null}
-                            <div className={`w-24 h-24 rounded-2xl bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white text-3xl font-bold shadow-lg ${(isDoctor || isAdmin) && patient.profilePicture ? 'hidden' : (!isDoctor && !isAdmin) && doctor.profile_image ? 'hidden' : ''}`}>
+                            <div className={`w-24 h-24 rounded-2xl bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white text-3xl font-bold shadow-lg ${(isDoctor || isAdmin) && patient.id ? 'hidden' : (!isDoctor && !isAdmin) && doctor.id ? 'hidden' : ''}`}>
                                 {isDoctor || isAdmin ? (
                                     patient.fname?.charAt(0) || 'P'
                                 ) : (

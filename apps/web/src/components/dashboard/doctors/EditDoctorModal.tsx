@@ -77,11 +77,8 @@ export default function EditDoctorModal({ doctorId, onClose, onSuccess }: EditDo
                         about: data.about || '',
                     });
 
-                    if (data.profile_image) {
-                        const url = data.profile_image.startsWith('http') 
-                            ? data.profile_image 
-                            : `/api/uploads/profiles/${data.profile_image}`;
-                        setPreviewUrl(url);
+                    if (data.profile_image || doctorId) {
+                        setPreviewUrl(`/api/users/profile-image/${doctorId}`);
                     }
 
                     // Initialize "Other" states

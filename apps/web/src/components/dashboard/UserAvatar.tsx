@@ -9,8 +9,15 @@ interface UserAvatarProps {
 
 export default function UserAvatar({ user, className = "w-12 h-12" }: UserAvatarProps) {
     const [imageError, setImageError] = useState(false);
+    const [imgKey, setImgKey] = useState(0);
+
+    // Reset error state when user changes (e.g. after upload)
+    useEffect(() => {
+        setImageError(false);
+        setImgKey(prev => prev + 1);
+    }, [user?.id, user?.profilePicture]);
     
-    // Construct the proxy URL
+    // Construct the proxy URL — always use the proxy endpoint for reliability
     const imageUrl = user?.id ? `/api/users/profile-image/${user.id}` : '';
 
     const isMedic = ['doctor', 'nurse', 'clinician', 'medic'].includes(user?.role?.toLowerCase() || '');
@@ -46,8 +53,9 @@ export default function UserAvatar({ user, className = "w-12 h-12" }: UserAvatar
     }
 
     return (
-        <div className={`relative rounded-full overflow-hidden border-2 border-white dark:border-gray-800 shadow-sm ${className}`}>
+        <div className={`relative rounded-full overflow-hidden shadow-sm ${className}`}>
             <img
+                key={imgKey}
                 src={imageUrl}
                 alt={`${user.fname || 'User'} avatar`}
                 className="w-full h-full object-cover transition-opacity duration-300"

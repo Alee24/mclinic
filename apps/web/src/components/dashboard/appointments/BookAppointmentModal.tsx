@@ -71,13 +71,13 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 const DoctorAvatar = ({ doctor }: { doctor: Doctor }) => {
     const [error, setError] = useState(false);
 
-    if (!doctor.profile_image || error) {
+    if (error) {
         return <>{'👨‍⚕️'}</>;
     }
 
     return (
         <img
-            src={(doctor.profile_image.startsWith('http') ? doctor.profile_image : `/api/uploads/profiles/${doctor.profile_image}`)}
+            src={`/api/users/profile-image/${doctor.id}`}
             alt={doctor.fname}
             className="w-full h-full object-cover"
             onError={() => setError(true)}
