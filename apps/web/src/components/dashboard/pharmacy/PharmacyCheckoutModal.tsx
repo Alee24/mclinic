@@ -43,7 +43,27 @@ export default function PharmacyCheckoutModal({ items, onClose, onSuccess, user,
 
             const res = await api.post('/pharmacy/orders', payload);
             if (res?.ok) {
-                toast.success('Order placed successfully!');
+                let orderId = 0;
+                try {
+                    const data = await res.json();
+                    orderId = data.id || data.order?.id || 0;
+                } catch(e) {}
+
+                try {
+                    await api.post('/mpesa/stk-push', {
+                        phoneNumber: formData.contactPhone || user?.mobile || '',
+                        amount: total,
+                        accountReference: `PHRM-${orderId || Date.now().toString().slice(-4)}`,
+                        transactionDesc: 'Pharmacy Order',
+                        relatedEntity: 'invoice',
+                        relatedEntityId: orderId
+                    });
+                    toast.success('Order placed. Payment prompt sent to ' + (formData.contactPhone || user?.mobile));
+                } catch (stkErr) {
+                    console.error('STK Push Error:', stkErr);
+                    toast.success('Order placed successfully! Please pay from your dashboard.');
+                }
+                
                 onSuccess();
                 onClose();
             } else {

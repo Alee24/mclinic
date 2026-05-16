@@ -5,6 +5,7 @@ import { api } from '@/lib/api';
 import { FiX, FiCheck, FiUser, FiCalendar, FiCreditCard } from 'react-icons/fi';
 import { useAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 
 interface BookLabTestModalProps {
     test: any;
@@ -46,18 +47,34 @@ export default function BookLabTestModal({ test, onClose, onSuccess }: BookLabTe
             const res = await api.post('/laboratory/orders', payload);
 
             if (res?.ok) {
-                const data = await res.json();
-                // Redirect to payment or show success
-                // Assuming we redirect to a payment page or invoice
-                // For now, let's show success and close
-                alert('Lab test booked successfully! Please proceed to payment.');
+                let orderId = 0;
+                try {
+                    const data = await res.json();
+                    orderId = data.id || data.order?.id || 0;
+                } catch(e) {}
+
+                try {
+                    await api.post('/mpesa/stk-push', {
+                        phoneNumber: user?.mobile || '',
+                        amount: Number(test.price),
+                        accountReference: `LAB-${orderId || Date.now().toString().slice(-4)}`,
+                        transactionDesc: `Lab Test: ${test.name.substring(0, 15)}`,
+                        relatedEntity: 'invoice',
+                        relatedEntityId: orderId
+                    });
+                    toast.success('Lab test booked! Payment prompt sent to ' + user?.mobile);
+                } catch (stkErr) {
+                    console.error('STK Push Error:', stkErr);
+                    toast.success('Lab test booked successfully! Please pay from your dashboard.');
+                }
+                
                 onSuccess();
             } else {
-                alert('Failed to book test. Please try again.');
+                toast.error('Failed to book test. Please try again.');
             }
         } catch (err) {
             console.error(err);
-            alert('An error occurred.');
+            toast.error('An error occurred.');
         } finally {
             setSubmitting(false);
         }
