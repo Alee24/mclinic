@@ -384,8 +384,8 @@ export class DoctorsService implements OnModuleInit {
         const query = this.doctorsRepository.createQueryBuilder('doctor');
 
         if (includeOffline) {
-            // Show all activated doctors regardless of verified status if offline/all requested
-            query.where('doctor.status = :status', { status: 1 });
+            // Show all registered medics regardless of status/online/verified
+            query.where('doctor.fname IS NOT NULL');
         } else {
             // Strict mode: Only verified, active, and online
             query
