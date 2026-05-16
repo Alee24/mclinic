@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { FiNavigation, FiSearch, FiFilter, FiCrosshair, FiMapPin, FiUser, FiX, FiCheck, FiActivity, FiPhone, FiMail } from 'react-icons/fi';
+import { FiNavigation, FiSearch, FiFilter, FiCrosshair, FiMapPin, FiUser, FiX, FiCheck, FiActivity, FiPhone, FiMail, FiChevronDown } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth, UserRole } from '@/lib/auth';
@@ -67,7 +67,6 @@ export default function MapViewer() {
     const [loading, setLoading] = useState(false);
     const [selectedDoctor, setSelectedDoctor] = useState<any>(null);
     const [activeFilter, setActiveFilter] = useState('All');
-    const [sidebarOpen, setSidebarOpen] = useState(true);
     const mapRef = useRef<L.Map>(null);
     const router = useRouter();
 
@@ -177,48 +176,34 @@ export default function MapViewer() {
                 @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
             ` }} />
 
-            {/* Collapsible Sidebar */}
-            <div
-                className={`bg-white/95 backdrop-blur-md border-r border-gray-100 flex flex-col z-[1000] overflow-y-auto transition-all duration-300 absolute md:static h-full shadow-2xl md:shadow-none
-                ${sidebarOpen ? 'w-72 translate-x-0' : 'w-0 -translate-x-full md:w-16 md:translate-x-0'}
-                `}
-            >
-                <div className="p-4 md:p-6 border-b border-gray-50 flex items-center justify-between">
-                    <h3 className={`text-xs font-black text-gray-400 uppercase tracking-widest transition-opacity duration-200 ${sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'}`}>Medical Radar</h3>
-                    <button
-                        onClick={() => setSidebarOpen(!sidebarOpen)}
-                        className="p-2 rounded-xl hover:bg-gray-100 text-gray-500 transition-colors"
-                    >
-                        {sidebarOpen ? <FiX size={18} /> : <FiSearch size={24} />}
-                    </button>
-                </div>
-
-                <div className={`flex flex-col gap-1.5 p-2 md:p-6 transition-all duration-300 ${!sidebarOpen && 'invisible opacity-0'}`}>
-                    {specialties.map(spec => (
-                        <button
-                            key={spec}
-                            onClick={() => {
-                                setActiveFilter(spec);
-                                // On mobile, close sidebar on selection
-                                if (window.innerWidth < 768) setSidebarOpen(false);
-                            }}
-                            className={`group flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all ${activeFilter === spec
-                                ? 'bg-black text-white shadow-xl translate-x-1'
-                                : 'text-gray-600 hover:bg-gray-50'
-                                }`}
-                        >
-                            <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: getDocConfig({ dr_type: spec }).color }}></div>
-                            <span className="flex-1 text-left truncate whitespace-nowrap">{spec}</span>
-                            {activeFilter === spec && <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse"></div>}
-                        </button>
-                    ))}
-                </div>
-
-                <div className={`mt-auto p-6 bg-gray-50/50 ${!sidebarOpen && 'hidden'}`}>
-                    <div className="flex items-center justify-between text-[10px] font-black uppercase text-gray-400 tracking-tighter">
-                        <span>Active Units</span>
-                        <span className="text-black">{doctors.length}</span>
+            {/* Floating Specialty Filter Dropdown */}
+            <div className="absolute top-6 left-6 z-[1001] flex flex-col md:flex-row items-start md:items-center gap-3">
+                <div className="relative bg-white/95 backdrop-blur-md p-2 rounded-2xl shadow-2xl border border-gray-100 flex items-center gap-2 group transition-all hover:bg-white">
+                    <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+                        <FiFilter size={18} />
                     </div>
+                    <div className="relative flex-1">
+                        <select
+                            value={activeFilter}
+                            onChange={(e) => setActiveFilter(e.target.value)}
+                            className="bg-transparent border-none outline-none pr-10 pl-2 py-2 text-sm font-black text-gray-800 appearance-none cursor-pointer uppercase tracking-tight w-full min-w-[150px]"
+                        >
+                            {specialties.map(spec => (
+                                <option key={spec} value={spec} className="font-sans font-medium text-gray-700">{spec}</option>
+                            ))}
+                        </select>
+                        <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-blue-600 transition-colors">
+                            <FiChevronDown size={20} />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white/95 backdrop-blur-md px-5 py-3 rounded-2xl shadow-2xl border border-gray-100 flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                        <span className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Active Units</span>
+                    </div>
+                    <span className="bg-blue-600 text-white px-2 py-0.5 rounded-lg text-xs font-black shadow-lg shadow-blue-200">{doctors.length}</span>
                 </div>
             </div>
 

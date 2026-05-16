@@ -113,7 +113,11 @@ export function useMedicDashboard() {
 
     const toggleOnlineStatus = async () => {
         if (!doctorProfile) {
-            toast.error('Doctor profile not loaded. Please refresh.');
+            if (!loading) {
+                toast.error('Doctor profile not found. Please ensure you are registered as a medic.');
+            } else {
+                toast.error('Still loading profile... Please wait.');
+            }
             return;
         }
         
