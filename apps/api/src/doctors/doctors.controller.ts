@@ -141,6 +141,18 @@ export class DoctorsController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Patch('admin/bulk-online')
+  bulkOnlineStatus(@Body('status') status: number) {
+    return this.doctorsService.bulkOnlineStatus(status);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('admin/pending')
+  findPending() {
+    return this.doctorsService.findPendingDoctors();
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Get(':id')
   findOne(@Param('id') id: string, @Request() req: any) {
     return this.doctorsService.findOne(+id, req.user);
@@ -239,11 +251,6 @@ export class DoctorsController {
 
   // ==================== APPROVAL ENDPOINTS ====================
 
-  @UseGuards(AuthGuard('jwt'))
-  @Get('admin/pending')
-  findPending() {
-    return this.doctorsService.findPendingDoctors();
-  }
 
   @UseGuards(AuthGuard('jwt'))
   @Delete(':id')
@@ -269,11 +276,6 @@ export class DoctorsController {
     return this.doctorsService.updateStatus(+id, 0);
   }
 
-  @UseGuards(AuthGuard('jwt'))
-  @Patch('admin/bulk-online')
-  bulkOnlineStatus(@Body('status') status: number) {
-    return this.doctorsService.bulkOnlineStatus(status);
-  }
 
   @UseGuards(AuthGuard('jwt'))
   @Get(':id/id-card')

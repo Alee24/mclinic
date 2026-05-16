@@ -873,9 +873,12 @@ export class DoctorsService implements OnModuleInit {
     }
 
     async bulkOnlineStatus(status: number): Promise<any> {
-        await this.doctorsRepository.update({}, {
-            is_online: status
-        });
+        await this.doctorsRepository.createQueryBuilder()
+            .update(Doctor)
+            .set({ is_online: status })
+            .where('1 = 1')
+            .execute();
+        
         return { success: true, count: await this.doctorsRepository.count() };
     }
 
