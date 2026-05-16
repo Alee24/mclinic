@@ -175,11 +175,19 @@ export class UsersService implements OnModuleInit {
   }
 
   async findOneByMobile(mobile: string): Promise<User | null> {
-    const localMobile = mobile.startsWith('254') ? '0' + mobile.substring(3) : null;
-    const intlMobile = mobile.startsWith('0') ? '254' + mobile.substring(1) : null;
+    const cleanMobile = mobile.replace(/\D/g, '');
     const searchMobiles = [mobile];
-    if (localMobile) searchMobiles.push(localMobile);
-    if (intlMobile) searchMobiles.push(intlMobile);
+    
+    if (cleanMobile.startsWith('254') && cleanMobile.length === 12) {
+        searchMobiles.push('0' + cleanMobile.substring(3));
+        searchMobiles.push(cleanMobile);
+        searchMobiles.push('+' + cleanMobile);
+    } else if (cleanMobile.startsWith('0') && cleanMobile.length === 10) {
+        searchMobiles.push(cleanMobile);
+        searchMobiles.push('254' + cleanMobile.substring(1));
+        searchMobiles.push('+254' + cleanMobile.substring(1));
+    }
+    
     return this.usersRepository.findOne({ where: { mobile: In(searchMobiles) } });
   }
 
