@@ -161,7 +161,9 @@ export default function AppointmentsPage() {
                                         </td>
                                     )}
                                     <td className="px-6 py-4 text-gray-500">
-                                        {apt.doctor ? `${apt.doctor.fname} ${apt.doctor.lname}` : 'Unassigned'}
+                                        {apt.doctor 
+                                            ? `${apt.doctor.fname} ${apt.doctor.lname}` 
+                                            : ((apt.isConcierge || apt.service?.name?.toLowerCase().includes('ambulance')) ? 'Mclinic Kenya' : 'Unassigned')}
                                     </td>
                                      <td className="px-6 py-4 text-gray-500">
                                         {/* Show the 'other' party's contact info */}

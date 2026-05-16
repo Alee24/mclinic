@@ -286,20 +286,18 @@ export default function AdminView() {
                             <FiActivity /> Turn All Offline
                         </button>
 
-                        {stats.pendingDoctors.length > 0 && (
-                            <button
-                                onClick={handleApproveAll}
-                                disabled={approving}
-                                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-green-600/20 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {approving ? (
-                                    <span className="animate-spin text-lg">↻</span>
-                                ) : (
-                                    <FiCheckCircle />
-                                )}
-                                Approve All ({stats.pendingDoctors.length})
-                            </button>
-                        )}
+                        <button
+                            onClick={handleApproveAll}
+                            disabled={approving}
+                            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-green-600/20 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {approving ? (
+                                <span className="animate-spin text-lg">↻</span>
+                            ) : (
+                                <FiCheckCircle />
+                            )}
+                            Activate All Medics {stats.pendingDoctors.length > 0 ? `(${stats.pendingDoctors.length} Pending)` : ''}
+                        </button>
                         <Link href="/dashboard/doctors" className="text-sm font-bold text-donezo-dark hover:underline">View All Medics</Link>
                     </div>
                 </div>

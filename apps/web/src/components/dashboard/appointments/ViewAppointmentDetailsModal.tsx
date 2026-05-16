@@ -169,7 +169,7 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
                                 {isDoctor || isAdmin ? (
                                     patient.fname?.charAt(0) || 'P'
                                 ) : (
-                                    doctor.fname?.charAt(0) || 'D'
+                                    (appointment.isConcierge || appointment.service?.name?.toLowerCase().includes('ambulance') || !doctor.fname) ? 'M' : (doctor.fname?.charAt(0) || 'D')
                                 )}
                             </div>
                             <div className={`absolute -bottom-2 -right-2 px-3 py-1 rounded-full text-xs font-bold uppercase ${getStatusColor(appointment.status)}`}>
@@ -191,7 +191,7 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
                                         </span>
                                     </>
                                 ) : (
-                                    `${doctor.fname} ${doctor.lname}`
+                                    (appointment.isConcierge || appointment.service?.name?.toLowerCase().includes('ambulance') || !doctor.fname) ? 'Mclinic Kenya' : `${doctor.fname} ${doctor.lname}`
                                 )}
                             </h2>
                             <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
@@ -226,7 +226,7 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
                                     <>
                                         <span className="flex items-center gap-2">
                                             <FiAward className="text-primary" />
-                                            {doctor.speciality || 'General Practitioner'}
+                                            {appointment.isConcierge ? 'Mclinic Concierge Service' : (doctor.speciality || 'General Practitioner')}
                                         </span>
                                         <span className="flex items-center gap-2">
                                             <FiBriefcase className="text-primary" />
@@ -234,7 +234,7 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
                                         </span>
                                         <span className="flex items-center gap-2">
                                             <FiShield className="text-primary" />
-                                            License: {doctor.licenceNo || 'N/A'}
+                                            {appointment.isConcierge ? 'Mclinic Kenya' : (doctor.licenceNo || 'N/A')}
                                         </span>
                                         {doctor.hospital_attachment && (
                                             <span className="flex items-center gap-2">
@@ -447,7 +447,11 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
                                             </div>
                                             <div className="flex items-start gap-3">
                                                 <FiMapPin className="text-gray-400 mt-1" />
-                                                <span className="text-sm dark:text-gray-300">{doctor.hospital_attachment || doctor.address || 'M-Clinic'}</span>
+                                                <span className="text-sm dark:text-gray-300">
+                                                    {(appointment.isConcierge || appointment.service?.name?.toLowerCase().includes('ambulance')) 
+                                                        ? 'Mclinic Kenya' 
+                                                        : (doctor.hospital_attachment || doctor.address || 'Mclinic Kenya')}
+                                                </span>
                                             </div>
                                         </>
                                     )}

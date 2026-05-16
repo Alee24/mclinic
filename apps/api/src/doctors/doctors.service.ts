@@ -588,7 +588,7 @@ export class DoctorsService implements OnModuleInit {
 
     async updateOnlineStatus(id: number, status: number, lat?: number, lng?: number): Promise<Doctor | null> {
         const updates: any = { is_online: status };
-        if (lat && lng) {
+        if (lat !== undefined && lng !== undefined) {
             updates.latitude = lat;
             updates.longitude = lng;
         }
