@@ -9,7 +9,7 @@ import { useMedicDashboard } from '@/hooks/useMedicDashboard';
 
 export default function MedicLocationFab() {
     const { user } = useAuth();
-    const { isOnline, toggleOnlineStatus, statusUpdating } = useMedicDashboard();
+    const { isOnline, toggleOnlineStatus, statusUpdating, loading, doctorProfile } = useMedicDashboard();
     const [isVisible, setIsVisible] = useState(false);
 
     // Derived status from hook to ensure consistency
@@ -28,6 +28,7 @@ export default function MedicLocationFab() {
     }, [isMedic]);
 
     const handleToggle = async () => {
+        if (loading) return;
         await toggleOnlineStatus();
     };
 

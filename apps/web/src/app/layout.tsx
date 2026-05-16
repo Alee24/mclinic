@@ -30,6 +30,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import PanicSystem from "@/components/PanicSystem";
 import MedicLocationFab from "@/components/MedicLocationFab";
 import { PWAProvider } from "@/providers/PWAProvider";
+import { MedicDashboardProvider } from "@/context/MedicDashboardContext";
 
 export default function RootLayout({
   children,
@@ -71,11 +72,12 @@ export default function RootLayout({
         >
           <AuthProvider>
             <PWAProvider>
-
-              <PanicSystem />
-              <MedicLocationFab />
-              <Toaster position="top-center" reverseOrder={false} />
-              {children}
+              <MedicDashboardProvider>
+                <PanicSystem />
+                <MedicLocationFab />
+                <Toaster position="top-center" reverseOrder={false} />
+                {children}
+              </MedicDashboardProvider>
             </PWAProvider>
           </AuthProvider>
         </ThemeProvider>
