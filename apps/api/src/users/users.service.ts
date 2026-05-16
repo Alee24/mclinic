@@ -176,19 +176,17 @@ export class UsersService implements OnModuleInit {
 
   async findOneByMobile(mobile: string): Promise<User | null> {
     const cleanMobile = mobile.replace(/\D/g, '');
-    const searchMobiles = [mobile];
-    
-    if (cleanMobile.startsWith('254') && cleanMobile.length === 12) {
-        searchMobiles.push('0' + cleanMobile.substring(3));
-        searchMobiles.push(cleanMobile);
-        searchMobiles.push('+' + cleanMobile);
-    } else if (cleanMobile.startsWith('0') && cleanMobile.length === 10) {
-        searchMobiles.push(cleanMobile);
-        searchMobiles.push('254' + cleanMobile.substring(1));
-        searchMobiles.push('+254' + cleanMobile.substring(1));
+    let last9 = cleanMobile;
+    if (cleanMobile.length >= 9) {
+        last9 = cleanMobile.substring(cleanMobile.length - 9);
     }
-    
-    return this.usersRepository.findOne({ where: { mobile: In(searchMobiles) } });
+
+    // Use query builder to handle spaces or dashes in the database if any
+    const users = await this.usersRepository.createQueryBuilder('user')
+        .where("REPLACE(REPLACE(REPLACE(user.mobile, ' ', ''), '-', ''), '+', '') LIKE :mobile", { mobile: `%${last9}` })
+        .getMany();
+        
+    return users.length > 0 ? users[0] : null;
   }
 
   async findById(id: number): Promise<User | null> {

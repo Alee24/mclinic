@@ -637,19 +637,16 @@ export class DoctorsService implements OnModuleInit {
 
     async findOneByMobile(mobile: string): Promise<Doctor | null> {
         const cleanMobile = mobile.replace(/\D/g, '');
-        const searchMobiles = [mobile];
-        
-        if (cleanMobile.startsWith('254') && cleanMobile.length === 12) {
-            searchMobiles.push('0' + cleanMobile.substring(3));
-            searchMobiles.push(cleanMobile);
-            searchMobiles.push('+' + cleanMobile);
-        } else if (cleanMobile.startsWith('0') && cleanMobile.length === 10) {
-            searchMobiles.push(cleanMobile);
-            searchMobiles.push('254' + cleanMobile.substring(1));
-            searchMobiles.push('+254' + cleanMobile.substring(1));
+        let last9 = cleanMobile;
+        if (cleanMobile.length >= 9) {
+            last9 = cleanMobile.substring(cleanMobile.length - 9);
         }
-        
-        return this.doctorsRepository.findOne({ where: { mobile: In(searchMobiles) } });
+
+        const doctors = await this.doctorsRepository.createQueryBuilder('doctor')
+            .where("REPLACE(REPLACE(REPLACE(doctor.mobile, ' ', ''), '-', ''), '+', '') LIKE :mobile", { mobile: `%${last9}` })
+            .getMany();
+            
+        return doctors.length > 0 ? doctors[0] : null;
     }
     async updateSignature(id: number, filename: string): Promise<Doctor | null> {
         await this.doctorsRepository.update(id, { signatureUrl: filename });
