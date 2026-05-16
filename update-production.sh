@@ -23,7 +23,7 @@ docker-compose up -d --force-recreate --no-deps api web
 
 # 4. Run Migrations
 echo "🗄️ [4/5] Running database migrations..."
-docker-compose exec -T api npm --prefix apps/api run migration:run:prod
+docker-compose exec -T api sh -c "cd apps/api && npm run migration:run:prod"
 
 # 5. Final Cleanup
 echo "🧹 [5/5] Cleaning up unused Docker images..."
