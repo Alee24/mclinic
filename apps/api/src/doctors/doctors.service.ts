@@ -378,12 +378,15 @@ export class DoctorsService implements OnModuleInit {
     async findAllVerified(search?: string, includeOffline: boolean = true, user?: any): Promise<any[]> {
         const query = this.doctorsRepository.createQueryBuilder('doctor');
 
-        query
-            .where('doctor.Verified_status = :verified', { verified: 1 })
-            .andWhere('doctor.status = :status', { status: 1 });
-
-        if (!includeOffline) {
-            query.andWhere('doctor.is_online = :isOnline', { isOnline: 1 });
+        if (includeOffline) {
+            // Show all activated doctors regardless of verified status if offline/all requested
+            query.where('doctor.status = :status', { status: 1 });
+        } else {
+            // Strict mode: Only verified, active, and online
+            query
+                .where('doctor.Verified_status = :verified', { verified: 1 })
+                .andWhere('doctor.status = :status', { status: 1 })
+                .andWhere('doctor.is_online = :isOnline', { isOnline: 1 });
         }
 
         if (search) {

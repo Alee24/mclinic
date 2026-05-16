@@ -1,10 +1,19 @@
 import { Dialog, Transition, Tab } from '@headlessui/react';
 import { Fragment, useState, useEffect } from 'react';
-import { FiX, FiSave, FiBriefcase, FiUpload, FiUser, FiFileText, FiMapPin } from 'react-icons/fi';
+import { 
+    FiX, FiSave, FiBriefcase, FiUpload, FiUser, FiFileText, 
+    FiMapPin, FiCreditCard, FiClock, FiActivity, FiCheckCircle,
+    FiAlertCircle, FiInfo, FiHash, FiCalendar
+} from 'react-icons/fi';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import toast from 'react-hot-toast';
-import { MEDICAL_SPECIALITIES, MEDICAL_QUALIFICATIONS, KENYAN_HOSPITALS, REGULATORY_BODIES } from '@/lib/medical-constants';
+import { 
+    MEDICAL_SPECIALITIES, 
+    MEDICAL_QUALIFICATIONS, 
+    KENYAN_HOSPITALS, 
+    REGULATORY_BODIES 
+} from '@/lib/medical-constants';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -22,16 +31,17 @@ export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: Ed
     const { user } = useAuth();
     const isNurse = user?.role === 'nurse';
     const [loading, setLoading] = useState(false);
+    const [activeTab, setActiveTab] = useState(0);
     const [formData, setFormData] = useState({
         regulatory_body: '',
         registration_number: '',
         licenceNo: '',
-        licenseExpiryDate: '', // New Field
+        licenseExpiryDate: '',
         years_of_experience: 0,
         hospital_attachment: '',
         speciality: '',
-        qualification: '', // New Field
-        address: '',       // New Field
+        qualification: '',
+        address: '',
         consultation_fee: 0,
         telemedicine: 0,
         on_call: 0,
@@ -57,36 +67,44 @@ export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: Ed
                 regulatory_body: doctor.regulatory_body || '',
                 registration_number: doctor.reg_code || '',
                 licenceNo: doctor.licenceNo || '',
-                licenseExpiryDate: doctor.licenceExpiry ? new Date(doctor.licenceExpiry).toISOString().split('T')[0] : '', // Format date
+                licenseExpiryDate: doctor.licenceExpiry ? new Date(doctor.licenceExpiry).toISOString().split('T')[0] : '',
                 years_of_experience: doctor.years_of_experience || 0,
                 hospital_attachment: doctor.hospital_attachment || '',
                 speciality: doctor.speciality || '',
-                qualification: doctor.qualification || '', // Load new field
-                address: doctor.address || '',             // Load new field
+                qualification: doctor.qualification || '',
+                address: doctor.address || '',
                 consultation_fee: doctor.fee || 0,
                 telemedicine: doctor.telemedicine || 0,
                 on_call: doctor.on_call || 0,
                 about: doctor.about || '',
             });
+            
+            // Handle URL construction for previews
+            const getUrl = (val: string) => {
+                if (!val) return '';
+                if (val.startsWith('http') || val.startsWith('blob:')) return val;
+                return `/api/uploads/${val.includes('profiles') ? '' : 'profiles/'}${val}`;
+            };
+
             setSigPreview(doctor.signatureUrl || '');
             setStampPreview(doctor.stampUrl || '');
+            
+            if (doctor.profile_image) {
+                setProfilePreview(getUrl(doctor.profile_image));
+            }
 
             // Initialize "Other" states
-            if (doctor.speciality && !MEDICAL_SPECIALITIES.includes(doctor.speciality)) setShowOtherSpeciality(true);
-            if (doctor.qualification && !MEDICAL_QUALIFICATIONS.includes(doctor.qualification)) setShowOtherQualification(true);
-            if (doctor.hospital_attachment && !KENYAN_HOSPITALS.includes(doctor.hospital_attachment)) setShowOtherHospital(true);
-            if (doctor.regulatory_body && !REGULATORY_BODIES.some(b => b.startsWith(doctor.regulatory_body))) setShowOtherRegulatory(true);
+            const isKnownSpeciality = doctor.speciality && MEDICAL_SPECIALITIES.includes(doctor.speciality) && doctor.speciality !== 'Other';
+            if (doctor.speciality && !isKnownSpeciality) setShowOtherSpeciality(true);
 
-            if (doctor.profile_image) {
-                if (doctor.profile_image.startsWith('http') || doctor.profile_image.startsWith('blob:')) {
-                    setProfilePreview(doctor.profile_image);
-                } else {
-                    const baseUrl = API_URL || '';
-                    setProfilePreview(`/api/uploads/profiles/${doctor.profile_image}`);
-                }
-            } else {
-                setProfilePreview('');
-            }
+            const isKnownQualification = doctor.qualification && MEDICAL_QUALIFICATIONS.includes(doctor.qualification) && doctor.qualification !== 'Other';
+            if (doctor.qualification && !isKnownQualification) setShowOtherQualification(true);
+
+            const isKnownHospital = doctor.hospital_attachment && KENYAN_HOSPITALS.includes(doctor.hospital_attachment) && doctor.hospital_attachment !== 'Other';
+            if (doctor.hospital_attachment && !isKnownHospital) setShowOtherHospital(true);
+
+            const isKnownRegulatory = doctor.regulatory_body && REGULATORY_BODIES.some(b => b.startsWith(doctor.regulatory_body)) && doctor.regulatory_body !== 'Other';
+            if (doctor.regulatory_body && !isKnownRegulatory) setShowOtherRegulatory(true);
         }
     }, [doctor]);
 
@@ -101,6 +119,10 @@ export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: Ed
     const handleFileChange = (e: any, type: 'signature' | 'stamp' | 'profile') => {
         const file = e.target.files[0];
         if (file) {
+            if (file.size > 2 * 1024 * 1024) {
+                toast.error('File size exceeds 2MB limit');
+                return;
+            }
             const previewUrl = URL.createObjectURL(file);
             if (type === 'signature') {
                 setSignatureFile(file);
@@ -116,71 +138,69 @@ export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: Ed
     };
 
     const handleSubmit = async (e: any) => {
-        e.preventDefault();
+        if (e) e.preventDefault();
         setLoading(true);
 
         try {
-            // 1. Prepare Payload (Map frontend fields to DB columns)
+            // 1. Prepare Payload
             const payload: any = {
                 ...formData,
-                reg_code: formData.registration_number, // User input registration_number maps to reg_code
-                fee: Number(formData.consultation_fee), // Map consultation_fee to fee and ensure number
-                years_of_experience: Number(formData.years_of_experience), // Ensure number
+                reg_code: formData.registration_number,
+                fee: Number(formData.consultation_fee),
+                years_of_experience: Number(formData.years_of_experience),
                 telemedicine: Number(formData.telemedicine),
                 on_call: Number(formData.on_call),
-                licenceExpiry: formData.licenseExpiryDate ? new Date(formData.licenseExpiryDate).toISOString() : null, // Fix mapping
+                licenceExpiry: formData.licenseExpiryDate ? new Date(formData.licenseExpiryDate).toISOString() : null,
             };
 
-            // Remove non-DB fields or frontend-only fields
             delete payload.registration_number;
             delete payload.consultation_fee;
             delete payload.licenseExpiryDate;
 
-            console.log('[EditMedicProfile] Saving profile payload:', payload);
-
             // 2. Update Profile Data
             const res = await api.patch(`/doctors/${doctor.id}`, payload);
             if (!res?.ok) {
-                const errData = await res?.text();
-                console.error('[EditMedicProfile] Failed to update details:', errData);
-                throw new Error(`Failed to update profile details: ${errData || 'Unknown error'}`);
+                const errData = res ? await res.text() : 'No response from server';
+                throw new Error(errData);
             }
 
-            // 3. Upload Profile Image if changed
+            // 3. Upload Files Sequentially with better feedback
+            const uploadPromises = [];
+            
             if (profileFile) {
-                const profileData = new FormData();
-                profileData.append('file', profileFile);
-                toast.loading('Uploading profile picture...', { id: 'profUpload' });
-                const profRes = await api.post(`/doctors/${doctor.id}/upload-profile`, profileData);
-                if (profRes?.ok) toast.success('Profile picture updated', { id: 'profUpload' });
-                else toast.error('Profile picture upload failed', { id: 'profUpload' });
+                const fd = new FormData();
+                fd.append('file', profileFile);
+                uploadPromises.push(api.post(`/doctors/${doctor.id}/upload-profile`, fd));
             }
-
-            // 4. Upload Signature if changed
+            
             if (signatureFile) {
-                const sigData = new FormData();
-                sigData.append('file', signatureFile);
-                toast.loading('Uploading signature...', { id: 'sigUpload' });
-                const sigRes = await api.post(`/doctors/${doctor.id}/upload-signature`, sigData);
-                if (sigRes?.ok) toast.success('Signature uploaded', { id: 'sigUpload' });
-                else toast.error('Signature upload failed', { id: 'sigUpload' });
+                const fd = new FormData();
+                fd.append('file', signatureFile);
+                uploadPromises.push(api.post(`/doctors/${doctor.id}/upload-signature`, fd));
             }
-
-            // 5. Upload Stamp if changed
+            
             if (stampFile) {
-                const stampData = new FormData();
-                stampData.append('file', stampFile);
-                toast.loading('Uploading stamp...', { id: 'stampUpload' });
-                const stampRes = await api.post(`/doctors/${doctor.id}/upload-stamp`, stampData);
-                if (stampRes?.ok) toast.success('Stamp uploaded', { id: 'stampUpload' });
-                else toast.error('Stamp upload failed', { id: 'stampUpload' });
+                const fd = new FormData();
+                fd.append('file', stampFile);
+                uploadPromises.push(api.post(`/doctors/${doctor.id}/upload-stamp`, fd));
             }
 
-            toast.success('Profile updated successfully!');
+            if (uploadPromises.length > 0) {
+                toast.loading('Uploading documents...', { id: 'uploading' });
+                const results = await Promise.all(uploadPromises);
+                const failed = results.filter(r => !r?.ok);
+                if (failed.length > 0) {
+                    toast.error('Some files failed to upload, but profile data was saved.', { id: 'uploading' });
+                } else {
+                    toast.success('All files uploaded successfully!', { id: 'uploading' });
+                }
+            }
+
+            toast.success('Professional profile updated!');
             onSuccess();
-        } catch (err) {
-            console.error(err);
-            toast.error('An error occurred while saving.');
+        } catch (err: any) {
+            console.error('[EditMedicProfile] Save Error:', err);
+            toast.error(err.message || 'An error occurred while saving.');
         } finally {
             setLoading(false);
         }
@@ -188,82 +208,148 @@ export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: Ed
 
     return (
         <Transition appear show={true} as={Fragment}>
-            <Dialog as="div" className="relative z-50" onClose={onClose}>
-                <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" aria-hidden="true" />
+            <Dialog as="div" className="relative z-[2000]" onClose={onClose}>
+                <Transition.Child
+                    as={Fragment}
+                    enter="ease-out duration-300"
+                    enterFrom="opacity-0"
+                    enterTo="opacity-100"
+                    leave="ease-in duration-200"
+                    leaveFrom="opacity-100"
+                    leaveTo="opacity-0"
+                >
+                    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md" />
+                </Transition.Child>
+
                 <div className="fixed inset-0 overflow-y-auto">
                     <div className="flex min-h-full items-center justify-center p-4">
-                        <Dialog.Panel className="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white dark:bg-[#1C1C1C] text-left align-middle shadow-xl transition-all flex flex-col max-h-[90vh]">
-                            <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-white/5">
-                                <div>
-                                    <Dialog.Title as="h3" className="text-xl font-bold dark:text-white flex items-center gap-2">
-                                        <FiBriefcase className="text-blue-500" /> Medic Profile
-                                    </Dialog.Title>
-                                    <p className="text-sm text-gray-500 mt-1">Update your professional details and credentials.</p>
+                        <Transition.Child
+                            as={Fragment}
+                            enter="ease-out duration-300"
+                            enterFrom="opacity-0 scale-95"
+                            enterTo="opacity-100 scale-100"
+                            leave="ease-in duration-200"
+                            leaveFrom="opacity-100 scale-100"
+                            leaveTo="opacity-0 scale-95"
+                        >
+                            <Dialog.Panel className="w-full max-w-4xl transform overflow-hidden rounded-[2.5rem] bg-white dark:bg-[#111111] text-left align-middle shadow-[0_50px_100px_rgba(0,0,0,0.25)] transition-all flex flex-col max-h-[90vh] border border-white/10">
+                                
+                                {/* Header Section */}
+                                <div className="px-8 py-8 border-b border-gray-50 dark:border-white/5 flex justify-between items-start bg-slate-50/50 dark:bg-white/5">
+                                    <div className="flex items-center gap-5">
+                                        <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-blue-200">
+                                            <FiBriefcase size={32} />
+                                        </div>
+                                        <div>
+                                            <Dialog.Title as="h3" className="text-2xl font-black text-slate-900 dark:text-white leading-tight">
+                                                Medic Profile
+                                            </Dialog.Title>
+                                            <p className="text-slate-500 font-medium text-sm mt-1">Manage your professional identity and clinic settings</p>
+                                        </div>
+                                    </div>
+                                    <button 
+                                        onClick={onClose} 
+                                        className="p-3 bg-white dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-2xl transition-all shadow-sm border border-slate-100 dark:border-white/5"
+                                    >
+                                        <FiX size={20} />
+                                    </button>
                                 </div>
-                                <button onClick={onClose} className="p-2 hover:bg-gray-200 dark:hover:bg-white/10 rounded-full transition">
-                                    <FiX className="dark:text-white" />
-                                </button>
-                            </div>
 
-                            <div className="flex-1 overflow-hidden flex flex-col">
-                                <Tab.Group>
-                                    <Tab.List className="flex space-x-1 bg-white dark:bg-[#1C1C1C] p-4 border-b border-gray-100 dark:border-gray-800">
-                                        <Tab className={({ selected }) => classNames('w-full py-2.5 text-sm font-medium leading-5 rounded-lg transition focus:outline-none ring-0', selected ? 'bg-blue-50 text-blue-700 shadow' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700')}>
-                                            <div className="flex items-center justify-center gap-2"><FiUser /> Personal Info</div>
-                                        </Tab>
-                                        <Tab className={({ selected }) => classNames('w-full py-2.5 text-sm font-medium leading-5 rounded-lg transition focus:outline-none ring-0', selected ? 'bg-blue-50 text-blue-700 shadow' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700')}>
-                                            <div className="flex items-center justify-center gap-2"><FiBriefcase /> Professional Details</div>
-                                        </Tab>
-                                        <Tab className={({ selected }) => classNames('w-full py-2.5 text-sm font-medium leading-5 rounded-lg transition focus:outline-none ring-0', selected ? 'bg-blue-50 text-blue-700 shadow' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700')}>
-                                            <div className="flex items-center justify-center gap-2"><FiFileText /> Credentials & Docs</div>
-                                        </Tab>
-                                    </Tab.List>
+                                <div className="flex-1 overflow-hidden flex flex-col">
+                                    <Tab.Group onChange={setActiveTab}>
+                                        <Tab.List className="flex gap-2 bg-white dark:bg-[#111111] px-8 pt-4 border-b border-gray-50 dark:border-white/5">
+                                            {[
+                                                { label: 'Personal Info', icon: FiUser },
+                                                { label: 'Professional', icon: FiActivity },
+                                                { label: 'Credentials', icon: FiFileText }
+                                            ].map((item, idx) => (
+                                                <Tab 
+                                                    key={item.label}
+                                                    className={({ selected }) => classNames(
+                                                        'flex items-center gap-2 px-6 py-4 text-xs font-black uppercase tracking-widest transition-all rounded-t-2xl outline-none border-b-4',
+                                                        selected 
+                                                            ? 'bg-blue-50/50 dark:bg-blue-500/10 text-blue-600 border-blue-600' 
+                                                            : 'text-slate-400 border-transparent hover:text-slate-600 dark:hover:text-slate-200'
+                                                    )}
+                                                >
+                                                    <item.icon size={16} />
+                                                    {item.label}
+                                                </Tab>
+                                            ))}
+                                        </Tab.List>
 
-                                    <Tab.Panels className="flex-1 overflow-y-auto p-6">
-                                        {/* PERSONAL INFO TAB */}
-                                        <Tab.Panel>
-                                            <div className="space-y-6">
-                                                {/* Profile Picture */}
-                                                <div className="flex items-center gap-6 p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-gray-800">
-                                                    <div className="relative w-24 h-24 bg-white dark:bg-black rounded-full border-2 border-dashed border-gray-300 dark:border-gray-700 flex items-center justify-center overflow-hidden shrink-0">
-                                                        {profilePreview ? (
-                                                            <img src={profilePreview} alt="Profile" className="w-full h-full object-cover" />
-                                                        ) : (
-                                                            <span className="text-gray-400 text-xs">No Image</span>
-                                                        )}
-                                                    </div>
-                                                    <div>
-                                                        <h4 className="font-bold text-gray-900 dark:text-white mb-2">Profile Photo</h4>
-                                                        <div className="relative overflow-hidden inline-block">
-                                                            <button type="button" className="px-4 py-2 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-white/5 transition flex items-center gap-2">
-                                                                <FiUpload /> Upload New Photo
-                                                            </button>
-                                                            <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'profile')} className="absolute inset-0 opacity-0 cursor-pointer" />
+                                        <Tab.Panels className="flex-1 overflow-y-auto p-8 scrollbar-hide">
+                                            
+                                            {/* PERSONAL INFO PANEL */}
+                                            <Tab.Panel className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                                <section>
+                                                    <div className="flex flex-col md:flex-row items-center gap-8 p-8 bg-slate-50 dark:bg-white/5 rounded-[2rem] border border-slate-100 dark:border-white/5">
+                                                        <div className="relative group shrink-0">
+                                                            <div className="w-32 h-32 bg-white dark:bg-black rounded-3xl border-4 border-white dark:border-white/10 shadow-2xl overflow-hidden flex items-center justify-center">
+                                                                {profilePreview ? (
+                                                                    <img src={profilePreview} alt="Profile" className="w-full h-full object-cover transition duration-500 group-hover:scale-110" />
+                                                                ) : (
+                                                                    <FiUser className="text-slate-200 dark:text-white/10" size={60} />
+                                                                )}
+                                                                <label className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                                                    <FiUpload className="text-white" size={24} />
+                                                                    <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'profile')} className="hidden" />
+                                                                </label>
+                                                            </div>
+                                                            <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg border-2 border-white dark:border-[#111111]">
+                                                                <FiUpload size={14} />
+                                                            </div>
                                                         </div>
-                                                        <p className="text-xs text-gray-500 mt-2">Recommended: Square JPG/PNG, Max 2MB</p>
+                                                        <div className="flex-1 text-center md:text-left">
+                                                            <h4 className="text-lg font-black text-slate-900 dark:text-white mb-1">Profile Identity</h4>
+                                                            <p className="text-sm text-slate-500 mb-4 font-medium">Your photo will be visible to patients on the radar and booking pages.</p>
+                                                            <div className="flex flex-wrap justify-center md:justify-start gap-3">
+                                                                <span className="px-3 py-1.5 bg-blue-100/50 dark:bg-blue-500/10 text-blue-600 text-[10px] font-black uppercase rounded-lg">High Resolution</span>
+                                                                <span className="px-3 py-1.5 bg-slate-100 dark:bg-white/5 text-slate-500 text-[10px] font-black uppercase rounded-lg">Max 2MB</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </section>
+
+                                                <div className="grid grid-cols-1 gap-8">
+                                                    <div className="space-y-2">
+                                                        <label className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
+                                                            <FiUser size={14} /> Professional Bio
+                                                        </label>
+                                                        <textarea 
+                                                            name="about" 
+                                                            value={formData.about} 
+                                                            onChange={handleChange} 
+                                                            rows={5} 
+                                                            className="w-full px-5 py-4 rounded-3xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 text-slate-900 dark:text-white text-sm font-medium focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all resize-none" 
+                                                            placeholder="Introduce yourself to patients. Mention your core expertise, philosophy, and patient care approach..." 
+                                                        />
+                                                    </div>
+
+                                                    <div className="space-y-2">
+                                                        <label className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
+                                                            <FiMapPin size={14} /> Clinic / Service Location
+                                                        </label>
+                                                        <div className="relative">
+                                                            <FiMapPin className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" />
+                                                            <input 
+                                                                type="text" 
+                                                                name="address" 
+                                                                value={formData.address} 
+                                                                onChange={handleChange} 
+                                                                className="w-full pl-12 pr-5 py-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 text-slate-900 dark:text-white text-sm font-medium focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all" 
+                                                                placeholder="Street address, building, or hospital wing..." 
+                                                            />
+                                                        </div>
                                                     </div>
                                                 </div>
+                                            </Tab.Panel>
 
-                                                <div>
-                                                    <label className="block text-xs font-bold text-gray-500 mb-1">Bio / About Me</label>
-                                                    <textarea name="about" value={formData.about} onChange={handleChange} rows={4} className="w-full p-3 rounded-lg border border-gray-200 dark:bg-black dark:border-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Write a brief professional summary..." />
-                                                </div>
-
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    <div>
-                                                        <label className="block text-xs font-bold text-gray-500 mb-1">Physical Address / Location</label>
-                                                        <input type="text" name="address" value={formData.address} onChange={handleChange} className="w-full p-3 rounded-lg border border-gray-200 dark:bg-black dark:border-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. Nairobi, Westlands" />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </Tab.Panel>
-
-                                        {/* PROFESSIONAL DETAILS TAB */}
-                                        <Tab.Panel>
-                                            <div className="space-y-6">
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    <div>
-                                                        <label className="block text-xs font-bold text-gray-500 mb-1">Primary Specialty</label>
+                                            {/* PROFESSIONAL DETAILS PANEL */}
+                                            <Tab.Panel className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    <div className="space-y-2">
+                                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Primary Specialty</label>
                                                         <select
                                                             name="speciality"
                                                             value={showOtherSpeciality ? 'Other' : formData.speciality}
@@ -277,10 +363,11 @@ export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: Ed
                                                                     setFormData({ ...formData, speciality: val });
                                                                 }
                                                             }}
-                                                            className="w-full p-3 rounded-lg border border-gray-200 dark:bg-black dark:border-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                                            className="w-full px-5 py-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 text-slate-900 dark:text-white text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all"
                                                         >
-                                                            <option value="">Select Speciality</option>
+                                                            <option value="">Select Specialty</option>
                                                             {MEDICAL_SPECIALITIES.map(s => <option key={s} value={s}>{s}</option>)}
+                                                            <option value="Other">Custom Specialty...</option>
                                                         </select>
                                                         {showOtherSpeciality && (
                                                             <input
@@ -288,13 +375,14 @@ export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: Ed
                                                                 name="speciality"
                                                                 value={formData.speciality}
                                                                 onChange={handleChange}
-                                                                className="w-full mt-2 p-3 rounded-lg border border-blue-200 dark:bg-black dark:border-blue-900 dark:text-white text-sm animate-in slide-in-from-top-2 duration-300"
-                                                                placeholder="Type speciality..."
+                                                                className="w-full mt-3 px-5 py-4 rounded-2xl bg-blue-50/30 border border-blue-200 dark:bg-blue-500/5 dark:border-blue-500/30 text-blue-600 dark:text-blue-400 text-sm font-bold animate-in zoom-in-95 duration-300"
+                                                                placeholder="Enter your specialty..."
                                                             />
                                                         )}
                                                     </div>
-                                                    <div>
-                                                        <label className="block text-xs font-bold text-gray-500 mb-1">Highest Qualification</label>
+
+                                                    <div className="space-y-2">
+                                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Highest Qualification</label>
                                                         <select
                                                             name="qualification"
                                                             value={showOtherQualification ? 'Other' : formData.qualification}
@@ -308,10 +396,11 @@ export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: Ed
                                                                     setFormData({ ...formData, qualification: val });
                                                                 }
                                                             }}
-                                                            className="w-full p-3 rounded-lg border border-gray-200 dark:bg-black dark:border-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                                            className="w-full px-5 py-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 text-slate-900 dark:text-white text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all"
                                                         >
                                                             <option value="">Select Qualification</option>
                                                             {MEDICAL_QUALIFICATIONS.map(q => <option key={q} value={q}>{q}</option>)}
+                                                            <option value="Other">Custom Qualification...</option>
                                                         </select>
                                                         {showOtherQualification && (
                                                             <input
@@ -319,17 +408,27 @@ export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: Ed
                                                                 name="qualification"
                                                                 value={formData.qualification}
                                                                 onChange={handleChange}
-                                                                className="w-full mt-2 p-3 rounded-lg border border-blue-200 dark:bg-black dark:border-blue-900 dark:text-white text-sm animate-in slide-in-from-top-2 duration-300"
-                                                                placeholder="Type qualification..."
+                                                                className="w-full mt-3 px-5 py-4 rounded-2xl bg-blue-50/30 border border-blue-200 dark:bg-blue-500/5 dark:border-blue-500/30 text-blue-600 dark:text-blue-400 text-sm font-bold animate-in zoom-in-95 duration-300"
+                                                                placeholder="Enter your qualification..."
                                                             />
                                                         )}
                                                     </div>
-                                                    <div>
-                                                        <label className="block text-xs font-bold text-gray-500 mb-1">Years of Experience</label>
-                                                        <input type="number" name="years_of_experience" value={formData.years_of_experience} onChange={handleChange} className="w-full p-3 rounded-lg border border-gray-200 dark:bg-black dark:border-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+
+                                                    <div className="space-y-2">
+                                                        <label className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
+                                                            <FiClock size={14} /> Years of Experience
+                                                        </label>
+                                                        <input 
+                                                            type="number" 
+                                                            name="years_of_experience" 
+                                                            value={formData.years_of_experience} 
+                                                            onChange={handleChange} 
+                                                            className="w-full px-5 py-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 text-slate-900 dark:text-white text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none" 
+                                                        />
                                                     </div>
-                                                    <div>
-                                                        <label className="block text-xs font-bold text-gray-500 mb-1">Current Hospital Attachment</label>
+
+                                                    <div className="space-y-2">
+                                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Hospital Attachment</label>
                                                         <select
                                                             name="hospital_attachment"
                                                             value={showOtherHospital ? 'Other' : formData.hospital_attachment}
@@ -343,10 +442,11 @@ export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: Ed
                                                                     setFormData({ ...formData, hospital_attachment: val });
                                                                 }
                                                             }}
-                                                            className="w-full p-3 rounded-lg border border-gray-200 dark:bg-black dark:border-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                                            className="w-full px-5 py-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 text-slate-900 dark:text-white text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all"
                                                         >
                                                             <option value="">Select Hospital</option>
                                                             {KENYAN_HOSPITALS.map(h => <option key={h} value={h}>{h}</option>)}
+                                                            <option value="Other">Add Custom Hospital...</option>
                                                         </select>
                                                         {showOtherHospital && (
                                                             <input
@@ -354,41 +454,83 @@ export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: Ed
                                                                 name="hospital_attachment"
                                                                 value={formData.hospital_attachment}
                                                                 onChange={handleChange}
-                                                                className="w-full mt-2 p-3 rounded-lg border border-blue-200 dark:bg-black dark:border-blue-900 dark:text-white text-sm animate-in slide-in-from-top-2 duration-300"
-                                                                placeholder="Type hospital name..."
+                                                                className="w-full mt-3 px-5 py-4 rounded-2xl bg-blue-50/30 border border-blue-200 dark:bg-blue-500/5 dark:border-blue-500/30 text-blue-600 dark:text-blue-400 text-sm font-bold animate-in zoom-in-95 duration-300"
+                                                                placeholder="Enter hospital name..."
                                                             />
                                                         )}
                                                     </div>
                                                 </div>
 
-                                                <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
-                                                    <h4 className="font-bold text-gray-900 dark:text-white mb-4">Service Settings</h4>
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                        <div>
-                                                            <label className="block text-xs font-bold text-gray-500 mb-1">Consultation Fee (KES)</label>
-                                                            <input type="number" name="consultation_fee" value={formData.consultation_fee} onChange={handleChange} className="w-full p-3 rounded-lg border border-gray-200 dark:bg-black dark:border-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                                                <div className="p-8 bg-slate-50 dark:bg-white/5 rounded-[2.5rem] border border-slate-100 dark:border-white/5">
+                                                    <div className="flex items-center gap-3 mb-8">
+                                                        <div className="w-10 h-10 bg-slate-200 dark:bg-white/10 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300">
+                                                            <FiClock size={20} />
                                                         </div>
+                                                        <div>
+                                                            <h4 className="text-lg font-black text-slate-900 dark:text-white">Service & Availability</h4>
+                                                            <p className="text-xs text-slate-500 font-medium uppercase tracking-widest">Configure how you receive appointments</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                                         <div className="space-y-3">
-                                                            <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-white/5 rounded-xl cursor-pointer">
-                                                                <input type="checkbox" id="tele" name="telemedicine" checked={Number(formData.telemedicine) === 1} onChange={handleChange} className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                                                                <label htmlFor="tele" className="text-sm font-medium dark:text-white cursor-pointer select-none">Opt-in for Telemedicine</label>
+                                                            <label className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
+                                                                <FiCreditCard size={14} /> Consultation Fee (KES)
+                                                            </label>
+                                                            <div className="relative">
+                                                                <span className="absolute left-5 top-1/2 -translate-y-1/2 font-black text-slate-300">Ksh</span>
+                                                                <input 
+                                                                    type="number" 
+                                                                    name="consultation_fee" 
+                                                                    value={formData.consultation_fee} 
+                                                                    onChange={handleChange} 
+                                                                    className="w-full pl-16 pr-5 py-4 rounded-2xl bg-white dark:bg-black border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-lg font-black focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm" 
+                                                                />
                                                             </div>
-                                                            <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-white/5 rounded-xl cursor-pointer">
-                                                                <input type="checkbox" id="call" name="on_call" checked={Number(formData.on_call) === 1} onChange={handleChange} className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                                                                <label htmlFor="call" className="text-sm font-medium dark:text-white cursor-pointer select-none">Available On-Call</label>
-                                                            </div>
+                                                        </div>
+
+                                                        <div className="flex flex-col gap-4">
+                                                            <label className="flex items-center gap-3 p-5 bg-white dark:bg-black border border-slate-100 dark:border-white/10 rounded-2xl shadow-sm cursor-pointer hover:border-blue-500/30 transition-all group">
+                                                                <div className="relative flex items-center">
+                                                                    <input 
+                                                                        type="checkbox" 
+                                                                        name="telemedicine" 
+                                                                        checked={Number(formData.telemedicine) === 1} 
+                                                                        onChange={handleChange} 
+                                                                        className="w-6 h-6 rounded-lg border-2 border-slate-200 text-blue-600 focus:ring-0 cursor-pointer" 
+                                                                    />
+                                                                </div>
+                                                                <div className="flex-1">
+                                                                    <span className="block text-sm font-black text-slate-800 dark:text-white group-hover:text-blue-600 transition-colors">Telemedicine Enabled</span>
+                                                                    <span className="block text-[10px] text-slate-400 font-medium uppercase mt-0.5">Offer virtual consultations</span>
+                                                                </div>
+                                                            </label>
+
+                                                            <label className="flex items-center gap-3 p-5 bg-white dark:bg-black border border-slate-100 dark:border-white/10 rounded-2xl shadow-sm cursor-pointer hover:border-blue-500/30 transition-all group">
+                                                                <div className="relative flex items-center">
+                                                                    <input 
+                                                                        type="checkbox" 
+                                                                        name="on_call" 
+                                                                        checked={Number(formData.on_call) === 1} 
+                                                                        onChange={handleChange} 
+                                                                        className="w-6 h-6 rounded-lg border-2 border-slate-200 text-blue-600 focus:ring-0 cursor-pointer" 
+                                                                    />
+                                                                </div>
+                                                                <div className="flex-1">
+                                                                    <span className="block text-sm font-black text-slate-800 dark:text-white group-hover:text-blue-600 transition-colors">On-Call Available</span>
+                                                                    <span className="block text-[10px] text-slate-400 font-medium uppercase mt-0.5">Visible for emergency requests</span>
+                                                                </div>
+                                                            </label>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </Tab.Panel>
+                                            </Tab.Panel>
 
-                                        {/* CREDENTIALS TAB */}
-                                        <Tab.Panel>
-                                            <div className="space-y-6">
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    <div>
-                                                        <label className="block text-xs font-bold text-gray-500 mb-1">Regulatory Body</label>
+                                            {/* CREDENTIALS PANEL */}
+                                            <Tab.Panel className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    <div className="space-y-2">
+                                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Regulatory Body</label>
                                                         <select
                                                             name="regulatory_body"
                                                             value={showOtherRegulatory ? 'Other' : formData.regulatory_body}
@@ -402,10 +544,11 @@ export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: Ed
                                                                     setFormData({ ...formData, regulatory_body: val });
                                                                 }
                                                             }}
-                                                            className="w-full p-3 rounded-lg border border-gray-200 dark:bg-black dark:border-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                                            className="w-full px-5 py-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 text-slate-900 dark:text-white text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none"
                                                         >
-                                                            <option value="">Select Body</option>
+                                                            <option value="">Select Board</option>
                                                             {REGULATORY_BODIES.map(b => <option key={b} value={b.split(' (')[0]}>{b}</option>)}
+                                                            <option value="Other">Other Regulatory Body...</option>
                                                         </select>
                                                         {showOtherRegulatory && (
                                                             <input
@@ -413,90 +556,135 @@ export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: Ed
                                                                 name="regulatory_body"
                                                                 value={formData.regulatory_body}
                                                                 onChange={handleChange}
-                                                                className="w-full mt-2 p-3 rounded-lg border border-blue-200 dark:bg-black dark:border-blue-900 dark:text-white text-sm animate-in slide-in-from-top-2 duration-300"
-                                                                placeholder="Type regulatory body..."
+                                                                className="w-full mt-3 px-5 py-4 rounded-2xl bg-blue-50/30 border border-blue-200 dark:bg-blue-500/5 dark:border-blue-500/30 text-blue-600 dark:text-blue-400 text-sm font-bold animate-in zoom-in-95 duration-300"
+                                                                placeholder="Enter board name..."
                                                             />
                                                         )}
                                                     </div>
-                                                    <div>
-                                                        <label className="block text-xs font-bold text-gray-500 mb-1">Registration Number</label>
-                                                        <input type="text" name="registration_number" value={formData.registration_number} onChange={handleChange} className="w-full p-3 rounded-lg border border-gray-200 dark:bg-black dark:border-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+
+                                                    <div className="space-y-2">
+                                                        <label className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
+                                                            <FiHash size={14} /> Registration No.
+                                                        </label>
+                                                        <input type="text" name="registration_number" value={formData.registration_number} onChange={handleChange} className="w-full px-5 py-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 text-slate-900 dark:text-white text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none" placeholder="Enter registration code..." />
                                                     </div>
-                                                    <div>
-                                                        <label className="block text-xs font-bold text-gray-500 mb-1">License Number</label>
-                                                        <input type="text" name="licenceNo" value={formData.licenceNo} onChange={handleChange} className="w-full p-3 rounded-lg border border-gray-200 dark:bg-black dark:border-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+
+                                                    <div className="space-y-2">
+                                                        <label className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
+                                                            <FiFileText size={14} /> License No.
+                                                        </label>
+                                                        <input type="text" name="licenceNo" value={formData.licenceNo} onChange={handleChange} className="w-full px-5 py-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 text-slate-900 dark:text-white text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none" placeholder="Enter license number..." />
                                                     </div>
-                                                    <div>
-                                                        <label className="block text-xs font-bold text-gray-500 mb-1">License Expiry Date</label>
-                                                        <input type="date" name="licenseExpiryDate" value={formData.licenseExpiryDate} onChange={handleChange} className="w-full p-3 rounded-lg border border-gray-200 dark:bg-black dark:border-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+
+                                                    <div className="space-y-2">
+                                                        <label className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
+                                                            <FiCalendar size={14} /> License Expiry
+                                                        </label>
+                                                        <input type="date" name="licenseExpiryDate" value={formData.licenseExpiryDate} onChange={handleChange} className="w-full px-5 py-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 text-slate-900 dark:text-white text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none" />
                                                     </div>
                                                 </div>
 
                                                 {!isNurse && (
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-100 dark:border-gray-800">
-                                                        {/* Signature */}
-                                                        <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-gray-800 text-center">
-                                                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">Digital Signature</label>
-                                                            <div className="relative group w-full h-32 bg-white dark:bg-black rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 flex items-center justify-center overflow-hidden mb-3">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 border-t border-slate-50 dark:border-white/5">
+                                                        <div className="space-y-4">
+                                                            <div className="flex items-center justify-between">
+                                                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Digital Signature</label>
+                                                                <FiCheckCircle className="text-green-500" />
+                                                            </div>
+                                                            <div className="relative group w-full h-40 bg-slate-50 dark:bg-white/5 rounded-[2rem] border-2 border-dashed border-slate-200 dark:border-white/10 flex items-center justify-center overflow-hidden transition-all hover:border-blue-500/50">
                                                                 {sigPreview ? (
-                                                                    <img src={sigPreview} alt="Signature" className="h-full object-contain" />
+                                                                    <img src={sigPreview} alt="Signature" className="h-full object-contain p-4 mix-blend-multiply dark:mix-blend-normal contrast-125" />
                                                                 ) : (
-                                                                    <span className="text-gray-400 text-xs">No signature</span>
+                                                                    <div className="text-center p-6">
+                                                                        <FiUpload className="mx-auto text-slate-300 mb-2" size={24} />
+                                                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Upload Signature</span>
+                                                                    </div>
                                                                 )}
-                                                                <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'signature')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                                                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                                                    <FiUpload className="text-white text-2xl" />
-                                                                </div>
+                                                                <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'signature')} className="absolute inset-0 opacity-0 cursor-pointer" title="Upload Signature" />
                                                             </div>
-                                                            <p className="text-[10px] text-gray-500">Required for prescriptions</p>
+                                                            <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-white/5 rounded-xl">
+                                                                <FiInfo className="text-blue-500 flex-shrink-0" size={12} />
+                                                                <p className="text-[9px] font-bold text-slate-500 leading-tight">Must be a clear image on white background for prescription validity.</p>
+                                                            </div>
                                                         </div>
 
-                                                        {/* Stamp */}
-                                                        <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-gray-800 text-center">
-                                                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">Official Stamp</label>
-                                                            <div className="relative group w-full h-32 bg-white dark:bg-black rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 flex items-center justify-center overflow-hidden mb-3">
+                                                        <div className="space-y-4">
+                                                            <div className="flex items-center justify-between">
+                                                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Official Stamp</label>
+                                                                <FiCheckCircle className="text-green-500" />
+                                                            </div>
+                                                            <div className="relative group w-full h-40 bg-slate-50 dark:bg-white/5 rounded-[2rem] border-2 border-dashed border-slate-200 dark:border-white/10 flex items-center justify-center overflow-hidden transition-all hover:border-blue-500/50">
                                                                 {stampPreview ? (
-                                                                    <img src={stampPreview} alt="Stamp" className="h-full object-contain" />
+                                                                    <img src={stampPreview} alt="Stamp" className="h-full object-contain p-4 mix-blend-multiply dark:mix-blend-normal" />
                                                                 ) : (
-                                                                    <span className="text-gray-400 text-xs">No stamp</span>
+                                                                    <div className="text-center p-6">
+                                                                        <FiUpload className="mx-auto text-slate-300 mb-2" size={24} />
+                                                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Upload Stamp</span>
+                                                                    </div>
                                                                 )}
-                                                                <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'stamp')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                                                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                                                    <FiUpload className="text-white text-2xl" />
-                                                                </div>
+                                                                <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'stamp')} className="absolute inset-0 opacity-0 cursor-pointer" title="Upload Stamp" />
                                                             </div>
-                                                            <p className="text-[10px] text-gray-500">Required for official documents</p>
+                                                            <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-white/5 rounded-xl">
+                                                                <FiInfo className="text-blue-500 flex-shrink-0" size={12} />
+                                                                <p className="text-[9px] font-bold text-slate-500 leading-tight">Your official seal for reports and medical certifications.</p>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 )}
+
                                                 {isNurse && (
-                                                    <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-xl border border-yellow-100 dark:border-yellow-900/20">
-                                                        <p className="text-sm text-yellow-800 dark:text-yellow-200 font-medium">
-                                                            Note: Stamp and Signature portals are restricted for nursing profiles.
-                                                        </p>
+                                                    <div className="p-6 bg-amber-50/50 dark:bg-amber-900/10 rounded-[2rem] border border-amber-100 dark:border-amber-900/20 flex gap-4">
+                                                        <FiAlertCircle className="text-amber-500 flex-shrink-0 mt-1" size={20} />
+                                                        <div>
+                                                            <h5 className="text-sm font-black text-amber-900 dark:text-amber-400 mb-1">Notice for Nursing Profiles</h5>
+                                                            <p className="text-xs text-amber-800/70 dark:text-amber-400/60 font-medium leading-relaxed">
+                                                                Electronic prescriptions require an MD signature and facility stamp. Nursing profiles do not currently support direct digital signature uploads.
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                 )}
-                                            </div>
-                                        </Tab.Panel>
-                                    </Tab.Panels>
-                                </Tab.Group>
-                            </div>
-
-                            <div className="p-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-white/5 flex justify-between items-center">
-                                <span className="text-xs text-gray-500">* All changes require saving</span>
-                                <div className="flex gap-3">
-                                    <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-bold text-gray-500 hover:bg-gray-200 dark:hover:bg-white/10 rounded-lg transition">
-                                        Cancel
-                                    </button>
-                                    <button type="button" onClick={handleSubmit} disabled={loading} className="px-6 py-2 text-sm font-bold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 shadow-lg shadow-blue-500/30">
-                                        {loading ? 'Saving...' : <><FiSave /> Save Changes</>}
-                                    </button>
+                                            </Tab.Panel>
+                                        </Tab.Panels>
+                                    </Tab.Group>
                                 </div>
-                            </div>
-                        </Dialog.Panel>
+
+                                {/* Footer Action Bar */}
+                                <div className="px-8 py-6 border-t border-gray-50 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">System ready for secure save</span>
+                                    </div>
+                                    <div className="flex gap-4 w-full md:w-auto">
+                                        <button 
+                                            type="button" 
+                                            onClick={onClose} 
+                                            className="flex-1 md:flex-none px-8 py-4 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                                        >
+                                            Discard Changes
+                                        </button>
+                                        <button 
+                                            type="button" 
+                                            onClick={handleSubmit} 
+                                            disabled={loading} 
+                                            className="flex-1 md:flex-none px-10 py-4 bg-blue-600 text-white rounded-[1.25rem] text-xs font-black uppercase tracking-[0.2em] hover:bg-blue-700 transition-all flex items-center justify-center gap-3 shadow-2xl shadow-blue-500/30 active:scale-95 disabled:opacity-50 disabled:active:scale-100"
+                                        >
+                                            {loading ? (
+                                                <>
+                                                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                                    Processing...
+                                                </>
+                                            ) : (
+                                                <><FiSave size={18} /> Update Profile</>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+                            </Dialog.Panel>
+                        </Transition.Child>
                     </div>
                 </div>
             </Dialog>
         </Transition>
     );
 }
+

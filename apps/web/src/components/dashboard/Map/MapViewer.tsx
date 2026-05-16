@@ -203,7 +203,7 @@ export default function MapViewer() {
                         <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
                         <span className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Active Units</span>
                     </div>
-                    <span className="bg-blue-600 text-white px-2 py-0.5 rounded-lg text-xs font-black shadow-lg shadow-blue-200">{doctors.length}</span>
+                    <span className="bg-blue-600 text-white px-2 py-0.5 rounded-lg text-xs font-black shadow-lg shadow-blue-200">{filteredDoctors.length}</span>
                 </div>
             </div>
 

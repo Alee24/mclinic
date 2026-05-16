@@ -1,12 +1,26 @@
-'use client';
-
-import { useState } from 'react';
+import { Dialog, Transition, Tab } from '@headlessui/react';
+import { Fragment, useState } from 'react';
+import { 
+    FiX, FiSave, FiBriefcase, FiUser, FiFileText, 
+    FiActivity, FiMail, FiPhone, FiMapPin, FiPlus, FiAlertCircle
+} from 'react-icons/fi';
 import { api } from '@/lib/api';
-import { FiX } from 'react-icons/fi';
+import toast from 'react-hot-toast';
+import { 
+    MEDICAL_SPECIALITIES, 
+    MEDICAL_QUALIFICATIONS, 
+    KENYAN_HOSPITALS, 
+    REGULATORY_BODIES,
+    DOCTOR_TYPES
+} from '@/lib/medical-constants';
 
 interface CreateDoctorModalProps {
     onClose: () => void;
     onSuccess: () => void;
+}
+
+function classNames(...classes: string[]) {
+    return classes.filter(Boolean).join(' ');
 }
 
 export default function CreateDoctorModal({ onClose, onSuccess }: CreateDoctorModalProps) {
@@ -25,181 +39,194 @@ export default function CreateDoctorModal({ onClose, onSuccess }: CreateDoctorMo
         licenseExpiryDate: '',
         qualifications: '',
         hospitalAffiliation: '',
-        fee: 0,
+        fee: 1500,
         bio: '',
     });
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const [showOtherSpeciality, setShowOtherSpeciality] = useState(false);
+
+    const handleChange = (e: any) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        if (!formData.name || !formData.email || !formData.mobile) {
+            toast.error('Please fill in all required fields');
+            return;
+        }
+
         setLoading(true);
 
         try {
-            if (!formData.name || !formData.licenseNumber || !formData.email) {
-                // Basic validation
-            }
-
             const res = await api.post('/doctors', {
                 ...formData,
-                // Ensure date is ISO
-                licenseExpiryDate: formData.licenseExpiryDate ? new Date(formData.licenseExpiryDate).toISOString() : null,
+                licenceNo: formData.licenseNumber,
+                speciality: formData.specialty,
+                qualification: formData.qualifications,
+                hospital_attachment: formData.hospitalAffiliation,
+                licenceExpiry: formData.licenseExpiryDate ? new Date(formData.licenseExpiryDate).toISOString() : null,
             });
 
             if (res && res.ok) {
-                alert('Medic created successfully');
+                toast.success('Medic account created successfully');
                 onSuccess();
             } else {
-                alert('Failed to create medic');
+                const err = await res?.text();
+                throw new Error(err || 'Failed to create');
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            alert('An error occurred');
+            toast.error(err.message || 'An error occurred during registration');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <div className="bg-white dark:bg-[#1A1A1A] w-full max-w-2xl rounded-xl shadow-2xl flex flex-col max-h-[90vh]">
-                <div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-gray-800">
-                    <h2 className="text-xl font-bold dark:text-white">Add New Medic</h2>
-                    <button onClick={onClose} className="text-gray-500 hover:text-black dark:hover:text-white transition"><FiX size={24} /></button>
+        <Transition appear show={true} as={Fragment}>
+            <Dialog as="div" className="relative z-[2000]" onClose={onClose}>
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md" />
+                <div className="fixed inset-0 overflow-y-auto">
+                    <div className="flex min-h-full items-center justify-center p-4">
+                        <Dialog.Panel className="w-full max-w-4xl transform overflow-hidden rounded-[2.5rem] bg-white dark:bg-[#111111] text-left align-middle shadow-[0_50px_100px_rgba(0,0,0,0.25)] transition-all flex flex-col max-h-[90vh] border border-white/10">
+                            
+                            <div className="px-8 py-8 border-b border-gray-50 dark:border-white/5 flex justify-between items-start bg-slate-50/50 dark:bg-white/5">
+                                <div className="flex items-center gap-5">
+                                    <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-blue-200">
+                                        <FiPlus size={32} />
+                                    </div>
+                                    <div>
+                                        <Dialog.Title as="h3" className="text-2xl font-black text-slate-900 dark:text-white leading-tight">
+                                            Register New Medic
+                                        </Dialog.Title>
+                                        <p className="text-slate-500 font-medium text-sm mt-1">Add a new professional to the medical radar</p>
+                                    </div>
+                                </div>
+                                <button onClick={onClose} className="p-3 bg-white dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 rounded-2xl transition-all border border-slate-100 dark:border-white/5">
+                                    <FiX size={20} />
+                                </button>
+                            </div>
+
+                            <div className="flex-1 overflow-hidden flex flex-col">
+                                <Tab.Group>
+                                    <Tab.List className="flex gap-2 bg-white dark:bg-[#111111] px-8 pt-4 border-b border-gray-50 dark:border-white/5">
+                                        {['Account Profile', 'Professional Details', 'Service Settings'].map((tab) => (
+                                            <Tab key={tab} className={({ selected }) => classNames(
+                                                'px-6 py-4 text-xs font-black uppercase tracking-widest transition-all rounded-t-2xl outline-none border-b-4',
+                                                selected ? 'bg-blue-50/50 dark:bg-blue-500/10 text-blue-600 border-blue-600' : 'text-slate-400 border-transparent hover:text-slate-600'
+                                            )}>{tab}</Tab>
+                                        ))}
+                                    </Tab.List>
+
+                                    <Tab.Panels className="flex-1 overflow-y-auto p-8 scrollbar-hide">
+                                        <Tab.Panel className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div className="md:col-span-2 space-y-2">
+                                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Full Name *</label>
+                                                    <input name="name" value={formData.name} onChange={handleChange} required className="w-full px-5 py-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 text-slate-900 dark:text-white text-sm font-bold" placeholder="e.g. Dr. Jane Smith" />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Email Address *</label>
+                                                    <input type="email" name="email" value={formData.email} onChange={handleChange} required className="w-full px-5 py-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 text-slate-900 dark:text-white text-sm font-bold" />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Mobile Number *</label>
+                                                    <input name="mobile" value={formData.mobile} onChange={handleChange} required className="w-full px-5 py-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 text-slate-900 dark:text-white text-sm font-bold" />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Gender</label>
+                                                    <select name="sex" value={formData.sex} onChange={handleChange} className="w-full px-5 py-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 text-slate-900 dark:text-white text-sm font-bold">
+                                                        <option value="Male">Male</option>
+                                                        <option value="Female">Female</option>
+                                                    </select>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Date of Birth</label>
+                                                    <input type="date" name="dob" value={formData.dob} onChange={handleChange} className="w-full px-5 py-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 text-slate-900 dark:text-white text-sm font-bold" />
+                                                </div>
+                                            </div>
+                                        </Tab.Panel>
+
+                                        <Tab.Panel className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div className="space-y-2">
+                                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Primary Cadre</label>
+                                                    <select name="dr_type" value={formData.dr_type} onChange={handleChange} className="w-full px-5 py-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 text-slate-900 dark:text-white text-sm font-bold">
+                                                        {DOCTOR_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                                                    </select>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Specialty</label>
+                                                    <select name="specialty" value={formData.specialty} onChange={handleChange} required className="w-full px-5 py-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 text-slate-900 dark:text-white text-sm font-bold">
+                                                        <option value="">Select Specialty</option>
+                                                        {MEDICAL_SPECIALITIES.map(s => <option key={s} value={s}>{s}</option>)}
+                                                    </select>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest">License Number *</label>
+                                                    <input name="licenseNumber" value={formData.licenseNumber} onChange={handleChange} required className="w-full px-5 py-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 text-slate-900 dark:text-white text-sm font-bold font-mono" />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest">KMPDC/Reg Code</label>
+                                                    <input name="reg_code" value={formData.reg_code} onChange={handleChange} className="w-full px-5 py-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 text-slate-900 dark:text-white text-sm font-bold font-mono" />
+                                                </div>
+                                                <div className="space-y-2 md:col-span-2">
+                                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Hospital Attachment</label>
+                                                    <select name="hospitalAffiliation" value={formData.hospitalAffiliation} onChange={handleChange} className="w-full px-5 py-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 text-slate-900 dark:text-white text-sm font-bold">
+                                                        <option value="">Select Hospital</option>
+                                                        {KENYAN_HOSPITALS.map(h => <option key={h} value={h}>{h}</option>)}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </Tab.Panel>
+
+                                        <Tab.Panel className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                            <div className="p-8 bg-blue-600 rounded-[2.5rem] text-white shadow-2xl">
+                                                <div className="flex items-center gap-4 mb-6">
+                                                    <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
+                                                        <FiActivity size={24} />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="text-xl font-black tracking-tight">Initial Consultation Fee</h4>
+                                                        <p className="text-blue-100 text-xs font-medium">This can be updated by the medic later</p>
+                                                    </div>
+                                                </div>
+                                                <div className="relative">
+                                                    <span className="absolute left-6 top-1/2 -translate-y-1/2 text-blue-200 font-black text-xl">KES</span>
+                                                    <input 
+                                                        type="number" 
+                                                        name="fee" 
+                                                        value={formData.fee} 
+                                                        onChange={handleChange} 
+                                                        className="w-full pl-20 pr-8 py-6 rounded-3xl bg-white/10 border-2 border-white/20 text-3xl font-black focus:bg-white/20 outline-none" 
+                                                    />
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="p-6 bg-amber-50 dark:bg-amber-500/5 rounded-2xl border border-amber-100 dark:border-amber-500/20 flex gap-4">
+                                                <FiAlertCircle className="text-amber-500 shrink-0 mt-1" size={20} />
+                                                <p className="text-xs text-amber-800 dark:text-amber-200 font-medium leading-relaxed">
+                                                    Registering a medic will create a corresponding system user account. They will receive an email with instructions to set their password.
+                                                </p>
+                                            </div>
+                                        </Tab.Panel>
+                                    </Tab.Panels>
+                                </Tab.Group>
+                            </div>
+
+                            <div className="px-8 py-6 border-t border-gray-50 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex justify-end gap-4">
+                                <button type="button" onClick={onClose} className="px-8 py-4 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-900">Cancel</button>
+                                <button type="button" onClick={handleSubmit} disabled={loading} className="px-10 py-4 bg-blue-600 text-white rounded-[1.25rem] text-xs font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/30 flex items-center gap-2">
+                                    {loading ? 'Creating...' : <><FiSave /> Register Medic</>}
+                                </button>
+                            </div>
+                        </Dialog.Panel>
+                    </div>
                 </div>
-
-                <form onSubmit={handleSubmit} className="p-6 overflow-y-auto">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                        {/* Section: Personal Details */}
-                        <div className="md:col-span-2 border-b pb-2 mb-2">
-                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Personal Information</h3>
-                        </div>
-
-                        <div className="md:col-span-2">
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Full Name *</label>
-                            <input name="name" required className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.name} onChange={handleChange} placeholder="e.g. John Doe" />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Gender *</label>
-                            <select name="sex" className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.sex} onChange={handleChange}>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Date of Birth</label>
-                            <input type="date" name="dob" className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.dob} onChange={handleChange} />
-                        </div>
-
-                        {/* Section: Contact Info */}
-                        <div className="md:col-span-2 border-b border-t py-2 my-2 bg-gray-50/50 -mx-6 px-6">
-                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Contact Details</h3>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Email Address *</label>
-                            <input type="email" name="email" required className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.email} onChange={handleChange} placeholder="doctor@example.com" />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Mobile Number *</label>
-                            <input name="mobile" required className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.mobile} onChange={handleChange} placeholder="+254..." />
-                        </div>
-
-                        <div className="md:col-span-2">
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Physical Address</label>
-                            <input name="address" className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.address} onChange={handleChange} placeholder="Building, Street, City" />
-                        </div>
-
-                        {/* Section: Professional Info */}
-                        <div className="md:col-span-2 border-b border-t py-2 my-2 bg-gray-50/50 -mx-6 px-6">
-                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Professional Profile</h3>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Specialty *</label>
-                            <select name="specialty" required className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.specialty} onChange={handleChange}>
-                                <option value="">Select Specialty</option>
-                                {[
-                                    'Cardiology', 'Dermatology', 'Neurology', 'Pediatrics',
-                                    'Psychiatry', 'Oncology', 'Radiology', 'Surgery',
-                                    'Orthopedics', 'Gynecology', 'Urology', 'Internal Medicine',
-                                    'Dentistry', 'Ophthalmology', 'ENT', 'General Practice'
-                                ].map(s => <option key={s} value={s}>{s}</option>)}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Medic Type</label>
-                            <select name="dr_type" className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.dr_type} onChange={handleChange}>
-                                <option value="Specialist">Specialist</option>
-                                <option value="General Practitioner">General Practitioner</option>
-                                <option value="Consultant">Consultant</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">License Number *</label>
-                            <input name="licenseNumber" required className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none font-mono" value={formData.licenseNumber} onChange={handleChange} />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Reg. Code (KMPDC)</label>
-                            <input name="reg_code" className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none font-mono" value={formData.reg_code} onChange={handleChange} />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">License Expiry *</label>
-                            <input type="date" name="licenseExpiryDate" required className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.licenseExpiryDate} onChange={handleChange} />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Hospital Affiliation</label>
-                            <input list="hospitals" name="hospitalAffiliation" className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.hospitalAffiliation} onChange={handleChange} />
-                            <datalist id="hospitals">
-                                <option value="Wallal Hospital" />
-                                <option value="Optica" />
-                                <option value="City Eye" />
-                                <option value="AAR Health Care" />
-                            </datalist>
-                        </div>
-
-                        <div className="md:col-span-2">
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Qualifications</label>
-                            <input name="qualifications" className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.qualifications} onChange={handleChange} placeholder="MBBS, MD, PhD..." />
-                        </div>
-
-                        {/* Section: Financial & Bio */}
-                        <div className="md:col-span-2 border-b border-t py-2 my-2 bg-gray-50/50 -mx-6 px-6">
-                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Other Details</h3>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Consultation Fee (KES)</label>
-                            <input type="number" name="fee" required className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" value={formData.fee} onChange={handleChange} min="0" />
-                        </div>
-
-                        <div className="md:col-span-2">
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Bio</label>
-                            <textarea name="bio" className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition outline-none" rows={2} value={formData.bio} onChange={handleChange} />
-                        </div>
-                    </div>
-
-                    <div className="pt-6 flex justify-end gap-3 border-t border-gray-100 dark:border-gray-800 mt-6">
-                        <button type="button" onClick={onClose} className="px-6 py-2 text-gray-600 dark:text-gray-300 font-medium hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">Cancel</button>
-                        <button type="submit" disabled={loading} className="px-6 py-2 bg-primary text-black font-bold rounded-lg hover:opacity-90 disabled:opacity-50">
-                            {loading ? 'Creating...' : 'Create Medic'}
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-        </div>
+            </Dialog>
+        </Transition>
     );
 }
