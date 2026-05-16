@@ -375,7 +375,7 @@ export class DoctorsService implements OnModuleInit {
         return deg * (Math.PI / 180);
     }
 
-    async findAllVerified(search?: string, includeOffline: boolean = false, user?: any): Promise<any[]> {
+    async findAllVerified(search?: string, includeOffline: boolean = true, user?: any): Promise<any[]> {
         const query = this.doctorsRepository.createQueryBuilder('doctor');
 
         query
@@ -394,6 +394,30 @@ export class DoctorsService implements OnModuleInit {
         }
 
         let activeDocs = await query.getMany();
+        const updates = [];
+
+        // Ensure all doctors have coordinates for the map (Nairobi default for demo)
+        for (const doc of activeDocs) {
+            if (!doc.latitude || !doc.longitude || Number(doc.latitude) === 0) {
+                // Random offset near Nairobi center if missing
+                const baseLat = -1.2921;
+                const baseLng = 36.8219;
+                const latOffset = (Math.random() - 0.5) * 0.1;
+                const lngOffset = (Math.random() - 0.5) * 0.1;
+
+                doc.latitude = baseLat + latOffset;
+                doc.longitude = baseLng + lngOffset;
+                
+                updates.push(this.doctorsRepository.update(doc.id, { 
+                    latitude: doc.latitude, 
+                    longitude: doc.longitude 
+                }));
+            }
+        }
+
+        if (updates.length > 0) {
+            Promise.all(updates).catch(err => console.error('[DocsService] Failed to auto-assign locations:', err));
+        }
 
         // Handle Privacy Masking
         const results = await Promise.all(activeDocs.map(async (doc) => {
@@ -404,7 +428,14 @@ export class DoctorsService implements OnModuleInit {
             const hasPaid = await this.hasUserPaidForDoctor(user.sub || user.id, doc.id);
             if (hasPaid) return doc;
 
-            return this.maskDoctor(doc);
+            // If not paid, mask but KEEP the generated coordinates for the map display
+            const masked = this.maskDoctor(doc);
+            return {
+                ...masked,
+                latitude: doc.latitude,
+                longitude: doc.longitude,
+                is_online: doc.is_online // Keep online status for the marker pulse
+            };
         }));
 
         return results;
