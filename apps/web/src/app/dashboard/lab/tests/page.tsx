@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
-import { FiPlus, FiActivity, FiDollarSign, FiSearch, FiList, FiEdit2, FiTrash2 } from 'react-icons/fi';
+import { FiPlus, FiActivity, FiSearch, FiList, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 export default function LabTestsPage() {
@@ -143,7 +143,7 @@ export default function LabTestsPage() {
                             <p className="text-sm text-gray-500 mb-4 line-clamp-2">{test.description}</p>
                             <div className="flex justify-between items-center pt-4 border-t border-gray-100 dark:border-gray-800">
                                 <div className="font-bold text-lg text-green-600 flex items-center">
-                                    <FiDollarSign size={16} /> {test.price}
+                                    KSh {test.price}
                                 </div>
                                 <span className={`w-2 h-2 rounded-full ${test.isActive ? 'bg-green-500' : 'bg-red-500'}`} title={test.isActive ? 'Active' : 'Inactive'} />
                             </div>
