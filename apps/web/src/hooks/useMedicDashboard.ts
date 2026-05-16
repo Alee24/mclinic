@@ -162,7 +162,7 @@ export function useMedicDashboard() {
                 // Going Offline
                 console.log('[useMedicDashboard] Going offline...');
                 const res = await api.patch(`/doctors/${doctorProfile.id}/online-status`, { status: 0 });
-                if (res.ok) {
+                if (res && res.ok) {
                     setIsOnline(false);
                     toast.success('You are now Offline');
                 } else {
@@ -189,11 +189,11 @@ export function useMedicDashboard() {
                 longitude: longitude || 0 
             });
             
-            if (res.ok) {
+            if (res && res.ok) {
                 setIsOnline(true);
                 toast.success('You are now Online');
             } else {
-                const errText = await res.text();
+                const errText = res ? await res.text() : 'Session expired';
                 console.error('[useMedicDashboard] Server error going online:', errText);
                 throw new Error('Server rejected status update');
             }
