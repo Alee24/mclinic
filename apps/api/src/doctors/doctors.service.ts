@@ -186,7 +186,12 @@ export class DoctorsService implements OnModuleInit {
                 updatedCount++;
             }
         }
-        return { success: true, message: `Synced ${doctorUsers.length} doctor users. Created ${createdCount}, Updated ${updatedCount}.` };
+        return { 
+            success: true, 
+            message: `Synced ${doctorUsers.length} doctor users.`,
+            created: createdCount,
+            updated: updatedCount
+        };
     }
 
     private mapRoleToDrType(role: string): string {
@@ -888,25 +893,29 @@ export class DoctorsService implements OnModuleInit {
      * the "no medics showing" issue after a fresh VPS deploy.
      */
     async approveAll(): Promise<{ count: number; synced: number }> {
-        // 1. Sync: create doctor records for any medic-role users without a doctor record
-        const syncResult = await this.syncDoctorsWithUsers();
+        try {
+            // 1. Sync: create doctor records for any medic-role users without a doctor record
+            const syncResult = await this.syncDoctorsWithUsers();
 
-        // 2. Activate ALL doctors on the system
-        const all = await this.doctorsRepository.find();
-        if (all.length > 0) {
-            await this.doctorsRepository.update(
-                all.map(d => d.id),
-                {
+            // 2. Activate ALL doctors on the system using a direct query for maximum reliability
+            await this.doctorsRepository.createQueryBuilder()
+                .update(Doctor)
+                .set({
                     status: 1,
                     Verified_status: 1,
                     approvalStatus: 'approved',
-                    rejectionReason: null as any,
-                    can_prescribe: 1,
-                }
-            );
-        }
+                    rejectionReason: null,
+                    can_prescribe: 1
+                } as any)
+                .where('1 = 1')
+                .execute();
 
-        return { count: all.length, synced: (syncResult as any).created || 0 };
+            const count = await this.doctorsRepository.count();
+            return { count, synced: syncResult.created || 0 };
+        } catch (error) {
+            console.error('[DoctorsService] approveAll failed:', error);
+            throw error;
+        }
     }
 
     private async downloadProfileImage(url: string, doctorId: number): Promise<string | null> {
