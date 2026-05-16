@@ -265,8 +265,8 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
         }
         if (maxPrice) result = result.filter(d => getDisplayFee(d) <= maxPrice);
 
-        // Sort by distance (closest first)
-        result.sort((a, b) => (a.distance || 9999) - (b.distance || 9999));
+        // Sort by distance (furthest to closest as requested)
+        result.sort((a, b) => (b.distance || 0) - (a.distance || 0));
 
         setFilteredDoctors(result);
     }, [doctors, speciality, gender, maxPrice, searchTerm, userLocation, drTypeFilter]);
@@ -551,8 +551,8 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
                                             Map View
                                         </button>
                                     </div>
-                                    <p className="text-xs font-bold text-green-600 flex items-center gap-1 hidden sm:flex">
-                                        <FiMapPin /> Listed from closest to furthest
+                                    <p className="text-xs font-bold text-indigo-600 flex items-center gap-1 hidden sm:flex">
+                                        <FiMapPin /> Listed from furthest to closest
                                     </p>
                                 </div>
                             )}
@@ -627,9 +627,9 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
                                 </select>
 
                                 {userLocation && (
-                                    <div className="p-3 bg-blue-50 dark:bg-blue-900/10 rounded-xl text-xs text-blue-600 dark:text-blue-400 font-bold flex gap-2 items-center">
+                                    <div className="p-3 bg-indigo-50 dark:bg-indigo-900/10 rounded-xl text-xs text-indigo-600 dark:text-indigo-400 font-bold flex gap-2 items-center">
                                         <FiMapPin size={16} />
-                                        <span>Sort: Closest First</span>
+                                        <span>Sort: Furthest First</span>
                                     </div>
                                 )}
                             </div>

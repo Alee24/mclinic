@@ -78,18 +78,11 @@ export class DoctorsService implements OnModuleInit {
         console.log('[DoctorsService] Startup checks bypassed (Strict Separation Active)');
         try {
             await this.ensureColumnsExist();
+            // Automatically sync doctors on startup to ensure the table is never empty on a fresh VPS deploy
+            await this.syncDoctorsWithUsers();
         } catch (e) {
-            console.error('[DoctorsService] Column checks failed:', e);
+            console.error('[DoctorsService] Startup checks/sync failed:', e);
         }
-        // try {
-        //     await this.backfillUserIds();
-        //     await this.syncDoctorsWithUsers();
-        //     // NEW: Also sync user roles FROM doctors
-        //     await this.syncUsersFromDoctors();
-        // } catch (error) {
-        //     console.error('[DoctorsService] Startup sync failed:', error);
-        //     // Don't throw, let the app start
-        // }
     }
 
     private async ensureColumnsExist() {
@@ -384,10 +377,10 @@ export class DoctorsService implements OnModuleInit {
         const query = this.doctorsRepository.createQueryBuilder('doctor');
 
         if (includeOffline) {
-            // Show all registered medics regardless of status/online/verified
-            query.where('doctor.fname IS NOT NULL');
+            // Show all registered medics (even if offline/unverified) as long as they have an email
+            query.where('doctor.email IS NOT NULL AND doctor.email != ""');
         } else {
-            // Strict mode: Only verified, active, and online
+            // Strict mode: Only fully activated and online medics
             query
                 .where('doctor.Verified_status = :verified', { verified: 1 })
                 .andWhere('doctor.status = :status', { status: 1 })
@@ -429,14 +422,15 @@ export class DoctorsService implements OnModuleInit {
 
         // Handle Privacy Masking
         const results = await Promise.all(activeDocs.map(async (doc) => {
-            if (!user || user.role === 'admin' || user.role === 'doctor') {
+            // If user is Admin/Doctor OR the medic is fully activated/verified, show full details
+            if (!user || user.role === 'admin' || user.role === 'doctor' || (doc.status === 1 && doc.Verified_status === 1)) {
                 return doc;
             }
 
             const hasPaid = await this.hasUserPaidForDoctor(user.sub || user.id, doc.id);
             if (hasPaid) return doc;
 
-            // If not paid, mask but KEEP the generated coordinates for the map display
+            // If not paid and NOT fully activated, mask but KEEP the generated coordinates for the map display
             const masked = this.maskDoctor(doc);
             return {
                 ...masked,
@@ -450,27 +444,35 @@ export class DoctorsService implements OnModuleInit {
     }
 
     async hasUserPaidForDoctor(userId: number, doctorId: number): Promise<boolean> {
-        // Check for confirmed/completed appointments
-        const appointment = await this.appointmentsRepository.findOne({
-            where: {
-                patientId: userId,
-                doctorId: doctorId,
-                status: In(['confirmed', 'completed', 'in_progress'] as any)
-            }
-        });
+        try {
+            // Check for confirmed/completed appointments
+            const appointment = await this.appointmentsRepository.findOne({
+                where: {
+                    patientId: userId,
+                    doctorId: doctorId,
+                    status: In(['confirmed', 'completed'] as any)
+                }
+            });
 
-        if (appointment) return true;
+            if (appointment) return true;
 
-        // Check for paid invoices linked to this doctor
-        const paidInvoice = await this.appointmentsRepository.manager.getRepository('invoices').findOne({
-            where: {
-                patientId: userId, // Assuming patientId exists on invoice or relation
-                doctorId: doctorId,
-                status: In(['paid', 'PAID'] as any)
-            }
-        });
+            // Check for paid invoices linked to this doctor (matching by email if patientId is missing)
+            const user = await this.usersService.findById(userId);
+            if (!user) return false;
 
-        return !!paidInvoice;
+            const paidInvoice = await this.appointmentsRepository.manager.getRepository('Invoice').findOne({
+                where: {
+                    customerEmail: user.email,
+                    doctorId: doctorId,
+                    status: In(['paid', 'PAID'] as any)
+                }
+            });
+
+            return !!paidInvoice;
+        } catch (error) {
+            console.error('[DoctorsService] hasUserPaidForDoctor check failed:', error.message);
+            return false;
+        }
     }
 
     maskDoctor(doctor: Doctor): any {
