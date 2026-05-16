@@ -129,8 +129,8 @@ export default function AppointmentsPage() {
                 </div>
             )}
 
-            <div className="bg-white dark:bg-[#121212] rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
-                <table className="w-full text-left">
+            <div className="bg-white dark:bg-[#121212] rounded-xl border border-gray-200 dark:border-gray-800 overflow-x-auto w-full">
+                <table className="w-full text-left whitespace-nowrap text-sm">
                     <thead className="bg-gray-50 dark:bg-gray-800/50 text-xs uppercase text-gray-500 font-medium">
                         <tr>
                             {!isPatient && <th className="px-6 py-4">Patient</th>}
@@ -223,7 +223,7 @@ export default function AppointmentsPage() {
                                         </td>
                                     )}
                                     <td className="px-6 py-4">
-                                         <div className="flex gap-2 items-center flex-wrap">
+                                         <div className="flex gap-2 items-center">
                                              {/* General Details button for everyone */}
                                              <button
                                                  onClick={() => {
@@ -319,9 +319,9 @@ export default function AppointmentsPage() {
                                                                      console.error(err);
                                                                  }
                                                              }}
-                                                             className="text-[10px] font-black px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition uppercase tracking-tighter"
+                                                             className="text-[10px] font-black px-2 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition uppercase tracking-tighter"
                                                          >
-                                                             Paid
+                                                             Mark Paid
                                                          </button>
                                                      )}
                                                      
