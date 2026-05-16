@@ -2,6 +2,14 @@ import { MigrationInterface, QueryRunner } from "typeorm";
 
 export class SyncMedicProfiles1772225888000 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
+        // 0. Ensure columns are long enough for encrypted data (idempotent)
+        await queryRunner.query(`ALTER TABLE doctors MODIFY COLUMN fname VARCHAR(255) NULL`);
+        await queryRunner.query(`ALTER TABLE doctors MODIFY COLUMN lname VARCHAR(255) NULL`);
+        await queryRunner.query(`ALTER TABLE doctors MODIFY COLUMN mobile VARCHAR(255) NULL`);
+        await queryRunner.query(`ALTER TABLE doctors MODIFY COLUMN address TEXT NULL`);
+        await queryRunner.query(`ALTER TABLE doctors MODIFY COLUMN dob VARCHAR(255) NULL`);
+        await queryRunner.query(`ALTER TABLE doctors MODIFY COLUMN sex VARCHAR(255) NULL`);
+
         // Find all users with healthcare roles who are NOT in the doctors table
         const users = await queryRunner.query(`
             SELECT id, email, fname, lname, role, mobile, address, password, dob, sex, profile_image

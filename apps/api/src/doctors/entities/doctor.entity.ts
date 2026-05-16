@@ -18,10 +18,10 @@ export class Doctor {
   @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })
   id: number;
 
-  @Column({ length: 40, nullable: true, transformer: Encrypt })
+  @Column({ length: 255, nullable: true, transformer: Encrypt })
   fname: string;
 
-  @Column({ length: 50, nullable: true, transformer: Encrypt })
+  @Column({ length: 255, nullable: true, transformer: Encrypt })
   lname: string;
 
   @Column({ length: 40, nullable: true })
@@ -33,7 +33,7 @@ export class Doctor {
   @Column({ length: 40, unique: true })
   email: string;
 
-  @Column({ length: 20, nullable: true, transformer: Encrypt })
+  @Column({ length: 255, nullable: true, transformer: Encrypt })
   dob: string;
 
   @Column({ length: 50, nullable: true })
@@ -57,7 +57,7 @@ export class Doctor {
   @Column({ length: 255, nullable: true })
   password: string;
 
-  @Column({ length: 40, nullable: true, transformer: Encrypt })
+  @Column({ length: 255, nullable: true, transformer: Encrypt })
   mobile: string;
 
   @Column({ length: 255, nullable: true, transformer: Encrypt })
@@ -66,7 +66,7 @@ export class Doctor {
   @Column({ type: 'decimal', precision: 28, scale: 2, default: 0.0 })
   balance: number;
 
-  @Column({ length: 20, nullable: true })
+  @Column({ length: 255, nullable: true })
   sex: string;
 
   @Column({ length: 255, nullable: true, transformer: Encrypt })
