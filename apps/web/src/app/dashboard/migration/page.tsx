@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
-import { FiUsers, FiUser, FiCalendar, FiDollarSign, FiFileText, FiTrash2, FiAlertCircle, FiCheckCircle, FiLoader, FiArrowRight, FiUpload, FiDownload, FiFolder, FiActivity, FiMapPin, FiSettings, FiBarChart2, FiDatabase } from 'react-icons/fi';
+import { FiUsers, FiUser, FiCalendar, FiDollarSign, FiFileText, FiTrash2, FiAlertCircle, FiCheckCircle, FiLoader, FiArrowRight, FiUpload, FiDownload, FiFolder, FiActivity, FiMapPin, FiSettings, FiBarChart2, FiDatabase, FiPackage, FiDroplet } from 'react-icons/fi';
 import { useAuth, UserRole } from '@/lib/auth';
 
 interface MigrationStats {
@@ -13,7 +13,7 @@ interface MigrationStats {
 }
 
 interface PreviewData {
-    type: 'users' | 'medics' | 'appointments' | 'invoices' | 'transactions' | 'departments' | 'specialities' | 'locations' | 'services';
+    type: 'users' | 'medics' | 'appointments' | 'invoices' | 'transactions' | 'departments' | 'specialities' | 'locations' | 'services' | 'pharmacy' | 'lab_tests';
     sample: any[];
     total: number;
 }
@@ -21,7 +21,7 @@ interface PreviewData {
 export default function DataMigrationPage() {
     const { user } = useAuth();
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [dataType, setDataType] = useState<'users' | 'medics' | 'appointments' | 'invoices' | 'transactions' | 'departments' | 'specialities' | 'locations' | 'services'>('users');
+    const [dataType, setDataType] = useState<'users' | 'medics' | 'appointments' | 'invoices' | 'transactions' | 'departments' | 'specialities' | 'locations' | 'services' | 'pharmacy' | 'lab_tests'>('users');
     const [activeTab, setActiveTab] = useState<'import' | 'export'>('import');
     const [uploading, setUploading] = useState(false);
     const [migrating, setMigrating] = useState(false);
@@ -183,6 +183,8 @@ export default function DataMigrationPage() {
         { value: 'specialities', label: 'Specialities', icon: FiActivity, color: 'rose' },
         { value: 'locations', label: 'Locations', icon: FiMapPin, color: 'emerald' },
         { value: 'services', label: 'Services', icon: FiSettings, color: 'slate' },
+        { value: 'pharmacy', label: 'Pharmacy/Medications', icon: FiPackage, color: 'teal' },
+        { value: 'lab_tests', label: 'Lab Tests', icon: FiDroplet, color: 'amber' },
     ];
 
     return (

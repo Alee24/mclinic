@@ -7,6 +7,8 @@ import { Appointment } from '../appointments/entities/appointment.entity';
 import { Invoice } from '../financial/entities/invoice.entity';
 import { Transaction } from '../financial/entities/transaction.entity';
 import { Wallet } from '../wallets/entities/wallet.entity';
+import { Medication } from '../pharmacy/entities/medication.entity';
+import { LabTest } from '../laboratory/entities/lab-test.entity';
 import AdmZip from 'adm-zip';
 import { join } from 'path';
 import { existsSync } from 'fs';
@@ -26,6 +28,10 @@ export class MigrationService {
     private transactionRepository: Repository<Transaction>,
     @InjectRepository(Wallet)
     private walletRepository: Repository<Wallet>,
+    @InjectRepository(Medication)
+    private medicationRepository: Repository<Medication>,
+    @InjectRepository(LabTest)
+    private labTestRepository: Repository<LabTest>,
     private dataSource: DataSource,
   ) {}
 
@@ -143,7 +149,9 @@ export class MigrationService {
       departments: 'id,name,description,status',
       specialities: 'id,name,description,department_id',
       locations: 'id,name,address,latitude,longitude',
-      services: 'id,name,description,price,duration,isActive,createdAt,updatedAt'
+      services: 'id,name,description,price,duration,isActive,createdAt,updatedAt',
+      pharmacy: 'id,name,description,category,price,stock,image_url,brandName,genericName,strength,formulation,requiresPrescription',
+      lab_tests: 'id,name,description,price,category,isActive'
     };
     return (templates as any)[type] || '';
   }
@@ -594,6 +602,12 @@ export class MigrationService {
       case 'services':
         await this.processService(data);
         break;
+      case 'pharmacy':
+        await this.processPharmacy(data);
+        break;
+      case 'lab_tests':
+        await this.processLabTest(data);
+        break;
       default:
         throw new Error(`Unknown data type: ${type}`);
     }
@@ -818,6 +832,54 @@ export class MigrationService {
     } else {
       await repo.save(data);
     }
+  }
+
+  private async processPharmacy(data: any) {
+    // Sanitize numeric fields
+    data.price = this.parseNumeric(data.price) || 0;
+    data.stock = this.parseNumeric(data.stock) || 0;
+    data.requiresPrescription = data.requiresPrescription === 'true' || data.requiresPrescription === '1' || data.requiresPrescription === 1 || data.requiresPrescription === true;
+
+    // Remove id if empty (let auto-increment handle it)
+    if (!data.id || data.id === '') delete data.id;
+
+    // Check for existing by name to allow upsert
+    if (data.name) {
+      const existing = await this.medicationRepository.findOne({ where: { name: data.name } });
+      if (existing) {
+        await this.medicationRepository.update(existing.id, data);
+        return;
+      }
+    }
+
+    await this.medicationRepository.save(data);
+  }
+
+  private async processLabTest(data: any) {
+    // Sanitize numeric fields
+    data.price = this.parseNumeric(data.price) || 0;
+    data.isActive = data.isActive === 'false' || data.isActive === '0' || data.isActive === 0 || data.isActive === false ? false : true;
+
+    // Remove id if empty (let auto-increment handle it)
+    if (!data.id || data.id === '') delete data.id;
+
+    // Validate category enum
+    const validCategories = ['Hematology', 'Biochemistry', 'Microbiology', 'Immunology', 'Pathology', 'Radiology', 'Other'];
+    if (data.category && !validCategories.includes(data.category)) {
+      data.category = 'Other';
+    }
+    if (!data.category) data.category = 'Other';
+
+    // Check for existing by name to allow upsert
+    if (data.name) {
+      const existing = await this.labTestRepository.findOne({ where: { name: data.name } });
+      if (existing) {
+        await this.labTestRepository.update(existing.id, data);
+        return;
+      }
+    }
+
+    await this.labTestRepository.save(data);
   }
 
   async exportAssets(): Promise<Buffer> {
