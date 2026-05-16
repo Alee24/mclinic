@@ -30,7 +30,7 @@ async function bootstrap() {
 
   // Ensure uploads directory exists
   const fs = require('fs');
-  const uploadsDir = join(__dirname, '..', 'uploads');
+  const uploadsDir = join(process.cwd(), 'apps', 'api', 'uploads');
   const profilesDir = join(uploadsDir, 'profiles');
   const sigsDir = join(uploadsDir, 'signatures');
   const stampsDir = join(uploadsDir, 'stamps');

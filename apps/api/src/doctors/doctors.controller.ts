@@ -163,7 +163,7 @@ export class DoctorsController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: join(__dirname, '..', '..', 'uploads', 'profiles'),
+        destination: join(process.cwd(), 'apps', 'api', 'uploads', 'profiles'),
         filename: (req, file, cb) => {
           const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
           const ext = file.originalname.split('.').pop();
@@ -196,7 +196,7 @@ export class DoctorsController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: join(__dirname, '..', '..', 'uploads', 'signatures'),
+        destination: join(process.cwd(), 'apps', 'api', 'uploads', 'signatures'),
         filename: (req, file, cb) => {
           const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
           const ext = file.originalname.split('.').pop();
@@ -220,7 +220,7 @@ export class DoctorsController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: join(__dirname, '..', '..', 'uploads', 'stamps'),
+        destination: join(process.cwd(), 'apps', 'api', 'uploads', 'stamps'),
         filename: (req, file, cb) => {
           const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
           const ext = file.originalname.split('.').pop();

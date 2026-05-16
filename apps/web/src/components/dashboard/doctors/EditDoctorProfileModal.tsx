@@ -48,7 +48,7 @@ export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: Ed
                 regulatory_body: doctor.regulatory_body || '',
                 registration_number: doctor.reg_code || '',
                 licenceNo: doctor.licenceNo || '',
-                licenseExpiryDate: doctor.licenseExpiryDate ? new Date(doctor.licenseExpiryDate).toISOString().split('T')[0] : '', // Format date
+                licenseExpiryDate: doctor.licenceExpiry ? new Date(doctor.licenceExpiry).toISOString().split('T')[0] : '', // Format date
                 years_of_experience: doctor.years_of_experience || 0,
                 hospital_attachment: doctor.hospital_attachment || '',
                 speciality: doctor.speciality || '',
@@ -112,15 +112,21 @@ export default function EditMedicProfileModal({ doctor, onClose, onSuccess }: Ed
                 years_of_experience: Number(formData.years_of_experience), // Ensure number
                 telemedicine: Number(formData.telemedicine),
                 on_call: Number(formData.on_call),
+                licenceExpiry: formData.licenseExpiryDate ? new Date(formData.licenseExpiryDate).toISOString() : null, // Fix mapping
             };
 
-            // Remove non-DB fields
+            // Remove non-DB fields or frontend-only fields
             delete payload.registration_number;
             delete payload.consultation_fee;
+            delete payload.licenseExpiryDate;
 
             // 2. Update Profile Data
             const res = await api.patch(`/doctors/${doctor.id}`, payload);
-            if (!res?.ok) throw new Error('Failed to update details');
+            if (!res?.ok) {
+                const errData = await res?.text();
+                console.error('[EditDoctorProfile] Failed to update details:', errData);
+                throw new Error(`Failed to update profile details: ${errData || 'Unknown error'}`);
+            }
 
             // 3. Upload Profile Image if changed
             if (profileFile) {
