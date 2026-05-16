@@ -151,4 +151,20 @@ export class UsersController {
     const color = role === 'admin' ? '7c3aed' : role === 'doctor' ? '10b981' : '3b82f6';
     return res.redirect(`https://ui-avatars.com/api/?name=${name}&background=${color}&color=fff&size=128`);
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('admin/export-csv')
+  async exportCsv(@Res() res: express.Response) {
+    const csv = await this.usersService.exportUsersToCsv();
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=users_export.csv');
+    return res.send(csv);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('admin/import-csv')
+  @UseInterceptors(FileInterceptor('file'))
+  async importCsv(@UploadedFile() file: Express.Multer.File) {
+    return this.usersService.importUsersFromCsv(file.buffer);
+  }
 }

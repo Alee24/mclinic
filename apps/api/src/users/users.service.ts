@@ -389,4 +389,85 @@ export class UsersService implements OnModuleInit {
     await this.usersRepository.update(id, { isPublic });
     return this.findById(id);
   }
+
+  async exportUsersToCsv(): Promise<string> {
+    const users = await this.findAll();
+    const headers = ['email', 'fname', 'lname', 'mobile', 'role', 'status', 'national_id', 'dob', 'sex', 'address'];
+    const csvRows = [headers.join(',')];
+
+    for (const user of users) {
+      const row = [
+        user.email,
+        `"${user.fname || ''}"`,
+        `"${user.lname || ''}"`,
+        user.mobile || '',
+        user.role,
+        user.status ? '1' : '0',
+        user.national_id || '',
+        user.dob || '',
+        user.sex || '',
+        `"${(user.address || '').replace(/"/g, '""')}"`
+      ];
+      csvRows.push(row.join(','));
+    }
+
+    return csvRows.join('\n');
+  }
+
+  async importUsersFromCsv(buffer: Buffer): Promise<{ success: boolean; updated: number; created: number; errors: string[] }> {
+    const content = buffer.toString('utf-8');
+    const lines = content.split(/\r?\n/).filter(line => line.trim());
+    if (lines.length < 2) throw new Error('CSV is empty or missing headers');
+
+    const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, '').toLowerCase());
+    let updated = 0;
+    let created = 0;
+    const errors = [];
+
+    for (let i = 1; i < lines.length; i++) {
+      try {
+        // Simple CSV parser that handles quotes
+        const regex = /(".*?"|[^",\s]+)(?=\s*,|\s*$)/g;
+        const values = lines[i].match(/(".*?"|[^",\s]*)(?=\s*,|\s*$)/g) || [];
+        const cleanValues = values.map(v => v.trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
+        
+        const userData: any = {};
+        headers.forEach((h, idx) => { 
+          if (idx < cleanValues.length) {
+            userData[h] = cleanValues[idx]; 
+          }
+        });
+
+        if (!userData.email) {
+          errors.push(`Line ${i + 1}: Missing email`);
+          continue;
+        }
+
+        const existingUser = await this.findOne(userData.email);
+        
+        const updatePayload: any = { ...userData };
+        if (userData.status !== undefined) {
+          updatePayload.status = userData.status === '1' || userData.status === 'true';
+        }
+
+        if (existingUser) {
+          // Don't update password during bulk import unless explicitly provided (which we shouldn't export)
+          delete updatePayload.password;
+          await this.usersRepository.update(existingUser.id, updatePayload);
+          updated++;
+        } else {
+          // Set default password for new users if not provided
+          if (!updatePayload.password) {
+            updatePayload.password = 'Mclinic@2025';
+          }
+          await this.create(updatePayload);
+          created++;
+        }
+      } catch (err) {
+        errors.push(`Line ${i + 1}: ${err.message}`);
+      }
+    }
+
+    return { success: true, updated, created, errors };
+  }
 }

@@ -246,7 +246,33 @@ export default function UsersPage() {
                             Reset Passwords
                         </button>
 
-                        {/* Clear All */}
+                        <button
+                            onClick={async () => {
+                                window.location.href = `${process.env.NEXT_PUBLIC_API_URL || '/api'}/users/admin/export-csv`;
+                            }}
+                            className="bg-blue-500 text-white px-3 py-2 rounded-lg font-bold text-xs hover:bg-blue-600 flex items-center gap-1"
+                        >
+                            Download All
+                        </button>
+
+                        <label className="cursor-pointer bg-primary text-black px-3 py-2 rounded-lg font-bold text-xs hover:bg-opacity-80 flex items-center gap-1">
+                            <span>Bulk Update</span>
+                            <input type="file" className="hidden" accept=".csv" onChange={async (e) => {
+                                if (!e.target.files?.[0]) return;
+                                const fd = new FormData(); fd.append('file', e.target.files[0]);
+                                try {
+                                    const res = await api.post('/users/admin/import-csv', fd);
+                                    if (res && res.ok) {
+                                        const data = await res.json();
+                                        alert(`Bulk Update Complete!\nUpdated: ${data.updated}\nCreated: ${data.created}\nErrors: ${data.errors.length}`);
+                                        fetchUsers();
+                                    } else {
+                                        alert("Bulk update failed.");
+                                    }
+                                } catch (e) { alert("Error"); }
+                                e.target.value = '';
+                            }} />
+                        </label>
 
                         {/* Upload Medics */}
                         <label className="cursor-pointer bg-gray-800 text-white px-3 py-2 rounded-lg font-bold text-xs hover:bg-black flex items-center gap-1">
