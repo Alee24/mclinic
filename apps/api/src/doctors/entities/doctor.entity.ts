@@ -117,7 +117,7 @@ export class Doctor {
   @Column({ type: 'int', nullable: true })
   location_id: number;
 
-  @Column({ length: 255, nullable: true, transformer: Encrypt })
+  @Column({ type: 'text', nullable: true, transformer: Encrypt })
   licenceNo: string;
 
   @Column({ type: 'timestamp', nullable: true })

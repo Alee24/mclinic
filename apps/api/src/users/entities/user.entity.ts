@@ -57,10 +57,10 @@ export class User {
   })
   role: UserRole;
 
-  @Column({ length: 255, nullable: true, transformer: Encrypt })
+  @Column({ type: 'text', nullable: true, transformer: Encrypt })
   licenseNumber: string;
 
-  @Column({ length: 255, nullable: true, transformer: Encrypt })
+  @Column({ type: 'text', nullable: true, transformer: Encrypt })
   specialization: string;
 
   @Column({ type: 'text', nullable: true, transformer: Encrypt })
