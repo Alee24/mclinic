@@ -636,7 +636,12 @@ export class DoctorsService implements OnModuleInit {
     }
 
     async findOneByMobile(mobile: string): Promise<Doctor | null> {
-        return this.doctorsRepository.findOne({ where: { mobile } });
+        const localMobile = mobile.startsWith('254') ? '0' + mobile.substring(3) : null;
+        const intlMobile = mobile.startsWith('0') ? '254' + mobile.substring(1) : null;
+        const searchMobiles = [mobile];
+        if (localMobile) searchMobiles.push(localMobile);
+        if (intlMobile) searchMobiles.push(intlMobile);
+        return this.doctorsRepository.findOne({ where: { mobile: In(searchMobiles) } });
     }
     async updateSignature(id: number, filename: string): Promise<Doctor | null> {
         await this.doctorsRepository.update(id, { signatureUrl: filename });

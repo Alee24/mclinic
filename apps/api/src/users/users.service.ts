@@ -175,7 +175,12 @@ export class UsersService implements OnModuleInit {
   }
 
   async findOneByMobile(mobile: string): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { mobile } });
+    const localMobile = mobile.startsWith('254') ? '0' + mobile.substring(3) : null;
+    const intlMobile = mobile.startsWith('0') ? '254' + mobile.substring(1) : null;
+    const searchMobiles = [mobile];
+    if (localMobile) searchMobiles.push(localMobile);
+    if (intlMobile) searchMobiles.push(intlMobile);
+    return this.usersRepository.findOne({ where: { mobile: In(searchMobiles) } });
   }
 
   async findById(id: number): Promise<User | null> {
