@@ -3,6 +3,37 @@ import { MigrationInterface, QueryRunner } from "typeorm";
 export class SeedServiceFees1772221234567 implements MigrationInterface {
 
     public async up(queryRunner: QueryRunner): Promise<void> {
+        // Ensure system_setting table is created correctly with 'key' column
+        try {
+            await queryRunner.query(`
+                CREATE TABLE IF NOT EXISTS system_setting (
+                    \`key\` VARCHAR(191) PRIMARY KEY,
+                    \`value\` TEXT NOT NULL,
+                    \`description\` VARCHAR(191),
+                    \`isSecure\` TINYINT(1) DEFAULT 0
+                )
+            `);
+        } catch (e) {}
+
+        // Double check if 'key' column exists. If table exists without 'key', drop and recreate
+        try {
+            const columns: any[] = await queryRunner.query(`SHOW COLUMNS FROM system_setting`);
+            const hasKey = columns.some(col => col.Field === 'key' || col.field === 'key');
+            if (!hasKey) {
+                await queryRunner.query(`DROP TABLE system_setting`);
+                await queryRunner.query(`
+                    CREATE TABLE system_setting (
+                        \`key\` VARCHAR(191) PRIMARY KEY,
+                        \`value\` TEXT NOT NULL,
+                        \`description\` VARCHAR(191),
+                        \`isSecure\` TINYINT(1) DEFAULT 0
+                    )
+                `);
+            }
+        } catch (e) {
+            console.error('Failed to verify/fix system_setting structure:', e);
+        }
+
         await queryRunner.query(`
             INSERT IGNORE INTO system_setting (\`key\`, \`value\`, \`description\`, \`isSecure\`) VALUES
             ('FEE_BOOKING', '500', 'Default booking fee for appointments', 0),
