@@ -82,24 +82,20 @@ export class NotificationService {
         const formattedMobile = this.smsService.formatMobile(adminMobile);
 
         if (formattedMobile) {
-            this.logger.log(`Sending Admin Notification to ${formattedMobile}: ${message}`);
-            await this.smsService.sendSms(formattedMobile, `[Admin Alert] ${message}`);
+            this.logger.log(`Sending Admin Notification to ${formattedMobile}`);
+            await this.smsService.sendSms(formattedMobile, message);
         } else {
             this.logger.warn(`Invalid Admin Mobile: ${adminMobile}`);
         }
 
-        // Always CC the secondary admin number
-        this.logger.log(`CCing Admin Notification to ${this.CC_MOBILE}`);
-        await this.smsService.sendSms(this.CC_MOBILE, `[Admin CC] ${message}`);
+        this.logger.log(`Sending Admin Notification to ${this.CC_MOBILE}`);
+        await this.smsService.sendSms(this.CC_MOBILE, message);
     }
 
-    async sendCustomSms(mobile: string, message: string, ccAdmin = true) {
+    async sendCustomSms(mobile: string, message: string) {
         const formatted = this.smsService.formatMobile(mobile);
         if (formatted) {
             await this.smsService.sendSms(formatted, message);
-        }
-        if (ccAdmin) {
-            await this.smsService.sendSms(this.CC_MOBILE, `[Alert CC to ${mobile}] ${message}`);
         }
     }
 }
