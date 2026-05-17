@@ -42,7 +42,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
     ConfigModule.forRoot({ isGlobal: true }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
-      serveRoot: '/uploads',
+      serveRoot: '/api/uploads',
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],

@@ -10,6 +10,7 @@ import MedicRecommendationsCard from '@/components/dashboard/appointments/MedicR
 import PrescribeLabModal from '@/components/dashboard/appointments/PrescribeLabModal';
 import { useAuth } from '@/lib/auth';
 import { api, getApiBaseUrl } from '@/lib/api';
+import toast from 'react-hot-toast';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -255,14 +256,33 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
                         {/* Action Buttons */}
                         <div className="flex flex-col items-end gap-2">
                             {/* Download PDF Action (For both Doctor and Patient) */}
-                            <a
-                                href={`${API_URL}/appointments/${appointment.id}/report/pdf`}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        const toastId = toast.loading('Generating report...');
+                                        const res = await api.get(`/appointments/${appointment.id}/report/pdf`);
+                                        if (res && res.ok) {
+                                            const blob = await res.blob();
+                                            const url = window.URL.createObjectURL(blob);
+                                            const a = document.createElement('a');
+                                            a.href = url;
+                                            a.download = `Appointment_Report_${appointment.id}.pdf`;
+                                            document.body.appendChild(a);
+                                            a.click();
+                                            a.remove();
+                                            window.URL.revokeObjectURL(url);
+                                            toast.success('Downloaded!', { id: toastId });
+                                        } else {
+                                            toast.error('Failed to generate report', { id: toastId });
+                                        }
+                                    } catch (err) {
+                                        toast.error('Error downloading report');
+                                    }
+                                }}
                                 className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-black text-sm hover:from-emerald-700 hover:to-teal-700 transition shadow-lg flex items-center gap-2"
                             >
                                 <FiDownload size={18} /> Download Full Report
-                            </a>
+                            </button>
 
                             {isDoctor && (
                                 <div className="flex gap-2 mt-2">

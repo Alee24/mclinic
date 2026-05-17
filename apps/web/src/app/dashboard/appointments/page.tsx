@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { useAuth, UserRole } from '@/lib/auth';
 import { FiVideo, FiDownload } from 'react-icons/fi';
+import toast from 'react-hot-toast';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import ViewAppointmentDetailsModal from '@/components/dashboard/appointments/ViewAppointmentDetailsModal';
@@ -259,15 +260,34 @@ export default function AppointmentsPage() {
                                              </button>
 
                                              {/* Download PDF Action */}
-                                             <a
-                                                 href={`${API_URL}/appointments/${apt.id}/report/pdf`}
-                                                 target="_blank"
-                                                 rel="noopener noreferrer"
+                                             <button
+                                                 onClick={async () => {
+                                                     try {
+                                                         const toastId = toast.loading('Generating report...');
+                                                         const res = await api.get(`/appointments/${apt.id}/report/pdf`);
+                                                         if (res && res.ok) {
+                                                             const blob = await res.blob();
+                                                             const url = window.URL.createObjectURL(blob);
+                                                             const a = document.createElement('a');
+                                                             a.href = url;
+                                                             a.download = `Appointment_Report_${apt.id}.pdf`;
+                                                             document.body.appendChild(a);
+                                                             a.click();
+                                                             a.remove();
+                                                             window.URL.revokeObjectURL(url);
+                                                             toast.success('Downloaded!', { id: toastId });
+                                                         } else {
+                                                             toast.error('Failed to generate report', { id: toastId });
+                                                         }
+                                                     } catch (err) {
+                                                         toast.error('Error downloading report');
+                                                     }
+                                                 }}
                                                  className="text-[10px] font-black px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition uppercase tracking-tighter flex items-center gap-1"
                                                  title="Download Report"
                                              >
                                                  <FiDownload size={12} /> PDF
-                                             </a>
+                                             </button>
 
                                              {/* Patient-side Actions */}
                                              {user?.id === Number(apt.patientId) && (
