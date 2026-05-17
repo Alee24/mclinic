@@ -199,7 +199,7 @@ export default function MapViewer() {
                 <div className="bg-white/95 backdrop-blur-md px-5 py-3 rounded-2xl shadow-2xl border border-gray-100 flex items-center gap-3">
                     <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                        <span className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Active Units</span>
+                        <span className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Active Medics</span>
                     </div>
                     <span className="bg-blue-600 text-white px-2 py-0.5 rounded-lg text-xs font-black shadow-lg shadow-blue-200">{filteredDoctors.length}</span>
                 </div>
@@ -244,6 +244,13 @@ export default function MapViewer() {
 
                 {/* Floating Controls */}
                 <div className="absolute top-6 right-6 z-[1000] flex flex-col gap-3">
+                    <button
+                        onClick={() => router.push('/dashboard')}
+                        className="w-12 h-12 bg-red-50 text-red-600 rounded-2xl shadow-xl border border-red-100 flex items-center justify-center hover:bg-red-100 active:scale-95 transition md:hidden"
+                        title="Close Map"
+                    >
+                        <FiX size={22} />
+                    </button>
                     <button
                         onClick={() => {
                             if (position) mapRef.current?.flyTo(position, 16);

@@ -40,14 +40,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             {/* Mobile Sidebar Overlay */}
             {isMobileMenuOpen && (
                 <div
-                    className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm transition-opacity"
+                    className="fixed inset-0 bg-black/50 z-[9998] md:hidden backdrop-blur-sm transition-opacity"
                     onClick={() => setIsMobileMenuOpen(false)}
                 />
             )}
 
             {/* Sidebar */}
             <aside className={`
-                fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-[#121212] flex flex-col p-6 border-r border-gray-100 dark:border-gray-800 transition-transform duration-300 ease-in-out md:relative md:translate-x-0
+                fixed inset-y-0 left-0 z-[9999] w-64 bg-white dark:bg-[#121212] flex flex-col p-6 border-r border-gray-100 dark:border-gray-800 transition-transform duration-300 ease-in-out md:relative md:translate-x-0
                 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
             `}>
                 <div className="flex items-center justify-between mb-10 px-2">
