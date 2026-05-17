@@ -10,6 +10,7 @@ import { InvoiceItem } from './entities/invoice-item.entity';
 
 import { Wallet } from '../wallets/entities/wallet.entity';
 import { Doctor } from '../doctors/entities/doctor.entity';
+import { SystemSetting } from '../system-settings/entities/system-setting.entity';
 import { WalletsModule } from '../wallets/wallets.module';
 import { MpesaModule } from '../mpesa/mpesa.module';
 import { EmailModule } from '../email/email.module';
@@ -24,6 +25,7 @@ import { EmailModule } from '../email/email.module';
       InvoiceItem,
       Wallet,
       Doctor,
+      SystemSetting,
     ]),
     WalletsModule,
     forwardRef(() => MpesaModule),

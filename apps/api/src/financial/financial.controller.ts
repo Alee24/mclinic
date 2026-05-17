@@ -83,6 +83,11 @@ export class FinancialController {
     return this.financialService.generateReceiptByInvoiceId(Number(invoiceId));
   }
 
+  @Get('verify/:code')
+  verifyReceipt(@Param('code') code: string) {
+    return this.financialService.verifyReceipt(code);
+  }
+
   @UseGuards(AuthGuard('jwt'))
   @Post('invoices')
   createInvoice(@Body() body: any) {

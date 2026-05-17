@@ -1,440 +1,263 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { FiSearch, FiCheckCircle, FiAlertCircle, FiUser, FiFileText, FiShield, FiCalendar, FiMapPin, FiPhone, FiMail, FiAward } from 'react-icons/fi';
-import { api } from '@/lib/api';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { getApiBaseUrl } from '@/lib/api';
+import { 
+    FiShield, 
+    FiCheckCircle, 
+    FiAlertTriangle, 
+    FiSearch, 
+    FiLoader, 
+    FiPrinter,
+    FiExternalLink,
+    FiCalendar,
+    FiUser,
+    FiDollarSign
+} from 'react-icons/fi';
 
-type VerificationType = 'medic' | 'prescription';
+function VerificationContent() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const queryCode = searchParams.get('code') || '';
 
-export default function VerifyPage() {
-    const [verificationType, setVerificationType] = useState<VerificationType>('medic');
-    const [searchQuery, setSearchQuery] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [result, setResult] = useState<any>(null);
-    const [error, setError] = useState('');
+    // States
+    const [serialCode, setSerialCode] = useState<string>(queryCode);
+    const [verifying, setVerifying] = useState<boolean>(false);
+    const [verificationResult, setVerificationResult] = useState<any | null>(null);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-    const handleVerify = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!searchQuery.trim()) {
-            setError('Please enter a license number or prescription code');
-            return;
-        }
-
-        setLoading(true);
-        setError('');
-        setResult(null);
+    const performVerification = async (codeToVerify: string) => {
+        if (!codeToVerify.trim()) return;
+        
+        setVerifying(true);
+        setErrorMsg(null);
+        setVerificationResult(null);
 
         try {
-            let endpoint = '';
-            let params: Record<string, string> = {};
+            const apiBase = getApiBaseUrl();
+            const url = `${apiBase}/financial/verify/${encodeURIComponent(codeToVerify.trim())}`;
             
-            if (verificationType === 'medic') {
-                endpoint = '/doctors';
-                params = { licenseNumber: searchQuery };
-            } else {
-                endpoint = '/public/pharmacy/prescriptions/verify';
-                params = { code: searchQuery };
-            }
-
-            const res = await api.get(endpoint, params);
-
-            if (res && res.ok) {
+            const res = await fetch(url);
+            if (res.ok) {
                 const data = await res.json();
-
-                if (verificationType === 'medic') {
-                    // Check if doctor found
-                    if (data && data.length > 0) {
-                        setResult(data[0]);
-                    } else {
-                        setError('No medical professional found with this license number');
-                    }
-                } else {
-                    // Check if prescription found
-                    if (data && data.length > 0) {
-                        setResult(data[0]);
-                    } else {
-                        setError('No prescription found with this code');
-                    }
-                }
+                setVerificationResult(data);
             } else {
-                setError('Verification failed. Please try again.');
+                const errorData = await res.json().catch(() => ({}));
+                throw new Error(errorData.message || `The receipt serial number "${codeToVerify}" is invalid or could not be verified.`);
             }
-        } catch (err) {
-            setError('Connection error. Please check your internet connection.');
+        } catch (err: any) {
+            console.error('Verification failed:', err);
+            setErrorMsg(err.message || 'Verification system is currently offline. Please try again shortly.');
         } finally {
-            setLoading(false);
+            setVerifying(false);
         }
     };
 
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
-            {/* Header */}
-            <header className="bg-white shadow-sm border-b">
-                <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-                    <Link href="/" className="text-2xl font-black text-[#1D2B36] flex items-center gap-2 group">
-                        <div className="w-10 h-10 bg-gradient-to-br from-[#C2003F] to-[#FF4D6D] rounded-2xl flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
-                            M
-                        </div>
-                        <span className="bg-gradient-to-r from-[#1D2B36] to-[#C2003F] bg-clip-text text-transparent">M-Clinic</span>
-                    </Link>
-                    <Link href="/" className="text-[#1D2B36] hover:text-[#C2003F] font-bold transition">
-                        Back to Home
-                    </Link>
-                </div>
-            </header>
+    // Auto-run if query param exists
+    useEffect(() => {
+        if (queryCode) {
+            setSerialCode(queryCode);
+            performVerification(queryCode);
+        }
+    }, [queryCode]);
 
-            {/* Main Content */}
-            <main className="max-w-5xl mx-auto px-6 py-12">
-                {/* Hero Section */}
-                <div className="text-center mb-12">
-                    <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-bold mb-6">
-                        <FiShield /> Public Verification Portal
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!serialCode.trim()) return;
+        
+        // Update URL query parameter
+        router.push(`/verify?code=${encodeURIComponent(serialCode.trim())}`);
+        performVerification(serialCode);
+    };
+
+    return (
+        <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 py-12 px-4 sm:px-6 lg:px-8 flex flex-col justify-between">
+            <div className="max-w-3xl mx-auto w-full space-y-8">
+                {/* Header Logo & Verification Banner */}
+                <div className="text-center">
+                    <div className="flex justify-center mb-4">
+                        <img 
+                            src="https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png" 
+                            alt="M-Clinic Logo" 
+                            className="h-14 object-contain rounded-lg"
+                        />
                     </div>
-                    <h1 className="text-5xl font-black text-[#1D2B36] mb-4">
-                        Verify Medical <span className="text-[#C2003F]">Credentials</span>
-                    </h1>
-                    <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                        Verify the authenticity of M-Clinic medical professionals and prescriptions.
-                        Enter a license number or prescription code below.
+                    <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl flex items-center justify-center gap-2">
+                        <FiShield className="text-[#0B6E40]" /> Secure Receipt Audit
+                    </h2>
+                    <p className="mt-3 text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+                        Validate the authenticity, payment status, and medical details of any official M-Clinic invoice or transaction receipt.
                     </p>
                 </div>
 
-                {/* Verification Type Toggle */}
-                <div className="bg-white rounded-3xl shadow-xl p-8 mb-8">
-                    <div className="grid grid-cols-2 gap-4 mb-8">
-                        <button
-                            onClick={() => {
-                                setVerificationType('medic');
-                                setResult(null);
-                                setError('');
-                                setSearchQuery('');
-                            }}
-                            className={`relative p-6 rounded-2xl border-2 transition-all ${verificationType === 'medic'
-                                    ? 'border-blue-600 bg-blue-50'
-                                    : 'border-gray-200 hover:border-blue-300'
-                                }`}
-                        >
-                            <div className="flex flex-col items-center text-center">
-                                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-3 transition-colors ${verificationType === 'medic'
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-gray-100 text-gray-600'
-                                    }`}>
-                                    <FiUser className="text-2xl" />
-                                </div>
-                                <div className={`font-bold transition-colors ${verificationType === 'medic' ? 'text-blue-600' : 'text-gray-700'
-                                    }`}>
-                                    Verify Medic
-                                </div>
-                                <div className="text-xs text-gray-500 mt-1">License Number</div>
-                            </div>
-                            {verificationType === 'medic' && (
-                                <div className="absolute top-3 right-3 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
-                                    <FiCheckCircle className="text-white text-sm" />
-                                </div>
-                            )}
-                        </button>
-
-                        <button
-                            onClick={() => {
-                                setVerificationType('prescription');
-                                setResult(null);
-                                setError('');
-                                setSearchQuery('');
-                            }}
-                            className={`relative p-6 rounded-2xl border-2 transition-all ${verificationType === 'prescription'
-                                    ? 'border-green-600 bg-green-50'
-                                    : 'border-gray-200 hover:border-green-300'
-                                }`}
-                        >
-                            <div className="flex flex-col items-center text-center">
-                                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-3 transition-colors ${verificationType === 'prescription'
-                                        ? 'bg-green-600 text-white'
-                                        : 'bg-gray-100 text-gray-600'
-                                    }`}>
-                                    <FiFileText className="text-2xl" />
-                                </div>
-                                <div className={`font-bold transition-colors ${verificationType === 'prescription' ? 'text-green-600' : 'text-gray-700'
-                                    }`}>
-                                    Verify Prescription
-                                </div>
-                                <div className="text-xs text-gray-500 mt-1">Prescription Code</div>
-                            </div>
-                            {verificationType === 'prescription' && (
-                                <div className="absolute top-3 right-3 w-6 h-6 bg-green-600 rounded-full flex items-center justify-center">
-                                    <FiCheckCircle className="text-white text-sm" />
-                                </div>
-                            )}
-                        </button>
-                    </div>
-
-                    {/* Search Form */}
-                    <form onSubmit={handleVerify} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
-                                {verificationType === 'medic' ? 'Medical License Number' : 'Prescription Code'}
+                {/* Input verification form */}
+                <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-gray-200/60 dark:border-zinc-800 shadow-sm">
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="space-y-1">
+                            <label className="block text-xs font-bold text-gray-700 dark:text-zinc-300 uppercase tracking-wider">
+                                Enter Receipt Serial Number or Transaction Reference
                             </label>
-                            <div className="relative">
+                            <div className="relative rounded-xl shadow-sm">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <FiSearch className="text-gray-400" />
+                                </div>
                                 <input
                                     type="text"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    placeholder={verificationType === 'medic' ? 'e.g., KMP123456' : 'e.g., RX-2024-001234'}
-                                    className="w-full px-6 py-4 pl-14 rounded-xl border-2 border-gray-200 focus:border-blue-500 outline-none transition text-lg"
+                                    value={serialCode}
+                                    onChange={(e) => setSerialCode(e.target.value)}
+                                    placeholder="e.g. REC-12 or M-Pesa Code"
+                                    className="block w-full pl-10 pr-24 py-3 sm:text-sm border border-gray-300 dark:border-zinc-700 rounded-xl bg-transparent dark:text-white focus:ring-1 focus:ring-[#0B6E40] focus:border-[#0B6E40] transition"
+                                    required
                                 />
-                                <FiSearch className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 text-xl" />
+                                <div className="absolute inset-y-1.5 right-1.5">
+                                    <button
+                                        type="submit"
+                                        disabled={verifying}
+                                        className="inline-flex items-center px-4 py-2 border border-transparent text-xs font-bold rounded-lg text-white bg-[#0B6E40] hover:bg-[#08522e] transition shadow-sm disabled:opacity-50 h-full"
+                                    >
+                                        {verifying ? (
+                                            <>
+                                                <FiLoader className="animate-spin mr-1.5" /> Auditing...
+                                            </>
+                                        ) : (
+                                            'Verify'
+                                        )}
+                                    </button>
+                                </div>
                             </div>
-                            <p className="text-sm text-gray-500 mt-2">
-                                {verificationType === 'medic'
-                                    ? 'Enter the medical professional\'s license number as shown on their ID card'
-                                    : 'Enter the prescription code found at the top of your prescription document'
-                                }
-                            </p>
                         </div>
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className={`w-full py-4 rounded-xl font-bold text-white transition shadow-lg flex items-center justify-center gap-2 ${verificationType === 'medic'
-                                    ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/30'
-                                    : 'bg-green-600 hover:bg-green-700 shadow-green-500/30'
-                                } disabled:opacity-50 disabled:cursor-not-allowed`}
-                        >
-                            {loading ? (
-                                <>
-                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                    Verifying...
-                                </>
-                            ) : (
-                                <>
-                                    <FiSearch />
-                                    Verify Now
-                                </>
-                            )}
-                        </button>
                     </form>
                 </div>
 
-                {/* Error Message */}
-                {error && (
-                    <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-6 mb-8 animate-in slide-in-from-top">
-                        <div className="flex items-start gap-4">
-                            <FiAlertCircle className="text-red-600 text-2xl shrink-0 mt-1" />
-                            <div>
-                                <h3 className="font-bold text-red-900 mb-1">Verification Failed</h3>
-                                <p className="text-red-700">{error}</p>
-                            </div>
+                {/* Verification result details */}
+                {verifying && (
+                    <div className="flex flex-col items-center justify-center p-12 bg-white dark:bg-zinc-900 rounded-2xl border border-gray-200/60 dark:border-zinc-800 shadow-sm space-y-3">
+                        <FiLoader className="w-8 h-8 text-[#0B6E40] animate-spin" />
+                        <p className="text-xs text-gray-500 font-semibold animate-pulse">Running cryptographic audit & fetching verification index...</p>
+                    </div>
+                )}
+
+                {errorMsg && (
+                    <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-2xl p-6 flex items-start gap-4 shadow-sm animate-fade-in">
+                        <FiAlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                        <div className="space-y-1">
+                            <h3 className="font-extrabold text-sm text-red-800 dark:text-red-300">Verification Failure</h3>
+                            <p className="text-xs text-red-700 dark:text-red-400 leading-relaxed">
+                                {errorMsg}
+                            </p>
+                            <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
+                                Please check that the spelling is exactly as displayed on the receipt metadata, or verify that the document is indeed registered in the live M-Clinic database.
+                            </p>
                         </div>
                     </div>
                 )}
 
-                {/* Success Result - Medic */}
-                {result && verificationType === 'medic' && (
-                    <div className="bg-white rounded-3xl shadow-xl overflow-hidden animate-in slide-in-from-bottom">
-                        <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
-                            <div className="flex items-center gap-4">
-                                <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
-                                    <FiCheckCircle className="text-4xl" />
+                {verificationResult && (
+                    <div className="space-y-6 animate-fade-in">
+                        {/* Verified Banner */}
+                        <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900 rounded-2xl p-6 flex items-start gap-4 shadow-sm">
+                            <FiCheckCircle className="w-8 h-8 text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                    <h3 className="font-extrabold text-sm text-emerald-800 dark:text-emerald-300">Authentic M-Clinic Document</h3>
+                                    <span className="text-[10px] bg-emerald-600 text-white font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Verified Secure</span>
                                 </div>
+                                <p className="text-xs text-emerald-700 dark:text-emerald-400 leading-relaxed">
+                                    This invoice receipt has been securely authenticated by M-Clinic Kenya's financial database system. The records below are definitive.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Quick summary cards */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div className="bg-white dark:bg-zinc-900 border border-gray-200/60 dark:border-zinc-800 rounded-xl p-4 flex items-center gap-3">
+                                <FiUser className="w-5 h-5 text-[#0B6E40]" />
                                 <div>
-                                    <h2 className="text-2xl font-black">Verified Medical Professional</h2>
-                                    <p className="text-blue-100">This credential is authentic and active</p>
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Patient</span>
+                                    <span className="text-sm font-bold dark:text-white">{verificationResult.patientName}</span>
+                                </div>
+                            </div>
+                            <div className="bg-white dark:bg-zinc-900 border border-gray-200/60 dark:border-zinc-800 rounded-xl p-4 flex items-center gap-3">
+                                <FiCalendar className="w-5 h-5 text-[#0B6E40]" />
+                                <div>
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Issued Date</span>
+                                    <span className="text-sm font-bold dark:text-white">
+                                        {new Date(verificationResult.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="bg-white dark:bg-zinc-900 border border-gray-200/60 dark:border-zinc-800 rounded-xl p-4 flex items-center gap-3">
+                                <FiDollarSign className="w-5 h-5 text-[#0B6E40]" />
+                                <div>
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Amount Paid</span>
+                                    <span className="text-sm font-extrabold text-[#0B6E40]">KES {Number(verificationResult.totalAmount).toLocaleString()}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="p-8 space-y-6">
-                            {/* Profile Image & Name */}
-                            <div className="flex items-center gap-6 pb-6 border-b">
-                                <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center text-4xl font-black text-blue-600">
-                                    {result.fname?.[0]}{result.lname?.[0]}
-                                </div>
-                                <div>
-                                    <h3 className="text-3xl font-black text-[#1D2B36]">
-                                        Dr. {result.fname} {result.lname}
-                                    </h3>
-                                    <p className="text-gray-600 font-medium">{result.speciality || 'General Practitioner'}</p>
+                        {/* Interactive Receipt HTML View Frame */}
+                        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-200 dark:border-zinc-800 shadow-lg overflow-hidden">
+                            <div className="bg-gray-50 dark:bg-zinc-900/60 px-6 py-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
+                                <span className="text-xs font-bold text-gray-600 dark:text-zinc-300 uppercase tracking-wider">
+                                    Official Printed Form Preview
+                                </span>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => {
+                                            const printWindow = window.open('', '_blank');
+                                            if (printWindow) {
+                                                printWindow.document.write(verificationResult.html);
+                                                printWindow.document.close();
+                                                setTimeout(() => printWindow.print(), 500);
+                                            }
+                                        }}
+                                        className="bg-white dark:bg-black text-gray-700 dark:text-zinc-300 border border-gray-300 dark:border-zinc-700 font-bold px-3 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-zinc-900 flex items-center gap-1.5 transition shadow-sm"
+                                    >
+                                        <FiPrinter className="w-3.5 h-3.5" /> Print/Export PDF
+                                    </button>
                                 </div>
                             </div>
-
-                            {/* Details Grid */}
-                            <div className="grid md:grid-cols-2 gap-6">
-                                <div className="flex items-start gap-3">
-                                    <FiAward className="text-blue-600 text-xl mt-1" />
-                                    <div>
-                                        <div className="text-sm font-bold text-gray-500 uppercase">License Number</div>
-                                        <div className="text-lg font-bold text-[#1D2B36]">{result.license_number || 'N/A'}</div>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-3">
-                                    <FiCalendar className="text-blue-600 text-xl mt-1" />
-                                    <div>
-                                        <div className="text-sm font-bold text-gray-500 uppercase">License Expiry</div>
-                                        <div className="text-lg font-bold text-[#1D2B36]">
-                                            {result.license_expiry ? new Date(result.license_expiry).toLocaleDateString() : 'N/A'}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-3">
-                                    <FiMapPin className="text-blue-600 text-xl mt-1" />
-                                    <div>
-                                        <div className="text-sm font-bold text-gray-500 uppercase">Location</div>
-                                        <div className="text-lg font-bold text-[#1D2B36]">{result.city || 'Nairobi'}</div>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-3">
-                                    <FiShield className="text-blue-600 text-xl mt-1" />
-                                    <div>
-                                        <div className="text-sm font-bold text-gray-500 uppercase">Status</div>
-                                        <div className={`text-lg font-bold ${result.is_verified ? 'text-green-600' : 'text-yellow-600'}`}>
-                                            {result.is_verified ? '✓ Verified' : 'Pending Verification'}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {result.mobile && (
-                                    <div className="flex items-start gap-3">
-                                        <FiPhone className="text-blue-600 text-xl mt-1" />
-                                        <div>
-                                            <div className="text-sm font-bold text-gray-500 uppercase">Contact</div>
-                                            <div className="text-lg font-bold text-[#1D2B36]">{result.mobile}</div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {result.email && (
-                                    <div className="flex items-start gap-3">
-                                        <FiMail className="text-blue-600 text-xl mt-1" />
-                                        <div>
-                                            <div className="text-sm font-bold text-gray-500 uppercase">Email</div>
-                                            <div className="text-lg font-bold text-[#1D2B36] break-all">{result.email}</div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Verification Badge */}
-                            <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 flex items-center gap-3">
-                                <FiCheckCircle className="text-green-600 text-2xl" />
-                                <div className="text-sm text-green-800">
-                                    <strong>Verified by M-Clinic:</strong> This medical professional is registered and authorized
-                                    to provide healthcare services through M-Clinic platform.
-                                </div>
+                            
+                            {/* Embedded print HTML preview */}
+                            <div className="bg-slate-100 dark:bg-black/40 p-4 sm:p-6 overflow-x-auto flex justify-center">
+                                <div 
+                                    className="bg-white text-black rounded-xl shadow-inner max-w-full overflow-hidden p-1.5 scale-90 sm:scale-100 origin-top"
+                                    style={{ width: '850px', transformOrigin: 'top center' }}
+                                    dangerouslySetInnerHTML={{ __html: verificationResult.html }}
+                                />
                             </div>
                         </div>
                     </div>
                 )}
+            </div>
 
-                {/* Success Result - Prescription */}
-                {result && verificationType === 'prescription' && (
-                    <div className="bg-white rounded-3xl shadow-xl overflow-hidden animate-in slide-in-from-bottom">
-                        <div className="bg-gradient-to-r from-green-600 to-green-700 p-6 text-white">
-                            <div className="flex items-center gap-4">
-                                <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
-                                    <FiCheckCircle className="text-4xl" />
-                                </div>
-                                <div>
-                                    <h2 className="text-2xl font-black">Verified Prescription</h2>
-                                    <p className="text-green-100">This prescription is authentic and valid</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="p-8 space-y-6">
-                            <div className="grid md:grid-cols-2 gap-6">
-                                <div className="flex items-start gap-3">
-                                    <FiFileText className="text-green-600 text-xl mt-1" />
-                                    <div>
-                                        <div className="text-sm font-bold text-gray-500 uppercase">Prescription Code</div>
-                                        <div className="text-lg font-bold text-[#1D2B36]">{result.prescription_code || result.id}</div>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-3">
-                                    <FiCalendar className="text-green-600 text-xl mt-1" />
-                                    <div>
-                                        <div className="text-sm font-bold text-gray-500 uppercase">Issue Date</div>
-                                        <div className="text-lg font-bold text-[#1D2B36]">
-                                            {result.createdAt ? new Date(result.createdAt).toLocaleDateString() : 'N/A'}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-3">
-                                    <FiUser className="text-green-600 text-xl mt-1" />
-                                    <div>
-                                        <div className="text-sm font-bold text-gray-500 uppercase">Prescribed By</div>
-                                        <div className="text-lg font-bold text-[#1D2B36]">
-                                            {result.doctor?.fname} {result.doctor?.lname}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-3">
-                                    <FiShield className="text-green-600 text-xl mt-1" />
-                                    <div>
-                                        <div className="text-sm font-bold text-gray-500 uppercase">Status</div>
-                                        <div className="text-lg font-bold text-green-600">✓ Valid</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Verification Badge */}
-                            <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 flex items-center gap-3">
-                                <FiCheckCircle className="text-green-600 text-2xl" />
-                                <div className="text-sm text-green-800">
-                                    <strong>Verified by M-Clinic:</strong> This prescription was issued by a licensed medical
-                                    professional through the M-Clinic platform and is valid for use.
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Info Section */}
-                <div className="mt-12 bg-blue-50 border-2 border-blue-200 rounded-2xl p-8">
-                    <h3 className="text-xl font-black text-[#1D2B36] mb-4 flex items-center gap-2">
-                        <FiShield className="text-blue-600" />
-                        Why Verify?
-                    </h3>
-                    <div className="grid md:grid-cols-2 gap-6 text-sm text-gray-700">
-                        <div>
-                            <h4 className="font-bold mb-2">For Patients:</h4>
-                            <ul className="space-y-1">
-                                <li>• Confirm your healthcare provider is licensed</li>
-                                <li>• Verify prescription authenticity</li>
-                                <li>• Ensure quality and safety</li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h4 className="font-bold mb-2">For Pharmacies:</h4>
-                            <ul className="space-y-1">
-                                <li>• Validate prescriptions before dispensing</li>
-                                <li>• Prevent fraud and misuse</li>
-                                <li>• Comply with regulations</li>
-                            </ul>
-                        </div>
-                    </div>
+            {/* Public Audit Footer */}
+            <div className="text-center text-xs text-gray-400 dark:text-zinc-600 py-8 border-t border-gray-200/60 dark:border-zinc-900 mt-12 max-w-3xl mx-auto w-full">
+                <p>&copy; {new Date().getFullYear()} M-Clinic Kenya Services. Cryptographically validated receipt records are protected by database hashes.</p>
+                <div className="flex justify-center gap-4 mt-2">
+                    <a href="https://mclinic.co.ke" className="hover:text-gray-600 dark:hover:text-zinc-400 flex items-center gap-0.5">
+                        mclinic.co.ke <FiExternalLink className="w-2.5 h-2.5" />
+                    </a>
+                    <span>&bull;</span>
+                    <a href="https://portal.mclinic.co.ke" className="hover:text-gray-600 dark:hover:text-zinc-400">
+                        Patient Care Portal
+                    </a>
                 </div>
-            </main>
-
-            {/* Footer */}
-            <footer className="bg-[#1D2B36] text-white py-8 mt-20">
-                <div className="max-w-7xl mx-auto px-6 text-center">
-                    <p className="text-sm text-gray-400">
-                        &copy; {new Date().getFullYear()} M-Clinic Kenya. All rights reserved.
-                    </p>
-                    <div className="mt-4 flex justify-center gap-6 text-sm">
-                        <Link href="/" className="hover:text-green-400 transition">Home</Link>
-                        <Link href="/contact" className="hover:text-green-400 transition">Contact</Link>
-                        <Link href="/terms-and-conditions" className="hover:text-green-400 transition">Terms</Link>
-                    </div>
-                </div>
-            </footer>
+            </div>
         </div>
+    );
+}
+
+export default function VerificationPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-12">
+                <FiLoader className="w-10 h-10 text-[#0B6E40] animate-spin mb-4" />
+                <p className="text-sm text-gray-500 font-semibold animate-pulse">Initializing Audit Portal...</p>
+            </div>
+        }>
+            <VerificationContent />
+        </Suspense>
     );
 }

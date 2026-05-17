@@ -101,15 +101,31 @@ export class SeedingService {
       { key: 'sms_shortcode', value: 'M-CLINIC', description: 'Advanta SMS Sender ID / Shortcode', isSecure: false },
 
       // SMTP Settings (For VPS Email Fix)
-      { key: 'MAIL_HOST', value: 'mail.mclinic.co.ke', category: 'mail' },
-      { key: 'MAIL_PORT', value: '465', category: 'mail' },
-      { key: 'MAIL_USER', value: 'notifications@mclinic.co.ke', category: 'mail' },
-      { key: 'MAIL_PASSWORD', value: 'ChangeMe2025!', category: 'mail' },
-      { key: 'MAIL_FROM', value: 'M-Clinic <notifications@mclinic.co.ke>', category: 'mail' },
-      { key: 'MAIL_ENCRYPTION', value: 'ssl', category: 'mail' }, // or tls for 587
-      { key: 'SMS_SENDER_ID', value: 'MCLINIC', category: 'sms' },
-      { key: 'SMS_PARTNER_ID', value: '1234', category: 'sms' },
-      { key: 'SMS_API_KEY', value: 'your_api_key', category: 'sms' },
+      { key: 'MAIL_HOST', value: 'mail.mclinic.co.ke', description: 'Mail Host', isSecure: false },
+      { key: 'MAIL_PORT', value: '465', description: 'Mail Port', isSecure: false },
+      { key: 'MAIL_USER', value: 'notifications@mclinic.co.ke', description: 'Mail Username', isSecure: false },
+      { key: 'MAIL_PASSWORD', value: 'ChangeMe2025!', description: 'Mail Password', isSecure: true },
+      { key: 'MAIL_FROM', value: 'M-Clinic <notifications@mclinic.co.ke>', description: 'Mail From Address', isSecure: false },
+      { key: 'MAIL_ENCRYPTION', value: 'ssl', description: 'Mail Encryption', isSecure: false },
+      { key: 'SMS_SENDER_ID', value: 'MCLINIC', description: 'SMS Sender ID', isSecure: false },
+      { key: 'SMS_PARTNER_ID', value: '1234', description: 'SMS Partner ID', isSecure: false },
+      { key: 'SMS_API_KEY', value: 'your_api_key', description: 'SMS API Key', isSecure: true },
+
+      // Company Settings
+      { key: 'COMPANY_NAME', value: 'M-Clinic Services Kenya', description: 'Company Name', isSecure: false },
+      { key: 'COMPANY_TAGLINE', value: 'Official Digital Healthcare Portal', description: 'Company Tagline/Slogan', isSecure: false },
+      { key: 'COMPANY_LOGO_URL', value: 'https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png', description: 'Company Logo URL', isSecure: false },
+      { key: 'COMPANY_EMAIL', value: 'support@mclinic.co.ke', description: 'Company Contact Email', isSecure: false },
+      { key: 'COMPANY_PHONE', value: '+254 724 454 757', description: 'Company Contact Phone Number', isSecure: false },
+      { key: 'COMPANY_ADDRESS', value: 'Nairobi, Kenya', description: 'Company Physical Address', isSecure: false },
+      { key: 'COMPANY_BANK_NAME', value: 'Equity Bank', description: 'Company Bank Name', isSecure: false },
+      { key: 'COMPANY_BANK_ACC_NAME', value: 'M-Clinic Services Limited', description: 'Company Bank Account Name', isSecure: false },
+      { key: 'COMPANY_BANK_ACC_NO', value: '1234567890123', description: 'Company Bank Account Number', isSecure: false },
+      { key: 'COMPANY_MPESA_TILL_PAYBILL', value: '300977', description: 'Company M-Pesa Till or Paybill Number', isSecure: false },
+      { key: 'COMPANY_FB', value: 'https://facebook.com/mclinic', description: 'Facebook Profile URL', isSecure: false },
+      { key: 'COMPANY_TWITTER', value: 'https://twitter.com/mclinic', description: 'Twitter/X Profile URL', isSecure: false },
+      { key: 'COMPANY_IG', value: 'https://instagram.com/mclinic', description: 'Instagram Profile URL', isSecure: false },
+      { key: 'COMPANY_LINKEDIN', value: 'https://linkedin.com/company/mclinic', description: 'LinkedIn Company URL', isSecure: false },
     ];
 
     for (const s of defaultSettings) {

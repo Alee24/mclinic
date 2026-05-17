@@ -11,6 +11,7 @@ import { Doctor } from '../doctors/entities/doctor.entity';
 import { Patient } from '../patients/entities/patient.entity';
 import { Appointment } from '../appointments/entities/appointment.entity';
 import { User } from '../users/entities/user.entity';
+import { SystemSetting } from '../system-settings/entities/system-setting.entity';
 import { WalletsService } from '../wallets/wallets.service';
 import { MpesaService } from '../mpesa/mpesa.service';
 import { NotificationService } from '../notification/notification.service';
@@ -30,6 +31,8 @@ export class FinancialService {
         private invoiceItemRepo: Repository<InvoiceItem>,
         @InjectRepository(Doctor)
         private doctorRepo: Repository<Doctor>,
+        @InjectRepository(SystemSetting)
+        private settingRepo: Repository<SystemSetting>,
         private walletsService: WalletsService,
         private mpesaService: MpesaService,
         private notificationService: NotificationService,
@@ -889,6 +892,37 @@ export class FinancialService {
         });
     }
 
+    private async getCompanySettings() {
+        const companySettingsArr = await this.settingRepo.find();
+        const settingsMap: Record<string, string> = {};
+        for (const s of companySettingsArr) {
+            settingsMap[s.key] = s.value;
+        }
+
+        // Build active uploader logo endpoint if uploaded path is present
+        let logoUrl = settingsMap['COMPANY_LOGO_URL'] || 'https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png';
+        if (logoUrl && !logoUrl.startsWith('http')) {
+            logoUrl = `https://portal.mclinic.co.ke/api/settings/logo-image/${logoUrl}`;
+        }
+
+        return {
+            clinicName: settingsMap['COMPANY_NAME'] || 'M-Clinic Services Kenya',
+            clinicAddress: settingsMap['COMPANY_ADDRESS'] || 'Nairobi, Kenya',
+            clinicEmail: settingsMap['COMPANY_EMAIL'] || 'support@mclinic.co.ke',
+            clinicPhone: settingsMap['COMPANY_PHONE'] || '+254 724 454 757',
+            clinicLogo: logoUrl,
+            clinicTagline: settingsMap['COMPANY_TAGLINE'] || 'Official Digital Healthcare Portal',
+            bankName: settingsMap['COMPANY_BANK_NAME'] || 'Equity Bank',
+            bankAccName: settingsMap['COMPANY_BANK_ACC_NAME'] || 'M-Clinic Services Limited',
+            bankAccNo: settingsMap['COMPANY_BANK_ACC_NO'] || '1234567890123',
+            mpesaTillPaybill: settingsMap['COMPANY_MPESA_TILL_PAYBILL'] || '300977',
+            facebook: settingsMap['COMPANY_FB'] || 'https://facebook.com/mclinic',
+            twitter: settingsMap['COMPANY_TWITTER'] || 'https://twitter.com/mclinic',
+            instagram: settingsMap['COMPANY_IG'] || 'https://instagram.com/mclinic',
+            linkedin: settingsMap['COMPANY_LINKEDIN'] || 'https://linkedin.com/company/mclinic'
+        };
+    }
+
     async generateReceipt(transactionId: number) {
         const tx = await this.txRepo.createQueryBuilder('tx')
             .leftJoinAndSelect('tx.invoice', 'invoice')
@@ -908,9 +942,11 @@ export class FinancialService {
         const patientDetails = appt?.patientDetails as Patient;
         const patientName = appt?.patient ? `${appt.patient.fname} ${appt.patient.lname}` : (invoice?.customerName || 'Guest');
 
+        const company = await this.getCompanySettings();
+
         const receiptData = {
-            clinicName: "M-Clinic Services",
-            clinicAddress: "Nairobi, Kenya",
+            clinicName: company.clinicName,
+            clinicAddress: company.clinicAddress,
             receiptNumber: tx.reference || `REC-${tx.id}`,
             date: tx.createdAt,
             patientName: patientName,
@@ -936,7 +972,7 @@ export class FinancialService {
         <html>
         <head>
             <meta charset="utf-8">
-            <title>M-Clinic Official Receipt</title>
+            <title>${company.clinicName} Official Receipt</title>
             <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
             <style>
                 body {
@@ -949,7 +985,7 @@ export class FinancialService {
                     print-color-adjust: exact;
                 }
                 .receipt-container {
-                    max-width: 800px;
+                    max-width: 850px;
                     margin: 0 auto;
                     background-color: #ffffff;
                     border-radius: 24px;
@@ -973,7 +1009,7 @@ export class FinancialService {
                     display: grid;
                     grid-template-columns: 1.2fr 0.8fr;
                     gap: 30px;
-                    margin-bottom: 40px;
+                    margin-bottom: 30px;
                 }
                 .details-card {
                     background-color: #f8fafc;
@@ -1013,6 +1049,18 @@ export class FinancialService {
                     border-bottom: 1px solid #f1f5f9;
                     font-size: 14px;
                 }
+                .info-blocks-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 20px;
+                    margin-bottom: 40px;
+                }
+                .info-block {
+                    background-color: #f8fafc;
+                    border: 1px solid #f1f5f9;
+                    border-radius: 16px;
+                    padding: 20px;
+                }
                 .summary-box {
                     background-color: #f8fafc;
                     border: 1px solid #e2e8f0;
@@ -1023,7 +1071,7 @@ export class FinancialService {
                 }
                 .footer-note {
                     text-align: center;
-                    margin-top: 60px;
+                    margin-top: 50px;
                     padding-top: 30px;
                     border-top: 1px dashed #cbd5e1;
                     color: #64748b;
@@ -1034,7 +1082,7 @@ export class FinancialService {
                     margin-top: 30px;
                 }
                 .print-btn {
-                    background-color: #0b6e40;
+                    background-color: #0B6E40;
                     color: #ffffff;
                     border: none;
                     padding: 14px 28px;
@@ -1071,11 +1119,11 @@ export class FinancialService {
                 <!-- Header -->
                 <div class="receipt-header">
                     <div>
-                        <img src="https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png" style="height: 50px; filter: brightness(0) invert(1); margin-bottom: 12px;" alt="M-Clinic Logo">
-                        <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: #a7f3d0; opacity: 0.85;">Official Digital Receipt</div>
+                        <img src="${company.clinicLogo}" style="height: 55px; margin-bottom: 12px; border-radius: 8px;" alt="${company.clinicName} Logo">
+                        <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #a7f3d0; opacity: 0.9;">${company.clinicTagline}</div>
                     </div>
                     <div style="text-align: right;">
-                        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #a7f3d0; letter-spacing: 0.05em; margin-bottom: 4px;">Receipt Number</div>
+                        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #a7f3d0; letter-spacing: 0.05em; margin-bottom: 4px;">Receipt Serial No.</div>
                         <div style="font-size: 22px; font-weight: 800; letter-spacing: -0.02em; color: #ffffff; margin-bottom: 4px;">${receiptData.receiptNumber}</div>
                         <div style="font-size: 13px; font-weight: 500; color: #e2e8f0;">${new Date(receiptData.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
                     </div>
@@ -1088,26 +1136,26 @@ export class FinancialService {
                         <div class="details-card">
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                                 <div>
-                                    <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; margin-bottom: 6px;">Patient Name</div>
+                                    <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; margin-bottom: 6px;">Patient Details</div>
                                     <div style="font-size: 15px; font-weight: 700; color: #0f172a;">${receiptData.patientName}</div>
                                     <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Insurance: ${receiptData.insurance}</div>
                                 </div>
                                 <div>
                                     <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; margin-bottom: 6px;">Practitioner / Service</div>
                                     <div style="font-size: 15px; font-weight: 700; color: #0f172a;">${receiptData.doctor || 'M-Clinic Specialist'}</div>
-                                    <div style="font-size: 12px; color: #64748b; margin-top: 4px;">M-Clinic Services Kenya</div>
+                                    <div style="font-size: 12px; color: #64748b; margin-top: 4px;">${company.clinicName}</div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Live Dynamic Verification QR Code -->
                         <div class="verification-card">
-                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent('https://mclinic.co.ke/verify?code=' + receiptData.receiptNumber)}" style="width: 100px; height: 100px; border-radius: 8px; border: 4px solid #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);" alt="Verification QR">
-                            <div style="font-size: 11px; font-weight: 700; color: #0b6e40; margin-top: 10px; display: flex; align-items: center; gap: 4px; justify-content: center;">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent('https://portal.mclinic.co.ke/verify?code=' + receiptData.receiptNumber)}" style="width: 100px; height: 100px; border-radius: 8px; border: 4px solid #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);" alt="Verification QR">
+                            <div style="font-size: 11px; font-weight: 700; color: #0B6E40; margin-top: 10px; display: flex; align-items: center; gap: 4px; justify-content: center;">
                                 <svg style="width: 12px; height: 12px; fill: currentColor;" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                                 SECURE VERIFIED
                             </div>
-                            <div style="font-size: 9px; color: #334155; margin-top: 4px;">Scan to confirm authenticity</div>
+                            <div style="font-size: 9px; color: #334155; margin-top: 4px;">Scan QR code to verify details</div>
                         </div>
                     </div>
 
@@ -1126,6 +1174,32 @@ export class FinancialService {
                         </tbody>
                     </table>
 
+                    <!-- Banking, Paybill and Contact Details Grid -->
+                    <div class="info-blocks-grid">
+                        <div class="info-block">
+                            <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #0B6E40; letter-spacing: 0.05em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                                <svg style="width: 14px; height: 14px; fill: currentColor;" viewBox="0 0 20 20"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4zM18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM5 13a1 1 0 011-1h2a1 1 0 110 2H6a1 1 0 01-1-1z"/></svg>
+                                Bank Transfer Details
+                            </div>
+                            <div style="font-size: 13px; color: #334155; line-height: 1.6;">
+                                <strong>Bank:</strong> ${company.bankName}<br>
+                                <strong>Account Name:</strong> ${company.bankAccName}<br>
+                                <strong>Account No:</strong> ${company.bankAccNo}
+                            </div>
+                        </div>
+                        <div class="info-block">
+                            <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #0B6E40; letter-spacing: 0.05em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                                <svg style="width: 14px; height: 14px; fill: currentColor;" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.736 6.979C9.208 6.193 9.837 5 10.5 5c.663 0 1.292 1.193 1.764 1.979C12.74 7.783 13 8.826 13 10c0 1.174-.26 2.217-.736 2.979C11.792 13.807 11.163 15 10.5 15c-.663 0-1.292-1.193-1.764-1.979C8.26 12.217 8 11.174 8 10c0-1.174.26-2.217.736-2.979z" clip-rule="evenodd"/></svg>
+                                Mobile Money Payment
+                            </div>
+                            <div style="font-size: 13px; color: #334155; line-height: 1.6;">
+                                <strong>M-Pesa Buy Goods Till:</strong> ${company.mpesaTillPaybill}<br>
+                                <strong>Support Mobile:</strong> ${company.clinicPhone}<br>
+                                <strong>Support Email:</strong> ${company.clinicEmail}
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Summary & Breakdown -->
                     <div class="summary-box">
                         <div style="display: flex; justify-content: space-between; font-size: 13px; color: #64748b; margin-bottom: 8px;">
@@ -1138,19 +1212,30 @@ export class FinancialService {
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                             <span style="font-size: 13px; font-weight: 600; color: #475569;">Payment Method</span>
-                            <span style="font-size: 12px; font-weight: 700; background-color: #e6f4ea; color: #0b6e40; padding: 4px 10px; border-radius: 9999px;">${receiptData.paymentMethod}</span>
+                            <span style="font-size: 12px; font-weight: 700; background-color: #e6f4ea; color: #0B6E40; padding: 4px 10px; border-radius: 9999px;">${receiptData.paymentMethod}</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: baseline; padding-top: 12px; border-top: 2px solid #e2e8f0; margin-top: 12px;">
                             <span style="font-size: 15px; font-weight: 800; color: #0f172a;">Amount Paid</span>
-                            <span style="font-size: 20px; font-weight: 900; color: #0b6e40;">KES ${Number(receiptData.totalAmount).toLocaleString()}</span>
+                            <span style="font-size: 20px; font-weight: 900; color: #0B6E40;">KES ${Number(receiptData.totalAmount).toLocaleString()}</span>
                         </div>
                     </div>
 
                     <!-- Footer Notes -->
                     <div class="footer-note">
-                        <p style="margin: 0; font-weight: 700; color: #334155; font-size: 13px;">Thank you for choosing M-Clinic.</p>
+                        <p style="margin: 0; font-weight: 700; color: #334155; font-size: 13px;">Thank you for choosing ${company.clinicName}.</p>
                         <p style="margin: 6px 0 0 0; color: #64748b;">This is a secure, officially verified medical record.</p>
-                        <p style="margin: 20px 0 0 0; font-size: 10px; color: #94a3b8; font-weight: 500;">M-Clinic Kenya • Nairobi • support@mclinic.co.ke • www.mclinic.co.ke</p>
+                        
+                        <!-- Social links -->
+                        <div style="margin-top: 15px; display: flex; justify-content: center; gap: 20px; font-size: 11px; font-weight: 600;">
+                            <a href="${company.facebook}" target="_blank" style="color: #64748b; text-decoration: none;">Facebook</a>
+                            <a href="${company.twitter}" target="_blank" style="color: #64748b; text-decoration: none;">Twitter / X</a>
+                            <a href="${company.instagram}" target="_blank" style="color: #64748b; text-decoration: none;">Instagram</a>
+                            <a href="${company.linkedin}" target="_blank" style="color: #64748b; text-decoration: none;">LinkedIn</a>
+                        </div>
+
+                        <p style="margin: 25px 0 0 0; font-size: 10px; color: #94a3b8; font-weight: 500;">
+                            ${company.clinicName} • ${company.clinicAddress} • ${company.clinicEmail} • www.mclinic.co.ke
+                        </p>
                     </div>
 
                     <!-- Print Trigger -->
@@ -1192,9 +1277,11 @@ export class FinancialService {
         const patientDetails = appt?.patientDetails as Patient;
         const patientName = appt?.patient ? `${appt.patient.fname} ${appt.patient.lname}` : (invoice?.customerName || 'Patient');
 
+        const company = await this.getCompanySettings();
+
         const receiptData = {
-            clinicName: "M-Clinic Services",
-            clinicAddress: "Nairobi, Kenya",
+            clinicName: company.clinicName,
+            clinicAddress: company.clinicAddress,
             receiptNumber: tx?.reference || invoice?.invoiceNumber || `REC-${invoice?.id}`,
             date: tx?.createdAt || invoice?.createdAt || new Date(),
             patientName: patientName,
@@ -1219,7 +1306,7 @@ export class FinancialService {
         <html>
         <head>
             <meta charset="utf-8">
-            <title>M-Clinic Official Receipt</title>
+            <title>${company.clinicName} Official Receipt</title>
             <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
             <style>
                 body {
@@ -1232,7 +1319,7 @@ export class FinancialService {
                     print-color-adjust: exact;
                 }
                 .receipt-container {
-                    max-width: 800px;
+                    max-width: 850px;
                     margin: 0 auto;
                     background-color: #ffffff;
                     border-radius: 24px;
@@ -1256,7 +1343,7 @@ export class FinancialService {
                     display: grid;
                     grid-template-columns: 1.2fr 0.8fr;
                     gap: 30px;
-                    margin-bottom: 40px;
+                    margin-bottom: 30px;
                 }
                 .details-card {
                     background-color: #f8fafc;
@@ -1296,6 +1383,18 @@ export class FinancialService {
                     border-bottom: 1px solid #f1f5f9;
                     font-size: 14px;
                 }
+                .info-blocks-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 20px;
+                    margin-bottom: 40px;
+                }
+                .info-block {
+                    background-color: #f8fafc;
+                    border: 1px solid #f1f5f9;
+                    border-radius: 16px;
+                    padding: 20px;
+                }
                 .summary-box {
                     background-color: #f8fafc;
                     border: 1px solid #e2e8f0;
@@ -1306,7 +1405,7 @@ export class FinancialService {
                 }
                 .footer-note {
                     text-align: center;
-                    margin-top: 60px;
+                    margin-top: 50px;
                     padding-top: 30px;
                     border-top: 1px dashed #cbd5e1;
                     color: #64748b;
@@ -1317,7 +1416,7 @@ export class FinancialService {
                     margin-top: 30px;
                 }
                 .print-btn {
-                    background-color: #0b6e40;
+                    background-color: #0B6E40;
                     color: #ffffff;
                     border: none;
                     padding: 14px 28px;
@@ -1354,11 +1453,11 @@ export class FinancialService {
                 <!-- Header -->
                 <div class="receipt-header">
                     <div>
-                        <img src="https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png" style="height: 50px; filter: brightness(0) invert(1); margin-bottom: 12px;" alt="M-Clinic Logo">
-                        <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: #a7f3d0; opacity: 0.85;">Official Digital Receipt</div>
+                        <img src="${company.clinicLogo}" style="height: 55px; margin-bottom: 12px; border-radius: 8px;" alt="${company.clinicName} Logo">
+                        <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #a7f3d0; opacity: 0.9;">${company.clinicTagline}</div>
                     </div>
                     <div style="text-align: right;">
-                        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #a7f3d0; letter-spacing: 0.05em; margin-bottom: 4px;">Receipt Number</div>
+                        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #a7f3d0; letter-spacing: 0.05em; margin-bottom: 4px;">Receipt Serial No.</div>
                         <div style="font-size: 22px; font-weight: 800; letter-spacing: -0.02em; color: #ffffff; margin-bottom: 4px;">${receiptData.receiptNumber}</div>
                         <div style="font-size: 13px; font-weight: 500; color: #e2e8f0;">${new Date(receiptData.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
                     </div>
@@ -1371,26 +1470,26 @@ export class FinancialService {
                         <div class="details-card">
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                                 <div>
-                                    <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; margin-bottom: 6px;">Patient Name</div>
+                                    <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; margin-bottom: 6px;">Patient Details</div>
                                     <div style="font-size: 15px; font-weight: 700; color: #0f172a;">${receiptData.patientName}</div>
                                     <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Insurance: ${receiptData.insurance}</div>
                                 </div>
                                 <div>
                                     <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; margin-bottom: 6px;">Practitioner / Service</div>
                                     <div style="font-size: 15px; font-weight: 700; color: #0f172a;">${receiptData.doctor || 'M-Clinic Specialist'}</div>
-                                    <div style="font-size: 12px; color: #64748b; margin-top: 4px;">M-Clinic Services Kenya</div>
+                                    <div style="font-size: 12px; color: #64748b; margin-top: 4px;">${company.clinicName}</div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Live Dynamic Verification QR Code -->
                         <div class="verification-card">
-                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent('https://mclinic.co.ke/verify?code=' + receiptData.receiptNumber)}" style="width: 100px; height: 100px; border-radius: 8px; border: 4px solid #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);" alt="Verification QR">
-                            <div style="font-size: 11px; font-weight: 700; color: #0b6e40; margin-top: 10px; display: flex; align-items: center; gap: 4px; justify-content: center;">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent('https://portal.mclinic.co.ke/verify?code=' + receiptData.receiptNumber)}" style="width: 100px; height: 100px; border-radius: 8px; border: 4px solid #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);" alt="Verification QR">
+                            <div style="font-size: 11px; font-weight: 700; color: #0B6E40; margin-top: 10px; display: flex; align-items: center; gap: 4px; justify-content: center;">
                                 <svg style="width: 12px; height: 12px; fill: currentColor;" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                                 SECURE VERIFIED
                             </div>
-                            <div style="font-size: 9px; color: #334155; margin-top: 4px;">Scan to confirm authenticity</div>
+                            <div style="font-size: 9px; color: #334155; margin-top: 4px;">Scan QR code to verify details</div>
                         </div>
                     </div>
 
@@ -1409,6 +1508,32 @@ export class FinancialService {
                         </tbody>
                     </table>
 
+                    <!-- Banking, Paybill and Contact Details Grid -->
+                    <div class="info-blocks-grid">
+                        <div class="info-block">
+                            <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #0B6E40; letter-spacing: 0.05em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                                <svg style="width: 14px; height: 14px; fill: currentColor;" viewBox="0 0 20 20"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4zM18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM5 13a1 1 0 011-1h2a1 1 0 110 2H6a1 1 0 01-1-1z"/></svg>
+                                Bank Transfer Details
+                            </div>
+                            <div style="font-size: 13px; color: #334155; line-height: 1.6;">
+                                <strong>Bank:</strong> ${company.bankName}<br>
+                                <strong>Account Name:</strong> ${company.bankAccName}<br>
+                                <strong>Account No:</strong> ${company.bankAccNo}
+                            </div>
+                        </div>
+                        <div class="info-block">
+                            <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #0B6E40; letter-spacing: 0.05em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                                <svg style="width: 14px; height: 14px; fill: currentColor;" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.736 6.979C9.208 6.193 9.837 5 10.5 5c.663 0 1.292 1.193 1.764 1.979C12.74 7.783 13 8.826 13 10c0 1.174-.26 2.217-.736 2.979C11.792 13.807 11.163 15 10.5 15c-.663 0-1.292-1.193-1.764-1.979C8.26 12.217 8 11.174 8 10c0-1.174.26-2.217.736-2.979z" clip-rule="evenodd"/></svg>
+                                Mobile Money Payment
+                            </div>
+                            <div style="font-size: 13px; color: #334155; line-height: 1.6;">
+                                <strong>M-Pesa Buy Goods Till:</strong> ${company.mpesaTillPaybill}<br>
+                                <strong>Support Mobile:</strong> ${company.clinicPhone}<br>
+                                <strong>Support Email:</strong> ${company.clinicEmail}
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Summary & Breakdown -->
                     <div class="summary-box">
                         <div style="display: flex; justify-content: space-between; font-size: 13px; color: #64748b; margin-bottom: 8px;">
@@ -1421,19 +1546,30 @@ export class FinancialService {
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                             <span style="font-size: 13px; font-weight: 600; color: #475569;">Payment Method</span>
-                            <span style="font-size: 12px; font-weight: 700; background-color: #e6f4ea; color: #0b6e40; padding: 4px 10px; border-radius: 9999px;">${receiptData.paymentMethod}</span>
+                            <span style="font-size: 12px; font-weight: 700; background-color: #e6f4ea; color: #0B6E40; padding: 4px 10px; border-radius: 9999px;">${receiptData.paymentMethod}</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: baseline; padding-top: 12px; border-top: 2px solid #e2e8f0; margin-top: 12px;">
                             <span style="font-size: 15px; font-weight: 800; color: #0f172a;">Amount Paid</span>
-                            <span style="font-size: 20px; font-weight: 900; color: #0b6e40;">KES ${Number(receiptData.totalAmount).toLocaleString()}</span>
+                            <span style="font-size: 20px; font-weight: 900; color: #0B6E40;">KES ${Number(receiptData.totalAmount).toLocaleString()}</span>
                         </div>
                     </div>
 
                     <!-- Footer Notes -->
                     <div class="footer-note">
-                        <p style="margin: 0; font-weight: 700; color: #334155; font-size: 13px;">Thank you for choosing M-Clinic.</p>
+                        <p style="margin: 0; font-weight: 700; color: #334155; font-size: 13px;">Thank you for choosing ${company.clinicName}.</p>
                         <p style="margin: 6px 0 0 0; color: #64748b;">This is a secure, officially verified medical record.</p>
-                        <p style="margin: 20px 0 0 0; font-size: 10px; color: #94a3b8; font-weight: 500;">M-Clinic Kenya • Nairobi • support@mclinic.co.ke • www.mclinic.co.ke</p>
+                        
+                        <!-- Social links -->
+                        <div style="margin-top: 15px; display: flex; justify-content: center; gap: 20px; font-size: 11px; font-weight: 600;">
+                            <a href="${company.facebook}" target="_blank" style="color: #64748b; text-decoration: none;">Facebook</a>
+                            <a href="${company.twitter}" target="_blank" style="color: #64748b; text-decoration: none;">Twitter / X</a>
+                            <a href="${company.instagram}" target="_blank" style="color: #64748b; text-decoration: none;">Instagram</a>
+                            <a href="${company.linkedin}" target="_blank" style="color: #64748b; text-decoration: none;">LinkedIn</a>
+                        </div>
+
+                        <p style="margin: 25px 0 0 0; font-size: 10px; color: #94a3b8; font-weight: 500;">
+                            ${company.clinicName} • ${company.clinicAddress} • ${company.clinicEmail} • www.mclinic.co.ke
+                        </p>
                     </div>
 
                     <!-- Print Trigger -->
@@ -1450,5 +1586,63 @@ export class FinancialService {
             ...receiptData,
             html
         };
+    }
+
+    async verifyReceipt(code: string) {
+        if (!code) throw new NotFoundException('Verification code is required');
+        
+        let tx = await this.txRepo.findOne({
+            where: { reference: code }
+        });
+        
+        if (!tx && /^\d+$/.test(code)) {
+            tx = await this.txRepo.findOne({
+                where: { id: Number(code) }
+            });
+        }
+        
+        if (!tx && code.startsWith('REC-')) {
+            const numPart = code.replace('REC-', '');
+            if (/^\d+$/.test(numPart)) {
+                tx = await this.txRepo.findOne({
+                    where: { id: Number(numPart) }
+                });
+            }
+        }
+        
+        if (tx) {
+            return this.generateReceipt(tx.id);
+        }
+        
+        let invoice = await this.invoiceRepo.findOne({
+            where: { invoiceNumber: code }
+        });
+        
+        if (!invoice && /^\d+$/.test(code)) {
+            invoice = await this.invoiceRepo.findOne({
+                where: { id: Number(code) }
+            });
+        }
+        
+        if (!invoice && code.startsWith('INV-')) {
+            const numPart = code.replace('INV-', '');
+            if (/^\d+$/.test(numPart)) {
+                invoice = await this.invoiceRepo.findOne({
+                    where: { id: Number(numPart) }
+                });
+            }
+        }
+        
+        if (invoice) {
+            const invoiceTx = await this.txRepo.findOne({
+                where: { invoiceId: invoice.id }
+            });
+            if (invoiceTx) {
+                return this.generateReceipt(invoiceTx.id);
+            }
+            return this.generateReceiptByInvoiceId(invoice.id);
+        }
+        
+        throw new NotFoundException(`No verified receipt or invoice found for serial: "${code}"`);
     }
 }
