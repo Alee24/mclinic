@@ -577,24 +577,6 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
                         </div>
 
                         <div className="flex items-center gap-3 ml-4">
-                            {selectedDoctor && (
-                                <div className="flex items-center gap-2 pr-2 border-r border-gray-100 dark:border-gray-800">
-                                    <button
-                                        onClick={() => currentStep === 1 ? setSelectedDoctor(null) : setCurrentStep(s => s - 1)}
-                                        className="h-10 px-4 rounded-xl font-bold text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition text-xs flex items-center gap-2"
-                                    >
-                                        <FiArrowLeft /> Back
-                                    </button>
-                                    <button
-                                        onClick={() => currentStep === 4 ? handleBook() : setCurrentStep(s => s + 1)}
-                                        disabled={submitting || (currentStep === 2 && (!bookingDate || !bookingTime))}
-                                        className="h-10 px-6 bg-primary text-black rounded-xl font-black shadow-lg hover:shadow-xl transition-all disabled:opacity-50 text-xs flex items-center gap-2"
-                                    >
-                                        {submitting ? '...' : currentStep === 4 ? 'Finish' : 'Continue'}
-                                        <FiArrowRight />
-                                    </button>
-                                </div>
-                            )}
                             <button onClick={onClose} className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition bg-gray-50 dark:bg-gray-800/50">
                                 <FiX size={20} className="dark:text-white" />
                             </button>
@@ -718,9 +700,22 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
                                 {renderStepContent()}
                             </div>
                         </div>
-                        {/* Footer - Only for summary info on mobile if needed, nav moved to header */}
-                        <div className="p-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-[#121212] flex justify-center md:hidden">
-                           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">M-Clinic Virtual Health</p>
+                        {/* Professional Footer Navigation */}
+                        <div className="p-4 md:p-6 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-[#1A1A1A] flex justify-between items-center gap-4">
+                            <button
+                                onClick={() => currentStep === 1 ? setSelectedDoctor(null) : setCurrentStep(s => s - 1)}
+                                className="h-14 px-6 rounded-xl font-bold text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-all flex items-center justify-center gap-2 w-1/3 text-sm md:text-base"
+                            >
+                                <FiArrowLeft /> Back
+                            </button>
+                            <button
+                                onClick={() => currentStep === 4 ? handleBook() : setCurrentStep(s => s + 1)}
+                                disabled={submitting || (currentStep === 2 && (!bookingDate || !bookingTime))}
+                                className="h-14 px-8 bg-primary text-white rounded-xl font-black shadow-[0_8px_16px_rgba(11,110,64,0.3)] hover:shadow-[0_12px_24px_rgba(11,110,64,0.4)] hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0 flex items-center justify-center gap-2 w-2/3 text-base md:text-lg"
+                            >
+                                {submitting ? 'Processing...' : currentStep === 4 ? 'Confirm Booking' : 'Continue to Next Step'}
+                                <FiArrowRight />
+                            </button>
                         </div>
                     </div>
                 )}
