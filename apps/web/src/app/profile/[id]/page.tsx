@@ -10,13 +10,13 @@ import {
   Award, 
   Calendar, 
   Share2, 
-  ExternalLink,
-  Loader2,
+  Loader2, 
   AlertCircle,
   LogIn,
   UserPlus,
   Wifi,
-  WifiOff
+  WifiOff,
+  Star
 } from 'lucide-react';
 import Footer from '@/components/landing/Footer';
 
@@ -26,6 +26,8 @@ export default function MedicProfilePage() {
   const [medic, setMedic] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [ratingSubmitting, setRatingSubmitting] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -51,6 +53,33 @@ export default function MedicProfilePage() {
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
     alert('Profile link copied to clipboard!');
+  };
+
+  const handleRate = async (value: number) => {
+    if (!medic?.id) return;
+    setRatingSubmitting(true);
+    try {
+      const response = await fetch(`/api/users/profile/${medic.id}/rate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ rating: value }),
+      });
+      if (response.ok) {
+        const updatedUser = await response.json();
+        // Enrich the updatedUser with online status from the existing state
+        setMedic({ ...updatedUser, isOnline: medic.isOnline });
+        alert(`Thank you for rating! Rating updated to ${value}.0`);
+      } else {
+        alert('Failed to submit rating. Please try again.');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Error submitting rating.');
+    } finally {
+      setRatingSubmitting(false);
+    }
   };
 
   if (loading) {
@@ -227,17 +256,53 @@ export default function MedicProfilePage() {
                 </div>
               </div>
 
+              {/* My Ratings Section replacing Patient Care */}
               <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
-                <h3 className="font-bold text-slate-800 mb-4">Patient Care</h3>
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="flex -space-x-2">
-                    {[1,2,3].map(i => (
-                      <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-200 overflow-hidden">
-                        <img src={`https://i.pravatar.cc/100?u=${i}`} alt="patient" />
-                      </div>
-                    ))}
+                <h3 className="font-bold text-slate-800 mb-2">My Ratings</h3>
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="text-3xl font-extrabold text-slate-900">
+                    {Number(medic.rating || 4.9).toFixed(1)}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => {
+                      const currentRating = Number(medic.rating || 4.9);
+                      const isGold = star <= Math.round(currentRating);
+                      return (
+                        <Star
+                          key={star}
+                          className={`w-5 h-5 ${isGold ? 'text-amber-400 fill-amber-400' : 'text-slate-200'}`}
+                        />
+                      );
+                    })}
                   </div>
-                  <span className="text-sm font-medium text-slate-500">100+ Patients helped</span>
+                </div>
+                
+                {/* Rate this Professional Interactive Section */}
+                <div className="pt-4 border-t border-slate-100">
+                  <p className="text-xs text-slate-400 mb-2 uppercase tracking-wider font-semibold">Rate this Professional</p>
+                  <div className="flex items-center gap-1.5">
+                    {[1, 2, 3, 4, 5].map((star) => {
+                      const isHovered = star <= hoverRating;
+                      return (
+                        <button
+                          key={star}
+                          onMouseEnter={() => setHoverRating(star)}
+                          onMouseLeave={() => setHoverRating(0)}
+                          onClick={() => handleRate(star)}
+                          disabled={ratingSubmitting}
+                          className="focus:outline-none transition-transform active:scale-90 hover:scale-110"
+                        >
+                          <Star
+                            className={`w-7 h-7 transition-colors duration-200 ${
+                              isHovered 
+                                ? 'text-amber-400 fill-amber-400 animate-pulse' 
+                                : 'text-slate-300 hover:text-amber-400'
+                            }`}
+                          />
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>

@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, OnModuleInit, NotFoundException } from '@nestjs/common';
+import { Injectable, ConflictException, OnModuleInit, NotFoundException, BadRequestException } from '@nestjs/common';
 import { In, DataSource } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DeepPartial } from 'typeorm';
@@ -361,7 +361,7 @@ export class UsersService implements OnModuleInit {
     // 1. Try finding by User ID first
     let user = await this.usersRepository.findOne({
       where: { id },
-      select: ['id', 'email', 'fname', 'lname', 'role', 'profilePicture', 'licenseNumber', 'specialization', 'bio', 'status', 'isPublic']
+      select: ['id', 'email', 'fname', 'lname', 'role', 'profilePicture', 'licenseNumber', 'specialization', 'bio', 'status', 'isPublic', 'rating']
     });
 
     // 2. Fallback: If not found, check if it's a Doctor ID
@@ -375,7 +375,7 @@ export class UsersService implements OnModuleInit {
       if (doctor && doctor.length > 0) {
         user = await this.usersRepository.findOne({
           where: { email: doctor[0].email },
-          select: ['id', 'email', 'fname', 'lname', 'role', 'profilePicture', 'licenseNumber', 'specialization', 'bio', 'status', 'isPublic']
+          select: ['id', 'email', 'fname', 'lname', 'role', 'profilePicture', 'licenseNumber', 'specialization', 'bio', 'status', 'isPublic', 'rating']
         });
       }
     }
@@ -497,5 +497,19 @@ export class UsersService implements OnModuleInit {
     }
 
     return { success: true, updated, created, errors };
+  }
+
+  async rateProfile(id: number, rating: number) {
+    const user = await this.findById(id);
+    if (!user) throw new NotFoundException('User not found');
+    
+    // Reset and update to the latest rating
+    const val = Number(rating);
+    if (isNaN(val) || val < 1 || val > 5) {
+      throw new BadRequestException('Rating must be a number between 1 and 5');
+    }
+    
+    await this.usersRepository.update(id, { rating: val });
+    return this.findPublicProfile(id);
   }
 }

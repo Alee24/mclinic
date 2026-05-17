@@ -106,6 +106,9 @@ export class User {
   @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })
   longitude: number;
 
+  @Column({ type: 'decimal', precision: 3, scale: 2, default: 4.90, nullable: true })
+  rating: number;
+
   @Column({ name: 'profile_image', nullable: true })
   profilePicture: string;
 

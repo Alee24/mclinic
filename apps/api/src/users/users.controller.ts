@@ -40,6 +40,11 @@ export class UsersController {
     return this.usersService.findPublicProfile(+id);
   }
 
+  @Post('profile/:id/rate')
+  async rateProfile(@Param('id') id: string, @Body('rating') rating: number) {
+    return this.usersService.rateProfile(+id, rating);
+  }
+
   @Get('count-active')
   async countActive() {
     const count = await this.usersService.countActive();
