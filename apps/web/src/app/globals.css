@@ -20,6 +20,7 @@
   --font-heading: var(--font-outfit);
 
   /* Brand Colors from Logo */
+  --color-primary: #087C46;
   --color-mc-green: #00FD8C;
   --color-mc-crimson: #C2003F;
   --color-mc-dark: #1A2C35;
@@ -33,9 +34,9 @@
   --color-emerald-300: #77FFC3;
   --color-emerald-400: #55FFB2;
   --color-emerald-500: #00FD8C;
-  --color-emerald-600: #00D878;
-  --color-emerald-700: #00B263;
-  --color-emerald-800: #008D4E;
+  --color-emerald-600: #087C46;
+  --color-emerald-700: #065B33;
+  --color-emerald-800: #043E23;
   --color-emerald-900: #006839;
 
   --color-green-50: #EEFFF5;
@@ -174,8 +175,15 @@ body {
 
 @layer components {
   /* Target primary action buttons and links styled as buttons */
-  button[class*="px-"][class*="py-"]:not([class*="bg-red"]):not([class*="bg-rose"]):not([class*="bg-transparent"]):not([class*="border-transparent"]):not([class*="text-red"]),
-  a[class*="px-"][class*="py-"][class*="bg-"]:not([class*="bg-red"]):not([class*="bg-rose"]):not([class*="bg-transparent"]) {
+  button[class*="bg-primary"],
+  button[class*="bg-blue-600"],
+  button[class*="bg-emerald-600"],
+  button[class*="bg-[#1D2B36]"],
+  button[class*="bg-donezo-dark"],
+  button[type="submit"]:not([class*="bg-red"]):not([class*="bg-rose"]):not([class*="bg-transparent"]),
+  a[class*="bg-primary"],
+  a[class*="bg-blue-600"],
+  a[class*="bg-emerald-600"] {
     background-color: #087C46 !important;
     color: #FFFFFF !important;
     border: 1px solid #043E23 !important;
@@ -183,17 +191,30 @@ body {
     text-shadow: none !important;
   }
 
-  button[class*="px-"][class*="py-"]:not([class*="bg-red"]):not([class*="bg-rose"]):not([class*="bg-transparent"]):not([class*="border-transparent"]):not([class*="text-red"]):hover,
-  a[class*="px-"][class*="py-"][class*="bg-"]:not([class*="bg-red"]):not([class*="bg-rose"]):not([class*="bg-transparent"]):hover {
+  button[class*="bg-primary"]:hover,
+  button[class*="bg-blue-600"]:hover,
+  button[class*="bg-emerald-600"]:hover,
+  button[class*="bg-[#1D2B36]"]:hover,
+  button[class*="bg-donezo-dark"]:hover,
+  button[type="submit"]:not([class*="bg-red"]):not([class*="bg-rose"]):not([class*="bg-transparent"]):hover,
+  a[class*="bg-primary"]:hover,
+  a[class*="bg-blue-600"]:hover,
+  a[class*="bg-emerald-600"]:hover {
     background-color: #065B33 !important;
     border-color: #022012 !important;
     box-shadow: 0 6px 14px rgba(8, 124, 70, 0.3) !important;
   }
 
+  /* Secondary / Generic Action Buttons with padding but not primary colors */
+  button[class*="px-"]:not([class*="bg-red"]):not([class*="bg-rose"]):not([class*="bg-transparent"]):not([class*="border-transparent"]):not([class*="text-red"]):not([class*="bg-gray"]):not([class*="bg-white"]):not([class*="bg-primary"]):not([class*="bg-blue-600"]):not([class*="bg-emerald-600"]) {
+    background-color: #087C46 !important;
+    color: #FFFFFF !important;
+    border: 1px solid #043E23 !important;
+  }
+
   /* Handle disabled states */
-  button[class*="px-"][class*="py-"]:disabled {
+  button:disabled {
     opacity: 0.5 !important;
     cursor: not-allowed !important;
-    background-color: #087C46 !important;
   }
 }
