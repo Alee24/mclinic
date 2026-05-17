@@ -49,12 +49,12 @@ export default function MedicalRecordsPage() {
                 console.log('Fetched Data:', { appointments, records, prescriptions, labOrders, pharmOrders });
 
                 // --- MERGE LOGIC ---
-                const merged = new Map<number, UnifiedRecord>();
+                const merged = new Map<number | string, UnifiedRecord>();
 
                 // 1. Base on Appointments (The "Skeleton")
                 appointments.forEach((apt: any) => {
                     if (!apt.id) return;
-                    merged.set(apt.id, {
+                    merged.set(Number(apt.id), {
                         id: `apt-${apt.id}`,
                         date: new Date(apt.appointment_date),
                         appointment: apt,
@@ -65,14 +65,14 @@ export default function MedicalRecordsPage() {
                 // 2. Attach Medical Records
                 records.forEach((rec: any) => {
                     const aptId = rec.appointmentId || rec.appointment?.id;
-                    if (aptId && merged.has(aptId)) {
-                        const existing = merged.get(aptId)!;
+                    if (aptId && merged.has(Number(aptId))) {
+                        const existing = merged.get(Number(aptId))!;
                         existing.medicalRecord = rec;
                         existing.type = 'FULL_RECORD';
                     } else {
                         // Orphan record (or no appointment link) -> Create independent item
                         const recDate = new Date(rec.createdAt);
-                        merged.set(-rec.id, { // Negative ID to avoid collision or unique string
+                        merged.set(`rec-${rec.id}`, {
                             id: `rec-${rec.id}`,
                             date: recDate,
                             medicalRecord: rec,
@@ -85,13 +85,13 @@ export default function MedicalRecordsPage() {
                 // 3. Attach Prescriptions
                 prescriptions.forEach((script: any) => {
                     const aptId = script.appointmentId || script.appointment?.id;
-                    if (aptId && merged.has(aptId)) {
-                        const existing = merged.get(aptId)!;
+                    if (aptId && merged.has(Number(aptId))) {
+                        const existing = merged.get(Number(aptId))!;
                         existing.prescription = script;
                         if (existing.type === 'APPOINTMENT_ONLY') existing.type = 'PRESCRIPTION_ONLY'; // Upgrade status
                     } else {
                         // Orphan prescription
-                        merged.set(-(script.id + 10000), {
+                        merged.set(`script-${script.id}`, {
                             id: `script-${script.id}`,
                             date: new Date(script.createdAt),
                             prescription: script,
@@ -111,7 +111,7 @@ export default function MedicalRecordsPage() {
                             existing.type = 'FULL_RECORD';
                         }
                     } else {
-                        merged.set(-(lab.id + 20000), {
+                        merged.set(`lab-${lab.id}`, {
                             id: `lab-${lab.id}`,
                             date: new Date(lab.createdAt),
                             labOrder: lab,
@@ -122,7 +122,7 @@ export default function MedicalRecordsPage() {
 
                 // 5. Attach Pharmacy Orders
                 pharmOrders.forEach((pharm: any) => {
-                    merged.set(-(pharm.id + 30000), {
+                    merged.set(`pharm-${pharm.id}`, {
                         id: `pharm-${pharm.id}`,
                         date: new Date(pharm.createdAt),
                         pharmacyOrder: pharm,

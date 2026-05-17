@@ -62,12 +62,13 @@ export class MedicalRecordsController {
     // 1. User is the patient for this appointment
     // 2. User is the doctor for this appointment
     // 3. User is admin
-    const isPatient = Number(appointment.patientId) === Number(currentUserId);
+    const isPatient = Number(appointment.patientId || appointment.patient?.id) === Number(currentUserId);
     
     // For doctor check, we need to check if the user's doctor profile ID matches the appointment's doctorId
     // But for simplicity in this check, we can also check if the user has a medic role.
     // However, the best way is to check the doctor profile's user_id.
-    const isDoctor = appointment.doctor && Number(appointment.doctor.user_id) === Number(currentUserId);
+    const isDoctor = (appointment.doctorId && Number(appointment.doctorId) === Number(currentUserId)) || 
+                     (appointment.doctor && Number(appointment.doctor.user_id) === Number(currentUserId));
 
     if (
       !isPatient &&

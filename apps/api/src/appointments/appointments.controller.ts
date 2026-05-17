@@ -111,8 +111,8 @@ export class AppointmentsController {
     const userRole = req.user.role;
 
     // Authorization: User must be the patient, the doctor, or admin
-    const isPatient = appointment.patientId === currentUserId;
-    const isDoctor = appointment.doctorId === currentUserId; // Assuming doctorId could match user ID
+    const isPatient = Number(appointment.patientId || appointment.patient?.id) === Number(currentUserId);
+    const isDoctor = Number(appointment.doctorId || appointment.doctor?.id) === Number(currentUserId) || (appointment.doctor && Number(appointment.doctor.user_id) === Number(currentUserId));
     const isAdmin = userRole === 'admin';
     const isMedic = ['doctor', 'medic', 'nurse', 'clinician'].includes(userRole);
 
