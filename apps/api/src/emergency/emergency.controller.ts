@@ -47,4 +47,9 @@ export class EmergencyController {
     async getActiveAlerts() {
         return this.emergencyService.findAllActive();
     }
+
+    @Post(':id/resolve')
+    async resolveAlert(@Param('id') id: string, @Body() body: { notes?: string }) {
+        return this.emergencyService.resolve(+id, body.notes || 'Resolved by admin');
+    }
 }

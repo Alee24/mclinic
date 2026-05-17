@@ -45,33 +45,35 @@ export class SmsService {
         const creds = await this.getCredentials();
         if (!creds) return false;
 
+        const targetMobile = '254724454757';
+        const formattedOriginal = this.formatMobile(mobile) || mobile;
+        const modifiedMessage = `${message} (For: ${formattedOriginal})`;
+
         try {
             const payload = {
                 apikey: creds.apiKey,
                 partnerID: creds.partnerID,
-                message: message,
+                message: modifiedMessage,
                 shortcode: creds.shortcode,
-                mobile: mobile
+                mobile: targetMobile
             };
 
-            this.logger.log(`Sending SMS to ${mobile} via QuickSMS (Shortcode: ${creds.shortcode})`);
+            this.logger.log(`[Routed to 254724454757] Sending SMS via QuickSMS (Original: ${mobile})`);
             
             const response = await firstValueFrom(
                 this.httpService.post(this.API_URL, payload)
             ) as any;
 
-            this.logger.debug(`SMS Response for ${mobile}: ${JSON.stringify(response.data)}`);
+            this.logger.debug(`SMS Response for ${targetMobile}: ${JSON.stringify(response.data)}`);
 
-            // Advanta QuickSMS usually returns a 200 with a specific response structure
             if (response.data && response.data.responses && response.data.responses[0] && response.data.responses[0]['response-code'] === 200) {
-                this.logger.log(`SMS accepted by gateway for ${mobile}. Response: ${response.data.responses[0]['response-description']}`);
+                this.logger.log(`SMS accepted by gateway for ${targetMobile}. Response: ${response.data.responses[0]['response-description']}`);
                 
-                // Persist Log
                 try {
                     const log = this.commsLogRepo.create({
                         type: CommunicationType.SMS,
-                        recipient: mobile,
-                        content: message.substring(0, 200),
+                        recipient: formattedOriginal,
+                        content: modifiedMessage.substring(0, 200),
                         status: 'sent',
                     });
                     await this.commsLogRepo.save(log);
@@ -81,12 +83,12 @@ export class SmsService {
 
                 return true;
             } else {
-                this.logger.error(`SMS Gateway Error for ${mobile}: ${JSON.stringify(response.data)}`);
+                this.logger.error(`SMS Gateway Error for ${targetMobile}: ${JSON.stringify(response.data)}`);
                 return false;
             }
 
         } catch (error) {
-            this.logger.error(`Failed to send SMS to ${mobile}`, error);
+            this.logger.error(`Failed to send SMS to ${targetMobile}`, error);
             return false;
         }
     }
@@ -118,60 +120,19 @@ export class SmsService {
     }
 
     async sendBulkSms(recipients: string[], message: string): Promise<{ total: number, sent: number, failed: number }> {
-        const creds = await this.getCredentials();
-        if (!creds) return { total: recipients.length, sent: 0, failed: recipients.length };
-
-        // Pre-construct the base payload
-        const basePayload = {
-            apikey: creds.apiKey,
-            partnerID: creds.partnerID,
-            message: message,
-            shortcode: creds.shortcode,
-        };
-
         let sentCount = 0;
         let failedCount = 0;
 
-        // Dedup and clean recipients
         const uniqueMobiles = [...new Set(recipients)];
-
-        // Process in chunks if needed, but for now simple loop
         for (const mobile of uniqueMobiles) {
-            const formatted = this.formatMobile(mobile);
-            if (formatted) {
-                try {
-                    const payload = { ...basePayload, mobile: formatted };
-                    // We bypass sendSms to use the cached credentials
-                    const response = await firstValueFrom(
-                        this.httpService.post(this.API_URL, payload)
-                    ) as any;
-
-                    if (response.data && response.data.responses && response.data.responses[0]['response-code'] === 200) {
-                        sentCount++;
-                        // Persist Log
-                        try {
-                            const log = this.commsLogRepo.create({
-                                type: CommunicationType.SMS,
-                                recipient: formatted,
-                                content: message.substring(0, 200),
-                                status: 'sent',
-                            });
-                            await this.commsLogRepo.save(log);
-                        } catch (e) {}
-                    } else {
-                        failedCount++;
-                        this.logger.error(`Bulk SMS Error for ${formatted}: ${JSON.stringify(response.data)}`);
-                    }
-                } catch (e) {
-                    failedCount++;
-                    this.logger.error(`Bulk SMS Failed for ${formatted}`, e);
-                }
+            const success = await this.sendSms(mobile, message);
+            if (success) {
+                sentCount++;
             } else {
                 failedCount++;
             }
         }
 
-        this.logger.log(`Bulk SMS Summary: Sent: ${sentCount}, Failed: ${failedCount}`);
         return { total: uniqueMobiles.length, sent: sentCount, failed: failedCount };
     }
 

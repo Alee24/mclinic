@@ -2,11 +2,13 @@
 
 import Link from 'next/link';
 import { ReactNode, useEffect, useState } from 'react';
-import { FiGrid, FiList, FiCalendar, FiBarChart2, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiSearch, FiBell, FiMail, FiMap, FiPackage, FiFileText, FiDatabase, FiPlusCircle, FiUser, FiTruck, FiCheckCircle, FiActivity, FiMenu, FiX, FiTrash2, FiMessageSquare, FiBook, FiShield } from 'react-icons/fi';
+import { FiGrid, FiList, FiCalendar, FiBarChart2, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiSearch, FiBell, FiMail, FiMap, FiPackage, FiFileText, FiDatabase, FiPlusCircle, FiUser, FiTruck, FiCheckCircle, FiActivity, FiMenu, FiX, FiTrash2, FiMessageSquare, FiBook, FiShield, FiAlertTriangle } from 'react-icons/fi';
 import { useAuth, UserRole } from '@/lib/auth';
 import UserAvatar from '@/components/dashboard/UserAvatar';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import SecureLoader from '@/components/SecureLoader';
+import { api } from '@/lib/api';
+import toast from 'react-hot-toast';
 
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -15,6 +17,77 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     const router = useRouter();
     const pathname = usePathname();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [activeEmergencies, setActiveEmergencies] = useState<any[]>([]);
+    const [showEmergencyModal, setShowEmergencyModal] = useState(false);
+    const [lastEmergencyCount, setLastEmergencyCount] = useState(0);
+    const [isResolving, setIsResolving] = useState<number | null>(null);
+
+    const isAdminOrMedic = user && ['admin', 'doctor', 'nurse', 'medic', 'clinician', 'specialist'].includes(user.role.toLowerCase());
+
+    const fetchActiveEmergencies = async () => {
+        if (!isAdminOrMedic) return;
+        try {
+            const res = await api.get('/emergency/active');
+            if (res && res.ok) {
+                const data = await res.json();
+                setActiveEmergencies(data);
+                
+                // If count of active emergencies increased, play an audio tone and show alert toast!
+                if (data.length > lastEmergencyCount) {
+                    try {
+                        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+                        const oscillator = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        oscillator.type = 'sawtooth';
+                        oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
+                        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                        
+                        oscillator.start();
+                        oscillator.stop(audioContext.currentTime + 0.8);
+                    } catch (e) {
+                        console.error('Audio alert failed', e);
+                    }
+                    
+                    toast.error('🚨 URGENT: A new patient emergency evacuation alert has been triggered!', {
+                        duration: 10000,
+                        position: 'top-right'
+                    });
+                }
+                setLastEmergencyCount(data.length);
+            }
+        } catch (e) {
+            console.error('Failed to fetch active emergencies', e);
+        }
+    };
+
+    useEffect(() => {
+        if (isAdminOrMedic) {
+            fetchActiveEmergencies();
+            const interval = setInterval(fetchActiveEmergencies, 8000); // Poll every 8 seconds
+            return () => clearInterval(interval);
+        }
+    }, [user, lastEmergencyCount]);
+
+    const handleResolveEmergency = async (id: number) => {
+        setIsResolving(id);
+        try {
+            const res = await api.post(`/emergency/${id}/resolve`, { notes: 'De-escalated by Admin via active badge panel' });
+            if (res && res.ok) {
+                toast.success('Emergency alert resolved successfully.');
+                fetchActiveEmergencies();
+            } else {
+                toast.error('Failed to resolve alert.');
+            }
+        } catch (e) {
+            toast.error('An error occurred.');
+        } finally {
+            setIsResolving(null);
+        }
+    };
 
     // Close mobile menu on path change
     useEffect(() => {
@@ -407,7 +480,88 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 </ div >
             </ main >
 
-        </ div >
+            {/* FLOATING ADMIN EMERGENCY DISPATCH NOTIFICATION BADGE */}
+            {activeEmergencies.length > 0 && (
+                <div className="fixed bottom-8 right-8 z-[99999] flex flex-col items-end gap-3 animate-bounce">
+                    <button
+                        onClick={() => setShowEmergencyModal(true)}
+                        className="flex items-center gap-3 bg-red-600 hover:bg-red-500 text-white font-black px-6 py-4 rounded-full shadow-2xl shadow-red-600/40 border-4 border-red-300 transition-all duration-300 hover:scale-105 active:scale-95 group relative"
+                    >
+                        <span className="absolute inset-0 rounded-full border-4 border-red-500 animate-ping opacity-75"></span>
+                        <FiAlertTriangle className="text-xl animate-pulse relative z-10" />
+                        <span className="text-xs uppercase tracking-widest relative z-10">{activeEmergencies.length} ACTIVE EMERGENCY</span>
+                    </button>
+                </div>
+            )}
+
+            {/* EMERGENCY DETAIL ALERTS MODAL POPUP */}
+            {showEmergencyModal && activeEmergencies.length > 0 && (
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-[999999] flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-[#121212] rounded-[40px] p-8 max-w-2xl w-full border border-red-100 dark:border-red-950/40 shadow-2xl animate-in zoom-in-95 duration-300 max-h-[85vh] flex flex-col">
+                        <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-150 dark:border-gray-800">
+                            <div className="flex items-center gap-3 text-red-600">
+                                <FiAlertTriangle className="text-3xl animate-pulse" />
+                                <div>
+                                    <h3 className="text-2xl font-black">Active Emergencies</h3>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">High-priority evacuation and medical dispatch requests</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setShowEmergencyModal(false)}
+                                className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 text-gray-500 dark:text-gray-400 flex items-center justify-center transition"
+                            >
+                                <FiX size={20} />
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-thin">
+                            {activeEmergencies.map((alert) => (
+                                <div
+                                    key={alert.id}
+                                    className="p-6 rounded-3xl bg-red-50/50 dark:bg-red-950/10 border border-red-100/50 dark:border-red-950/20 flex flex-col md:flex-row md:items-center justify-between gap-6"
+                                >
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className="px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-[10px] font-black uppercase tracking-wider">
+                                                ID: #{alert.id}
+                                            </span>
+                                            <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">
+                                                {new Date(alert.createdAt).toLocaleString()}
+                                            </span>
+                                        </div>
+                                        <h4 className="font-bold text-gray-900 dark:text-white text-base">
+                                            {alert.notes || 'Emergency Evacuation Dispatch Alert'}
+                                        </h4>
+                                        <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                                            <span className="flex items-center gap-1">
+                                                📍 Coordinates: <strong>{Number(alert.latitude).toFixed(5)}, {Number(alert.longitude).toFixed(5)}</strong>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <a
+                                            href={`https://www.google.com/maps/search/?api=1&query=${alert.latitude},${alert.longitude}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-black hover:bg-gray-800 font-bold text-xs uppercase tracking-wider rounded-xl transition whitespace-nowrap"
+                                        >
+                                            View Map
+                                        </a>
+                                        <button
+                                            onClick={() => handleResolveEmergency(alert.id)}
+                                            disabled={isResolving === alert.id}
+                                            className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition whitespace-nowrap disabled:opacity-50"
+                                        >
+                                            {isResolving === alert.id ? 'Resolving...' : 'Resolve'}
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div >
     );
 }
 
