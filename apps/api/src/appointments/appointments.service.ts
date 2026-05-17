@@ -13,6 +13,10 @@ import { NotificationService } from '../notification/notification.service';
 import { User } from '../users/entities/user.entity';
 import { SystemSettingsService } from '../system-settings/system-settings.service';
 import { AmbulanceSubscription } from '../ambulance/entities/ambulance-subscription.entity';
+import { generateAppointmentPdf } from './pdf-generator.util';
+import { Prescription } from '../pharmacy/entities/prescription.entity';
+import { LabOrder } from '../laboratory/entities/lab-order.entity';
+import { MedicalRecord } from '../medical-records/entities/medical-record.entity';
 
 
 @Injectable()
@@ -497,6 +501,32 @@ export class AppointmentsService {
     if (status === AppointmentStatus.COMPLETED) {
       // Release funds to doctor wallet
       await this.financialService.releaseFunds(id);
+      
+      // Auto-send the completed report to the patient!
+      try {
+        const appointmentWithRelations = await this.appointmentsRepository.findOne({
+          where: { id },
+          relations: ['patient', 'doctor', 'service'],
+        });
+        if (appointmentWithRelations?.patient && appointmentWithRelations?.patient.email) {
+          const pdfBuffer = await this.generatePdfReport(id);
+          await this.emailService.sendMailWithContext({
+            to: appointmentWithRelations.patient.email,
+            subject: `Your Appointment Report - #${id}`,
+            text: `Dear ${appointmentWithRelations.patient.fname || 'Patient'},\n\nYour appointment #${id} has been completed. Please find your detailed appointment report attached.\n\nThank you for choosing Mclinic.`,
+            attachments: [
+              {
+                filename: `Appointment_Report_${id}.pdf`,
+                content: pdfBuffer,
+                contentType: 'application/pdf',
+              },
+            ],
+          });
+          console.log(`[Appointments] Auto-sent completed PDF report to ${appointmentWithRelations.patient.email}`);
+        }
+      } catch (err) {
+        console.error('[Appointments] Failed to auto-send completed PDF report', err);
+      }
     }
 
     return this.appointmentsRepository.findOne({ where: { id } });
@@ -540,5 +570,38 @@ export class AppointmentsService {
       throw new NotFoundException(`Appointment #${id} not found`);
     }
     await this.appointmentsRepository.delete(id);
+  }
+
+  async generatePdfReport(appointmentId: number): Promise<Buffer> {
+    const appointment = await this.appointmentsRepository.findOne({
+      where: { id: appointmentId },
+      relations: ['patient', 'doctor', 'service', 'invoice'],
+    });
+
+    if (!appointment) {
+      throw new NotFoundException(`Appointment #${appointmentId} not found for report generation.`);
+    }
+
+    // Fetch related items via manager to avoid cyclic dependencies
+    const prescriptions = await this.appointmentsRepository.manager.find(Prescription, {
+      where: { appointmentId: appointmentId } as any,
+      relations: ['items'],
+    }).catch(() => []);
+
+    const labOrders = await this.appointmentsRepository.manager.find(LabOrder, {
+      where: { appointmentId: appointmentId } as any,
+      relations: ['test'],
+    }).catch(() => []);
+
+    const medicalRecords = await this.appointmentsRepository.manager.find(MedicalRecord, {
+      where: { appointmentId: appointmentId } as any,
+    }).catch(() => []);
+
+    // Also try to fetch recommendations if they exist via raw query since the entity might not be registered properly
+    const medicRecommendations = await this.appointmentsRepository.manager.query(
+      `SELECT * FROM recommendation WHERE appointment_id = ?`, [appointmentId]
+    ).catch(() => []);
+
+    return generateAppointmentPdf(appointment, prescriptions, labOrders, medicalRecords, medicRecommendations);
   }
 }

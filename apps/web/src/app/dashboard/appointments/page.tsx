@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { useAuth, UserRole } from '@/lib/auth';
-import { FiVideo } from 'react-icons/fi';
+import { FiVideo, FiDownload } from 'react-icons/fi';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import ViewAppointmentDetailsModal from '@/components/dashboard/appointments/ViewAppointmentDetailsModal';
@@ -11,6 +11,9 @@ import RateDoctorModal from '@/components/dashboard/appointments/RateDoctorModal
 import CreateAppointmentModal from '@/components/dashboard/appointments/CreateAppointmentModal';
 import BookAppointmentModal from '@/components/dashboard/appointments/BookAppointmentModal';
 import CompleteAppointmentModal from '@/components/dashboard/appointments/CompleteAppointmentModal';
+import { getApiBaseUrl } from '@/lib/api';
+
+const API_URL = getApiBaseUrl();
 
 export default function AppointmentsPage() {
     const { user } = useAuth();
@@ -254,6 +257,17 @@ export default function AppointmentsPage() {
                                              >
                                                  Details
                                              </button>
+
+                                             {/* Download PDF Action */}
+                                             <a
+                                                 href={`${API_URL}/appointments/${apt.id}/report/pdf`}
+                                                 target="_blank"
+                                                 rel="noopener noreferrer"
+                                                 className="text-[10px] font-black px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition uppercase tracking-tighter flex items-center gap-1"
+                                                 title="Download Report"
+                                             >
+                                                 <FiDownload size={12} /> PDF
+                                             </a>
 
                                              {/* Patient-side Actions */}
                                              {user?.id === Number(apt.patientId) && (

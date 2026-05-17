@@ -10,7 +10,9 @@ import {
   NotFoundException,
   ForbiddenException,
   Delete,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { AppointmentsService } from './appointments.service';
 import { AppointmentStatus } from './entities/appointment.entity';
 import { AuthGuard } from '@nestjs/passport';
@@ -144,5 +146,35 @@ export class AppointmentsController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.appointmentsService.remove(+id);
+  }
+  @UseGuards(AuthGuard('jwt'))
+  @Get(':id/report/pdf')
+  async downloadReportPdf(@Param('id') id: string, @Request() req: any, @Res() res: Response) {
+    const appointment = await this.appointmentsService.findOne(+id);
+    if (!appointment) {
+      throw new NotFoundException(`Appointment with ID ${id} not found`);
+    }
+
+    const currentUserId = req.user.sub || req.user.id;
+    const userRole = req.user.role;
+
+    const isPatient = Number(appointment.patientId || appointment.patient?.id) === Number(currentUserId);
+    const isDoctor = Number(appointment.doctorId || appointment.doctor?.id) === Number(currentUserId) || (appointment.doctor && Number(appointment.doctor.user_id) === Number(currentUserId));
+    const isAdmin = userRole === 'admin';
+    const isMedic = ['doctor', 'medic', 'nurse', 'clinician'].includes(userRole);
+
+    if (!isPatient && !isAdmin && !isMedic && !isDoctor) {
+      throw new ForbiddenException('You do not have permission to download this report');
+    }
+
+    const pdfBuffer = await this.appointmentsService.generatePdfReport(+id);
+    
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="Appointment_Report_${id}.pdf"`,
+      'Content-Length': pdfBuffer.length,
+    });
+
+    res.end(pdfBuffer);
   }
 }

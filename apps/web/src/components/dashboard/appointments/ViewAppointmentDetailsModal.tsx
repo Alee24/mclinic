@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FiX, FiUser, FiActivity, FiFileText, FiClock, FiPhone, FiMail, FiMapPin, FiBriefcase, FiAward, FiShield, FiShoppingBag, FiCalendar, FiDollarSign, FiVideo, FiHome } from 'react-icons/fi';
+import { FiX, FiUser, FiActivity, FiFileText, FiClock, FiPhone, FiMail, FiMapPin, FiBriefcase, FiAward, FiShield, FiShoppingBag, FiCalendar, FiDollarSign, FiVideo, FiHome, FiDownload } from 'react-icons/fi';
 import AddMedicalRecordModal from '@/components/dashboard/medical-records/AddMedicalRecordModal';
 import PrescribeMedicationModal from '@/components/dashboard/pharmacy/PrescribeMedicationModal';
 import PharmacyCheckoutModal from '@/components/dashboard/pharmacy/PharmacyCheckoutModal';
@@ -253,32 +253,44 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
                         </div>
 
                         {/* Action Buttons */}
-                        {isDoctor && (
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => setShowAddRecordModal(true)}
-                                    className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl font-bold text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
-                                >
-                                    <FiFileText /> Add Record
-                                </button>
-                                {user?.role !== 'nurse' && (
-                                    <>
-                                        <button
-                                            onClick={() => setShowPrescribeModal(true)}
-                                            className="px-4 py-2 bg-primary text-black rounded-xl font-bold text-sm hover:opacity-90 transition-opacity flex items-center gap-2"
-                                        >
-                                            <FiShoppingBag /> Prescribe Medication
-                                        </button>
-                                        <button
-                                            onClick={() => setShowPrescribeLabModal(true)}
-                                            className="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-colors flex items-center gap-2"
-                                        >
-                                            <FiActivity /> Prescribe Lab Test
-                                        </button>
-                                    </>
-                                )}
-                            </div>
-                        )}
+                        <div className="flex flex-col items-end gap-2">
+                            {/* Download PDF Action (For both Doctor and Patient) */}
+                            <a
+                                href={`${API_URL}/appointments/${appointment.id}/report/pdf`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-black text-sm hover:from-emerald-700 hover:to-teal-700 transition shadow-lg flex items-center gap-2"
+                            >
+                                <FiDownload size={18} /> Download Full Report
+                            </a>
+
+                            {isDoctor && (
+                                <div className="flex gap-2 mt-2">
+                                    <button
+                                        onClick={() => setShowAddRecordModal(true)}
+                                        className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl font-bold text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
+                                    >
+                                        <FiFileText /> Add Record
+                                    </button>
+                                    {user?.role !== 'nurse' && (
+                                        <>
+                                            <button
+                                                onClick={() => setShowPrescribeModal(true)}
+                                                className="px-4 py-2 bg-primary text-black rounded-xl font-bold text-sm hover:opacity-90 transition-opacity flex items-center gap-2"
+                                            >
+                                                <FiShoppingBag /> Prescribe Medication
+                                            </button>
+                                            <button
+                                                onClick={() => setShowPrescribeLabModal(true)}
+                                                className="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-colors flex items-center gap-2"
+                                            >
+                                                <FiActivity /> Prescribe Lab Test
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
                 
