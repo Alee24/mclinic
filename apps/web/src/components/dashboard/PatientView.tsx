@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
-import { FiCalendar, FiPlusSquare, FiFileText, FiActivity, FiMapPin, FiClock, FiVideo, FiAlertCircle, FiGrid, FiMessageCircle, FiPhone } from 'react-icons/fi';
+import { FiCalendar, FiPlusSquare, FiFileText, FiActivity, FiMapPin, FiClock, FiVideo, FiAlertCircle, FiGrid, FiMessageCircle, FiPhone, FiTruck } from 'react-icons/fi';
 import { useAuth } from '@/lib/auth';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import BookAppointmentModal from './appointments/BookAppointmentModal';
 import ViewAppointmentDetailsModal from './appointments/ViewAppointmentDetailsModal';
+import toast from 'react-hot-toast';
 
 export default function PatientView() {
     const { user } = useAuth();
@@ -26,6 +27,81 @@ export default function PatientView() {
         medicalRecords: 0,
         visitsThisYear: 0
     });
+    const [isTriggeringEmergency, setIsTriggeringEmergency] = useState(false);
+
+    const handlePaySubscription = async (subId: number) => {
+        try {
+            const res = await api.post(`/ambulance/${subId}/pay`, {});
+            if (res?.ok) {
+                toast.success('Subscription activated successfully!');
+                fetchPatientData();
+            } else {
+                toast.error('Failed to activate subscription.');
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error('An error occurred during payment.');
+        }
+    };
+
+    const triggerEmergencyAlert = async () => {
+        setIsTriggeringEmergency(true);
+        
+        // 1. Get Location
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const { latitude, longitude } = position.coords;
+                    try {
+                        const res = await api.post('/emergency/alert', { lat: latitude, lng: longitude });
+                        if (res && res.ok) {
+                            toast.success('Ambulance Dispatched! Clinical team notified.');
+                        } else {
+                            toast.error('Alert sent, but dispatch team status is pending.');
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        toast.error('Failed to alert emergency team. Contacting default center.');
+                    } finally {
+                        setIsTriggeringEmergency(false);
+                    }
+                },
+                async (err) => {
+                    console.error('Geolocation failed', err);
+                    // Fallback to sending alert without coordinates
+                    try {
+                        const res = await api.post('/emergency/alert', { lat: 0, lng: 0 });
+                        if (res && res.ok) {
+                            toast.success('Alert sent! Dispatcher calling you back now.');
+                        } else {
+                            toast.error('Alert submission pending.');
+                        }
+                    } catch (e) {
+                        toast.error('Connection timeout.');
+                    } finally {
+                        setIsTriggeringEmergency(false);
+                    }
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        } else {
+            // No geolocation support
+            try {
+                const res = await api.post('/emergency/alert', { lat: 0, lng: 0 });
+                if (res && res.ok) {
+                    toast.success('Alert sent! Dispatcher calling you back now.');
+                }
+            } catch (e) {
+                toast.error('Connection timeout.');
+            } finally {
+                setIsTriggeringEmergency(false);
+            }
+        }
+    };
 
     const fetchPatientData = async () => {
         try {
@@ -164,99 +240,9 @@ export default function PatientView() {
                 </div>
             </div>
 
-            {/* Top Bar - Quick Actions */}
-            <div className="bg-white dark:bg-[#111] rounded-[32px] p-6 shadow-sm border border-gray-100 dark:border-gray-800">
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Quick Actions</h2>
-                    <Link href="/dashboard/services-hub" className="text-xs font-bold text-donezo-dark hover:underline">View All</Link>
-                </div>
-
-                <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-                    {/* Book Appointment */}
-                    <button
-                        onClick={() => setShowBookingModal(true)}
-                        className="flex flex-col items-center justify-center gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-2xl font-bold transition-all active:scale-95 group border border-blue-100 dark:border-blue-800/50"
-                    >
-                        <div className="w-10 h-10 bg-white dark:bg-blue-500/20 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                            <FiCalendar className="text-xl" />
-                        </div>
-                        <span className="text-xs text-center">Book<br />Appointment</span>
-                    </button>
-
-                    {/* Order Lab Test */}
-                    <Link
-                        href="/dashboard/lab"
-                        className="flex flex-col items-center justify-center gap-3 p-4 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/40 text-purple-600 dark:text-purple-400 rounded-2xl font-bold transition-all active:scale-95 group border border-purple-100 dark:border-purple-800/50"
-                    >
-                        <div className="w-10 h-10 bg-white dark:bg-purple-500/20 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                            <FiActivity className="text-xl" />
-                        </div>
-                        <span className="text-xs text-center">Order Lab<br />Test</span>
-                    </Link>
-
-                    {/* Find Nearby Doctors */}
-                    <Link
-                        href="/dashboard/doctors"
-                        className="flex flex-col items-center justify-center gap-3 p-4 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 text-green-600 dark:text-green-400 rounded-2xl font-bold transition-all active:scale-95 group border border-green-100 dark:border-green-800/50"
-                    >
-                        <div className="w-10 h-10 bg-white dark:bg-green-500/20 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                            <FiMapPin className="text-xl" />
-                        </div>
-                        <span className="text-xs text-center">Find<br />Doctors</span>
-                    </Link>
-
-                    {/* Emergency Ambulance */}
-                    <Link
-                        href="/dashboard/ambulance"
-                        className="flex flex-col items-center justify-center gap-3 p-4 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 rounded-2xl font-bold transition-all active:scale-95 group border border-red-100 dark:border-red-800/50"
-                    >
-                        <div className="w-10 h-10 bg-white dark:bg-red-500/20 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                            <FiAlertCircle className="text-xl" />
-                        </div>
-                        <span className="text-xs text-center">Emergency<br />Ambulance</span>
-                    </Link>
-
-                    {/* All Services */}
-                    <Link
-                        href="/dashboard/services-hub"
-                        className="flex flex-col items-center justify-center gap-3 p-4 bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-2xl font-bold transition-all active:scale-95 group border border-gray-100 dark:border-gray-700"
-                    >
-                        <div className="w-10 h-10 bg-white dark:bg-gray-700 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                            <FiGrid className="text-xl" />
-                        </div>
-                        <span className="text-xs text-center">All<br />Services</span>
-                    </Link>
-                </div>
-
-                {/* Secondary Actions Row */}
-                <div className="grid grid-cols-3 gap-3 mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
-                    <Link
-                        href="/dashboard/pharmacy"
-                        className="flex items-center justify-center gap-2 py-2 text-gray-500 dark:text-gray-400 hover:text-donezo-dark dark:hover:text-white font-bold text-xs transition bg-gray-50 dark:bg-transparent dark:hover:bg-gray-800 rounded-xl"
-                    >
-                        <FiPlusSquare className="text-sm" />
-                        Pharmacy
-                    </Link>
-                    <Link
-                        href="/dashboard/support"
-                        className="flex items-center justify-center gap-2 py-2 text-gray-500 dark:text-gray-400 hover:text-donezo-dark dark:hover:text-white font-bold text-xs transition bg-gray-50 dark:bg-transparent dark:hover:bg-gray-800 rounded-xl"
-                    >
-                        <FiMessageCircle className="text-sm" />
-                        Support
-                    </Link>
-                    <a
-                        href="tel:0700448448"
-                        className="flex items-center justify-center gap-2 py-2 text-gray-500 dark:text-gray-400 hover:text-donezo-dark dark:hover:text-white font-bold text-xs transition bg-gray-50 dark:bg-transparent dark:hover:bg-gray-800 rounded-xl"
-                    >
-                        <FiPhone className="text-sm" />
-                        Call Us
-                    </a>
-                </div>
-            </div>
-
             {/* Active Subscription Banner */}
             {subscriptions.find((s: any) => s.status === 'active') && (
-                <div className="bg-red-500 rounded-[32px] p-6 text-white relative overflow-hidden shadow-xl shadow-red-500/20 flex items-center justify-between">
+                <div className="bg-emerald-600 rounded-[32px] p-6 text-white relative overflow-hidden shadow-xl shadow-emerald-600/20 flex items-center justify-between">
                     <div className="relative z-10 flex items-center gap-6">
                         <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-3xl backdrop-blur-sm">🚑</div>
                         <div>
@@ -264,7 +250,7 @@ export default function PatientView() {
                             <p className="opacity-90 font-medium">Your <strong>{subscriptions.find((s: any) => s.status === 'active').package_type}</strong> is active until {new Date(subscriptions.find((s: any) => s.status === 'active').end_date).toLocaleDateString()}.</p>
                         </div>
                     </div>
-                    <Link href="/dashboard/ambulance" className="hidden md:block bg-white text-red-600 px-6 py-3 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-red-50 transition-colors">
+                    <Link href="/dashboard/ambulance" className="hidden md:block bg-white text-emerald-600 px-6 py-3 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-emerald-50 transition-colors">
                         Manage Plan
                     </Link>
                     <div className="absolute -right-10 -bottom-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
@@ -281,9 +267,12 @@ export default function PatientView() {
                             <p className="opacity-90 font-medium">Payment required to activate your <strong>{subscriptions.find((s: any) => s.status === 'pending_payment').package_type}</strong> plan.</p>
                         </div>
                     </div>
-                    <Link href="/dashboard/finance/invoices" className="hidden md:block bg-white text-orange-600 px-6 py-3 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-orange-50 transition-all animate-slow-pulse">
+                    <button
+                        onClick={() => handlePaySubscription(subscriptions.find((s: any) => s.status === 'pending_payment').id)}
+                        className="hidden md:block bg-white text-orange-600 px-6 py-3 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-orange-50 transition-all"
+                    >
                         Pay Now
-                    </Link>
+                    </button>
                     <div className="absolute -right-10 -bottom-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
                 </div>
             )}
@@ -358,6 +347,50 @@ export default function PatientView() {
                     appointment={selectedAppointment}
                     onClose={() => setShowDetailsModal(false)}
                 />
+            )}
+
+            {/* FLOATING GREEN EMERGENCY EVACUATION BUTTON */}
+            {subscriptions.some((s: any) => s.status === 'active') && (
+                <div className="fixed bottom-8 right-8 z-50 flex flex-col items-end gap-3 group">
+                    {/* Hover Status/Tooltip */}
+                    <div className="bg-black/85 backdrop-blur-md border border-white/10 text-white text-[10px] font-black uppercase tracking-wider px-4 py-2 rounded-xl shadow-xl transition-all duration-300 translate-y-2 opacity-0 pointer-events-none group-hover:translate-y-0 group-hover:opacity-100 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Ambulance Plan Active
+                    </div>
+                    
+                    <button
+                        onClick={triggerEmergencyAlert}
+                        disabled={isTriggeringEmergency}
+                        className="flex items-center justify-center gap-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black px-6 py-4 rounded-full shadow-2xl shadow-emerald-600/40 border-4 border-emerald-300 transition-all duration-300 hover:scale-105 active:scale-95 animate-pulse"
+                    >
+                        <FiTruck className="text-xl" />
+                        <span className="text-xs uppercase tracking-widest">EMERGENCY EVACUATION</span>
+                    </button>
+                </div>
+            )}
+
+            {isTriggeringEmergency && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-[#121212] rounded-[40px] p-8 max-w-md w-full border border-gray-100 dark:border-gray-800 text-center shadow-2xl animate-in zoom-in-95 duration-300">
+                        <div className="w-24 h-24 bg-emerald-100/50 dark:bg-emerald-950/30 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 relative">
+                            <span className="absolute inset-0 border-4 border-emerald-500 rounded-full animate-ping opacity-70"></span>
+                            <FiTruck className="text-4xl" />
+                        </div>
+                        <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2">Emergency Dispatching...</h3>
+                        <p className="text-gray-500 text-sm mb-6">
+                            Acquiring GPS coordinates to pinpoint your location and alert our 24/7 medical response team. Keep this app open.
+                        </p>
+                        <div className="h-1.5 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden mb-6">
+                            <div className="h-full bg-emerald-500 rounded-full animate-pulse" style={{ width: '100%' }}></div>
+                        </div>
+                        <button
+                            onClick={() => setIsTriggeringEmergency(false)}
+                            className="text-xs font-black uppercase tracking-widest text-red-500 hover:text-red-600 transition"
+                        >
+                            Cancel Request
+                        </button>
+                    </div>
+                </div>
             )}
         </div >
     );

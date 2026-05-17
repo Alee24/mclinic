@@ -34,4 +34,10 @@ export class AmbulanceController {
     findOne(@Param('id') id: string) {
         return this.service.findOne(+id);
     }
+
+    @UseGuards(AuthGuard('jwt'))
+    @Post(':id/pay')
+    pay(@Param('id') id: string) {
+        return this.service.updateStatus(+id, 'active');
+    }
 }

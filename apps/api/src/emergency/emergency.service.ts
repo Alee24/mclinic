@@ -10,15 +10,16 @@ export class EmergencyService {
         private emergencyRepository: Repository<EmergencyAlert>,
     ) { }
 
-    async create(medicId: number, latitude: number, longitude: number) {
+    async create(medicId: number | null, latitude: number, longitude: number, notes?: string) {
         const alert = this.emergencyRepository.create({
-            medic: { id: medicId } as any,
+            medic: medicId ? ({ id: medicId } as any) : undefined,
             latitude,
             longitude,
             status: 'active',
+            notes: notes || undefined,
         });
         // Here you would trigger WebSocket / SMS to admin
-        console.log(`[Urgent] Panic Alert from Medic ${medicId} at ${latitude}, ${longitude}`);
+        console.log(`[Urgent] Panic Alert: ${notes || `Medic ${medicId}`} at ${latitude}, ${longitude}`);
         return this.emergencyRepository.save(alert);
     }
 

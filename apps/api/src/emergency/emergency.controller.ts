@@ -11,17 +11,18 @@ export class EmergencyController {
     constructor(private readonly emergencyService: EmergencyService) { }
 
     @Post('alert')
-    async triggerAlert(@Request() req: any, @Body() body: { lat: number; lng: number }) {
-        // Determine medicId. If user is doctor/medic, use doctorId from token/req
-        // req.user might have doctorId if AuthService attached it, or we rely on userId and look it up.
-        // Assuming req.user.doctorId exists or we use req.user.id if they are the medic User.
-        // For safety, let's assume req.user.doctorId is populated or passed.
-        // If not, we might need to lookup. But let's try req.user.doctorId first.
+    async triggerAlert(@Request() req: any, @Body() body: { lat: number; lng: number; notes?: string }) {
+        let medicId: number | null = null;
+        let notes = body.notes || '';
 
-        // Fallback: if body has medicId (for testing)
-        const medicId = req.user.doctorId || req.user.sub || req.user.id;
+        const isPatient = req.user && req.user.role === 'patient';
+        if (!isPatient) {
+            medicId = req.user.doctorId || req.user.sub || req.user.id;
+        } else {
+            notes = `Patient Emergency Evacuation Request: User #${req.user.id} (${req.user.email}) - Active Ambulance Subscription`;
+        }
 
-        return this.emergencyService.create(medicId, body.lat, body.lng);
+        return this.emergencyService.create(medicId, body.lat, body.lng, notes);
     }
 
     @Post(':id/audio')
