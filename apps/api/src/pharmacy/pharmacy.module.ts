@@ -2,6 +2,7 @@ import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PharmacyService } from './pharmacy.service';
 import { PharmacyController } from './pharmacy.controller';
+import { PublicPharmacyController } from './public-pharmacy.controller';
 import { Medication } from './entities/medication.entity';
 import { Prescription } from './entities/prescription.entity';
 import { PrescriptionItem } from './entities/prescription-item.entity';
@@ -19,7 +20,7 @@ import { PharmacyOrderItem } from './entities/pharmacy-order-item.entity';
         forwardRef(() => FinancialModule),
         NotificationModule,
     ],
-    controllers: [PharmacyController],
+    controllers: [PharmacyController, PublicPharmacyController],
     providers: [PharmacyService],
     exports: [PharmacyService],
 })

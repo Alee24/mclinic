@@ -57,6 +57,9 @@ export class Prescription {
     notes: string; // Doctor's general notes
 
     @Column({ nullable: true })
+    verificationCode: string;
+
+    @Column({ nullable: true })
     validUntil: Date;
 
     @CreateDateColumn()

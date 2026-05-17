@@ -6,6 +6,7 @@ import AddMedicalRecordModal from '@/components/dashboard/medical-records/AddMed
 import PrescribeMedicationModal from '@/components/dashboard/pharmacy/PrescribeMedicationModal';
 import PharmacyCheckoutModal from '@/components/dashboard/pharmacy/PharmacyCheckoutModal';
 import MedicRecommendationsCard from '@/components/dashboard/appointments/MedicRecommendationsCard';
+import PrescribeLabModal from '@/components/dashboard/appointments/PrescribeLabModal';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
@@ -45,6 +46,7 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
     // Modals
     const [showAddRecordModal, setShowAddRecordModal] = useState(false);
     const [showPrescribeModal, setShowPrescribeModal] = useState(false);
+    const [showPrescribeLabModal, setShowPrescribeLabModal] = useState(false);
     const [showCheckoutModal, setShowCheckoutModal] = useState(false);
     const [activePrescription, setActivePrescription] = useState<any>(null);
 
@@ -252,12 +254,20 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
                                     <FiFileText /> Add Record
                                 </button>
                                 {user?.role !== 'nurse' && (
-                                    <button
-                                        onClick={() => setShowPrescribeModal(true)}
-                                        className="px-4 py-2 bg-primary text-black rounded-xl font-bold text-sm hover:opacity-90 transition-opacity flex items-center gap-2"
-                                    >
-                                        <FiShoppingBag /> Prescribe
-                                    </button>
+                                    <>
+                                        <button
+                                            onClick={() => setShowPrescribeModal(true)}
+                                            className="px-4 py-2 bg-primary text-black rounded-xl font-bold text-sm hover:opacity-90 transition-opacity flex items-center gap-2"
+                                        >
+                                            <FiShoppingBag /> Prescribe Medication
+                                        </button>
+                                        <button
+                                            onClick={() => setShowPrescribeLabModal(true)}
+                                            className="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-colors flex items-center gap-2"
+                                        >
+                                            <FiActivity /> Prescribe Lab Test
+                                        </button>
+                                    </>
                                 )}
                             </div>
                         )}
@@ -758,14 +768,27 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
                 />
             )}
 
+            {showPrescribeLabModal && (
+                <PrescribeLabModal
+                    appointment={appointment}
+                    onClose={() => setShowPrescribeLabModal(false)}
+                    onSuccess={() => {
+                        setShowPrescribeLabModal(false);
+                        setRefreshTrigger(prev => prev + 1);
+                    }}
+                />
+            )}
+
             {showCheckoutModal && activePrescription && (
                 <PharmacyCheckoutModal
                     items={activePrescription.items || []}
                     user={user}
                     prescriptionId={activePrescription.id}
+                    prescription={activePrescription}
+                    appointment={appointment}
                     onClose={() => setShowCheckoutModal(false)}
                     onSuccess={() => {
-                        // potentially refresh to show status change
+                        setRefreshTrigger(prev => prev + 1);
                     }}
                 />
             )}

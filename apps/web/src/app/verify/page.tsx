@@ -34,7 +34,7 @@ export default function VerifyPage() {
                 endpoint = '/doctors';
                 params = { licenseNumber: searchQuery };
             } else {
-                endpoint = '/pharmacy/prescriptions';
+                endpoint = '/public/pharmacy/prescriptions/verify';
                 params = { code: searchQuery };
             }
 

@@ -99,6 +99,8 @@ export class PharmacyService {
             throw new NotFoundException('User role not authorized to prescribe medications or lacks prescription powers.');
         }
 
+        const verificationCode = `RX-${Date.now().toString().slice(-4)}-${Math.floor(1000 + Math.random() * 9000)}`;
+
         const prescription = this.prescriptionRepo.create({
             doctorId: data.doctorId,
             patientId: data.patientId,
@@ -107,7 +109,8 @@ export class PharmacyService {
             status: PrescriptionStatus.PENDING,
             // 3. Snapshot Credentials
             doctorSignatureUrl: doctor.signatureUrl,
-            doctorStampUrl: doctor.stampUrl
+            doctorStampUrl: doctor.stampUrl,
+            verificationCode
         });
 
         const savedPrescription = await this.prescriptionRepo.save(prescription);
@@ -323,6 +326,13 @@ export class PharmacyService {
         }
 
         return this.pharmacyOrderRepo.findOne({ where: { id } });
+    }
+
+    async verifyPrescriptionByCode(code: string) {
+        return this.prescriptionRepo.findOne({
+            where: { verificationCode: code },
+            relations: ['items', 'items.medication', 'doctor', 'patient', 'appointment'],
+        });
     }
 
     async uploadMedications(file: Express.Multer.File) {
