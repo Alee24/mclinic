@@ -54,6 +54,7 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
     const [medicalProfile, setMedicalProfile] = useState<any>(null);
     const [prescriptions, setPrescriptions] = useState<any[]>([]);
     const [medicalRecords, setMedicalRecords] = useState<any[]>([]);
+    const [labOrders, setLabOrders] = useState<any[]>([]);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     const [loadingData, setLoadingData] = useState(true);
@@ -88,6 +89,12 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
                     const recRes = await api.get(`/medical-records/appointment/${appointment.id}`);
                     if (recRes?.ok) {
                         setMedicalRecords(await recRes.json());
+                    }
+
+                    // 4. Fetch Prescribed Lab Tests
+                    const labRes = await api.get(`/laboratory/orders/appointment/${appointment.id}`);
+                    if (labRes?.ok) {
+                        setLabOrders(await labRes.json());
                     }
                 }
             } catch (err) {
@@ -694,6 +701,70 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
                                                         Order Medication
                                                     </button>
                                                 )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Prescribed Lab Tests Section */}
+                            <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                                        <FiActivity className="text-primary" />
+                                        Prescribed Lab Tests
+                                    </h3>
+                                </div>
+
+                                {loadingData ? (
+                                    <div className="text-center py-8 text-gray-400">Loading lab orders...</div>
+                                ) : labOrders.length === 0 ? (
+                                    <div className="text-center py-8 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-xl">
+                                        <p className="text-gray-400 text-sm">No lab tests prescribed for this visit.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {labOrders.map((order) => (
+                                            <div key={order.id} className="p-4 bg-gray-50 dark:bg-black/20 rounded-xl border border-gray-100 dark:border-gray-800">
+                                                <div className="flex justify-between items-start mb-3">
+                                                    <div>
+                                                        <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                                                            {order.test?.category || 'Laboratory'}
+                                                        </span>
+                                                        <h4 className="font-bold text-sm dark:text-white mt-1.5">{order.test?.name}</h4>
+                                                    </div>
+                                                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
+                                                        order.status === 'completed' ? 'bg-green-100 text-green-700 dark:bg-green-950/20' :
+                                                        order.status === 'processing' ? 'bg-blue-100 text-blue-700 dark:bg-blue-950/20' :
+                                                        order.status === 'sample_received' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/20' :
+                                                        order.status === 'cancelled' ? 'bg-red-100 text-red-700 dark:bg-red-950/20' :
+                                                        'bg-yellow-100 text-yellow-700 dark:bg-yellow-950/20'
+                                                    }`}>
+                                                        {order.status}
+                                                    </span>
+                                                </div>
+
+                                                <div className="space-y-1.5 text-xs text-gray-500 dark:text-gray-400">
+                                                    {order.notes && (
+                                                        <p><span className="font-semibold text-gray-700 dark:text-gray-300">Instructions:</span> {order.notes}</p>
+                                                    )}
+                                                    {order.sample_collection_date && (
+                                                        <p><span className="font-semibold text-gray-700 dark:text-gray-300">Preferred Date:</span> {new Date(order.sample_collection_date).toLocaleDateString()}</p>
+                                                    )}
+                                                    <p><span className="font-semibold text-gray-700 dark:text-gray-300">Cost:</span> KES {Number(order.test?.price || 0).toLocaleString()}</p>
+                                                    {order.report_url && (
+                                                        <div className="pt-2">
+                                                            <a
+                                                                href={`/api/uploads/reports/${order.report_url}`}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs font-bold hover:bg-green-700 transition"
+                                                            >
+                                                                <FiFileText size={12} /> View Lab Report / Results
+                                                            </a>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                         ))}
                                     </div>

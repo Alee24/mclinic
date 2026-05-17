@@ -103,12 +103,21 @@ export default function MedicalRecordsPage() {
 
                 // 4. Attach Lab Orders
                 labOrders.forEach((lab: any) => {
-                    merged.set(-(lab.id + 20000), {
-                        id: `lab-${lab.id}`,
-                        date: new Date(lab.createdAt),
-                        labOrder: lab,
-                        type: 'LAB_ORDER'
-                    });
+                    const aptId = lab.appointment_id || lab.appointmentId;
+                    if (aptId && merged.has(Number(aptId))) {
+                        const existing = merged.get(Number(aptId))!;
+                        existing.labOrder = lab;
+                        if (existing.type === 'APPOINTMENT_ONLY') {
+                            existing.type = 'FULL_RECORD';
+                        }
+                    } else {
+                        merged.set(-(lab.id + 20000), {
+                            id: `lab-${lab.id}`,
+                            date: new Date(lab.createdAt),
+                            labOrder: lab,
+                            type: 'LAB_ORDER'
+                        });
+                    }
                 });
 
                 // 5. Attach Pharmacy Orders
@@ -450,6 +459,63 @@ export default function MedicalRecordsPage() {
                                             )}
                                         </div>
                                     )}
+                                </div>
+                            )}
+
+                            {/* Lab Order Section (Nested inside appointment) */}
+                            {item.labOrder && item.type !== 'LAB_ORDER' && (
+                                <div className="mt-4 border-t border-dashed border-gray-200 dark:border-gray-700 pt-4">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <h4 className="text-xs font-bold text-purple-500 uppercase flex items-center gap-2">
+                                            <FiDroplet /> Prescribed Lab Test: {item.labOrder.test?.name}
+                                        </h4>
+                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase ${
+                                            item.labOrder.status === 'completed' ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-950/20 dark:border-green-900/30 dark:text-green-300' :
+                                            item.labOrder.status === 'processing' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/20 dark:border-blue-900/30 dark:text-blue-300' :
+                                            item.labOrder.status === 'sample_received' ? 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/20 dark:border-indigo-900/30 dark:text-indigo-300' :
+                                            'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-900/30 dark:text-yellow-300'
+                                        }`}>
+                                            {item.labOrder.status}
+                                        </span>
+                                    </div>
+                                    <div className="bg-purple-50/50 dark:bg-purple-900/10 rounded-xl p-3 space-y-2">
+                                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                                            <span className="font-semibold text-gray-700 dark:text-gray-300">Category:</span> {item.labOrder.test?.category || 'General Laboratory'}
+                                        </div>
+                                        {item.labOrder.notes && (
+                                            <div className="text-xs text-gray-500 italic">
+                                                Instructions: "{item.labOrder.notes}"
+                                            </div>
+                                        )}
+                                        {item.labOrder.sample_collection_date && (
+                                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                                                <span className="font-semibold text-gray-700 dark:text-gray-300">Preferred Date:</span> {new Date(item.labOrder.sample_collection_date).toLocaleDateString()}
+                                            </div>
+                                        )}
+                                        {item.labOrder.results?.length > 0 && (
+                                            <div className="mt-2 pt-2 border-t border-purple-100 dark:border-purple-950 space-y-1.5">
+                                                <p className="text-[10px] font-black text-purple-650 dark:text-purple-400 uppercase">Results:</p>
+                                                {item.labOrder.results.map((res: any, idx: number) => (
+                                                    <div key={idx} className="flex justify-between text-xs">
+                                                        <span className="font-medium text-gray-800 dark:text-gray-200">{res.parameter_name}</span>
+                                                        <span className="text-gray-900 dark:text-white font-bold">{res.value} <span className="text-xs text-gray-500 font-normal">{res.unit}</span></span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {item.labOrder.report_url && (
+                                            <div className="pt-2">
+                                                <a
+                                                    href={`/api/uploads/reports/${item.labOrder.report_url}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg text-[10px] font-bold transition"
+                                                >
+                                                    <FiFileText size={10} /> View Lab Report / Results
+                                                </a>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             )}
 

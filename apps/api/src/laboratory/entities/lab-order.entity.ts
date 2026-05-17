@@ -64,6 +64,12 @@ export class LabOrder {
     @Column({ type: 'text', nullable: true })
     technicianNotes: string; // Explanation from Lab Tech
 
+    @Column({ type: 'int', nullable: true })
+    appointment_id: number | null;
+
+    @Column({ type: 'text', nullable: true })
+    notes: string; // Clinical notes from the prescribing doctor
+
     @CreateDateColumn()
     createdAt: Date;
 

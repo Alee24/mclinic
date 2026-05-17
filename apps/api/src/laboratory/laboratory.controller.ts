@@ -49,6 +49,12 @@ export class LaboratoryController {
         return this.labService.getOrders(req.user);
     }
 
+    @Get('orders/appointment/:appointmentId')
+    @UseGuards(AuthGuard('jwt'))
+    getOrdersByAppointment(@Param('appointmentId') appointmentId: number) {
+        return this.labService.getOrdersByAppointment(Number(appointmentId));
+    }
+
     @Get('orders/:id')
     @UseGuards(AuthGuard('jwt'))
     getOrder(@Param('id') id: string) {

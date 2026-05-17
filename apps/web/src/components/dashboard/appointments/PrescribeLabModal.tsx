@@ -59,6 +59,7 @@ export default function PrescribeLabModal({ appointment, onClose, onSuccess }: P
             const payload = {
                 testId: selectedTest.id,
                 patientId: appointment.patientId || appointment.patient?.id,
+                appointmentId: appointment.id,
                 isForSelf: appointment.isForSelf ?? true,
                 beneficiaryName: appointment.beneficiaryName,
                 beneficiaryAge: appointment.beneficiaryAge,

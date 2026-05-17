@@ -66,7 +66,9 @@ export class LaboratoryService {
             beneficiaryName: beneficiaryData?.beneficiaryName,
             beneficiaryAge: beneficiaryData?.beneficiaryAge,
             beneficiaryGender: beneficiaryData?.beneficiaryGender,
-            sample_collection_date: beneficiaryData?.sampleDate ? new Date(beneficiaryData.sampleDate) : undefined
+            sample_collection_date: beneficiaryData?.sampleDate ? new Date(beneficiaryData.sampleDate) : undefined,
+            appointment_id: beneficiaryData?.appointmentId ? Number(beneficiaryData.appointmentId) : undefined,
+            notes: beneficiaryData?.notes || undefined
         });
         const savedOrder = await this.orderRepo.save(order);
 
@@ -167,5 +169,13 @@ export class LaboratoryService {
         // Or keep separate step? Usually separate Validation step.
 
         return savedResults;
+    }
+
+    async getOrdersByAppointment(appointmentId: number) {
+        return this.orderRepo.find({
+            where: { appointment_id: appointmentId },
+            relations: ['test', 'results'],
+            order: { createdAt: 'DESC' }
+        });
     }
 }
