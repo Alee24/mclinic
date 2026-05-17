@@ -12,6 +12,7 @@ import { Wallet } from '../wallets/entities/wallet.entity';
 import { Doctor } from '../doctors/entities/doctor.entity';
 import { WalletsModule } from '../wallets/wallets.module';
 import { MpesaModule } from '../mpesa/mpesa.module';
+import { EmailModule } from '../email/email.module';
 
 @Module({
   imports: [
@@ -26,9 +27,11 @@ import { MpesaModule } from '../mpesa/mpesa.module';
     ]),
     WalletsModule,
     forwardRef(() => MpesaModule),
+    EmailModule,
   ],
   controllers: [FinancialController],
   providers: [FinancialService],
   exports: [FinancialService],
 })
 export class FinancialModule { }
+

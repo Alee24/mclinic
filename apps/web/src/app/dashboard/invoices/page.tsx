@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { useAuth, UserRole } from '@/lib/auth';
 import { FiCheck, FiClock, FiX, FiDownload, FiSend, FiMail } from 'react-icons/fi';
+import toast from 'react-hot-toast';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
@@ -123,15 +124,28 @@ export default function InvoicesPage() {
         doc.save(`${invoice.invoiceNumber}.pdf`);
     };
 
-    const sendInvoice = (invoice: Invoice) => {
-        const subject = `Invoice ${invoice.invoiceNumber} from Mclinic Kenya`;
-        const body = `Dear ${invoice.customerName},\n\nPlease find the details for your invoice ${invoice.invoiceNumber} below.\n\nTotal Amount: KES ${invoice.totalAmount.toLocaleString()}\nDue Date: ${new Date(invoice.dueDate).toLocaleDateString()}\nStatus: ${invoice.status.toUpperCase()}\n\nPlease login to your Mclinic dashboard to download the official PDF copy or complete the payment.\n\nThank you for choosing Mclinic Kenya.`;
-        
-        if (invoice.customerEmail && invoice.customerEmail !== 'N/A' && invoice.customerEmail !== 'null null') {
-            window.location.href = `mailto:${invoice.customerEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        } else {
-            alert("Customer email is missing. A draft has been prepared, you can add their contact manually.");
-            window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const [sending, setSending] = useState<number | null>(null);
+
+    const sendInvoice = async (invoice: Invoice) => {
+        if (!invoice.customerEmail || invoice.customerEmail === 'N/A' || invoice.customerEmail === 'null null') {
+            toast.error(`Customer email is missing for invoice ${invoice.invoiceNumber}`);
+            return;
+        }
+        setSending(invoice.id);
+        try {
+            const res = await api.post(`/financial/invoices/${invoice.id}/send-email`, {});
+            if (res?.ok) {
+                const data = await res.json();
+                toast.success(data.message || `Invoice sent to ${invoice.customerEmail}`);
+            } else {
+                const err = await res?.json().catch(() => null);
+                toast.error(err?.message || 'Failed to send invoice email');
+            }
+        } catch (e) {
+            console.error(e);
+            toast.error('Error sending invoice email');
+        } finally {
+            setSending(null);
         }
     };
 
@@ -211,7 +225,7 @@ export default function InvoicesPage() {
                             <th className="px-6 py-4">Amount (KES)</th>
                             <th className="px-6 py-4">Due Date</th>
                             <th className="px-6 py-4">Status</th>
-                            <th className="px-6 py-4">Actions</th>
+                            {user?.role === UserRole.ADMIN && <th className="px-6 py-4">Actions</th>}
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -246,37 +260,40 @@ export default function InvoicesPage() {
                                             {invoice.status}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex gap-2 items-center flex-wrap">
-                                            {invoice.status === 'pending' && (
+                                    {user?.role === UserRole.ADMIN && (
+                                        <td className="px-6 py-4">
+                                            <div className="flex gap-2 items-center flex-wrap">
+                                                {invoice.status === 'pending' && (
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedInvoice(invoice);
+                                                            setShowPaymentModal(true);
+                                                        }}
+                                                        className="bg-primary text-black font-bold px-3 py-1.5 rounded-lg hover:opacity-90 transition text-xs whitespace-nowrap"
+                                                    >
+                                                        Pay Now
+                                                    </button>
+                                                )}
+                                                
                                                 <button
-                                                    onClick={() => {
-                                                        setSelectedInvoice(invoice);
-                                                        setShowPaymentModal(true);
-                                                    }}
-                                                    className="bg-primary text-black font-bold px-3 py-1.5 rounded-lg hover:opacity-90 transition text-xs whitespace-nowrap"
+                                                    onClick={() => generateInvoicePDF(invoice)}
+                                                    className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-bold px-3 py-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition text-xs whitespace-nowrap"
+                                                    title="Download PDF"
                                                 >
-                                                    Pay Now
+                                                    <FiDownload /> PDF
                                                 </button>
-                                            )}
-                                            
-                                            <button
-                                                onClick={() => generateInvoicePDF(invoice)}
-                                                className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-bold px-3 py-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition text-xs whitespace-nowrap"
-                                                title="Download PDF"
-                                            >
-                                                <FiDownload /> PDF
-                                            </button>
-                                            
-                                            <button
-                                                onClick={() => sendInvoice(invoice)}
-                                                className="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-bold px-3 py-1.5 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition text-xs whitespace-nowrap"
-                                                title="Send via Email"
-                                            >
-                                                <FiSend /> Send
-                                            </button>
-                                        </div>
-                                    </td>
+                                                
+                                                <button
+                                                    onClick={() => sendInvoice(invoice)}
+                                                    disabled={sending === invoice.id}
+                                                    className="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-bold px-3 py-1.5 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition text-xs whitespace-nowrap disabled:opacity-50"
+                                                    title="Send via Email"
+                                                >
+                                                    <FiSend /> {sending === invoice.id ? 'Sending...' : 'Send'}
+                                                </button>
+                                            </div>
+                                        </td>
+                                    )}
                                 </tr>
                             ))
                         )}

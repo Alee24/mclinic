@@ -99,7 +99,7 @@ export class EmailService {
     /**
      * Wrapper to send email using the correct transporter.
      */
-    private async sendMailWithContext(options: ISendMailOptions, throwError = false) {
+    async sendMailWithContext(options: ISendMailOptions, throwError = false) {
         try {
             // Check if master toggle is enabled (default true)
             const enabled = await this.settingsService.get('EMAIL_NOTIFICATIONS_ENABLED');
