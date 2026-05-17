@@ -562,28 +562,28 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                     </div>
 
                                     {alert.patient && (
-                                        <div className="mt-2 pt-4 border-t border-red-100/40 dark:border-red-950/20 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                                        <div className="mt-2 pt-4 border-t border-red-100/40 dark:border-red-950/20 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
                                             {/* Subscriber block */}
-                                            <div className="bg-white/40 dark:bg-white/5 p-4 rounded-2xl border border-red-100/20 dark:border-red-950/10">
+                                            <div className="bg-white/60 dark:bg-[#1A1A1A] p-4 rounded-2xl border border-red-100/20 dark:border-red-900/20 shadow-sm">
                                                 <p className="font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest text-[9px] mb-2">Subscriber Details</p>
                                                 <p className="font-extrabold text-sm text-gray-900 dark:text-white mb-2 flex items-center gap-1.5">
                                                     <FiUser className="text-red-500" /> {alert.patient.fname} {alert.patient.lname}
                                                 </p>
                                                 <div className="space-y-1 text-gray-600 dark:text-gray-400">
                                                     <p className="flex items-center gap-2">
-                                                        <FiPhone className="text-gray-450 dark:text-gray-500" size={12} />
+                                                        <FiPhone className="text-gray-400 dark:text-gray-500" size={12} />
                                                         Phone: <span className="font-mono text-gray-900 dark:text-white font-bold">{alert.patient.mobile || 'N/A'}</span>
                                                     </p>
                                                     <p className="flex items-center gap-2">
-                                                        <FiMail className="text-gray-450 dark:text-gray-500" size={12} />
+                                                        <FiMail className="text-gray-400 dark:text-gray-500" size={12} />
                                                         Email: <span className="font-mono text-gray-900 dark:text-white font-bold">{alert.patient.email || 'N/A'}</span>
                                                     </p>
                                                 </div>
                                             </div>
 
                                             {/* Next of Kin block */}
-                                            <div className="bg-white/40 dark:bg-white/5 p-4 rounded-2xl border border-red-100/20 dark:border-red-950/10">
-                                                <p className="font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest text-[9px] mb-2">Next of Kin / Emergency Contact</p>
+                                            <div className="bg-white/60 dark:bg-[#1A1A1A] p-4 rounded-2xl border border-red-100/20 dark:border-red-900/20 shadow-sm">
+                                                <p className="font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest text-[9px] mb-2">Emergency Contact</p>
                                                 {alert.patient.emergency_contact_name ? (
                                                     <>
                                                         <p className="font-extrabold text-sm text-gray-900 dark:text-white mb-2 flex items-center gap-1.5">
@@ -591,20 +591,43 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                                         </p>
                                                         <div className="space-y-1 text-gray-600 dark:text-gray-400">
                                                             <p className="flex items-center gap-2">
-                                                                <FiPhone className="text-gray-450 dark:text-gray-500" size={12} />
+                                                                <FiPhone className="text-gray-400 dark:text-gray-500" size={12} />
                                                                 Phone: <span className="font-mono text-gray-900 dark:text-white font-bold">{alert.patient.emergency_contact_phone || 'N/A'}</span>
                                                             </p>
                                                             <p className="flex items-center gap-2">
-                                                                <FiShield className="text-gray-450 dark:text-gray-500" size={12} />
+                                                                <FiShield className="text-gray-400 dark:text-gray-500" size={12} />
                                                                 Relationship: <span className="text-gray-900 dark:text-white font-bold">{alert.patient.emergency_contact_relation || 'N/A'}</span>
                                                             </p>
                                                         </div>
                                                     </>
                                                 ) : (
-                                                    <div className="h-full flex items-center justify-center py-4 text-gray-450 dark:text-gray-500 italic text-center">
+                                                    <div className="h-full flex items-center justify-center py-4 text-gray-400 dark:text-gray-500 italic text-center">
                                                         No next of kin details configured
                                                     </div>
                                                 )}
+                                            </div>
+
+                                            {/* Biodata block */}
+                                            <div className="bg-white/60 dark:bg-[#1A1A1A] p-4 rounded-2xl border border-red-100/20 dark:border-red-900/20 shadow-sm">
+                                                <p className="font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest text-[9px] mb-2">Medical Biodata</p>
+                                                <div className="grid grid-cols-2 gap-2 text-gray-600 dark:text-gray-400 mb-2">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[9px] uppercase tracking-wider text-gray-400">DOB</span>
+                                                        <span className="font-bold text-gray-900 dark:text-white">{alert.patient.dob || 'N/A'}</span>
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[9px] uppercase tracking-wider text-gray-400">Sex</span>
+                                                        <span className="font-bold text-gray-900 dark:text-white">{alert.patient.sex || 'N/A'}</span>
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[9px] uppercase tracking-wider text-gray-400">Blood</span>
+                                                        <span className="font-bold text-red-500 dark:text-red-400">{alert.patient.blood_group || 'N/A'}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="mt-1 pt-1 border-t border-gray-100 dark:border-gray-800">
+                                                    <span className="text-[9px] uppercase tracking-wider text-gray-400 block mb-0.5">Allergies</span>
+                                                    <span className="font-bold text-gray-900 dark:text-white truncate block" title={alert.patient.allergies}>{alert.patient.allergies || 'None reported'}</span>
+                                                </div>
                                             </div>
                                         </div>
                                     )}

@@ -50,16 +50,21 @@ export class EmergencyService {
                             relations: ['user']
                         });
                     if (patient) {
-                        (alert as any).patient = {
-                            id: patient.id,
-                            fname: patient.fname,
-                            lname: patient.lname,
-                            mobile: patient.mobile,
-                            email: patient.user?.email || '',
-                            emergency_contact_name: patient.emergency_contact_name,
-                            emergency_contact_phone: patient.emergency_contact_phone,
-                            emergency_contact_relation: patient.emergency_contact_relation
-                        };
+                            (alert as any).patient = {
+                                id: patient.id,
+                                fname: patient.fname,
+                                lname: patient.lname,
+                                mobile: patient.mobile,
+                                email: patient.user?.email || '',
+                                dob: patient.dob,
+                                sex: patient.sex,
+                                blood_group: patient.blood_group,
+                                allergies: patient.allergies,
+                                medical_history: patient.medical_history,
+                                emergency_contact_name: patient.emergency_contact_name,
+                                emergency_contact_phone: patient.emergency_contact_phone,
+                                emergency_contact_relation: patient.emergency_contact_relation
+                            };
                     }
                 } catch (e) {
                     console.error(`Failed to load patient for emergency user ID ${userId}`, e);

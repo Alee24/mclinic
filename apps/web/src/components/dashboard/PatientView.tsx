@@ -351,7 +351,7 @@ export default function PatientView() {
 
             {/* FLOATING GREEN EMERGENCY EVACUATION BUTTON */}
             {subscriptions.some((s: any) => s.status === 'active') && (
-                <div className="fixed bottom-8 right-8 z-50 flex flex-col items-end gap-3 group">
+                <div className="fixed top-24 right-4 md:right-8 z-[99] flex flex-col items-end gap-3 group">
                     {/* Hover Status/Tooltip */}
                     <div className="bg-black/85 backdrop-blur-md border border-white/10 text-white text-[10px] font-black uppercase tracking-wider px-4 py-2 rounded-xl shadow-xl transition-all duration-300 translate-y-2 opacity-0 pointer-events-none group-hover:translate-y-0 group-hover:opacity-100 flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
