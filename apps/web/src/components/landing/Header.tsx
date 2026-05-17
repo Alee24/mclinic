@@ -28,16 +28,16 @@ export default function Header() {
                     </Link>
 
                     {/* Desktop Menu */}
-                    <div className="hidden lg:flex items-center gap-10">
-                        {['Solutions', 'Products', 'Resources', 'Pricing'].map((item) => (
-                            <Link 
-                                key={item} 
-                                href={`/${item.toLowerCase()}`} 
-                                className="text-sm font-bold text-mc-dark/70 hover:text-mc-crimson transition-colors"
-                            >
-                                {item}
-                            </Link>
-                        ))}
+                    <div className="hidden lg:flex items-center gap-8">
+                        <Link href="/" className="text-sm font-bold text-mc-dark/70 hover:text-[#0B6E40] transition-colors">
+                            Home
+                        </Link>
+                        <Link href="/services" className="text-sm font-bold text-mc-dark/70 hover:text-[#0B6E40] transition-colors">
+                            Services
+                        </Link>
+                        <Link href="/healthcare-supplies-logistics" className="text-sm font-bold text-mc-dark/70 hover:text-[#0B6E40] transition-colors">
+                            Logistics & Supplies
+                        </Link>
                         <Link 
                             href="/verify" 
                             className="text-sm font-bold text-[#0B6E40] hover:text-[#08522E] transition-colors border border-emerald-200 bg-emerald-50/50 px-3 py-1.5 rounded-xl flex items-center gap-1.5"
@@ -76,16 +76,27 @@ export default function Header() {
                         <button onClick={() => setMobileMenuOpen(false)}><FiX size={32} /></button>
                     </div>
                     <div className="flex flex-col gap-6 pt-10">
-                        {['Solutions', 'Products', 'Resources', 'Pricing'].map((item) => (
-                            <Link 
-                                key={item} 
-                                href={`/${item.toLowerCase()}`} 
-                                className="text-4xl font-black text-mc-dark hover:text-mc-crimson transition-colors"
-                                onClick={() => setMobileMenuOpen(false)}
-                            >
-                                {item}
-                            </Link>
-                        ))}
+                        <Link 
+                            href="/" 
+                            className="text-4xl font-black text-mc-dark hover:text-[#0B6E40] transition-colors"
+                            onClick={() => setMobileMenuOpen(false)}
+                        >
+                            Home
+                        </Link>
+                        <Link 
+                            href="/services" 
+                            className="text-4xl font-black text-mc-dark hover:text-[#0B6E40] transition-colors"
+                            onClick={() => setMobileMenuOpen(false)}
+                        >
+                            Services
+                        </Link>
+                        <Link 
+                            href="/healthcare-supplies-logistics" 
+                            className="text-4xl font-black text-mc-dark hover:text-[#0B6E40] transition-colors"
+                            onClick={() => setMobileMenuOpen(false)}
+                        >
+                            Logistics & Supplies
+                        </Link>
                         <Link 
                             href="/verify" 
                             className="text-4xl font-black text-[#0B6E40] hover:text-[#08522E] transition-colors"

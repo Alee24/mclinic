@@ -60,6 +60,11 @@ export class DoctorsController {
     return this.doctorsService.getDashboardStats(doctor.id);
   }
 
+  @Get('public-list')
+  getPublicList(@Query('search') search?: string) {
+    return this.doctorsService.findAllVerified(search, true, null);
+  }
+
   @UseGuards(AuthGuard('jwt'))
   @Get()
   findAll(

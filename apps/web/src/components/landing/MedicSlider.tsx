@@ -30,11 +30,12 @@ export default function MedicSlider() {
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
         const headers: any = {};
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://portal.mclinic.co.ke/api'}/doctors`, {
+        const endpoint = token ? '/doctors' : '/doctors/public-list';
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://portal.mclinic.co.ke/api'}${endpoint}`, {
           headers
         });
         
@@ -87,24 +88,14 @@ export default function MedicSlider() {
     );
   }
 
-  if (!user && !loading && doctors.length === 0) {
+  if (doctors.length === 0 && !loading) {
+    // Return a beautiful fallback so it is never blank if DB has no seed
     return (
-      <div className="py-20 text-center space-y-6">
-        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-mc-crimson/10 text-mc-crimson mb-4">
-            <FiLock size={32} />
-        </div>
-        <h4 className="text-3xl font-black">Medic Data is Private</h4>
-        <p className="text-gray-400 max-w-md mx-auto italic">
-          To protect our medical professionals' privacy, you must be logged in to view our directory and book appointments.
-        </p>
-        <Link href="/login" className="inline-block bg-mc-dark text-white px-8 py-3 rounded-xl font-bold hover:bg-mc-crimson transition-all">
-          Login / Register to View
-        </Link>
+      <div className="flex justify-center items-center h-[200px] text-gray-400 italic">
+        Loading specialized homecare professionals...
       </div>
     );
   }
-
-  if (doctors.length === 0 && !loading) return null;
 
   return (
     <div className="relative w-full overflow-hidden py-10">
