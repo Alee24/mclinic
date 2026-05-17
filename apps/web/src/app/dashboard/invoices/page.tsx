@@ -3,7 +3,9 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { useAuth, UserRole } from '@/lib/auth';
-import { FiCheck, FiClock, FiX } from 'react-icons/fi';
+import { FiCheck, FiClock, FiX, FiDownload, FiSend, FiMail } from 'react-icons/fi';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 interface Invoice {
     id: number;
@@ -46,6 +48,92 @@ export default function InvoicesPage() {
             fetchInvoices();
         }
     }, [user]);
+
+    const generateInvoicePDF = (invoice: Invoice) => {
+        const doc = new jsPDF();
+        
+        // Header
+        doc.setFontSize(22);
+        doc.setTextColor(41, 128, 185);
+        doc.setFont("helvetica", "bold");
+        doc.text('MCLINIC KENYA', 14, 20);
+        
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.setFont("helvetica", "normal");
+        doc.text('Medical & Ambulance Services', 14, 26);
+        doc.text('P.O Box 12345 - 00100', 14, 31);
+        doc.text('Nairobi, Kenya', 14, 36);
+        doc.text('Email: info@mclinic.co.ke', 14, 41);
+        
+        // INVOICE text
+        doc.setFontSize(24);
+        doc.setTextColor(0);
+        doc.setFont("helvetica", "bold");
+        doc.text('INVOICE', 140, 20);
+        
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Invoice Number: ${invoice.invoiceNumber}`, 140, 30);
+        doc.text(`Date: ${new Date(invoice.createdAt).toLocaleDateString()}`, 140, 36);
+        doc.text(`Due Date: ${new Date(invoice.dueDate).toLocaleDateString()}`, 140, 42);
+        doc.text(`Status: ${invoice.status.toUpperCase()}`, 140, 48);
+
+        // Bill To
+        doc.setFontSize(12);
+        doc.setTextColor(0);
+        doc.setFont("helvetica", "bold");
+        doc.text('Bill To:', 14, 55);
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.setFont("helvetica", "normal");
+        doc.text(invoice.customerName || 'Customer', 14, 62);
+        doc.text(invoice.customerEmail && invoice.customerEmail !== 'null null' ? invoice.customerEmail : 'N/A', 14, 67);
+
+        // Items table
+        // @ts-ignore
+        doc.autoTable({
+            startY: 80,
+            head: [['Description', 'Amount (KES)']],
+            body: [
+                ['Medical & Clinical Services', invoice.totalAmount.toLocaleString()]
+            ],
+            theme: 'striped',
+            headStyles: { fillColor: [41, 128, 185] },
+            styles: { fontSize: 11, cellPadding: 5 }
+        });
+
+        // Total
+        // @ts-ignore
+        const finalY = doc.lastAutoTable.finalY || 80;
+        
+        doc.setFillColor(245, 245, 245);
+        doc.rect(130, finalY + 10, 65, 12, 'F');
+        doc.setFontSize(12);
+        doc.setTextColor(0);
+        doc.setFont("helvetica", "bold");
+        doc.text(`Total: KES ${invoice.totalAmount.toLocaleString()}`, 135, finalY + 18);
+        
+        // Footer
+        doc.setFontSize(10);
+        doc.setTextColor(150);
+        doc.setFont("helvetica", "italic");
+        doc.text('Thank you for choosing Mclinic Kenya!', 105, 280, { align: 'center' });
+
+        doc.save(`${invoice.invoiceNumber}.pdf`);
+    };
+
+    const sendInvoice = (invoice: Invoice) => {
+        const subject = `Invoice ${invoice.invoiceNumber} from Mclinic Kenya`;
+        const body = `Dear ${invoice.customerName},\n\nPlease find the details for your invoice ${invoice.invoiceNumber} below.\n\nTotal Amount: KES ${invoice.totalAmount.toLocaleString()}\nDue Date: ${new Date(invoice.dueDate).toLocaleDateString()}\nStatus: ${invoice.status.toUpperCase()}\n\nPlease login to your Mclinic dashboard to download the official PDF copy or complete the payment.\n\nThank you for choosing Mclinic Kenya.`;
+        
+        if (invoice.customerEmail && invoice.customerEmail !== 'N/A' && invoice.customerEmail !== 'null null') {
+            window.location.href = `mailto:${invoice.customerEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        } else {
+            alert("Customer email is missing. A draft has been prepared, you can add their contact manually.");
+            window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        }
+    };
 
     // ... (keep handlePayment)
     const handlePayment = async (e: React.FormEvent) => {
@@ -159,17 +247,35 @@ export default function InvoicesPage() {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4">
-                                        {invoice.status === 'pending' && (
+                                        <div className="flex gap-2 items-center flex-wrap">
+                                            {invoice.status === 'pending' && (
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedInvoice(invoice);
+                                                        setShowPaymentModal(true);
+                                                    }}
+                                                    className="bg-primary text-black font-bold px-3 py-1.5 rounded-lg hover:opacity-90 transition text-xs whitespace-nowrap"
+                                                >
+                                                    Pay Now
+                                                </button>
+                                            )}
+                                            
                                             <button
-                                                onClick={() => {
-                                                    setSelectedInvoice(invoice);
-                                                    setShowPaymentModal(true);
-                                                }}
-                                                className="bg-primary text-black font-bold px-4 py-2 rounded-lg hover:opacity-90 transition text-sm"
+                                                onClick={() => generateInvoicePDF(invoice)}
+                                                className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-bold px-3 py-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition text-xs whitespace-nowrap"
+                                                title="Download PDF"
                                             >
-                                                Pay Now
+                                                <FiDownload /> PDF
                                             </button>
-                                        )}
+                                            
+                                            <button
+                                                onClick={() => sendInvoice(invoice)}
+                                                className="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-bold px-3 py-1.5 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition text-xs whitespace-nowrap"
+                                                title="Send via Email"
+                                            >
+                                                <FiSend /> Send
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))
