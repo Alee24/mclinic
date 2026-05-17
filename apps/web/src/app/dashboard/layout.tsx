@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ReactNode, useEffect, useState } from 'react';
-import { FiGrid, FiList, FiCalendar, FiBarChart2, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiSearch, FiBell, FiMail, FiMap, FiPackage, FiFileText, FiDatabase, FiPlusCircle, FiUser, FiTruck, FiCheckCircle, FiActivity, FiMenu, FiX, FiTrash2, FiMessageSquare, FiBook, FiShield, FiAlertTriangle } from 'react-icons/fi';
+import { FiGrid, FiList, FiCalendar, FiBarChart2, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiSearch, FiBell, FiMail, FiMap, FiPackage, FiFileText, FiDatabase, FiPlusCircle, FiUser, FiTruck, FiCheckCircle, FiActivity, FiMenu, FiX, FiTrash2, FiMessageSquare, FiBook, FiShield, FiAlertTriangle, FiPhone } from 'react-icons/fi';
 import { useAuth, UserRole } from '@/lib/auth';
 import UserAvatar from '@/components/dashboard/UserAvatar';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -518,43 +518,93 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                             {activeEmergencies.map((alert) => (
                                 <div
                                     key={alert.id}
-                                    className="p-6 rounded-3xl bg-red-50/50 dark:bg-red-950/10 border border-red-100/50 dark:border-red-950/20 flex flex-col md:flex-row md:items-center justify-between gap-6"
+                                    className="p-6 rounded-3xl bg-red-50/50 dark:bg-red-950/10 border border-red-100/50 dark:border-red-950/20 flex flex-col gap-4"
                                 >
-                                    <div className="space-y-2">
-                                        <div className="flex items-center gap-2">
-                                            <span className="px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-[10px] font-black uppercase tracking-wider">
-                                                ID: #{alert.id}
-                                            </span>
-                                            <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">
-                                                {new Date(alert.createdAt).toLocaleString()}
-                                            </span>
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                        <div className="space-y-2">
+                                            <div className="flex items-center gap-2">
+                                                <span className="px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-[10px] font-black uppercase tracking-wider">
+                                                    ID: #{alert.id}
+                                                </span>
+                                                <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">
+                                                    {new Date(alert.createdAt).toLocaleString()}
+                                                </span>
+                                            </div>
+                                            <h4 className="font-bold text-gray-900 dark:text-white text-base">
+                                                {alert.notes || 'Emergency Evacuation Dispatch Alert'}
+                                            </h4>
+                                            <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                                                <span className="flex items-center gap-1">
+                                                    📍 Coordinates: <strong>{Number(alert.latitude).toFixed(5)}, {Number(alert.longitude).toFixed(5)}</strong>
+                                                </span>
+                                            </div>
                                         </div>
-                                        <h4 className="font-bold text-gray-900 dark:text-white text-base">
-                                            {alert.notes || 'Emergency Evacuation Dispatch Alert'}
-                                        </h4>
-                                        <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
-                                            <span className="flex items-center gap-1">
-                                                📍 Coordinates: <strong>{Number(alert.latitude).toFixed(5)}, {Number(alert.longitude).toFixed(5)}</strong>
-                                            </span>
+                                        <div className="flex items-center gap-3 self-end md:self-auto">
+                                            <a
+                                                href={`https://www.google.com/maps/search/?api=1&query=${alert.latitude},${alert.longitude}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-black hover:bg-gray-800 font-bold text-xs uppercase tracking-wider rounded-xl transition whitespace-nowrap"
+                                            >
+                                                View Map
+                                            </a>
+                                            <button
+                                                onClick={() => handleResolveEmergency(alert.id)}
+                                                disabled={isResolving === alert.id}
+                                                className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition whitespace-nowrap disabled:opacity-50"
+                                            >
+                                                {isResolving === alert.id ? 'Resolving...' : 'Resolve'}
+                                            </button>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                        <a
-                                            href={`https://www.google.com/maps/search/?api=1&query=${alert.latitude},${alert.longitude}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-black hover:bg-gray-800 font-bold text-xs uppercase tracking-wider rounded-xl transition whitespace-nowrap"
-                                        >
-                                            View Map
-                                        </a>
-                                        <button
-                                            onClick={() => handleResolveEmergency(alert.id)}
-                                            disabled={isResolving === alert.id}
-                                            className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition whitespace-nowrap disabled:opacity-50"
-                                        >
-                                            {isResolving === alert.id ? 'Resolving...' : 'Resolve'}
-                                        </button>
-                                    </div>
+
+                                    {alert.patient && (
+                                        <div className="mt-2 pt-4 border-t border-red-100/40 dark:border-red-950/20 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                                            {/* Subscriber block */}
+                                            <div className="bg-white/40 dark:bg-white/5 p-4 rounded-2xl border border-red-100/20 dark:border-red-950/10">
+                                                <p className="font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest text-[9px] mb-2">Subscriber Details</p>
+                                                <p className="font-extrabold text-sm text-gray-900 dark:text-white mb-2 flex items-center gap-1.5">
+                                                    <FiUser className="text-red-500" /> {alert.patient.fname} {alert.patient.lname}
+                                                </p>
+                                                <div className="space-y-1 text-gray-600 dark:text-gray-400">
+                                                    <p className="flex items-center gap-2">
+                                                        <FiPhone className="text-gray-450 dark:text-gray-500" size={12} />
+                                                        Phone: <span className="font-mono text-gray-900 dark:text-white font-bold">{alert.patient.mobile || 'N/A'}</span>
+                                                    </p>
+                                                    <p className="flex items-center gap-2">
+                                                        <FiMail className="text-gray-450 dark:text-gray-500" size={12} />
+                                                        Email: <span className="font-mono text-gray-900 dark:text-white font-bold">{alert.patient.email || 'N/A'}</span>
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {/* Next of Kin block */}
+                                            <div className="bg-white/40 dark:bg-white/5 p-4 rounded-2xl border border-red-100/20 dark:border-red-950/10">
+                                                <p className="font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest text-[9px] mb-2">Next of Kin / Emergency Contact</p>
+                                                {alert.patient.emergency_contact_name ? (
+                                                    <>
+                                                        <p className="font-extrabold text-sm text-gray-900 dark:text-white mb-2 flex items-center gap-1.5">
+                                                            <FiUsers className="text-red-500" /> {alert.patient.emergency_contact_name}
+                                                        </p>
+                                                        <div className="space-y-1 text-gray-600 dark:text-gray-400">
+                                                            <p className="flex items-center gap-2">
+                                                                <FiPhone className="text-gray-450 dark:text-gray-500" size={12} />
+                                                                Phone: <span className="font-mono text-gray-900 dark:text-white font-bold">{alert.patient.emergency_contact_phone || 'N/A'}</span>
+                                                            </p>
+                                                            <p className="flex items-center gap-2">
+                                                                <FiShield className="text-gray-450 dark:text-gray-500" size={12} />
+                                                                Relationship: <span className="text-gray-900 dark:text-white font-bold">{alert.patient.emergency_contact_relation || 'N/A'}</span>
+                                                            </p>
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <div className="h-full flex items-center justify-center py-4 text-gray-450 dark:text-gray-500 italic text-center">
+                                                        No next of kin details configured
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
