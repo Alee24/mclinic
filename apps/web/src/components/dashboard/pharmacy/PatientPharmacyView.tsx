@@ -319,6 +319,30 @@ export default function PatientPharmacyView() {
                 </div>
             )}
 
+            {cart.length > 0 && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 md:left-auto md:right-8 md:translate-x-0 z-40 bg-white/85 dark:bg-[#1A1A1A]/85 backdrop-blur-md border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl p-4 flex items-center justify-between gap-6 animate-in slide-in-from-bottom-8 duration-300 max-w-sm w-[90%] sm:w-auto">
+                    <div className="flex items-center gap-3">
+                        <div className="relative w-10 h-10 rounded-xl bg-mc-green/20 text-mc-green flex items-center justify-center text-lg">
+                            <FiShoppingBag />
+                            <span className="absolute -top-2 -right-2 bg-rose-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-[#1A1A1A]">
+                                {cart.reduce((a, c) => a + c.quantity, 0)}
+                            </span>
+                        </div>
+                        <div>
+                            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Cart Total</div>
+                            <div className="text-sm font-black dark:text-white">KES {cartTotal.toLocaleString()}</div>
+                        </div>
+                    </div>
+                    
+                    <button
+                        onClick={() => setShowCheckout(true)}
+                        className="px-5 py-3 bg-mc-green text-black font-black rounded-xl text-xs hover:scale-105 active:scale-95 transition-all shadow-md shadow-mc-green/20 uppercase tracking-widest flex items-center gap-2"
+                    >
+                        Checkout Now
+                    </button>
+                </div>
+            )}
+
             {showCheckout && (
                 <PharmacyCheckoutModal
                     items={cart}

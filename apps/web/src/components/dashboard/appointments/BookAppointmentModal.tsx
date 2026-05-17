@@ -103,6 +103,7 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
     const [drTypeFilter, setDrTypeFilter] = useState('');
     const [maxPrice, setMaxPrice] = useState<number>(50000); // Increased default limit
     const [searchTerm, setSearchTerm] = useState('');
+    const [sortClosestFirst, setSortClosestFirst] = useState(true);
 
     // Booking Stage
     const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
@@ -278,11 +279,15 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
         }
         if (maxPrice) result = result.filter(d => getDisplayFee(d) <= maxPrice);
 
-        // Sort by distance (furthest to closest as requested)
-        result.sort((a, b) => (b.distance || 0) - (a.distance || 0));
+        // Sort by distance (closest to furthest by default)
+        if (sortClosestFirst) {
+            result.sort((a, b) => (a.distance || 0) - (b.distance || 0));
+        } else {
+            result.sort((a, b) => (b.distance || 0) - (a.distance || 0));
+        }
 
         setFilteredDoctors(result);
-    }, [doctors, speciality, gender, maxPrice, searchTerm, userLocation, drTypeFilter]);
+    }, [doctors, speciality, gender, maxPrice, searchTerm, userLocation, drTypeFilter, sortClosestFirst]);
 
     const handleBook = async () => {
         if (!selectedDoctor) return;
@@ -565,7 +570,7 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
                                         </button>
                                     </div>
                                     <p className="text-xs font-bold text-indigo-600 flex items-center gap-1 hidden sm:flex">
-                                        <FiMapPin /> Listed from furthest to closest
+                                        <FiMapPin /> Listed from closest to furthest
                                     </p>
                                 </div>
                             )}
@@ -640,10 +645,17 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
                                 </select>
 
                                 {userLocation && (
-                                    <div className="p-3 bg-indigo-50 dark:bg-indigo-900/10 rounded-xl text-xs text-indigo-600 dark:text-indigo-400 font-bold flex gap-2 items-center">
-                                        <FiMapPin size={16} />
-                                        <span>Sort: Furthest First</span>
-                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setSortClosestFirst(!sortClosestFirst)}
+                                        className="w-full p-4 bg-indigo-50 dark:bg-indigo-900/10 hover:bg-indigo-100 dark:hover:bg-indigo-900/20 rounded-xl text-xs text-indigo-600 dark:text-indigo-400 font-bold flex gap-2 items-center justify-between transition-all"
+                                    >
+                                        <span className="flex items-center gap-2">
+                                            <FiMapPin size={16} />
+                                            <span>Sort: {sortClosestFirst ? 'Closest First' : 'Furthest First'}</span>
+                                        </span>
+                                        <span className="text-[10px] text-indigo-400 uppercase tracking-widest">Toggle</span>
+                                    </button>
                                 )}
                             </div>
                         </div>
