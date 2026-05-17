@@ -497,10 +497,9 @@ export class FinancialService {
                 await this.invoiceRepo.save(invoice);
 
                 // DEPRECATED: await this.doctorRepo.increment({ id: invoice.doctorId }, 'balance', doctorShare);
-                const doctor = await this.doctorRepo.findOne({ where: { id: invoice.doctorId } });
-                if (doctor && doctor.email) {
-                    await this.walletsService.creditByEmail(doctor.email, doctorShare, `Payment for Appointment #${appointmentId}`);
-                }
+                // Funds are now held in PENDING state until appointment is completed.
+                // We will NOT credit the wallet here. It will be credited in releaseFunds.
+                // await this.walletsService.creditByEmail(doctor.email, doctorShare, `Payment for Appointment #${appointmentId}`);
             }
         }
 
@@ -509,7 +508,7 @@ export class FinancialService {
             amount: amount,
             source: 'MPESA',
             reference: `MPE${Date.now()}`,
-            status: TransactionStatus.COMPLETED, // Funds Available Immediately
+            status: TransactionStatus.PENDING, // Funds Held in Escrow until Completed
             invoice: invoice,
             invoiceId: invoice.id
         });
@@ -546,10 +545,9 @@ export class FinancialService {
                 invoice.commissionAmount = commission;
                 await this.invoiceRepo.save(invoice);
 
-                const doctor = await this.doctorRepo.findOne({ where: { id: invoice.doctorId } });
-                if (doctor && doctor.email) {
-                    await this.walletsService.creditByEmail(doctor.email, doctorShare, `Payment for Invoice #${invoiceId}`);
-                }
+                // Funds are now held in PENDING state until appointment is completed.
+                // We will NOT credit the wallet here. It will be credited in releaseFunds.
+                // await this.walletsService.creditByEmail(doctor.email, doctorShare, `Payment for Invoice #${invoiceId}`);
             }
         }
 
@@ -575,7 +573,7 @@ export class FinancialService {
             amount: invoice.totalAmount,
             source: paymentMethod.toUpperCase(),
             reference: transactionId || `MAN${Date.now()}`,
-            status: TransactionStatus.COMPLETED,
+            status: TransactionStatus.PENDING, // Funds Held in Escrow until Completed
             invoice: invoice,
             invoiceId: invoice.id
         });
@@ -635,30 +633,30 @@ export class FinancialService {
 
     // Release Funds (Called when Appointment is COMPLETED)
     async releaseFunds(appointmentId: number) {
-        console.log(`[FINANCIAL] releaseFunds called for Appointment #${appointmentId} - (Funds already released on payment)`);
-        // Funds are now released immediately upon payment. 
-        // We can use this method to handle any final reconciliations or just ensure transaction status is correct.
+        console.log(`[FINANCIAL] releaseFunds called for Appointment #${appointmentId} - Releasing funds from Escrow`);
 
-        // Ensure legacy pending transactions are marked completed?
+        // Find the pending transaction linked to this appointment
         const transaction = await this.txRepo.createQueryBuilder('tx')
             .leftJoinAndSelect('tx.invoice', 'inv')
-            .where('inv.invoiceNumber LIKE :suffix', { suffix: `%-${appointmentId}` })
-            .andWhere('inv.invoiceNumber LIKE :prefix', { prefix: 'INV-%' }) // Strict Prefix Check
+            .where('inv.appointmentId = :appId OR inv.invoiceNumber LIKE :suffix', { appId: appointmentId, suffix: `%-${appointmentId}` })
             .andWhere('tx.status = :status', { status: TransactionStatus.PENDING })
             .getOne();
 
         if (transaction) {
-            // If there WAS a pending transaction (from old logic), release it now.
+            // Release the pending transaction
             transaction.status = TransactionStatus.COMPLETED;
             await this.txRepo.save(transaction);
 
             if (transaction.invoice && transaction.invoice.doctorId) {
-                const total = Number(transaction.amount);
-                const doctorShare = total * 0.60;
-                // DEPRECATED: await this.doctorRepo.increment({ id: transaction.invoice.doctorId }, 'balance', doctorShare);
+                // Determine Doctor Share
+                const total = Number(transaction.invoice.totalAmount);
+                const commission = Number(transaction.invoice.commissionAmount || (total * 0.40));
+                const doctorShare = total - commission;
+                
                 const doctor = await this.doctorRepo.findOne({ where: { id: transaction.invoice.doctorId } });
                 if (doctor && doctor.email) {
-                    await this.walletsService.creditByEmail(doctor.email, doctorShare, `Release released for Appt #${appointmentId}`);
+                    await this.walletsService.creditByEmail(doctor.email, doctorShare, `Funds released for Appointment #${appointmentId}`);
+                    console.log(`[FINANCIAL] Funds released to ${doctor.email}: KES ${doctorShare}`);
                 }
             }
         }

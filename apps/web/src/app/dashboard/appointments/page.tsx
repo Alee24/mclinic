@@ -22,6 +22,7 @@ export default function AppointmentsPage() {
     const [initialType, setInitialType] = useState<'PHYSICAL' | 'VIRTUAL'>('PHYSICAL');
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [showRateModal, setShowRateModal] = useState(false);
+    const [autoRatedApptIds, setAutoRatedApptIds] = useState<number[]>([]);
     const [showCompleteModal, setShowCompleteModal] = useState(false);
     const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
 
@@ -98,6 +99,22 @@ export default function AppointmentsPage() {
     const isAdmin = role === 'admin';
     const isDoctor = ['doctor', 'medic', 'nurse', 'clinician', 'lab_tech'].includes(role || '');
     const isPatient = role === 'patient';
+
+    useEffect(() => {
+        // Auto-popup rate modal for newly completed appointments
+        if (isPatient && appointments.length > 0 && !showRateModal) {
+            const unrated = appointments.find(apt => 
+                apt.status === 'completed' && 
+                !apt.review && 
+                !autoRatedApptIds.includes(apt.id)
+            );
+            if (unrated) {
+                setSelectedAppointment(unrated);
+                setShowRateModal(true);
+                setAutoRatedApptIds(prev => [...prev, unrated.id]);
+            }
+        }
+    }, [appointments, isPatient, showRateModal, autoRatedApptIds]);
 
     return (
         <div className="space-y-6">
@@ -241,7 +258,7 @@ export default function AppointmentsPage() {
                                              {/* Patient-side Actions */}
                                              {user?.id === Number(apt.patientId) && (
                                                  <>
-                                                     {apt.status === 'completed' && (
+                                                     {apt.status === 'completed' && !apt.review && (
                                                          <button
                                                              onClick={() => {
                                                                  setSelectedAppointment(apt);

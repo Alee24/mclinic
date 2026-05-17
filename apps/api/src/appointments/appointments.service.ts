@@ -269,6 +269,12 @@ export class AppointmentsService {
         `New Booking (Unconfirmed): ${patientName} with ${doctorName} for ${new Date(appointmentDate).toDateString()} @ ${appointmentTime}.`
       );
 
+      // 3. Notify Medic via SMS
+      if (doctor && doctor.mobile) {
+        const medicMsg = `Hello ${doctorName}, a new appointment has been booked for ${new Date(appointmentDate).toDateString()} @ ${appointmentTime}. Please log in to review: ${portalUrl}/dashboard/appointments`;
+        await this.notificationService.sendCustomSms(doctor.mobile, medicMsg);
+      }
+
     } catch (error) {
       console.error('[Appointments] Failed to send initial booking SMS', error);
     }
@@ -278,7 +284,7 @@ export class AppointmentsService {
 
   async findAll(): Promise<any[]> {
     const appointments = await this.appointmentsRepository.find({
-      relations: ['patient', 'doctor', 'service', 'invoice'],
+      relations: ['patient', 'doctor', 'service', 'invoice', 'review'],
       order: { appointment_date: 'DESC' },
     });
 
@@ -323,7 +329,7 @@ export class AppointmentsService {
   async findByPatient(patientId: number): Promise<Appointment[]> {
     return this.appointmentsRepository.find({
       where: { patientId },
-      relations: ['patient', 'doctor', 'service', 'invoice'],
+      relations: ['patient', 'doctor', 'service', 'invoice', 'review'],
     });
   }
 
@@ -353,7 +359,7 @@ export class AppointmentsService {
   async findByDoctor(doctorId: number): Promise<any[]> {
     return this.appointmentsRepository.find({
       where: { doctorId },
-      relations: ['patient', 'doctor', 'service', 'invoice'],
+      relations: ['patient', 'doctor', 'service', 'invoice', 'review'],
       order: { appointment_date: 'DESC' },
     });
   }
@@ -389,7 +395,7 @@ export class AppointmentsService {
         console.log(`[Appointments] Found Medic Profile. Doctor ID: ${doctor.id}`);
         const appointments = await this.appointmentsRepository.find({
           where: { doctorId: doctor.id },
-          relations: ['patient', 'doctor', 'service', 'invoice'],
+          relations: ['patient', 'doctor', 'service', 'invoice', 'review'],
           order: { appointment_date: 'DESC' },
         });
 
@@ -428,7 +434,7 @@ export class AppointmentsService {
         // (This happens if migration/sync didn't run)
         const fallbackApts = await this.appointmentsRepository.find({
           where: { doctorId: user.sub || user.id },
-          relations: ['patient', 'doctor', 'service', 'invoice'],
+          relations: ['patient', 'doctor', 'service', 'invoice', 'review'],
           order: { appointment_date: 'DESC' },
         });
         if (fallbackApts.length > 0) return fallbackApts;
@@ -440,7 +446,7 @@ export class AppointmentsService {
     console.log(`[Appointments] Fetching for Patient: ${user.email}`);
     const patientAppointments = await this.appointmentsRepository.find({
       where: { patientId: user.sub || user.id },
-      relations: ['patient', 'doctor', 'service', 'invoice'],
+      relations: ['patient', 'doctor', 'service', 'invoice', 'review'],
       order: { appointment_date: 'DESC' },
     });
 
@@ -475,7 +481,7 @@ export class AppointmentsService {
   async findOne(id: number): Promise<Appointment | null> {
     return this.appointmentsRepository.findOne({
       where: { id },
-      relations: ['patient', 'doctor', 'service', 'invoice'],
+      relations: ['patient', 'doctor', 'service', 'invoice', 'review'],
     });
   }
 
