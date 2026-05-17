@@ -1,18 +1,29 @@
 'use client';
 
 import { useState } from 'react';
-import { FiSend, FiUsers, FiUser, FiActivity, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { FiSend, FiUsers, FiUser, FiActivity, FiCheckCircle, FiAlertCircle, FiPhone } from 'react-icons/fi';
 import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
 import SecureLoader from '@/components/SecureLoader';
 
 export default function AdminSmsPage() {
-    const [recipientType, setRecipientType] = useState<'medic' | 'patient' | 'all'>('medic');
+    const [recipientType, setRecipientType] = useState<'medic' | 'patient' | 'all' | 'custom'>('medic');
+    const [customNumbers, setCustomNumbers] = useState('');
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(false);
     const [stats, setStats] = useState<{ total: number; sent: number; failed: number } | null>(null);
 
+    const detectedCount = customNumbers
+        .split(/[\n,;]+/)
+        .map(n => n.trim())
+        .filter(n => n.length > 0).length;
+
     const handleSend = async () => {
+        if (recipientType === 'custom' && detectedCount === 0) {
+            toast.error('Please paste at least one mobile number');
+            return;
+        }
+
         if (!message.trim()) {
             toast.error('Please enter a message');
             return;
@@ -24,7 +35,8 @@ export default function AdminSmsPage() {
         try {
             const res = await api.post('/sms/bulk', {
                 recipientType,
-                message
+                message,
+                customNumbers: recipientType === 'custom' ? customNumbers : undefined
             });
 
             if (res && res.ok) {
@@ -33,6 +45,9 @@ export default function AdminSmsPage() {
                     toast.success('Messages processed successfully');
                     setStats(data.stats);
                     setMessage(''); // Clear message on success
+                    if (recipientType === 'custom') {
+                        setCustomNumbers(''); // Clear custom numbers on success
+                    }
                 } else {
                     toast.error(data.message || 'Failed to send messages');
                 }
@@ -113,31 +128,68 @@ export default function AdminSmsPage() {
                             </div>
                         </div>
                     </div>
+
+                    <div
+                        onClick={() => setRecipientType('custom')}
+                        className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${recipientType === 'custom'
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                            : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
+                            }`}
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-lg ${recipientType === 'custom' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'}`}>
+                                <FiPhone className="text-xl" />
+                            </div>
+                            <div>
+                                <div className="font-bold text-gray-900 dark:text-white">Custom List</div>
+                                <div className="text-xs text-gray-500">Paste custom phone numbers</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Message Composition */}
-                <div className="md:col-span-2 space-y-4">
-                    <h3 className="font-semibold text-gray-700 dark:text-gray-300">Compose Message</h3>
-                    <div className="bg-white dark:bg-[#161616] border border-gray-200 dark:border-gray-800 rounded-xl p-4 shadow-sm">
-                        <textarea
-                            value={message}
-                            onChange={(e) => setMessage(e.target.value)}
-                            placeholder="Type your message here..."
-                            rows={6}
-                            className="w-full bg-transparent border-none focus:ring-0 text-gray-900 dark:text-white placeholder-gray-400 resize-none"
-                            maxLength={160 * 3} // Reasonable limit
-                        />
-                        <div className="flex justify-between items-center mt-4 border-t border-gray-100 dark:border-gray-800 pt-4">
-                            <div className="text-xs text-gray-500">
-                                {message.length} characters • {Math.ceil(message.length / 160)} SMS segment(s)
+                <div className="md:col-span-2 space-y-6">
+                    {recipientType === 'custom' && (
+                        <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                            <h3 className="font-semibold text-gray-700 dark:text-gray-300">Recipient Phone Numbers</h3>
+                            <textarea
+                                value={customNumbers}
+                                onChange={(e) => setCustomNumbers(e.target.value)}
+                                placeholder="Paste or type mobile numbers here separated by commas, semicolons or newlines (e.g. 0712345678, 0722334455)..."
+                                rows={4}
+                                className="w-full p-4 rounded-xl bg-white dark:bg-[#161616] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm resize-none text-sm"
+                            />
+                            <div className="flex justify-between text-xs text-gray-500">
+                                <span>Tip: Separate numbers using commas or press Enter for a new line</span>
+                                <span className="font-semibold text-blue-600 dark:text-blue-400">Total parsed: {detectedCount}</span>
                             </div>
-                            <button
-                                onClick={handleSend}
-                                disabled={loading || !message.trim()}
-                                className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
-                            >
-                                {loading ? <SecureLoader /> : <><FiSend /> Send Broadcast</>}
-                            </button>
+                        </div>
+                    )}
+
+                    <div className="space-y-2">
+                        <h3 className="font-semibold text-gray-700 dark:text-gray-300">Compose Message</h3>
+                        <div className="bg-white dark:bg-[#161616] border border-gray-200 dark:border-gray-800 rounded-xl p-4 shadow-sm">
+                            <textarea
+                                value={message}
+                                onChange={(e) => setMessage(e.target.value)}
+                                placeholder="Type your message here..."
+                                rows={6}
+                                className="w-full bg-transparent border-none focus:ring-0 text-gray-900 dark:text-white placeholder-gray-400 resize-none outline-none"
+                                maxLength={160 * 3} // Reasonable limit
+                            />
+                            <div className="flex justify-between items-center mt-4 border-t border-gray-100 dark:border-gray-800 pt-4">
+                                <div className="text-xs text-gray-500">
+                                    {message.length} characters • {Math.ceil(message.length / 160)} SMS segment(s)
+                                </div>
+                                <button
+                                    onClick={handleSend}
+                                    disabled={loading || !message.trim() || (recipientType === 'custom' && detectedCount === 0)}
+                                    className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
+                                >
+                                    {loading ? <SecureLoader /> : <><FiSend /> Send Broadcast</>}
+                                </button>
+                            </div>
                         </div>
                     </div>
 

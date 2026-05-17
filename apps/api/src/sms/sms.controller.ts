@@ -32,7 +32,7 @@ export class SmsController {
 
     @UseGuards(AuthGuard('jwt'))
     @Post('bulk')
-    async sendBulkSms(@Body() body: { recipientType: 'medic' | 'patient' | 'all'; message: string }) {
+    async sendBulkSms(@Body() body: { recipientType: 'medic' | 'patient' | 'all' | 'custom'; message: string; customNumbers?: string }) {
         if (!body.message) {
             throw new HttpException('Message is required', HttpStatus.BAD_REQUEST);
         }
@@ -59,6 +59,14 @@ export class SmsController {
             const docMobiles = doctors.map(d => d.mobile).filter(m => m);
 
             recipients = [...userMobiles, ...docMobiles];
+        } else if (body.recipientType === 'custom') {
+            if (!body.customNumbers) {
+                throw new HttpException('Custom numbers are required when custom recipient type is selected', HttpStatus.BAD_REQUEST);
+            }
+            recipients = body.customNumbers
+                .split(/[\n,;]+/)
+                .map(n => n.trim())
+                .filter(n => n.length > 0);
         } else {
             throw new HttpException('Invalid recipient type', HttpStatus.BAD_REQUEST);
         }
