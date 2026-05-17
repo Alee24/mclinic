@@ -693,6 +693,22 @@ export class DoctorsService implements OnModuleInit {
         return this.doctorsRepository.save(doctor);
     }
 
+    async approveDoctor(id: number): Promise<Doctor> {
+        const doctor = await this.findOne(id);
+        if (!doctor) throw new NotFoundException('Doctor not found');
+
+        doctor.Verified_status = 1;
+        doctor.status = 1;
+        doctor.approvalStatus = 'approved';
+
+        // Sync with user status if possible
+        if (doctor.email) {
+            await this.usersService.updateUserStatus(doctor.email, true);
+        }
+
+        return this.doctorsRepository.save(doctor);
+    }
+
     async findPendingDoctors(): Promise<Doctor[]> {
         return await this.doctorsRepository.find({
             where: { Verified_status: 0 },

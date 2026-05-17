@@ -271,6 +271,12 @@ export class DoctorsController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Post(':id/approve')
+  approveDoctor(@Param('id') id: string) {
+    return this.doctorsService.approveDoctor(+id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Patch(':id/deactivate')
   deactivate(@Param('id') id: string) {
     return this.doctorsService.updateStatus(+id, 0);
