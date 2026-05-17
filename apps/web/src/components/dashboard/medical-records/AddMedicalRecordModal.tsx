@@ -11,7 +11,7 @@ interface AddMedicalRecordModalProps {
     onSuccess: () => void;
 }
 
-export default function AddMedicalRecordModal({ patientId, appointmentId, onClose, onSuccess }: AddMedicalRecordModalProps) {
+export default function AddMedicalRecordModal({ patientId, appointmentId, appointment, onClose, onSuccess }: AddMedicalRecordModalProps & { appointment?: any }) {
     const { user } = useAuth();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
@@ -40,7 +40,7 @@ export default function AddMedicalRecordModal({ patientId, appointmentId, onClos
                 ...formData,
                 patientId: Number(patientId),
                 appointmentId: Number(appointmentId),
-                doctorId: Number(user?.doctorId || user?.id),
+                doctorId: Number(appointment?.doctorId || appointment?.doctor?.id || user?.doctorId || user?.id),
             };
             console.log('Submitting Medical Record Payload:', payload);
 

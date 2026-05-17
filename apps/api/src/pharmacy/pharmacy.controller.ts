@@ -53,6 +53,11 @@ export class PharmacyController {
         return this.pharmacyService.getAllPrescriptions();
     }
 
+    @Get('prescriptions/appointment/:id')
+    getAppointmentPrescriptions(@Param('id') id: string) {
+        return this.pharmacyService.findPrescriptionsByAppointment(+id);
+    }
+
     @Get('prescriptions/patient/:id')
     getPatientPrescriptions(@Param('id') id: string) {
         return this.pharmacyService.getPatientPrescriptions(+id);

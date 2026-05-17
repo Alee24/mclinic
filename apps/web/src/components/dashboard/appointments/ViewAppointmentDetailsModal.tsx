@@ -734,6 +734,7 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
                 <AddMedicalRecordModal
                     patientId={patient.id}
                     appointmentId={appointment.id}
+                    appointment={appointment}
                     onClose={() => setShowAddRecordModal(false)}
                     onSuccess={() => {
                         setShowAddRecordModal(false);
