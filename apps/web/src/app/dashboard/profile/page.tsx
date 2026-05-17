@@ -152,31 +152,36 @@ export default function ProfilePage() {
 
     return (
         <div className="max-w-4xl mx-auto space-y-6 pb-20">
-            <div className="bg-white dark:bg-[#121212] rounded-2xl p-8 border border-gray-200 dark:border-gray-800 flex items-center gap-6 shadow-sm">
-                <div className="relative group cursor-pointer" onClick={handleImageClick}>
-                    <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-green-400 to-blue-500 p-1">
+            <div className="bg-white dark:bg-[#121212] rounded-2xl p-6 md:p-8 border border-gray-200 dark:border-gray-800 flex flex-col md:flex-row items-center gap-4 md:gap-6 shadow-sm text-center md:text-left relative">
+                <div className="relative group cursor-pointer shrink-0" onClick={handleImageClick}>
+                    <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-green-400 to-blue-500 p-1 mx-auto md:mx-0 relative">
                         <div className="w-full h-full rounded-full bg-white dark:bg-gray-900 overflow-hidden">
                             <UserAvatar user={user} className="w-full h-full object-cover" />
                         </div>
-                    </div>
-                    <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-                        <FiCamera className="text-white text-xl" />
+                        {/* Hover overlay for desktop */}
+                        <div className="hidden md:flex absolute inset-0 bg-black/50 rounded-full items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                            <FiCamera className="text-white text-xl" />
+                        </div>
+                        {/* Always visible badge for mobile */}
+                        <div className="md:hidden absolute bottom-0 right-0 bg-primary text-black p-2 rounded-full shadow-lg border-2 border-white dark:border-[#121212]">
+                            <FiCamera className="text-sm" />
+                        </div>
                     </div>
                     <input type="file" ref={fileInputRef} onChange={handleImageChange} className="hidden" accept="image/*" />
                 </div>
 
                 <div className="flex-1">
-                    <h1 className="text-3xl font-bold dark:text-white capitalize">{user?.fname} {user?.lname}</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold dark:text-white capitalize">{user?.fname} {user?.lname}</h1>
                     <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase mt-2 inline-block">
                         {user?.role}
                     </span>
-                    <p className="text-sm text-gray-400 mt-2">{user?.email}</p>
+                    <p className="text-sm text-gray-400 mt-2 break-all">{user?.email}</p>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="absolute top-4 right-4 md:static md:flex gap-2">
                     <button
                         onClick={() => setShowEditPersonalModal(true)}
-                        className="p-3 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+                        className="p-2 md:p-3 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition"
                         title="Edit Personal Information"
                     >
                         <FiEdit2 className="dark:text-white" />

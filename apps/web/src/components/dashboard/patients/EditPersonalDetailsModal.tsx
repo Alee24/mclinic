@@ -65,7 +65,7 @@ export default function EditPersonalDetailsModal({ user, onClose, onSuccess }: E
                             </div>
 
                             <form onSubmit={handleSubmit} className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wider">First Name</label>
                                         <input type="text" name="fname" value={formData.fname} onChange={handleChange} className="w-full p-3 rounded-xl border-2 border-gray-100 dark:bg-black dark:border-gray-800 dark:text-white text-sm focus:border-blue-500 outline-none transition" required />
@@ -81,7 +81,7 @@ export default function EditPersonalDetailsModal({ user, onClose, onSuccess }: E
                                     <input type="email" name="email" value={formData.email} onChange={handleChange} className="w-full p-3 rounded-xl border-2 border-gray-100 dark:bg-black dark:border-gray-800 dark:text-white text-sm focus:border-blue-500 outline-none transition" required />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wider">Mobile Number</label>
                                         <input type="text" name="mobile" value={formData.mobile} onChange={handleChange} className="w-full p-3 rounded-xl border-2 border-gray-100 dark:bg-black dark:border-gray-800 dark:text-white text-sm focus:border-blue-500 outline-none transition" required />
@@ -92,7 +92,7 @@ export default function EditPersonalDetailsModal({ user, onClose, onSuccess }: E
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wider">Date of Birth</label>
                                         <input type="date" name="dob" value={formData.dob} onChange={handleChange} className="w-full p-3 rounded-xl border-2 border-gray-100 dark:bg-black dark:border-gray-800 dark:text-white text-sm focus:border-blue-500 outline-none transition" />
@@ -108,7 +108,7 @@ export default function EditPersonalDetailsModal({ user, onClose, onSuccess }: E
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wider">City</label>
                                         <input type="text" name="city" value={formData.city} onChange={handleChange} className="w-full p-3 rounded-xl border-2 border-gray-100 dark:bg-black dark:border-gray-800 dark:text-white text-sm focus:border-blue-500 outline-none transition" />
