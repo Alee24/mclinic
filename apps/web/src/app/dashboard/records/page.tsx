@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
-import { FiFileText, FiActivity, FiUser, FiCalendar, FiExternalLink, FiDownload, FiInfo } from 'react-icons/fi';
+import { FiFileText, FiActivity, FiUser, FiCalendar, FiExternalLink, FiDownload, FiInfo, FiShoppingCart, FiDroplet } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -15,7 +15,9 @@ interface UnifiedRecord {
     appointment?: any;
     medicalRecord?: any;
     prescription?: any;
-    type: 'APPOINTMENT_ONLY' | 'FULL_RECORD' | 'PRESCRIPTION_ONLY' | 'NOTE_ONLY';
+    labOrder?: any;
+    pharmacyOrder?: any;
+    type: 'APPOINTMENT_ONLY' | 'FULL_RECORD' | 'PRESCRIPTION_ONLY' | 'NOTE_ONLY' | 'LAB_ORDER' | 'PHARMACY_ORDER';
 }
 
 export default function MedicalRecordsPage() {
@@ -29,18 +31,22 @@ export default function MedicalRecordsPage() {
             setLoading(true);
             try {
                 // Fetch all related streams in parallel
-                const [appointsRes, recordsRes, scriptsRes] = await Promise.allSettled([
+                const [appointsRes, recordsRes, scriptsRes, labRes, pharmRes] = await Promise.allSettled([
                     api.get(`/appointments/patient/${user.id}`),
                     api.get(`/medical-records/patient/${user.id}`),
-                    api.get(`/pharmacy/prescriptions/patient/${user.id}`)
+                    api.get(`/pharmacy/prescriptions/patient/${user.id}`),
+                    api.get(`/laboratory/orders`),
+                    api.get(`/pharmacy/orders/user/${user.id}`)
                 ]);
 
                 // Extract or default to empty arrays
                 const appointments = appointsRes.status === 'fulfilled' && appointsRes.value?.ok ? await appointsRes.value.json() : [];
                 const records = recordsRes.status === 'fulfilled' && recordsRes.value?.ok ? await recordsRes.value.json() : [];
                 const prescriptions = scriptsRes.status === 'fulfilled' && scriptsRes.value?.ok ? await scriptsRes.value.json() : [];
+                const labOrders = labRes.status === 'fulfilled' && labRes.value?.ok ? await labRes.value.json() : [];
+                const pharmOrders = pharmRes.status === 'fulfilled' && pharmRes.value?.ok ? await pharmRes.value.json() : [];
 
-                console.log('Fetched Data:', { appointments, records, prescriptions });
+                console.log('Fetched Data:', { appointments, records, prescriptions, labOrders, pharmOrders });
 
                 // --- MERGE LOGIC ---
                 const merged = new Map<number, UnifiedRecord>();
@@ -93,6 +99,26 @@ export default function MedicalRecordsPage() {
                             type: 'PRESCRIPTION_ONLY'
                         });
                     }
+                });
+
+                // 4. Attach Lab Orders
+                labOrders.forEach((lab: any) => {
+                    merged.set(-(lab.id + 20000), {
+                        id: `lab-${lab.id}`,
+                        date: new Date(lab.createdAt),
+                        labOrder: lab,
+                        type: 'LAB_ORDER'
+                    });
+                });
+
+                // 5. Attach Pharmacy Orders
+                pharmOrders.forEach((pharm: any) => {
+                    merged.set(-(pharm.id + 30000), {
+                        id: `pharm-${pharm.id}`,
+                        date: new Date(pharm.createdAt),
+                        pharmacyOrder: pharm,
+                        type: 'PHARMACY_ORDER'
+                    });
                 });
 
                 // Convert Map to Array & Sort DESC
@@ -328,7 +354,9 @@ export default function MedicalRecordsPage() {
                         <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white dark:border-[#121212] bg-gray-200 dark:bg-gray-800 group-hover:bg-primary group-hover:scale-110 transition shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 shadow-sm">
                             {item.type === 'FULL_RECORD' ? <FiActivity className="text-white w-4 h-4" /> :
                                 item.type === 'PRESCRIPTION_ONLY' ? <FiFileText className="text-white w-4 h-4" /> :
-                                    <FiCalendar className="text-gray-500 group-hover:text-white w-4 h-4" />}
+                                    item.type === 'LAB_ORDER' ? <FiDroplet className="text-white w-4 h-4" /> :
+                                        item.type === 'PHARMACY_ORDER' ? <FiShoppingCart className="text-white w-4 h-4" /> :
+                                            <FiCalendar className="text-gray-500 group-hover:text-white w-4 h-4" />}
                         </div>
 
                         {/* Card */}
@@ -351,7 +379,9 @@ export default function MedicalRecordsPage() {
                                         )}
                                     </div>
                                     <h3 className="font-bold text-lg dark:text-white">
-                                        {item.medicalRecord?.diagnosis || item.appointment?.service?.name || item.appointment?.service || 'General Consultation'}
+                                        {item.type === 'LAB_ORDER' ? `Lab Test: ${item.labOrder?.test?.name}` :
+                                         item.type === 'PHARMACY_ORDER' ? 'Pharmacy Purchase' :
+                                         item.medicalRecord?.diagnosis || item.appointment?.service?.name || item.appointment?.service || 'General Consultation'}
                                     </h3>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -364,23 +394,25 @@ export default function MedicalRecordsPage() {
                                         </span>
                                     )}
                                     <div className={`px-3 py-1 text-xs font-bold rounded-full border ${getStatusColor(item.type)}`}>
-                                        {item.type === 'FULL_RECORD' ? 'Record' : item.type === 'PRESCRIPTION_ONLY' ? 'Prescription' : 'Appointment'}
+                                        {item.type === 'FULL_RECORD' ? 'Record' : item.type === 'PRESCRIPTION_ONLY' ? 'Prescription' : item.type === 'LAB_ORDER' ? 'Lab Test' : item.type === 'PHARMACY_ORDER' ? 'Pharmacy' : 'Appointment'}
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Doctor info */}
-                            <div className="flex items-center gap-3 mb-4 p-3 bg-gray-50 dark:bg-white/5 rounded-xl">
-                                <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 font-bold">
-                                    <FiUser />
+                            {/* Doctor info (skip for pharmacy purchases which are self-checkout) */}
+                            {item.type !== 'PHARMACY_ORDER' && (
+                                <div className="flex items-center gap-3 mb-4 p-3 bg-gray-50 dark:bg-white/5 rounded-xl">
+                                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 font-bold">
+                                        <FiUser />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500 uppercase font-bold">Attended By</p>
+                                        <p className="font-bold text-sm dark:text-gray-200">
+                                            {getDoctorName(item)}
+                                        </p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="text-xs text-gray-500 uppercase font-bold">Attended By</p>
-                                    <p className="font-bold text-sm dark:text-gray-200">
-                                        {getDoctorName(item)}
-                                    </p>
-                                </div>
-                            </div>
+                            )}
 
                             {/* Medical Notes */}
                             {item.medicalRecord?.notes && (
@@ -429,6 +461,58 @@ export default function MedicalRecordsPage() {
                                 </div>
                             )}
 
+                            {/* Lab Order Details */}
+                            {item.type === 'LAB_ORDER' && (
+                                <div className="mt-4 border-t border-dashed border-gray-200 dark:border-gray-700 pt-4">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <h4 className="text-xs font-bold text-purple-500 uppercase flex items-center gap-2">
+                                            <FiDroplet /> Lab Results
+                                        </h4>
+                                        <span className={`text-xs font-bold px-2 py-1 rounded border ${item.labOrder?.status === 'COMPLETED' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-orange-50 text-orange-700 border-orange-200'}`}>
+                                            {item.labOrder?.status}
+                                        </span>
+                                    </div>
+                                    <div className="bg-purple-50 dark:bg-purple-900/10 rounded-xl p-3 space-y-2">
+                                        {item.labOrder?.results?.length > 0 ? (
+                                            item.labOrder.results.map((res: any, i: number) => (
+                                                <div key={i} className="flex justify-between text-sm">
+                                                    <span className="font-medium text-gray-800 dark:text-gray-200">{res.parameter_name}</span>
+                                                    <span className="text-gray-900 dark:text-white font-bold">{res.value} <span className="text-xs text-gray-500 font-normal">{res.unit}</span></span>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-sm text-gray-500 italic">Results pending or not uploaded yet.</div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Pharmacy Order Details */}
+                            {item.type === 'PHARMACY_ORDER' && (
+                                <div className="mt-4 border-t border-dashed border-gray-200 dark:border-gray-700 pt-4">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <h4 className="text-xs font-bold text-teal-500 uppercase flex items-center gap-2">
+                                            <FiShoppingCart /> Items Purchased
+                                        </h4>
+                                        <span className={`text-xs font-bold px-2 py-1 rounded border ${item.pharmacyOrder?.status === 'COMPLETED' || item.pharmacyOrder?.status === 'PAID' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-orange-50 text-orange-700 border-orange-200'}`}>
+                                            {item.pharmacyOrder?.status}
+                                        </span>
+                                    </div>
+                                    <div className="bg-teal-50 dark:bg-teal-900/10 rounded-xl p-3 space-y-2">
+                                        {item.pharmacyOrder?.items?.map((pItem: any, i: number) => (
+                                            <div key={i} className="flex justify-between text-sm">
+                                                <span className="font-medium text-gray-800 dark:text-gray-200">{pItem.medication?.name || 'Unknown Item'}</span>
+                                                <span className="text-gray-500 text-xs">Qty: {pItem.quantity}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="mt-2 text-right">
+                                        <span className="text-xs text-gray-500">Total: </span>
+                                        <span className="text-sm font-bold text-teal-700 dark:text-teal-400">KES {item.pharmacyOrder?.total_amount}</span>
+                                    </div>
+                                </div>
+                            )}
+
                         </div>
                     </div>
                 ))}
@@ -452,6 +536,8 @@ function getStatusColor(type: string) {
     switch (type) {
         case 'FULL_RECORD': return 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:border-green-800 dark:text-green-300';
         case 'PRESCRIPTION_ONLY': return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-300';
+        case 'LAB_ORDER': return 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:border-purple-800 dark:text-purple-300';
+        case 'PHARMACY_ORDER': return 'bg-teal-100 text-teal-700 border-teal-200 dark:bg-teal-900/30 dark:border-teal-800 dark:text-teal-300';
         default: return 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-white/10 dark:border-gray-700 dark:text-gray-400';
     }
 }
