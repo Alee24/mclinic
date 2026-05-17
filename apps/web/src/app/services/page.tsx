@@ -63,6 +63,30 @@ export default function ServicesPage() {
             features: ["Suture Removal", "Drain Management", "Physical Rehab Sync", "Home Safety Setup"],
             color: "text-emerald-600",
             bg: "bg-emerald-50"
+        },
+        {
+            icon: <FiPhoneCall className="text-5xl" />,
+            title: "Virtual Consultations",
+            description: "Instant access to board-certified doctors through high-quality secure video and audio calls from your phone or computer.",
+            features: ["Video Calls", "Instant Prescriptions", "Follow-up Care", "Medical Advice"],
+            color: "text-blue-600",
+            bg: "bg-blue-50"
+        },
+        {
+            icon: <FiActivity className="text-5xl" />,
+            title: "Laboratory Tests at Home",
+            description: "Certified phlebotomists collect samples from your home or office, with results delivered securely to your patient dashboard.",
+            features: ["Blood Tests", "Urinalysis", "Health Check Packages", "Digital Results"],
+            color: "text-purple-600",
+            bg: "bg-purple-50"
+        },
+        {
+            icon: <FiTruck className="text-5xl" />,
+            title: "Prescription Delivery",
+            description: "Seamless fulfillment of your doctor's prescriptions with secure, same-day delivery right to your doorstep.",
+            features: ["Fast Delivery", "Authentic Medications", "Refill Reminders", "Secure Packaging"],
+            color: "text-orange-600",
+            bg: "bg-orange-50"
         }
     ];
 

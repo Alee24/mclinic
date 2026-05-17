@@ -1,10 +1,44 @@
 'use client';
 
+import { useState } from 'react';
 import Header from '@/components/landing/Header';
 import Footer from '@/components/landing/Footer';
-import { FiPhone, FiMail, FiMapPin, FiSend } from 'react-icons/fi';
+import { FiPhone, FiMail, FiMapPin, FiSend, FiCheckCircle } from 'react-icons/fi';
+import { api } from '@/lib/api';
 
 export default function ContactPage() {
+    const [formData, setFormData] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        subject: 'General Inquiry',
+        message: ''
+    });
+    const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setStatus('submitting');
+        
+        try {
+            const res = await api.post('/support', {
+                name: `${formData.firstName} ${formData.lastName}`.trim(),
+                email: formData.email,
+                message: `[${formData.subject}] ${formData.message}`
+            });
+            
+            if (res && res.ok) {
+                setStatus('success');
+                setFormData({ firstName: '', lastName: '', email: '', subject: 'General Inquiry', message: '' });
+            } else {
+                setStatus('error');
+            }
+        } catch (error) {
+            console.error('Submission error', error);
+            setStatus('error');
+        }
+    };
+
     return (
         <main className="bg-white min-h-screen font-sans">
             <Header />
@@ -63,43 +97,63 @@ export default function ContactPage() {
 
                     {/* Form */}
                     <div className="bg-white p-8 rounded-3xl shadow-2xl border border-gray-100">
-                        <h3 className="text-2xl font-black text-[#1D2B36] mb-6">Send a Message</h3>
-                        <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
-                            <div className="grid md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-gray-700">First Name</label>
-                                    <input type="text" className="w-full px-4 py-3 rounded-xl bg-gray-50 border-transparent focus:bg-white focus:ring-2 focus:ring-[#C2003F] transition outline-none" placeholder="John" />
+                        {status === 'success' ? (
+                            <div className="h-full flex flex-col items-center justify-center text-center py-12 space-y-4 animate-in fade-in">
+                                <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-4xl">
+                                    <FiCheckCircle />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-gray-700">Last Name</label>
-                                    <input type="text" className="w-full px-4 py-3 rounded-xl bg-gray-50 border-transparent focus:bg-white focus:ring-2 focus:ring-[#C2003F] transition outline-none" placeholder="Doe" />
-                                </div>
+                                <h3 className="text-3xl font-black text-[#1D2B36]">Message Sent!</h3>
+                                <p className="text-gray-600 text-lg">Thank you for reaching out. Our support team will get back to you shortly.</p>
+                                <button onClick={() => setStatus('idle')} className="mt-6 px-8 py-3 bg-[#1D2B36] text-white rounded-xl font-bold hover:bg-[#C2003F] transition-colors">
+                                    Send Another Message
+                                </button>
                             </div>
+                        ) : (
+                            <>
+                                <h3 className="text-2xl font-black text-[#1D2B36] mb-6">Send a Message</h3>
+                                {status === 'error' && (
+                                    <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl font-medium border border-red-100">
+                                        An error occurred while sending your message. Please try again.
+                                    </div>
+                                )}
+                                <form className="space-y-6" onSubmit={handleSubmit}>
+                                    <div className="grid md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-bold text-gray-700">First Name</label>
+                                            <input required type="text" value={formData.firstName} onChange={(e) => setFormData({...formData, firstName: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-gray-50 border-transparent focus:bg-white focus:ring-2 focus:ring-[#C2003F] transition outline-none" placeholder="John" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-bold text-gray-700">Last Name</label>
+                                            <input required type="text" value={formData.lastName} onChange={(e) => setFormData({...formData, lastName: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-gray-50 border-transparent focus:bg-white focus:ring-2 focus:ring-[#C2003F] transition outline-none" placeholder="Doe" />
+                                        </div>
+                                    </div>
 
-                            <div className="space-y-2">
-                                <label className="text-sm font-bold text-gray-700">Email Address</label>
-                                <input type="email" className="w-full px-4 py-3 rounded-xl bg-gray-50 border-transparent focus:bg-white focus:ring-2 focus:ring-[#C2003F] transition outline-none" placeholder="john@example.com" />
-                            </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-gray-700">Email Address</label>
+                                        <input required type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-gray-50 border-transparent focus:bg-white focus:ring-2 focus:ring-[#C2003F] transition outline-none" placeholder="john@example.com" />
+                                    </div>
 
-                            <div className="space-y-2">
-                                <label className="text-sm font-bold text-gray-700">Subject</label>
-                                <select className="w-full px-4 py-3 rounded-xl bg-gray-50 border-transparent focus:bg-white focus:ring-2 focus:ring-[#C2003F] transition outline-none">
-                                    <option>General Inquiry</option>
-                                    <option>Support</option>
-                                    <option>Partnership</option>
-                                    <option>Feedback</option>
-                                </select>
-                            </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-gray-700">Subject</label>
+                                        <select value={formData.subject} onChange={(e) => setFormData({...formData, subject: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-gray-50 border-transparent focus:bg-white focus:ring-2 focus:ring-[#C2003F] transition outline-none">
+                                            <option>General Inquiry</option>
+                                            <option>Support</option>
+                                            <option>Partnership</option>
+                                            <option>Feedback</option>
+                                        </select>
+                                    </div>
 
-                            <div className="space-y-2">
-                                <label className="text-sm font-bold text-gray-700">Message</label>
-                                <textarea className="w-full px-4 py-3 rounded-xl bg-gray-50 border-transparent focus:bg-white focus:ring-2 focus:ring-[#C2003F] transition outline-none h-32 resize-none" placeholder="How can we help you?"></textarea>
-                            </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-gray-700">Message</label>
+                                        <textarea required value={formData.message} onChange={(e) => setFormData({...formData, message: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-gray-50 border-transparent focus:bg-white focus:ring-2 focus:ring-[#C2003F] transition outline-none h-32 resize-none" placeholder="How can we help you?"></textarea>
+                                    </div>
 
-                            <button className="w-full bg-[#1D2B36] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#C2003F] transition-colors flex items-center justify-center gap-2">
-                                Send Message <FiSend />
-                            </button>
-                        </form>
+                                    <button disabled={status === 'submitting'} type="submit" className="w-full bg-[#1D2B36] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#C2003F] transition-colors flex items-center justify-center gap-2 disabled:opacity-70">
+                                        {status === 'submitting' ? 'Sending...' : 'Send Message'} <FiSend />
+                                    </button>
+                                </form>
+                            </>
+                        )}
                     </div>
                 </div>
             </section>
