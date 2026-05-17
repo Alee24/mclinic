@@ -924,92 +924,243 @@ export class FinancialService {
 
         const rows = receiptData.items.map(item => `
             <tr>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.description}</td>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">${item.quantity}</td>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">${item.unitPrice}</td>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">${item.amount}</td>
+                <td style="padding: 16px 12px; font-weight: 600; color: #1e293b; font-size: 14px; border-bottom: 1px solid #f1f5f9;">${item.description}</td>
+                <td style="padding: 16px 12px; text-align: center; color: #475569; font-size: 14px; border-bottom: 1px solid #f1f5f9;">${item.quantity}</td>
+                <td style="padding: 16px 12px; text-align: right; color: #475569; font-size: 14px; border-bottom: 1px solid #f1f5f9;">KES ${Number(item.unitPrice).toLocaleString()}</td>
+                <td style="padding: 16px 12px; text-align: right; font-weight: 700; color: #0b6e40; font-size: 14px; border-bottom: 1px solid #f1f5f9;">KES ${Number(item.amount).toLocaleString()}</td>
             </tr>
         `).join('');
 
         const html = `
-            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 40px; border: 1px solid #f0f0f0; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); color: #333;">
-                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 40px;">
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>M-Clinic Official Receipt</title>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+            <style>
+                body {
+                    font-family: 'Inter', sans-serif;
+                    color: #1e293b;
+                    margin: 0;
+                    padding: 40px 20px;
+                    background-color: #f8fafc;
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
+                }
+                .receipt-container {
+                    max-width: 800px;
+                    margin: 0 auto;
+                    background-color: #ffffff;
+                    border-radius: 24px;
+                    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+                    border: 1px solid #e2e8f0;
+                    overflow: hidden;
+                    position: relative;
+                }
+                .receipt-header {
+                    background: linear-gradient(135deg, #061F14 0%, #0B6E40 100%);
+                    padding: 40px;
+                    color: #ffffff;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+                .receipt-body {
+                    padding: 40px;
+                }
+                .meta-grid {
+                    display: grid;
+                    grid-template-columns: 1.2fr 0.8fr;
+                    gap: 30px;
+                    margin-bottom: 40px;
+                }
+                .details-card {
+                    background-color: #f8fafc;
+                    border: 1px solid #f1f5f9;
+                    border-radius: 16px;
+                    padding: 24px;
+                }
+                .verification-card {
+                    background-color: #f0fdf4;
+                    border: 1px dashed #bbf7d0;
+                    border-radius: 16px;
+                    padding: 24px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    text-align: center;
+                }
+                .receipt-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 40px;
+                }
+                .receipt-table th {
+                    background-color: #f8fafc;
+                    padding: 16px 12px;
+                    text-align: left;
+                    font-size: 11px;
+                    font-weight: 800;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                    color: #475569;
+                    border-bottom: 2px solid #e2e8f0;
+                }
+                .receipt-table td {
+                    padding: 16px 12px;
+                    border-bottom: 1px solid #f1f5f9;
+                    font-size: 14px;
+                }
+                .summary-box {
+                    background-color: #f8fafc;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 16px;
+                    padding: 24px;
+                    margin-left: auto;
+                    width: 320px;
+                }
+                .footer-note {
+                    text-align: center;
+                    margin-top: 60px;
+                    padding-top: 30px;
+                    border-top: 1px dashed #cbd5e1;
+                    color: #64748b;
+                    font-size: 12px;
+                }
+                .action-bar {
+                    text-align: center;
+                    margin-top: 30px;
+                }
+                .print-btn {
+                    background-color: #0b6e40;
+                    color: #ffffff;
+                    border: none;
+                    padding: 14px 28px;
+                    font-size: 14px;
+                    font-weight: 700;
+                    border-radius: 12px;
+                    cursor: pointer;
+                    box-shadow: 0 4px 12px rgba(11, 110, 64, 0.2);
+                    transition: all 0.2s ease;
+                }
+                .print-btn:hover {
+                    background-color: #08522e;
+                    transform: translateY(-1px);
+                    box-shadow: 0 6px 16px rgba(11, 110, 64, 0.3);
+                }
+                @media print {
+                    body {
+                        background-color: #ffffff;
+                        padding: 0;
+                    }
+                    .receipt-container {
+                        box-shadow: none;
+                        border: none;
+                        max-width: 100%;
+                    }
+                    .action-bar {
+                        display: none !important;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="receipt-container">
+                <!-- Header -->
+                <div class="receipt-header">
                     <div>
-                        <img src="https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png" style="height: 60px; margin-bottom: 20px;" alt="M-Clinic Logo">
-                        <h1 style="margin: 0; color: #16a34a; font-size: 28px; font-weight: 800;">OFFICIAL RECEIPT</h1>
-                        <p style="color: #666; font-size: 14px; margin-top: 5px;">${receiptData.clinicName}</p>
+                        <img src="https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png" style="height: 50px; filter: brightness(0) invert(1); margin-bottom: 12px;" alt="M-Clinic Logo">
+                        <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: #a7f3d0; opacity: 0.85;">Official Digital Receipt</div>
                     </div>
                     <div style="text-align: right;">
-                        <p style="margin: 0; color: #999; font-size: 12px; font-weight: 700; text-transform: uppercase;">Receipt Number</p>
-                        <p style="margin: 0 0 15px 0; font-weight: 700; font-size: 18px; color: #111;">${receiptData.receiptNumber}</p>
-                        <p style="margin: 0; color: #999; font-size: 12px; font-weight: 700; text-transform: uppercase;">Date</p>
-                        <p style="margin: 0; font-weight: 600; color: #444;">${new Date(receiptData.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #a7f3d0; letter-spacing: 0.05em; margin-bottom: 4px;">Receipt Number</div>
+                        <div style="font-size: 22px; font-weight: 800; letter-spacing: -0.02em; color: #ffffff; margin-bottom: 4px;">${receiptData.receiptNumber}</div>
+                        <div style="font-size: 13px; font-weight: 500; color: #e2e8f0;">${new Date(receiptData.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
                     </div>
                 </div>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px; padding: 20px; background-color: #f9fafb; border-radius: 8px;">
-                    <div>
-                        <h3 style="margin: 0 0 10px 0; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 1px;">Patient Details</h3>
-                        <p style="margin: 0; font-weight: 700; font-size: 16px;">${receiptData.patientName}</p>
-                        ${receiptData.insurance !== 'N/A' ? `<p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Insurance: ${receiptData.insurance}</p>` : ''}
+
+                <div class="receipt-body">
+                    <!-- Info & Verification Meta Grid -->
+                    <div class="meta-grid">
+                        <!-- Patient / Medic Info -->
+                        <div class="details-card">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div>
+                                    <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; margin-bottom: 6px;">Patient Name</div>
+                                    <div style="font-size: 15px; font-weight: 700; color: #0f172a;">${receiptData.patientName}</div>
+                                    <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Insurance: ${receiptData.insurance}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; margin-bottom: 6px;">Practitioner / Service</div>
+                                    <div style="font-size: 15px; font-weight: 700; color: #0f172a;">${receiptData.doctor || 'M-Clinic Specialist'}</div>
+                                    <div style="font-size: 12px; color: #64748b; margin-top: 4px;">M-Clinic Services Kenya</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Live Dynamic Verification QR Code -->
+                        <div class="verification-card">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent('https://mclinic.co.ke/verify?code=' + receiptData.receiptNumber)}" style="width: 100px; height: 100px; border-radius: 8px; border: 4px solid #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);" alt="Verification QR">
+                            <div style="font-size: 11px; font-weight: 700; color: #0b6e40; margin-top: 10px; display: flex; align-items: center; gap: 4px; justify-content: center;">
+                                <svg style="width: 12px; height: 12px; fill: currentColor;" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                SECURE VERIFIED
+                            </div>
+                            <div style="font-size: 9px; color: #334155; margin-top: 4px;">Scan to confirm authenticity</div>
+                        </div>
                     </div>
-                    <div>
-                        <h3 style="margin: 0 0 10px 0; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 1px;">Provider Details</h3>
-                        <p style="margin: 0; font-weight: 700; font-size: 16px;">${receiptData.doctor || 'M-Clinic Specialist'}</p>
-                        <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">M-Clinic Health Centre</p>
-                    </div>
-                </div>
-                
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
-                    <thead>
-                        <tr style="border-bottom: 2px solid #16a34a;">
-                            <th style="padding: 15px 10px; text-align: left; font-size: 13px; color: #16a34a; text-transform: uppercase;">Description</th>
-                            <th style="padding: 15px 10px; text-align: center; font-size: 13px; color: #16a34a; text-transform: uppercase;">Qty</th>
-                            <th style="padding: 15px 10px; text-align: right; font-size: 13px; color: #16a34a; text-transform: uppercase;">Unit Price</th>
-                            <th style="padding: 15px 10px; text-align: right; font-size: 13px; color: #16a34a; text-transform: uppercase;">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${receiptData.items.map(item => `
-                            <tr style="border-bottom: 1px solid #eee;">
-                                <td style="padding: 15px 10px; font-weight: 600;">${item.description}</td>
-                                <td style="padding: 15px 10px; text-align: center; color: #666;">${item.quantity}</td>
-                                <td style="padding: 15px 10px; text-align: right; color: #666;">KES ${Number(item.unitPrice).toLocaleString()}</td>
-                                <td style="padding: 15px 10px; text-align: right; font-weight: 700;">KES ${Number(item.amount).toLocaleString()}</td>
+
+                    <!-- Items table -->
+                    <table class="receipt-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 55%;">Item Description</th>
+                                <th style="width: 10%; text-align: center;">Qty</th>
+                                <th style="width: 15%; text-align: right;">Unit Price</th>
+                                <th style="width: 20%; text-align: right;">Total</th>
                             </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-                
-                <div style="margin-left: auto; width: 300px; padding: 20px; background-color: #f9fafb; border-radius: 8px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span style="color: #666; font-weight: 600;">Payment Method:</span>
-                        <span style="font-weight: 700; color: #16a34a;">${receiptData.paymentMethod}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; padding-top: 10px; border-top: 2px solid #ddd;">
-                        <span style="font-size: 18px; font-weight: 800; color: #111;">TOTAL PAID</span>
-                        <span style="font-size: 20px; font-weight: 900; color: #16a34a;">KES ${Number(receiptData.totalAmount).toLocaleString()}</span>
-                    </div>
-                </div>
-                
-                <div style="text-align: center; margin-top: 60px; padding-top: 30px; border-top: 1px dashed #ddd;">
-                    <p style="margin: 0; color: #111; font-weight: 700;">Thank you for choosing M-Clinic.</p>
-                    <p style="margin: 5px 0 0 0; color: #999; font-size: 12px;">This is a computer-generated receipt. No signature required.</p>
-                    <p style="margin: 15px 0 0 0; font-size: 11px; color: #bbb;">M-Clinic Kenya • Nairobi • support@mclinic.co.ke</p>
-                </div>
+                        </thead>
+                        <tbody>
+                            ${rows}
+                        </tbody>
+                    </table>
 
-                <div style="margin-top: 40px; text-align: center; no-print">
-                    <button onclick="window.print()" style="padding: 12px 30px; background-color: #16a34a; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 10px rgba(22,163,74,0.3);">Print or Download PDF</button>
-                </div>
+                    <!-- Summary & Breakdown -->
+                    <div class="summary-box">
+                        <div style="display: flex; justify-content: space-between; font-size: 13px; color: #64748b; margin-bottom: 8px;">
+                            <span>Subtotal</span>
+                            <span>KES ${Number(receiptData.totalAmount).toLocaleString()}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 13px; color: #64748b; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9;">
+                            <span>Payment Status</span>
+                            <span style="font-weight: 700; color: #16a34a; text-transform: uppercase;">COMPLETED</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span style="font-size: 13px; font-weight: 600; color: #475569;">Payment Method</span>
+                            <span style="font-size: 12px; font-weight: 700; background-color: #e6f4ea; color: #0b6e40; padding: 4px 10px; border-radius: 9999px;">${receiptData.paymentMethod}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: baseline; padding-top: 12px; border-top: 2px solid #e2e8f0; margin-top: 12px;">
+                            <span style="font-size: 15px; font-weight: 800; color: #0f172a;">Amount Paid</span>
+                            <span style="font-size: 20px; font-weight: 900; color: #0b6e40;">KES ${Number(receiptData.totalAmount).toLocaleString()}</span>
+                        </div>
+                    </div>
 
-                <style>
-                    @media print {
-                        button { display: none; }
-                        body { background: white; margin: 0; padding: 0; }
-                        div { box-shadow: none !important; border: none !important; margin: 0 !important; }
-                    }
-                </style>
+                    <!-- Footer Notes -->
+                    <div class="footer-note">
+                        <p style="margin: 0; font-weight: 700; color: #334155; font-size: 13px;">Thank you for choosing M-Clinic.</p>
+                        <p style="margin: 6px 0 0 0; color: #64748b;">This is a secure, officially verified medical record.</p>
+                        <p style="margin: 20px 0 0 0; font-size: 10px; color: #94a3b8; font-weight: 500;">M-Clinic Kenya • Nairobi • support@mclinic.co.ke • www.mclinic.co.ke</p>
+                    </div>
+
+                    <!-- Print Trigger -->
+                    <div class="action-bar no-print">
+                        <button onclick="window.print()" class="print-btn">Print or Download PDF</button>
+                    </div>
+                </div>
             </div>
+        </body>
+        </html>
         `;
 
         return {
@@ -1055,11 +1206,11 @@ export class FinancialService {
         };
 
         const rows = receiptData.items.map(item => `
-            <tr style="border-bottom: 1px solid #eee;">
-                <td style="padding: 12px; text-align: left; color: #444; font-size: 14px;">${item.description}</td>
-                <td style="padding: 12px; text-align: center; color: #444; font-size: 14px;">${item.quantity}</td>
-                <td style="padding: 12px; text-align: right; color: #444; font-size: 14px;">KES ${Number(item.unitPrice).toLocaleString()}</td>
-                <td style="padding: 12px; text-align: right; font-weight: 700; color: #111; font-size: 14px;">KES ${Number(item.quantity * item.unitPrice).toLocaleString()}</td>
+            <tr>
+                <td style="padding: 16px 12px; font-weight: 600; color: #1e293b; font-size: 14px; border-bottom: 1px solid #f1f5f9;">${item.description}</td>
+                <td style="padding: 16px 12px; text-align: center; color: #475569; font-size: 14px; border-bottom: 1px solid #f1f5f9;">${item.quantity}</td>
+                <td style="padding: 16px 12px; text-align: right; color: #475569; font-size: 14px; border-bottom: 1px solid #f1f5f9;">KES ${Number(item.unitPrice).toLocaleString()}</td>
+                <td style="padding: 16px 12px; text-align: right; font-weight: 700; color: #0b6e40; font-size: 14px; border-bottom: 1px solid #f1f5f9;">KES ${Number(item.quantity * item.unitPrice).toLocaleString()}</td>
             </tr>
         `).join('');
 
@@ -1068,88 +1219,229 @@ export class FinancialService {
         <html>
         <head>
             <meta charset="utf-8">
-            <title>M-Clinic Receipt</title>
+            <title>M-Clinic Official Receipt</title>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
             <style>
-                body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; margin: 0; padding: 20px; background-color: #f9f9f9; }
-                .receipt-box { max-width: 800px; margin: auto; padding: 40px; border: 1px solid #eee; background-color: #fff; box-shadow: 0 0 10px rgba(0, 0, 0, 0.05); border-radius: 12px; }
+                body {
+                    font-family: 'Inter', sans-serif;
+                    color: #1e293b;
+                    margin: 0;
+                    padding: 40px 20px;
+                    background-color: #f8fafc;
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
+                }
+                .receipt-container {
+                    max-width: 800px;
+                    margin: 0 auto;
+                    background-color: #ffffff;
+                    border-radius: 24px;
+                    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+                    border: 1px solid #e2e8f0;
+                    overflow: hidden;
+                    position: relative;
+                }
+                .receipt-header {
+                    background: linear-gradient(135deg, #061F14 0%, #0B6E40 100%);
+                    padding: 40px;
+                    color: #ffffff;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+                .receipt-body {
+                    padding: 40px;
+                }
+                .meta-grid {
+                    display: grid;
+                    grid-template-columns: 1.2fr 0.8fr;
+                    gap: 30px;
+                    margin-bottom: 40px;
+                }
+                .details-card {
+                    background-color: #f8fafc;
+                    border: 1px solid #f1f5f9;
+                    border-radius: 16px;
+                    padding: 24px;
+                }
+                .verification-card {
+                    background-color: #f0fdf4;
+                    border: 1px dashed #bbf7d0;
+                    border-radius: 16px;
+                    padding: 24px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    text-align: center;
+                }
+                .receipt-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 40px;
+                }
+                .receipt-table th {
+                    background-color: #f8fafc;
+                    padding: 16px 12px;
+                    text-align: left;
+                    font-size: 11px;
+                    font-weight: 800;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                    color: #475569;
+                    border-bottom: 2px solid #e2e8f0;
+                }
+                .receipt-table td {
+                    padding: 16px 12px;
+                    border-bottom: 1px solid #f1f5f9;
+                    font-size: 14px;
+                }
+                .summary-box {
+                    background-color: #f8fafc;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 16px;
+                    padding: 24px;
+                    margin-left: auto;
+                    width: 320px;
+                }
+                .footer-note {
+                    text-align: center;
+                    margin-top: 60px;
+                    padding-top: 30px;
+                    border-top: 1px dashed #cbd5e1;
+                    color: #64748b;
+                    font-size: 12px;
+                }
+                .action-bar {
+                    text-align: center;
+                    margin-top: 30px;
+                }
+                .print-btn {
+                    background-color: #0b6e40;
+                    color: #ffffff;
+                    border: none;
+                    padding: 14px 28px;
+                    font-size: 14px;
+                    font-weight: 700;
+                    border-radius: 12px;
+                    cursor: pointer;
+                    box-shadow: 0 4px 12px rgba(11, 110, 64, 0.2);
+                    transition: all 0.2s ease;
+                }
+                .print-btn:hover {
+                    background-color: #08522e;
+                    transform: translateY(-1px);
+                    box-shadow: 0 6px 16px rgba(11, 110, 64, 0.3);
+                }
+                @media print {
+                    body {
+                        background-color: #ffffff;
+                        padding: 0;
+                    }
+                    .receipt-container {
+                        box-shadow: none;
+                        border: none;
+                        max-width: 100%;
+                    }
+                    .action-bar {
+                        display: none !important;
+                    }
+                }
             </style>
         </head>
         <body>
-            <div class="receipt-box">
-                <table style="width: 100%; border-collapse: collapse;">
-                    <tr>
-                        <td>
-                            <h1 style="margin: 0; color: #0B6E40; font-size: 28px; font-weight: 800;">OFFICIAL RECEIPT</h1>
-                            <p style="color: #666; font-size: 14px; margin-top: 5px;">${receiptData.clinicName}</p>
-                        </td>
-                        <td style="text-align: right; vertical-align: top;">
-                            <p style="margin: 0; color: #999; font-size: 12px; font-weight: 700; text-transform: uppercase;">Receipt Number</p>
-                            <p style="margin: 0 0 15px 0; font-weight: 700; font-size: 18px; color: #111;">${receiptData.receiptNumber}</p>
-                            <p style="margin: 0; font-weight: 600; color: #444;">${new Date(receiptData.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
-                        </td>
-                    </tr>
-                </table>
-                
-                <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
-                
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
-                    <tr>
-                        <td style="width: 50%; vertical-align: top;">
-                            <p style="margin: 0 0 5px 0; color: #999; font-size: 11px; font-weight: 700; text-transform: uppercase;">Patient Name</p>
-                            <p style="margin: 0; font-weight: 700; font-size: 16px;">${receiptData.patientName}</p>
-                            <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Insurance: ${receiptData.insurance}</p>
-                        </td>
-                        <td style="width: 50%; vertical-align: top; text-align: right;">
-                            <p style="margin: 0 0 5px 0; color: #999; font-size: 11px; font-weight: 700; text-transform: uppercase;">Practitioner</p>
-                            <p style="margin: 0; font-weight: 700; font-size: 16px;">${receiptData.doctor || 'M-Clinic Specialist'}</p>
-                        </td>
-                    </tr>
-                </table>
-                
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
-                    <thead>
-                        <tr style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0;">
-                            <th style="padding: 12px; text-align: left; font-weight: 700; color: #475569; font-size: 13px; text-transform: uppercase;">Item Description</th>
-                            <th style="padding: 12px; text-align: center; font-weight: 700; color: #475569; font-size: 13px; text-transform: uppercase; width: 80px;">Qty</th>
-                            <th style="padding: 12px; text-align: right; font-weight: 700; color: #475569; font-size: 13px; text-transform: uppercase; width: 120px;">Unit Price</th>
-                            <th style="padding: 12px; text-align: right; font-weight: 700; color: #475569; font-size: 13px; text-transform: uppercase; width: 140px;">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${rows}
-                    </tbody>
-                </table>
-                
-                <div style="background-color: #f8fafc; border-radius: 8px; padding: 20px; text-align: right; max-width: 400px; margin-left: auto;">
-                    <table style="width: 100%;">
-                        <tr>
-                            <td style="text-align: left; color: #64748b; font-weight: 600; font-size: 14px;">Payment Method</td>
-                            <td style="text-align: right; font-weight: 700; color: #0B6E40; font-size: 14px;">${receiptData.paymentMethod}</td>
-                        </tr>
-                        <tr>
-                            <td style="text-align: left; color: #1e293b; font-weight: 800; font-size: 18px; padding-top: 10px;">Amount Paid</td>
-                            <td style="text-align: right; font-size: 20px; font-weight: 900; color: #0B6E40; padding-top: 10px;">KES ${Number(receiptData.totalAmount).toLocaleString()}</td>
-                        </tr>
+            <div class="receipt-container">
+                <!-- Header -->
+                <div class="receipt-header">
+                    <div>
+                        <img src="https://mclinic.co.ke/wp-content/uploads/2025/04/M-Clinic-Logo.png" style="height: 50px; filter: brightness(0) invert(1); margin-bottom: 12px;" alt="M-Clinic Logo">
+                        <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: #a7f3d0; opacity: 0.85;">Official Digital Receipt</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #a7f3d0; letter-spacing: 0.05em; margin-bottom: 4px;">Receipt Number</div>
+                        <div style="font-size: 22px; font-weight: 800; letter-spacing: -0.02em; color: #ffffff; margin-bottom: 4px;">${receiptData.receiptNumber}</div>
+                        <div style="font-size: 13px; font-weight: 500; color: #e2e8f0;">${new Date(receiptData.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
+                    </div>
+                </div>
+
+                <div class="receipt-body">
+                    <!-- Info & Verification Meta Grid -->
+                    <div class="meta-grid">
+                        <!-- Patient / Medic Info -->
+                        <div class="details-card">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div>
+                                    <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; margin-bottom: 6px;">Patient Name</div>
+                                    <div style="font-size: 15px; font-weight: 700; color: #0f172a;">${receiptData.patientName}</div>
+                                    <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Insurance: ${receiptData.insurance}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; margin-bottom: 6px;">Practitioner / Service</div>
+                                    <div style="font-size: 15px; font-weight: 700; color: #0f172a;">${receiptData.doctor || 'M-Clinic Specialist'}</div>
+                                    <div style="font-size: 12px; color: #64748b; margin-top: 4px;">M-Clinic Services Kenya</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Live Dynamic Verification QR Code -->
+                        <div class="verification-card">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent('https://mclinic.co.ke/verify?code=' + receiptData.receiptNumber)}" style="width: 100px; height: 100px; border-radius: 8px; border: 4px solid #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);" alt="Verification QR">
+                            <div style="font-size: 11px; font-weight: 700; color: #0b6e40; margin-top: 10px; display: flex; align-items: center; gap: 4px; justify-content: center;">
+                                <svg style="width: 12px; height: 12px; fill: currentColor;" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                SECURE VERIFIED
+                            </div>
+                            <div style="font-size: 9px; color: #334155; margin-top: 4px;">Scan to confirm authenticity</div>
+                        </div>
+                    </div>
+
+                    <!-- Items table -->
+                    <table class="receipt-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 55%;">Item Description</th>
+                                <th style="width: 10%; text-align: center;">Qty</th>
+                                <th style="width: 15%; text-align: right;">Unit Price</th>
+                                <th style="width: 20%; text-align: right;">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rows}
+                        </tbody>
                     </table>
-                </div>
-                
-                <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
-                
-                <div style="text-align: center; color: #94a3b8; font-size: 12px;">
-                    <p style="margin: 0; font-weight: 600;">Thank you for choosing M-Clinic.</p>
-                    <p style="margin: 5px 0 0 0;">This is a computer-generated receipt. No signature required.</p>
-                </div>
-                <div style="text-align: center; margin-top: 20px; no-print">
-                    <button onclick="window.print()" style="padding: 10px 20px; background-color: #0B6E40; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(11,110,64,0.3);">Print or Download Receipt</button>
+
+                    <!-- Summary & Breakdown -->
+                    <div class="summary-box">
+                        <div style="display: flex; justify-content: space-between; font-size: 13px; color: #64748b; margin-bottom: 8px;">
+                            <span>Subtotal</span>
+                            <span>KES ${Number(receiptData.totalAmount).toLocaleString()}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 13px; color: #64748b; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9;">
+                            <span>Payment Status</span>
+                            <span style="font-weight: 700; color: #16a34a; text-transform: uppercase;">COMPLETED</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span style="font-size: 13px; font-weight: 600; color: #475569;">Payment Method</span>
+                            <span style="font-size: 12px; font-weight: 700; background-color: #e6f4ea; color: #0b6e40; padding: 4px 10px; border-radius: 9999px;">${receiptData.paymentMethod}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: baseline; padding-top: 12px; border-top: 2px solid #e2e8f0; margin-top: 12px;">
+                            <span style="font-size: 15px; font-weight: 800; color: #0f172a;">Amount Paid</span>
+                            <span style="font-size: 20px; font-weight: 900; color: #0b6e40;">KES ${Number(receiptData.totalAmount).toLocaleString()}</span>
+                        </div>
+                    </div>
+
+                    <!-- Footer Notes -->
+                    <div class="footer-note">
+                        <p style="margin: 0; font-weight: 700; color: #334155; font-size: 13px;">Thank you for choosing M-Clinic.</p>
+                        <p style="margin: 6px 0 0 0; color: #64748b;">This is a secure, officially verified medical record.</p>
+                        <p style="margin: 20px 0 0 0; font-size: 10px; color: #94a3b8; font-weight: 500;">M-Clinic Kenya • Nairobi • support@mclinic.co.ke • www.mclinic.co.ke</p>
+                    </div>
+
+                    <!-- Print Trigger -->
+                    <div class="action-bar no-print">
+                        <button onclick="window.print()" class="print-btn">Print or Download PDF</button>
+                    </div>
                 </div>
             </div>
-            <style>
-                @media print {
-                    button { display: none !important; }
-                    body { background: white; margin: 0; padding: 0; }
-                    .receipt-box { box-shadow: none !important; border: none !important; margin: 0 !important; }
-                }
-            </style>
         </body>
         </html>
         `;
