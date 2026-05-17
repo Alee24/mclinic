@@ -12,7 +12,8 @@ import {
   FiCompass, 
   FiCheckCircle, 
   FiClock, 
-  FiSmartphone 
+  FiSmartphone,
+  FiUser
 } from 'react-icons/fi';
 import Link from 'next/link';
 
@@ -32,17 +33,41 @@ export default function MeetingsPage() {
             const res = await api.get('/appointments');
             if (res?.ok) {
                 const data = await res.json();
-                // Filter only confirmed virtual appointments
-                const virtuals = data.filter((apt: any) => 
-                    apt.isVirtual && 
-                    apt.status === 'confirmed'
-                );
+                
+                // Filter all virtual booked appointments (excluding cancelled/rejected)
+                const virtuals = data.filter((apt: any) => {
+                    const isVirtual = apt.isVirtual === true || apt.isVirtual === 1 || String(apt.isVirtual) === 'true';
+                    return isVirtual && apt.status !== 'cancelled' && apt.status !== 'rejected';
+                });
+                
                 setAppointments(virtuals);
             }
         } catch (err) {
             console.error('[MeetingsPage] error fetching appointments:', err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const getParticipantName = (apt: any) => {
+        if (user?.role === 'patient') {
+            return apt.doctor ? `Dr. ${apt.doctor.fname} ${apt.doctor.lname}` : 'Unassigned Medic';
+        } else {
+            return apt.patient ? `${apt.patient.fname} ${apt.patient.lname}` : 'Patient';
+        }
+    };
+
+    const getFormattedDate = (dateStr: string) => {
+        if (!dateStr) return 'Pending Date';
+        try {
+            return new Date(dateStr).toLocaleDateString(undefined, {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        } catch (e) {
+            return dateStr;
         }
     };
 
@@ -76,18 +101,18 @@ export default function MeetingsPage() {
                     </h2>
 
                     {loading ? (
-                        <div className="bg-white dark:bg-white/5 border border-gray-100 dark:border-gray-800 rounded-3xl p-12 text-center flex flex-col items-center justify-center shadow-sm">
+                        <div className="bg-white dark:bg-[#1A1A1A] border border-gray-100 dark:border-gray-800 rounded-3xl p-12 text-center flex flex-col items-center justify-center shadow-sm">
                             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-500 mb-4"></div>
                             <p className="text-gray-500 dark:text-gray-400 font-medium">Loading consultations...</p>
                         </div>
                     ) : appointments.length === 0 ? (
-                        <div className="bg-white dark:bg-white/5 border border-gray-100 dark:border-gray-800 rounded-3xl p-10 text-center flex flex-col items-center justify-center shadow-sm">
+                        <div className="bg-white dark:bg-[#1A1A1A] border border-gray-100 dark:border-gray-800 rounded-3xl p-10 text-center flex flex-col items-center justify-center shadow-sm">
                             <div className="w-16 h-16 bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500 rounded-2xl flex items-center justify-center mb-6">
                                 <FiVideo size={28} />
                             </div>
                             <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-2">No Active Virtual Consultations</h3>
                             <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-6 text-sm">
-                                You do not have any confirmed virtual consultation sessions scheduled for today.
+                                You do not have any virtual consultation sessions scheduled.
                             </p>
                             <Link
                                 href="/dashboard/appointments?book=true&type=VIRTUAL"
@@ -101,34 +126,50 @@ export default function MeetingsPage() {
                             {appointments.map((apt) => (
                                 <div 
                                     key={apt.id}
-                                    className="bg-white dark:bg-white/5 border border-gray-100 dark:border-gray-800 rounded-2xl p-6 hover:shadow-md transition-shadow flex flex-col md:flex-row md:items-center justify-between gap-6"
+                                    className="bg-white dark:bg-[#1A1A1A] border border-gray-100 dark:border-gray-800 rounded-3xl p-6 hover:shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-6"
                                 >
-                                    <div className="space-y-2">
-                                        <div className="flex items-center gap-2">
-                                            <span className="px-2.5 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-bold uppercase">
-                                                {apt.serviceType || 'General Consultation'}
+                                    <div className="space-y-3">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <span className="px-2.5 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-bold uppercase tracking-wider">
+                                                {apt.service?.name || 'General Consultation'}
                                             </span>
-                                            <span className="flex items-center gap-1 text-xs text-emerald-500 font-bold">
-                                                <FiCheckCircle /> Confirmed
+                                            
+                                            <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1 ${
+                                                apt.status === 'confirmed' 
+                                                    ? 'bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400' 
+                                                    : 'bg-yellow-50 dark:bg-yellow-950/20 text-yellow-600 dark:text-yellow-400 animate-pulse'
+                                            }`}>
+                                                <FiCheckCircle size={12} /> {apt.status}
+                                            </span>
+
+                                            <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider ${
+                                                apt.invoice?.status === 'paid' || apt.invoice?.status === 'PAID'
+                                                    ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400'
+                                                    : 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 animate-pulse'
+                                            }`}>
+                                                {apt.invoice?.status === 'paid' || apt.invoice?.status === 'PAID' ? 'Paid' : 'Unpaid'}
                                             </span>
                                         </div>
-                                        <h3 className="text-lg font-bold text-gray-800 dark:text-white">
-                                            Session with {apt.doctorName || apt.patientName || 'Medical Professional'}
+
+                                        <h3 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
+                                            <FiUser className="text-gray-400" />
+                                            Session with {getParticipantName(apt)}
                                         </h3>
-                                        <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
-                                            <span className="flex items-center gap-1">
-                                                <FiCalendar /> {new Date(apt.dateTime).toLocaleDateString()}
+
+                                        <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400 font-medium">
+                                            <span className="flex items-center gap-1.5">
+                                                <FiCalendar className="text-indigo-500" /> {getFormattedDate(apt.appointment_date)}
                                             </span>
-                                            <span className="flex items-center gap-1">
-                                                <FiClock /> {new Date(apt.dateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            <span className="flex items-center gap-1.5">
+                                                <FiClock className="text-indigo-500" /> {apt.appointment_time || 'Pending Time'}
                                             </span>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center gap-3">
                                         <Link
-                                            href={`/dashboard/meetings/${apt.meetingId}`}
-                                            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition-all shadow-md flex items-center gap-2"
+                                            href={`/dashboard/meetings/${apt.meetingId || `mclinic-${apt.id}`}`}
+                                            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition-all shadow-lg hover:shadow-indigo-500/20 flex items-center gap-2 shrink-0"
                                         >
                                             <FiVideo /> Enter Call
                                         </Link>
@@ -142,7 +183,7 @@ export default function MeetingsPage() {
                 {/* Right Column: Utilities */}
                 <div className="space-y-6">
                     {/* Join Manually Form */}
-                    <div className="bg-white dark:bg-white/5 border border-gray-100 dark:border-gray-800 rounded-3xl p-6 shadow-sm">
+                    <div className="bg-white dark:bg-[#1A1A1A] border border-gray-100 dark:border-gray-800 rounded-3xl p-6 shadow-sm">
                         <h3 className="font-bold text-gray-800 dark:text-white mb-2 flex items-center gap-2">
                             <FiCompass className="text-indigo-500" />
                             Join Session Manually
@@ -171,7 +212,7 @@ export default function MeetingsPage() {
                     </div>
 
                     {/* How It Works Card */}
-                    <div className="bg-white dark:bg-white/5 border border-gray-100 dark:border-gray-800 rounded-3xl p-6 shadow-sm space-y-4">
+                    <div className="bg-white dark:bg-[#1A1A1A] border border-gray-100 dark:border-gray-800 rounded-3xl p-6 shadow-sm space-y-4">
                         <h3 className="font-bold text-gray-800 dark:text-white flex items-center gap-2">
                             <FiInfo className="text-emerald-500" />
                             How it works
