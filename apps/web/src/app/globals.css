@@ -166,3 +166,34 @@ body {
 .animate-slow-pulse {
   animation: slow-pulse 3s infinite ease-in-out;
 }
+
+/* ==========================================================================
+   GLOBAL PROFESSIONAL THEME STYLE (M-CLINIC)
+   Forces consistent #087C46 color, thin dark border, and white text for all standard action buttons.
+   ========================================================================== */
+
+@layer components {
+  /* Target primary action buttons and links styled as buttons */
+  button[class*="px-"][class*="py-"]:not([class*="bg-red"]):not([class*="bg-rose"]):not([class*="bg-transparent"]):not([class*="border-transparent"]):not([class*="text-red"]),
+  a[class*="px-"][class*="py-"][class*="bg-"]:not([class*="bg-red"]):not([class*="bg-rose"]):not([class*="bg-transparent"]) {
+    background-color: #087C46 !important;
+    color: #FFFFFF !important;
+    border: 1px solid #043E23 !important;
+    box-shadow: 0 4px 10px rgba(8, 124, 70, 0.2) !important;
+    text-shadow: none !important;
+  }
+
+  button[class*="px-"][class*="py-"]:not([class*="bg-red"]):not([class*="bg-rose"]):not([class*="bg-transparent"]):not([class*="border-transparent"]):not([class*="text-red"]):hover,
+  a[class*="px-"][class*="py-"][class*="bg-"]:not([class*="bg-red"]):not([class*="bg-rose"]):not([class*="bg-transparent"]):hover {
+    background-color: #065B33 !important;
+    border-color: #022012 !important;
+    box-shadow: 0 6px 14px rgba(8, 124, 70, 0.3) !important;
+  }
+
+  /* Handle disabled states */
+  button[class*="px-"][class*="py-"]:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    background-color: #087C46 !important;
+  }
+}
