@@ -59,7 +59,8 @@ export class NotificationService {
 
     private async shouldNotify(key: string): Promise<boolean> {
         const value = await this.getSetting(key);
-        return value === 'true' || value === '1';
+        // Default to true for robust alert notifications, unless explicitly set to false/0
+        return value !== 'false' && value !== '0';
     }
 
     async notifyAdmin(type: 'signup' | 'booking' | 'payment_failure' | 'support_request' | 'reset', message: string) {

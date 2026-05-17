@@ -121,7 +121,23 @@ export class FinancialService {
             items,
         });
 
-        return this.invoiceRepo.save(invoice);
+        const savedInvoice = await this.invoiceRepo.save(invoice);
+
+        // --- SMS Notification (New Invoice Generated) ---
+        try {
+            const isAmbulance = savedInvoice.invoiceNumber?.startsWith('AMB-');
+            const isLab = savedInvoice.invoiceNumber?.startsWith('LB-');
+            const isPharmacy = savedInvoice.invoiceNumber?.startsWith('PH-');
+            const category = isAmbulance ? 'Ambulance' : (isLab ? 'Lab Order' : (isPharmacy ? 'Pharmacy Prescription' : 'Medical Consultation'));
+
+            const smsMessage = `[New Invoice] Invoice #${savedInvoice.invoiceNumber} for KES ${savedInvoice.totalAmount} has been generated for ${savedInvoice.customerName} (${category}). View and pay: https://portal.mclinic.co.ke/dashboard`;
+            // If email field contains phone number (as standard mapped patient identifier) or general mapping, try to notify
+            await this.notificationService.sendCustomSms(savedInvoice.customerEmail || '254724454757', smsMessage);
+        } catch (error) {
+            console.error('[Financial] Failed to send new invoice SMS notification', error);
+        }
+
+        return savedInvoice;
     }
 
     async getInvoices(user: { email: string; role: string; id: number }): Promise<Invoice[]> {
@@ -588,7 +604,24 @@ export class FinancialService {
             }
         }
 
-        // ... (Transcation record and Ambulance logic already handled)
+        // --- SMS Notification for Non-Appointment Paid Invoices (Pharmacy, Lab, Ambulance) ---
+        if (!appId) {
+            try {
+                const prefix = invoice.invoiceNumber ? invoice.invoiceNumber.split('-')[0] : 'INV';
+                const isAmb = invoice.invoiceNumber?.startsWith('AMB-');
+                const isLab = invoice.invoiceNumber?.startsWith('LB-');
+                const isPharmacy = invoice.invoiceNumber?.startsWith('PH-');
+                const category = isAmb ? 'Ambulance Coverage' : (isLab ? 'Lab Order / Results' : (isPharmacy ? 'Pharmacy Prescription' : 'Medical Service'));
+
+                const smsMessage = `[Payment Confirmed] Payment of KES ${invoice.totalAmount} for Invoice #${invoice.invoiceNumber} (${category}) has been verified. Status: ACTIVE/PAID. Customer: ${invoice.customerName}. Thank you for choosing M-Clinic.`;
+                await this.notificationService.sendCustomSms(invoice.customerEmail || '254724454757', smsMessage);
+
+                // Notify admin too
+                await this.notificationService.notifyAdmin('booking', `Payment Verified: KES ${invoice.totalAmount} for Invoice #${invoice.invoiceNumber} (${category}).`);
+            } catch (error) {
+                console.error('[Financial] Failed to send general payment SMS notification', error);
+            }
+        }
 
         return { success: true, message: 'Payment confirmed successfully', invoice };
     }

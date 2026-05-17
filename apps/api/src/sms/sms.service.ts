@@ -66,8 +66,12 @@ export class SmsService {
 
             this.logger.debug(`SMS Response for ${targetMobile}: ${JSON.stringify(response.data)}`);
 
-            if (response.data && response.data.responses && response.data.responses[0] && response.data.responses[0]['response-code'] === 200) {
-                this.logger.log(`SMS accepted by gateway for ${targetMobile}. Response: ${response.data.responses[0]['response-description']}`);
+            const responseData = response.data?.responses?.[0];
+            const responseCode = responseData ? (responseData['respose-code'] ?? responseData['response-code']) : null;
+            const responseDesc = responseData ? (responseData['response-description'] ?? responseData['respose-description']) : 'No description';
+
+            if (responseData && Number(responseCode) === 200) {
+                this.logger.log(`SMS accepted by gateway for ${targetMobile}. Response: ${responseDesc}`);
                 
                 try {
                     const log = this.commsLogRepo.create({

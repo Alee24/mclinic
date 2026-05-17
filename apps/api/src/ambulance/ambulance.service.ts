@@ -5,6 +5,7 @@ import { AmbulancePackage } from './entities/ambulance-package.entity';
 import { AmbulanceSubscription } from './entities/ambulance-subscription.entity';
 
 import { FinancialService } from '../financial/financial.service';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class AmbulanceService {
@@ -14,6 +15,7 @@ export class AmbulanceService {
         @InjectRepository(AmbulancePackage)
         private packageRepo: Repository<AmbulancePackage>,
         private financialService: FinancialService,
+        private notificationService: NotificationService,
     ) { }
 
     async findAllPackages() {
@@ -143,6 +145,27 @@ export class AmbulanceService {
                     unitPrice: total // Show total charge to the patient
                 }]
             });
+        }
+
+        // --- SMS Notifications (Ambulance Subscription & Emergency Evacuation Request) ---
+        try {
+            const isInstant = dto.package_type?.toLowerCase().includes('instant') || dto.package_type?.toLowerCase().includes('dispatch');
+            const alertPrefix = isInstant ? '[EMERGENCY EVACUATION REQUEST]' : '[Ambulance Subscription Request]';
+            const message = `${alertPrefix} A new request has been submitted by ${dto.primary_subscriber_name || 'Subscriber'}. Package: ${dto.package_type || 'General'}. Phone: ${dto.primary_phone || 'N/A'}. Location: ${dto.residential_address || 'N/A'}. Please process urgently!`;
+
+            // Send SMS alert to customer
+            if (dto.primary_phone) {
+                const customerMsg = isInstant 
+                  ? `Dear ${dto.primary_subscriber_name || 'Customer'}, your Emergency Evacuation / Ambulance Dispatch request has been received. Please pay KES ${total} to activate instant dispatch.`
+                  : `Dear ${dto.primary_subscriber_name || 'Customer'}, your Ambulance Subscription request for package "${dto.package_type}" has been received. Please complete your payment to activate coverage.`;
+                await this.notificationService.sendCustomSms(dto.primary_phone, customerMsg);
+            }
+
+            // Also alert the admin on the primary mobile number
+            await this.notificationService.notifyAdmin('booking', message);
+
+        } catch (error) {
+            console.error('[Ambulance] Failed to send booking SMS notifications', error);
         }
 
         return { subscription: savedSub, invoice };
