@@ -13,7 +13,8 @@ import {
   FiCheckCircle, 
   FiClock, 
   FiSmartphone,
-  FiUser
+  FiUser,
+  FiLock
 } from 'react-icons/fi';
 import Link from 'next/link';
 
@@ -49,11 +50,28 @@ export default function MeetingsPage() {
         }
     };
 
-    const getParticipantName = (apt: any) => {
+    const getParticipantDisplay = (apt: any) => {
+        const isPaid = apt.invoice?.status === 'paid' || apt.invoice?.status === 'PAID';
+        const isUserPatient = user?.role === 'patient';
+        const shouldHideDetails = isUserPatient && !isPaid;
+
+        if (shouldHideDetails) {
+            return {
+                name: 'Medic (Pay to Unlock Details)',
+                isLocked: true
+            };
+        }
+
         if (user?.role === 'patient') {
-            return apt.doctor ? `Dr. ${apt.doctor.fname} ${apt.doctor.lname}` : 'Unassigned Medic';
+            return {
+                name: apt.doctor ? `Dr. ${apt.doctor.fname} ${apt.doctor.lname}` : 'Unassigned Medic',
+                isLocked: false
+            };
         } else {
-            return apt.patient ? `${apt.patient.fname} ${apt.patient.lname}` : 'Patient';
+            return {
+                name: apt.patient ? `${apt.patient.fname} ${apt.patient.lname}` : 'Patient',
+                isLocked: false
+            };
         }
     };
 
@@ -116,66 +134,82 @@ export default function MeetingsPage() {
                             </p>
                             <Link
                                 href="/dashboard/appointments?book=true&type=VIRTUAL"
-                                className="px-6 py-3 bg-emerald-500 text-white font-bold rounded-2xl hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-2 text-sm"
+                                className="px-6 py-3 bg-[#0B6E40] hover:bg-[#08522E] text-white font-bold rounded-2xl shadow-lg transition-all flex items-center gap-2 text-sm"
                             >
                                 <FiPlus /> Book Virtual Consultation
                             </Link>
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            {appointments.map((apt) => (
-                                <div 
-                                    key={apt.id}
-                                    className="bg-white dark:bg-[#1A1A1A] border border-gray-100 dark:border-gray-800 rounded-3xl p-6 hover:shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-6"
-                                >
-                                    <div className="space-y-3">
-                                        <div className="flex flex-wrap items-center gap-2">
-                                            <span className="px-2.5 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-bold uppercase tracking-wider">
-                                                {apt.service?.name || 'General Consultation'}
-                                            </span>
-                                            
-                                            <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1 ${
-                                                apt.status === 'confirmed' 
-                                                    ? 'bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400' 
-                                                    : 'bg-yellow-50 dark:bg-yellow-950/20 text-yellow-600 dark:text-yellow-400 animate-pulse'
-                                            }`}>
-                                                <FiCheckCircle size={12} /> {apt.status}
-                                            </span>
+                            {appointments.map((apt) => {
+                                const isPaid = apt.invoice?.status === 'paid' || apt.invoice?.status === 'PAID';
+                                const isUserPatient = user?.role === 'patient';
+                                const shouldBlock = isUserPatient && !isPaid;
+                                const participant = getParticipantDisplay(apt);
 
-                                            <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider ${
-                                                apt.invoice?.status === 'paid' || apt.invoice?.status === 'PAID'
-                                                    ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400'
-                                                    : 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 animate-pulse'
-                                            }`}>
-                                                {apt.invoice?.status === 'paid' || apt.invoice?.status === 'PAID' ? 'Paid' : 'Unpaid'}
-                                            </span>
+                                return (
+                                    <div 
+                                        key={apt.id}
+                                        className="bg-white dark:bg-[#1A1A1A] border border-gray-100 dark:border-gray-800 rounded-3xl p-6 hover:shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-6"
+                                    >
+                                        <div className="space-y-3">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <span className="px-2.5 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-bold uppercase tracking-wider">
+                                                    {apt.service?.name || 'General Consultation'}
+                                                </span>
+                                                
+                                                <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1 ${
+                                                    apt.status === 'confirmed' 
+                                                        ? 'bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400' 
+                                                        : 'bg-yellow-50 dark:bg-yellow-950/20 text-yellow-600 dark:text-yellow-400 animate-pulse'
+                                                }`}>
+                                                    <FiCheckCircle size={12} /> {apt.status}
+                                                </span>
+
+                                                <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider ${
+                                                    isPaid
+                                                        ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400'
+                                                        : 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 animate-pulse'
+                                                }`}>
+                                                    {isPaid ? 'Paid' : 'Unpaid'}
+                                                </span>
+                                            </div>
+
+                                            <h3 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
+                                                {participant.isLocked ? <FiLock className="text-rose-500" /> : <FiUser className="text-gray-400" />}
+                                                Session with {participant.name}
+                                            </h3>
+
+                                            <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400 font-medium">
+                                                <span className="flex items-center gap-1.5">
+                                                    <FiCalendar className="text-indigo-500" /> {getFormattedDate(apt.appointment_date)}
+                                                </span>
+                                                <span className="flex items-center gap-1.5">
+                                                    <FiClock className="text-indigo-500" /> {apt.appointment_time || 'Pending Time'}
+                                                </span>
+                                            </div>
                                         </div>
 
-                                        <h3 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
-                                            <FiUser className="text-gray-400" />
-                                            Session with {getParticipantName(apt)}
-                                        </h3>
-
-                                        <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400 font-medium">
-                                            <span className="flex items-center gap-1.5">
-                                                <FiCalendar className="text-indigo-500" /> {getFormattedDate(apt.appointment_date)}
-                                            </span>
-                                            <span className="flex items-center gap-1.5">
-                                                <FiClock className="text-indigo-500" /> {apt.appointment_time || 'Pending Time'}
-                                            </span>
+                                        <div className="flex items-center gap-3">
+                                            {shouldBlock ? (
+                                                <Link
+                                                    href={`/dashboard/appointments/${apt.id}/pay`}
+                                                    className="px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-sm transition-all shadow-lg hover:shadow-rose-600/20 flex items-center gap-2 shrink-0 uppercase tracking-wider text-[11px]"
+                                                >
+                                                    <FiLock /> Pay KES {Number(apt.invoice?.totalAmount || apt.fee).toLocaleString()} to Join
+                                                </Link>
+                                            ) : (
+                                                <Link
+                                                    href={`/dashboard/meetings/${apt.meetingId || `mclinic-${apt.id}`}`}
+                                                    className="px-6 py-3 bg-[#0B6E40] hover:bg-[#08522E] text-white font-bold rounded-xl text-sm transition-all shadow-lg hover:shadow-emerald-950/20 flex items-center gap-2 shrink-0"
+                                                >
+                                                    <FiVideo /> Enter Call
+                                                </Link>
+                                            )}
                                         </div>
                                     </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <Link
-                                            href={`/dashboard/meetings/${apt.meetingId || `mclinic-${apt.id}`}`}
-                                            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition-all shadow-lg hover:shadow-indigo-500/20 flex items-center gap-2 shrink-0"
-                                        >
-                                            <FiVideo /> Enter Call
-                                        </Link>
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
                 </div>
@@ -202,8 +236,10 @@ export default function MeetingsPage() {
                             />
                             <Link
                                 href={manualRoom ? `/dashboard/meetings/${manualRoom}` : '#'}
-                                className={`w-full py-3 bg-indigo-600 text-white font-bold rounded-xl text-sm hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 ${
-                                    !manualRoom ? 'opacity-50 pointer-events-none' : ''
+                                className={`w-full py-3 text-white font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 ${
+                                    !manualRoom 
+                                        ? 'bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-60' 
+                                        : 'bg-[#0B6E40] hover:bg-[#08522E]'
                                 }`}
                             >
                                 Enter Embedded Room <FiArrowRight />
