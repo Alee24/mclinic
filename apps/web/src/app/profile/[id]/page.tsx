@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { 
   BadgeCheck, 
   MapPin, 
@@ -11,9 +12,12 @@ import {
   Share2, 
   ExternalLink,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  LogIn,
+  UserPlus,
+  Wifi,
+  WifiOff
 } from 'lucide-react';
-import Header from '@/components/landing/Header';
 import Footer from '@/components/landing/Footer';
 
 export default function MedicProfilePage() {
@@ -78,9 +82,34 @@ export default function MedicProfilePage() {
     );
   }
 
+  const isOnline = medic?.isOnline;
+
   return (
     <div className="min-h-screen bg-slate-50">
-      <Header />
+      {/* Simple top bar with Logo + Login/Register */}
+      <header className="bg-white border-b border-slate-100 sticky top-0 z-50">
+        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+          <Link href="/" className="text-xl font-extrabold text-slate-800 tracking-tight">
+            M-CLINIC<span className="text-emerald-500">.</span>
+          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/login"
+              className="flex items-center gap-2 px-5 py-2.5 text-slate-700 font-semibold hover:bg-slate-100 rounded-xl transition-colors text-sm"
+            >
+              <LogIn className="w-4 h-4" />
+              Login
+            </Link>
+            <Link
+              href="/register"
+              className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 text-white font-bold rounded-xl hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition-all text-sm"
+            >
+              <UserPlus className="w-4 h-4" />
+              Register Now
+            </Link>
+          </div>
+        </div>
+      </header>
       
       <main className="max-w-5xl mx-auto px-6 py-12 lg:py-20">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
@@ -120,7 +149,22 @@ export default function MedicProfilePage() {
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-slate-400 font-medium">Availability</span>
-                  <span className="text-emerald-500 font-bold">Available Now</span>
+                  {isOnline ? (
+                    <span className="text-emerald-500 font-bold flex items-center gap-1.5">
+                      <span className="relative flex h-2.5 w-2.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                      </span>
+                      Online Now
+                    </span>
+                  ) : (
+                    <span className="text-slate-400 font-bold flex items-center gap-1.5">
+                      <span className="relative flex h-2.5 w-2.5">
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-slate-300"></span>
+                      </span>
+                      Offline
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -158,7 +202,7 @@ export default function MedicProfilePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
                 <h3 className="font-bold text-slate-800 mb-4">Practice Locations</h3>
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-3 mb-4">
                   <div className="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center shrink-0">
                     <MapPin className="w-5 h-5" />
                   </div>
@@ -166,6 +210,20 @@ export default function MedicProfilePage() {
                     <p className="text-slate-800 font-bold">MClinic HQ</p>
                     <p className="text-slate-500 text-sm">Upper Hill, Nairobi</p>
                   </div>
+                </div>
+                {/* Online status indicator */}
+                <div className="pt-3 border-t border-slate-100 flex items-center gap-2">
+                  {isOnline ? (
+                    <>
+                      <Wifi className="w-4 h-4 text-emerald-500" />
+                      <span className="text-sm font-semibold text-emerald-600">Online — Available for consultations</span>
+                    </>
+                  ) : (
+                    <>
+                      <WifiOff className="w-4 h-4 text-slate-400" />
+                      <span className="text-sm font-semibold text-slate-400">Offline — Currently unavailable</span>
+                    </>
+                  )}
                 </div>
               </div>
 

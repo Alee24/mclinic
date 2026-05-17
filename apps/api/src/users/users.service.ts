@@ -390,6 +390,17 @@ export class UsersService implements OnModuleInit {
       throw new ConflictException('PRIVATE_PROFILE');
     }
 
+    // Enrich with doctor's online status
+    try {
+      const doctorRow = await this.dataSource.query(
+        'SELECT is_online FROM doctors WHERE email = ? LIMIT 1',
+        [user.email]
+      );
+      (user as any).isOnline = doctorRow?.[0]?.is_online === 1;
+    } catch (e) {
+      (user as any).isOnline = false;
+    }
+
     return user;
   }
 
