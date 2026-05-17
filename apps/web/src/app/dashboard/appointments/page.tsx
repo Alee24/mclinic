@@ -10,6 +10,7 @@ import ViewAppointmentDetailsModal from '@/components/dashboard/appointments/Vie
 import RateDoctorModal from '@/components/dashboard/appointments/RateDoctorModal';
 import CreateAppointmentModal from '@/components/dashboard/appointments/CreateAppointmentModal';
 import BookAppointmentModal from '@/components/dashboard/appointments/BookAppointmentModal';
+import CompleteAppointmentModal from '@/components/dashboard/appointments/CompleteAppointmentModal';
 
 export default function AppointmentsPage() {
     const { user } = useAuth();
@@ -21,6 +22,7 @@ export default function AppointmentsPage() {
     const [initialType, setInitialType] = useState<'PHYSICAL' | 'VIRTUAL'>('PHYSICAL');
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [showRateModal, setShowRateModal] = useState(false);
+    const [showCompleteModal, setShowCompleteModal] = useState(false);
     const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
 
     useEffect(() => {
@@ -275,7 +277,10 @@ export default function AppointmentsPage() {
                                                      {apt.status === 'confirmed' && (
                                                          <>
                                                              <button
-                                                                 onClick={() => updateStatus(apt.id, 'completed')}
+                                                                 onClick={() => {
+                                                                     setSelectedAppointment(apt);
+                                                                     setShowCompleteModal(true);
+                                                                 }}
                                                                  className="text-[10px] font-black px-3 py-1.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 uppercase tracking-tighter"
                                                              >
                                                                  Complete
@@ -401,6 +406,21 @@ export default function AppointmentsPage() {
                     onClose={() => setShowRateModal(false)}
                     onSuccess={() => {
                         setShowRateModal(false);
+                    }}
+                />
+            )}
+
+            {showCompleteModal && selectedAppointment && (
+                <CompleteAppointmentModal
+                    appointment={selectedAppointment}
+                    onClose={() => {
+                        setShowCompleteModal(false);
+                        setSelectedAppointment(null);
+                    }}
+                    onSuccess={() => {
+                        setShowCompleteModal(false);
+                        setSelectedAppointment(null);
+                        fetchData();
                     }}
                 />
             )}
