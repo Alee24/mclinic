@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
-import { FiPackage, FiSearch, FiCheckCircle, FiClock, FiFilter, FiUser, FiActivity, FiTruck, FiMapPin, FiPhone } from 'react-icons/fi';
+import { FiPackage, FiSearch, FiCheckCircle, FiClock, FiFilter, FiUser, FiActivity, FiTruck, FiMapPin, FiPhone, FiDownload } from 'react-icons/fi';
 
 export default function AdminPharmacyOrdersPage() {
     const [orders, setOrders] = useState<any[]>([]);
@@ -40,6 +40,26 @@ export default function AdminPharmacyOrdersPage() {
             }
         } catch (err) {
             console.error(err);
+        }
+    };
+
+    const handleViewReceipt = async (invoiceId: number | string) => {
+        if (!invoiceId) return;
+        try {
+            const res = await api.get(`/financial/receipt/invoice/${invoiceId}`);
+            if (res && res.ok) {
+                const data = await res.json();
+                const win = window.open('', '_blank');
+                if (win) {
+                    win.document.write(data.html);
+                    win.document.close();
+                }
+            } else {
+                alert('Receipt not found.');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Error loading receipt');
         }
     };
 
@@ -183,7 +203,7 @@ export default function AdminPharmacyOrdersPage() {
                                     {order.status === 'PAID' && (
                                         <button
                                             onClick={() => updateStatus(order.id, 'SHIPPED')}
-                                            className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-500/20 hover:scale-[1.02] transition-transform flex items-center justify-center gap-2"
+                                            className="w-full py-3 bg-[#0B6E40] hover:bg-[#08522E] text-white rounded-xl font-bold shadow-lg hover:scale-[1.02] transition-transform flex items-center justify-center gap-2"
                                         >
                                             <FiTruck /> Mark Shipped
                                         </button>
@@ -191,7 +211,7 @@ export default function AdminPharmacyOrdersPage() {
                                     {order.status === 'SHIPPED' && (
                                         <button
                                             onClick={() => updateStatus(order.id, 'DELIVERED')}
-                                            className="w-full py-3 bg-green-600 text-white rounded-xl font-bold shadow-lg shadow-green-500/20 hover:scale-[1.02] transition-transform flex items-center justify-center gap-2"
+                                            className="w-full py-3 bg-[#0B6E40] hover:bg-[#08522E] text-white rounded-xl font-bold shadow-lg hover:scale-[1.02] transition-transform flex items-center justify-center gap-2"
                                         >
                                             <FiCheckCircle /> Complete
                                         </button>
@@ -200,6 +220,14 @@ export default function AdminPharmacyOrdersPage() {
                                         <div className="text-center w-full py-2">
                                             <span className="text-green-600 font-bold flex items-center justify-center gap-2"><FiCheckCircle /> Completed</span>
                                         </div>
+                                    )}
+                                    {order.invoiceId && (
+                                        <button
+                                            onClick={() => handleViewReceipt(order.invoiceId)}
+                                            className="w-full py-2 bg-emerald-50 dark:bg-emerald-950/20 text-[#0B6E40] hover:text-[#08522E] dark:text-emerald-400 rounded-xl font-bold border border-emerald-100 dark:border-emerald-900/30 hover:scale-[1.02] transition-transform flex items-center justify-center gap-2 text-xs uppercase tracking-wider mt-2"
+                                        >
+                                            <FiDownload /> Receipt PDF
+                                        </button>
                                     )}
                                 </div>
                             </div>

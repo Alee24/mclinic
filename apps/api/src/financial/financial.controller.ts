@@ -78,6 +78,11 @@ export class FinancialController {
     return this.financialService.generateReceipt(Number(transactionId));
   }
 
+  @Get('receipt/invoice/:invoiceId')
+  getReceiptByInvoice(@Param('invoiceId') invoiceId: string) {
+    return this.financialService.generateReceiptByInvoiceId(Number(invoiceId));
+  }
+
   @UseGuards(AuthGuard('jwt'))
   @Post('invoices')
   createInvoice(@Body() body: any) {

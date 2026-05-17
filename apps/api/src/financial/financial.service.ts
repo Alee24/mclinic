@@ -1017,4 +1017,146 @@ export class FinancialService {
             html
         };
     }
+
+    async generateReceiptByInvoiceId(invoiceId: number) {
+        const tx = await this.txRepo.createQueryBuilder('tx')
+            .leftJoinAndSelect('tx.invoice', 'invoice')
+            .leftJoinAndSelect('invoice.items', 'items')
+            .leftJoinAndSelect('invoice.appointment', 'appt')
+            .leftJoinAndSelect('appt.patient', 'patientUser')
+            .leftJoinAndSelect('appt.doctor', 'doctor')
+            .leftJoinAndMapOne('appt.patientDetails', Patient, 'patientDetails', 'patientDetails.user_id = appt.patientId')
+            .where('tx.invoiceId = :invoiceId', { invoiceId })
+            .getOne();
+
+        const invoice = tx?.invoice || await this.invoiceRepo.findOne({
+            where: { id: invoiceId },
+            relations: ['items']
+        });
+
+        if (!invoice) throw new NotFoundException('Invoice not found');
+
+        const appt = invoice?.appointment;
+        // @ts-ignore
+        const patientDetails = appt?.patientDetails as Patient;
+        const patientName = appt?.patient ? `${appt.patient.fname} ${appt.patient.lname}` : (invoice?.customerName || 'Patient');
+
+        const receiptData = {
+            clinicName: "M-Clinic Services",
+            clinicAddress: "Nairobi, Kenya",
+            receiptNumber: tx?.reference || invoice?.invoiceNumber || `REC-${invoice?.id}`,
+            date: tx?.createdAt || invoice?.createdAt || new Date(),
+            patientName: patientName,
+            insurance: patientDetails?.insurance_provider || 'N/A',
+            doctor: appt?.doctor ? `${appt.doctor.fname} ${appt.doctor.lname}` : null,
+            items: invoice?.items || [],
+            totalAmount: tx?.amount || invoice?.totalAmount,
+            paymentMethod: tx?.source || invoice?.paymentMethod || 'COMPLETED',
+        };
+
+        const rows = receiptData.items.map(item => `
+            <tr style="border-bottom: 1px solid #eee;">
+                <td style="padding: 12px; text-align: left; color: #444; font-size: 14px;">${item.description}</td>
+                <td style="padding: 12px; text-align: center; color: #444; font-size: 14px;">${item.quantity}</td>
+                <td style="padding: 12px; text-align: right; color: #444; font-size: 14px;">KES ${Number(item.unitPrice).toLocaleString()}</td>
+                <td style="padding: 12px; text-align: right; font-weight: 700; color: #111; font-size: 14px;">KES ${Number(item.quantity * item.unitPrice).toLocaleString()}</td>
+            </tr>
+        `).join('');
+
+        const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>M-Clinic Receipt</title>
+            <style>
+                body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; margin: 0; padding: 20px; background-color: #f9f9f9; }
+                .receipt-box { max-width: 800px; margin: auto; padding: 40px; border: 1px solid #eee; background-color: #fff; box-shadow: 0 0 10px rgba(0, 0, 0, 0.05); border-radius: 12px; }
+            </style>
+        </head>
+        <body>
+            <div class="receipt-box">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td>
+                            <h1 style="margin: 0; color: #0B6E40; font-size: 28px; font-weight: 800;">OFFICIAL RECEIPT</h1>
+                            <p style="color: #666; font-size: 14px; margin-top: 5px;">${receiptData.clinicName}</p>
+                        </td>
+                        <td style="text-align: right; vertical-align: top;">
+                            <p style="margin: 0; color: #999; font-size: 12px; font-weight: 700; text-transform: uppercase;">Receipt Number</p>
+                            <p style="margin: 0 0 15px 0; font-weight: 700; font-size: 18px; color: #111;">${receiptData.receiptNumber}</p>
+                            <p style="margin: 0; font-weight: 600; color: #444;">${new Date(receiptData.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                        </td>
+                    </tr>
+                </table>
+                
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+                
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+                    <tr>
+                        <td style="width: 50%; vertical-align: top;">
+                            <p style="margin: 0 0 5px 0; color: #999; font-size: 11px; font-weight: 700; text-transform: uppercase;">Patient Name</p>
+                            <p style="margin: 0; font-weight: 700; font-size: 16px;">${receiptData.patientName}</p>
+                            <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Insurance: ${receiptData.insurance}</p>
+                        </td>
+                        <td style="width: 50%; vertical-align: top; text-align: right;">
+                            <p style="margin: 0 0 5px 0; color: #999; font-size: 11px; font-weight: 700; text-transform: uppercase;">Practitioner</p>
+                            <p style="margin: 0; font-weight: 700; font-size: 16px;">${receiptData.doctor || 'M-Clinic Specialist'}</p>
+                        </td>
+                    </tr>
+                </table>
+                
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+                    <thead>
+                        <tr style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                            <th style="padding: 12px; text-align: left; font-weight: 700; color: #475569; font-size: 13px; text-transform: uppercase;">Item Description</th>
+                            <th style="padding: 12px; text-align: center; font-weight: 700; color: #475569; font-size: 13px; text-transform: uppercase; width: 80px;">Qty</th>
+                            <th style="padding: 12px; text-align: right; font-weight: 700; color: #475569; font-size: 13px; text-transform: uppercase; width: 120px;">Unit Price</th>
+                            <th style="padding: 12px; text-align: right; font-weight: 700; color: #475569; font-size: 13px; text-transform: uppercase; width: 140px;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows}
+                    </tbody>
+                </table>
+                
+                <div style="background-color: #f8fafc; border-radius: 8px; padding: 20px; text-align: right; max-width: 400px; margin-left: auto;">
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="text-align: left; color: #64748b; font-weight: 600; font-size: 14px;">Payment Method</td>
+                            <td style="text-align: right; font-weight: 700; color: #0B6E40; font-size: 14px;">${receiptData.paymentMethod}</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left; color: #1e293b; font-weight: 800; font-size: 18px; padding-top: 10px;">Amount Paid</td>
+                            <td style="text-align: right; font-size: 20px; font-weight: 900; color: #0B6E40; padding-top: 10px;">KES ${Number(receiptData.totalAmount).toLocaleString()}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+                
+                <div style="text-align: center; color: #94a3b8; font-size: 12px;">
+                    <p style="margin: 0; font-weight: 600;">Thank you for choosing M-Clinic.</p>
+                    <p style="margin: 5px 0 0 0;">This is a computer-generated receipt. No signature required.</p>
+                </div>
+                <div style="text-align: center; margin-top: 20px; no-print">
+                    <button onclick="window.print()" style="padding: 10px 20px; background-color: #0B6E40; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(11,110,64,0.3);">Print or Download Receipt</button>
+                </div>
+            </div>
+            <style>
+                @media print {
+                    button { display: none !important; }
+                    body { background: white; margin: 0; padding: 0; }
+                    .receipt-box { box-shadow: none !important; border: none !important; margin: 0 !important; }
+                }
+            </style>
+        </body>
+        </html>
+        `;
+
+        return {
+            ...receiptData,
+            html
+        };
+    }
 }

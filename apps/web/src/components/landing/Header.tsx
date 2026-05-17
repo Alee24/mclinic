@@ -38,6 +38,16 @@ export default function Header() {
                                 {item}
                             </Link>
                         ))}
+                        <Link 
+                            href="/verify" 
+                            className="text-sm font-bold text-[#0B6E40] hover:text-[#08522E] transition-colors border border-emerald-200 bg-emerald-50/50 px-3 py-1.5 rounded-xl flex items-center gap-1.5"
+                        >
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#0B6E40]"></span>
+                            </span>
+                            Verify Credentials
+                        </Link>
                     </div>
 
                     {/* CTA Buttons */}
@@ -45,7 +55,7 @@ export default function Header() {
                         <Link href="/login" className="text-sm font-bold text-mc-dark hover:text-mc-crimson transition-colors px-4">
                             Login
                         </Link>
-                        <Link href="/register/patient" className="bg-mc-dark text-white px-8 py-3 rounded-2xl font-bold text-sm hover:bg-mc-crimson transition-all flex items-center gap-2 group">
+                        <Link href="/register/patient" className="bg-mc-dark text-white px-8 py-3 rounded-2xl font-bold text-sm hover:bg-[#0B6E40] transition-all flex items-center gap-2 group">
                             Join Now
                             <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
                         </Link>
@@ -76,6 +86,13 @@ export default function Header() {
                                 {item}
                             </Link>
                         ))}
+                        <Link 
+                            href="/verify" 
+                            className="text-4xl font-black text-[#0B6E40] hover:text-[#08522E] transition-colors"
+                            onClick={() => setMobileMenuOpen(false)}
+                        >
+                            Verify Credentials
+                        </Link>
                     </div>
                     <div className="pt-10 flex flex-col gap-4">
                         <Link href="/login" className="w-full text-center py-5 rounded-2xl border-2 border-mc-dark font-black text-xl">Login</Link>
