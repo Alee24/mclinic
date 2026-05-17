@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import DashboardLayout from '../../layout';
-import axios from 'axios';
+import { api } from '@/lib/api';
 import { toast } from 'react-hot-toast';
 import { FiMail, FiPhone, FiCheck, FiX, FiMessageSquare, FiUser, FiSend } from 'react-icons/fi';
 
@@ -14,11 +14,13 @@ export default function AdminSupportPage() {
 
     const fetchRequests = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/support`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setRequests(res.data);
+            const res = await api.get('/support');
+            if (res?.ok) {
+                const data = await res.json();
+                setRequests(data);
+            } else {
+                throw new Error('Failed to fetch');
+            }
         } catch (error) {
             console.error('Failed to fetch requests', error);
             toast.error('Failed to load support requests');
@@ -33,11 +35,8 @@ export default function AdminSupportPage() {
 
     const handleStatusUpdate = async (id: string, status: string, response?: string) => {
         try {
-            const token = localStorage.getItem('token');
-            await axios.patch(`${process.env.NEXT_PUBLIC_API_URL}/support/${id}`,
-                { status, response },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            const res = await api.patch(`/support/${id}`, { status, response });
+            if (!res?.ok) throw new Error('Failed to update');
             toast.success(response ? 'Response sent and status updated' : 'Status updated');
 
             // Clear response state for this ID
