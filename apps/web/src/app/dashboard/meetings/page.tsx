@@ -74,21 +74,21 @@ export default function MeetingsPage() {
     return (
         <div className="max-w-5xl mx-auto px-6 py-8 space-y-10">
             {/* Header section with elegant gradient card */}
-            <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-600 rounded-3xl p-8 md:p-12 text-white shadow-xl relative overflow-hidden">
+            <div className="bg-gradient-to-br from-[#061F14] via-[#0E2A1E] to-[#051C12] border border-emerald-800/30 rounded-3xl p-8 md:p-12 text-white shadow-2xl relative overflow-hidden">
                 <div className="relative z-10 max-w-2xl">
-                    <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4 inline-block">
+                    <span className="bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4 inline-block text-emerald-400">
                         M-Clinic Telehealth
                     </span>
-                    <h1 className="text-3xl md:text-5xl font-black mb-4 tracking-tight leading-tight">
+                    <h1 className="text-3xl md:text-5xl font-black mb-4 tracking-tight leading-tight bg-gradient-to-r from-white via-slate-100 to-emerald-300 bg-clip-text text-transparent">
                         Virtual Consultation Hub
                     </h1>
-                    <p className="text-indigo-100 text-lg mb-0 font-medium">
+                    <p className="text-emerald-100/90 text-base md:text-lg mb-0 font-medium leading-relaxed">
                         Connect with qualified healthcare professionals instantly from the comfort of your home. Premium, secure, and fully private video consultations.
                     </p>
                 </div>
                 {/* Decorative design elements */}
-                <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
-                <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-emerald-500/20 rounded-full blur-2xl pointer-events-none"></div>
+                <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
+                <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-emerald-400/5 rounded-full blur-2xl pointer-events-none"></div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
