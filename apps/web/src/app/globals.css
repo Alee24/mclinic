@@ -6,7 +6,7 @@
   --background: #ffffff;
   --foreground: #1A2C35;
   --mc-crimson: #C2003F;
-  --mc-green: #00C65E;
+  --mc-green: #00FD8C;
   --mc-dark: #1A2C35;
   --mc-light: #F8FAFC;
   --radius-xl: 2rem;
@@ -19,12 +19,70 @@
   --font-sans: var(--font-inter);
   --font-heading: var(--font-outfit);
 
-  /* M-Clinic Premium Palette */
+  /* Brand Colors from Logo */
+  --color-mc-green: #00FD8C;
   --color-mc-crimson: #C2003F;
-  --color-mc-green: #00C65E;
   --color-mc-dark: #1A2C35;
   --color-mc-light: #F8FAFC;
   --color-mc-accent: #FF4D6D;
+
+  /* Global Button and Component Overrides (Emerald & Green) to match Logo Green */
+  --color-emerald-50: #EEFFF5;
+  --color-emerald-100: #CCFFE5;
+  --color-emerald-200: #99FFD4;
+  --color-emerald-300: #77FFC3;
+  --color-emerald-400: #55FFB2;
+  --color-emerald-500: #00FD8C;
+  --color-emerald-600: #00D878;
+  --color-emerald-700: #00B263;
+  --color-emerald-800: #008D4E;
+  --color-emerald-900: #006839;
+
+  --color-green-50: #EEFFF5;
+  --color-green-100: #CCFFE5;
+  --color-green-200: #99FFD4;
+  --color-green-300: #77FFC3;
+  --color-green-400: #55FFB2;
+  --color-green-500: #00FD8C;
+  --color-green-600: #00D878;
+  --color-green-700: #00B263;
+  --color-green-800: #008D4E;
+  --color-green-900: #006839;
+
+  /* Overwrite blue/indigo elements to follow the Minty Green Scheme */
+  --color-indigo-50: #EEFFF5;
+  --color-indigo-100: #CCFFE5;
+  --color-indigo-200: #99FFD4;
+  --color-indigo-300: #77FFC3;
+  --color-indigo-400: #55FFB2;
+  --color-indigo-500: #00FD8C;
+  --color-indigo-600: #00D878;
+  --color-indigo-700: #00B263;
+  --color-indigo-800: #008D4E;
+  --color-indigo-900: #006839;
+
+  --color-blue-50: #EEFFF5;
+  --color-blue-100: #CCFFE5;
+  --color-blue-200: #99FFD4;
+  --color-blue-300: #77FFC3;
+  --color-blue-400: #55FFB2;
+  --color-blue-500: #00FD8C;
+  --color-blue-600: #00D878;
+  --color-blue-700: #00B263;
+  --color-blue-800: #008D4E;
+  --color-blue-900: #006839;
+
+  /* Premium Clean Red for Cancel/Delete Actions */
+  --color-rose-50: #FFF5F5;
+  --color-rose-100: #FFE3E3;
+  --color-rose-200: #FFC9C9;
+  --color-rose-300: #FFA8A8;
+  --color-rose-400: #FF8787;
+  --color-rose-500: #EF4444;
+  --color-rose-600: #DC2626;
+  --color-rose-700: #B91C1C;
+  --color-rose-800: #9C1C1C;
+  --color-rose-900: #7A1C1C;
 }
 
 /* Glassmorphism */
