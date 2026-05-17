@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ReactNode, useEffect, useState } from 'react';
-import { FiGrid, FiList, FiCalendar, FiBarChart2, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiSearch, FiBell, FiMail, FiMap, FiPackage, FiFileText, FiDatabase, FiPlusCircle, FiUser, FiTruck, FiCheckCircle, FiActivity, FiMenu, FiX, FiTrash2, FiMessageSquare, FiBook, FiShield, FiAlertTriangle, FiPhone } from 'react-icons/fi';
+import { FiGrid, FiList, FiCalendar, FiBarChart2, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiSearch, FiBell, FiMail, FiMap, FiPackage, FiFileText, FiDatabase, FiPlusCircle, FiUser, FiTruck, FiCheckCircle, FiActivity, FiMenu, FiX, FiTrash2, FiMessageSquare, FiBook, FiShield, FiAlertTriangle, FiPhone, FiVideo } from 'react-icons/fi';
 import { useAuth, UserRole } from '@/lib/auth';
 import UserAvatar from '@/components/dashboard/UserAvatar';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -263,6 +263,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                         <NavItem href="/dashboard/records" icon={<FiPlusCircle />} label="My Medical Records" active={pathname === '/dashboard/records'} />
                                         <NavItem href="/dashboard/map" icon={<FiMap />} label="Live Map" active={pathname === '/dashboard/map'} />
                                         <NavItem href="/dashboard/appointments" icon={<FiCalendar />} label="Practice Appointments" active={pathname === '/dashboard/appointments'} />
+                                        <NavItem href="/dashboard/meetings" icon={<FiVideo />} label="Virtual Consultations" active={pathname?.startsWith('/dashboard/meetings')} />
                                         <NavItem href="/dashboard/patients" icon={<FiList />} label="My Patients" active={pathname === '/dashboard/patients'} />
                                         <NavItem href="/dashboard/ambulance" icon={<FiTruck />} label="Ambulance Service" active={pathname?.startsWith('/dashboard/ambulance')} />
                                     </div>
@@ -283,6 +284,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                         <NavItem href="/dashboard/services-hub" icon={<FiGrid />} label="Services Hub" active={pathname === '/dashboard/services-hub'} />
                                         <NavItem href="/dashboard/map" icon={<FiMap />} label="Live Map" active={pathname === '/dashboard/map'} />
                                         <NavItem href="/dashboard/appointments" icon={<FiCalendar />} label="Appointments" active={pathname === '/dashboard/appointments'} />
+                                        <NavItem href="/dashboard/meetings" icon={<FiVideo />} label="Virtual Consultations" active={pathname?.startsWith('/dashboard/meetings')} />
                                         <NavItem href="/dashboard/records" icon={<FiPlusCircle />} label="Medical Records" active={pathname === '/dashboard/records'} />
                                         <NavItem href="/dashboard/pharmacy" icon={<FiPackage />} label="My Pharmacy" active={pathname === '/dashboard/pharmacy'} />
                                         <NavItem href="/dashboard/lab/results" icon={<FiActivity />} label="Lab Results" active={pathname === '/dashboard/lab/results'} />

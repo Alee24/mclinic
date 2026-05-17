@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { FiX, FiUser, FiActivity, FiFileText, FiClock, FiPhone, FiMail, FiMapPin, FiBriefcase, FiAward, FiShield, FiShoppingBag, FiCalendar, FiDollarSign, FiVideo, FiHome } from 'react-icons/fi';
 import AddMedicalRecordModal from '@/components/dashboard/medical-records/AddMedicalRecordModal';
 import PrescribeMedicationModal from '@/components/dashboard/pharmacy/PrescribeMedicationModal';
@@ -379,16 +380,14 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
                                                     <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300 uppercase tracking-wider">Zoom / G-Meet</span>
                                                     <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
                                                 </div>
-                                                {appointment.meetingLink && (
-                                                    <a
-                                                        href={appointment.meetingLink}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
+                                                {(appointment.meetingId || appointment.meetingLink) && (
+                                                    <Link
+                                                        href={`/dashboard/meetings/${appointment.meetingId || (appointment.meetingLink ? appointment.meetingLink.split('/').pop() : `appointment-${appointment.id}`)}`}
                                                         className="flex items-center justify-center gap-2 w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold transition-all shadow-lg shadow-indigo-500/30"
                                                     >
                                                         <FiVideo size={16} />
                                                         Join Meeting Now
-                                                    </a>
+                                                    </Link>
                                                 )}
                                                 {appointment.meetingId && (
                                                     <p className="text-[10px] text-gray-500 mt-2 text-center">ID: <span className="font-mono">{appointment.meetingId}</span></p>
