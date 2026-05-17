@@ -2,12 +2,12 @@
 
 import { useState } from 'react';
 import { FiCheck, FiArrowRight, FiInfo, FiUser, FiBriefcase, FiAward, FiDollarSign } from 'react-icons/fi';
-import { api } from '@/lib/api';
+import { api, getApiBaseUrl } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { MEDICAL_SPECIALITIES, MEDICAL_QUALIFICATIONS, KENYAN_HOSPITALS, REGULATORY_BODIES } from '@/lib/medical-constants';
 import { FiChevronDown, FiImage, FiUpload, FiShield, FiFileText, FiCamera } from 'react-icons/fi';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434';
+const API_URL = getApiBaseUrl();
 
 interface Props {
     doctor: any;

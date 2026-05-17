@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { api } from '@/lib/api';
+import { api, getApiBaseUrl } from '@/lib/api';
 import { FiFileText, FiActivity, FiClock, FiCheckCircle, FiDownload, FiEye } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import jsPDF from 'jspdf';
@@ -51,7 +51,7 @@ export default function PatientLabResultsPage() {
     const handleDownloadReport = async (order: any) => {
         // 1. Prefer Uploaded Report by Technician
         if (order.report_url) {
-            const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434'}/uploads/reports/${order.report_url}`;
+            const url = `${getApiBaseUrl()}/uploads/reports/${order.report_url}`;
             window.open(url, '_blank');
             return;
         }

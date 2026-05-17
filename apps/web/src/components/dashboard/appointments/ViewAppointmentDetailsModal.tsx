@@ -9,12 +9,12 @@ import PharmacyCheckoutModal from '@/components/dashboard/pharmacy/PharmacyCheck
 import MedicRecommendationsCard from '@/components/dashboard/appointments/MedicRecommendationsCard';
 import PrescribeLabModal from '@/components/dashboard/appointments/PrescribeLabModal';
 import { useAuth } from '@/lib/auth';
-import { api } from '@/lib/api';
+import { api, getApiBaseUrl } from '@/lib/api';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434';
+const API_URL = getApiBaseUrl();
 
 // Fix Leaflet Icons
 const fixLeafletIcons = () => {

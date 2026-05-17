@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { api } from '@/lib/api';
+import { api, getApiBaseUrl } from '@/lib/api';
 import { FiClock, FiCheck, FiPlay, FiFileText, FiUser, FiCalendar, FiFilter, FiRefreshCw, FiDownload, FiEye, FiAlertCircle } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import UploadLabResultModal from '@/components/dashboard/lab/UploadLabResultModal';
@@ -55,7 +55,7 @@ export default function LabOrdersPage() {
 
     const handleDownloadReport = (filename: string) => {
         // Construct URL - assuming backend serves static files from /uploads
-        const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434'}/uploads/reports/${filename}`;
+        const url = `${getApiBaseUrl()}/uploads/reports/${filename}`;
         window.open(url, '_blank');
     };
 

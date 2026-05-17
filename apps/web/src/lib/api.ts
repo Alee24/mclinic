@@ -66,3 +66,22 @@ export const api = {
     }),
     delete: (endpoint: string) => fetchWithAuth(endpoint, { method: 'DELETE' }),
 };
+
+export function getApiBaseUrl(): string {
+    if (typeof window === 'undefined') {
+        return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434';
+    }
+    
+    const envUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (envUrl && envUrl.startsWith('http')) {
+        return envUrl;
+    }
+    
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') {
+        return 'http://localhost:3434';
+    }
+    
+    return `${window.location.origin}/api`;
+}
+

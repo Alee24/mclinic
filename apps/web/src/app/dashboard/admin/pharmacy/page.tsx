@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { api } from '@/lib/api';
+import { api, getApiBaseUrl } from '@/lib/api';
 import {
     FiPackage,
     FiPlus,
@@ -142,7 +142,7 @@ export default function AdminPharmacyPage() {
                 </div>
                 <div className="flex gap-3">
                     <a
-                        href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3434'}/pharmacy/medications/template`}
+                        href={`${getApiBaseUrl()}/pharmacy/medications/template`}
                         target="_blank"
                         rel="noreferrer"
                         className="bg-white dark:bg-[#1A1A1A] text-gray-700 dark:text-gray-300 px-4 py-3 rounded-xl font-bold border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors flex items-center gap-2"
