@@ -944,6 +944,14 @@ export class FinancialService {
 
         const company = await this.getCompanySettings();
 
+        const currentStatus = tx.status || 'COMPLETED';
+        const isInvoice = currentStatus.toLowerCase() !== 'completed' && currentStatus.toLowerCase() !== 'paid';
+        const docTitle = isInvoice ? 'Official Invoice' : 'Official Receipt';
+        const serialLabel = isInvoice ? 'Invoice No.' : 'Receipt Serial No.';
+        const statusLabel = isInvoice ? 'PENDING' : 'COMPLETED';
+        const statusColor = isInvoice ? '#f59e0b' : '#16a34a';
+        const amountLabel = isInvoice ? 'Amount Due' : 'Amount Paid';
+
         const receiptData = {
             clinicName: company.clinicName,
             clinicAddress: company.clinicAddress,
@@ -955,7 +963,7 @@ export class FinancialService {
             items: invoice?.items || [],
             totalAmount: tx.amount,
             paymentMethod: tx.source,
-            status: tx.status
+            status: currentStatus
         };
 
         const rows = receiptData.items.map(item => `
@@ -972,7 +980,7 @@ export class FinancialService {
         <html>
         <head>
             <meta charset="utf-8">
-            <title>${company.clinicName} Official Receipt</title>
+            <title>${company.clinicName} ${docTitle}</title>
             <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
             <style>
                 body {
@@ -1123,7 +1131,7 @@ export class FinancialService {
                         <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #a7f3d0; opacity: 0.9;">${company.clinicTagline}</div>
                     </div>
                     <div style="text-align: right;">
-                        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #a7f3d0; letter-spacing: 0.05em; margin-bottom: 4px;">Receipt Serial No.</div>
+                        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #a7f3d0; letter-spacing: 0.05em; margin-bottom: 4px;">${serialLabel}</div>
                         <div style="font-size: 22px; font-weight: 800; letter-spacing: -0.02em; color: #ffffff; margin-bottom: 4px;">${receiptData.receiptNumber}</div>
                         <div style="font-size: 13px; font-weight: 500; color: #e2e8f0;">${new Date(receiptData.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
                     </div>
@@ -1208,14 +1216,16 @@ export class FinancialService {
                         </div>
                         <div style="display: flex; justify-content: space-between; font-size: 13px; color: #64748b; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9;">
                             <span>Payment Status</span>
-                            <span style="font-weight: 700; color: #16a34a; text-transform: uppercase;">COMPLETED</span>
+                            <span style="font-weight: 700; color: ${statusColor}; text-transform: uppercase;">${statusLabel}</span>
                         </div>
+                        ${!isInvoice ? `
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                             <span style="font-size: 13px; font-weight: 600; color: #475569;">Payment Method</span>
                             <span style="font-size: 12px; font-weight: 700; background-color: #e6f4ea; color: #0B6E40; padding: 4px 10px; border-radius: 9999px;">${receiptData.paymentMethod}</span>
                         </div>
+                        ` : ''}
                         <div style="display: flex; justify-content: space-between; align-items: baseline; padding-top: 12px; border-top: 2px solid #e2e8f0; margin-top: 12px;">
-                            <span style="font-size: 15px; font-weight: 800; color: #0f172a;">Amount Paid</span>
+                            <span style="font-size: 15px; font-weight: 800; color: #0f172a;">${amountLabel}</span>
                             <span style="font-size: 20px; font-weight: 900; color: #0B6E40;">KES ${Number(receiptData.totalAmount).toLocaleString()}</span>
                         </div>
                     </div>
@@ -1279,6 +1289,14 @@ export class FinancialService {
 
         const company = await this.getCompanySettings();
 
+        const currentStatus = tx?.status || invoice?.status || 'PENDING';
+        const isInvoice = currentStatus.toLowerCase() !== 'completed' && currentStatus.toLowerCase() !== 'paid';
+        const docTitle = isInvoice ? 'Official Invoice' : 'Official Receipt';
+        const serialLabel = isInvoice ? 'Invoice No.' : 'Receipt Serial No.';
+        const statusLabel = isInvoice ? 'PENDING' : 'COMPLETED';
+        const statusColor = isInvoice ? '#f59e0b' : '#16a34a';
+        const amountLabel = isInvoice ? 'Amount Due' : 'Amount Paid';
+
         const receiptData = {
             clinicName: company.clinicName,
             clinicAddress: company.clinicAddress,
@@ -1290,6 +1308,7 @@ export class FinancialService {
             items: invoice?.items || [],
             totalAmount: tx?.amount || invoice?.totalAmount,
             paymentMethod: tx?.source || invoice?.paymentMethod || 'COMPLETED',
+            status: currentStatus,
         };
 
         const rows = receiptData.items.map(item => `
@@ -1306,7 +1325,7 @@ export class FinancialService {
         <html>
         <head>
             <meta charset="utf-8">
-            <title>${company.clinicName} Official Receipt</title>
+            <title>${company.clinicName} ${docTitle}</title>
             <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
             <style>
                 body {
@@ -1457,7 +1476,7 @@ export class FinancialService {
                         <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #a7f3d0; opacity: 0.9;">${company.clinicTagline}</div>
                     </div>
                     <div style="text-align: right;">
-                        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #a7f3d0; letter-spacing: 0.05em; margin-bottom: 4px;">Receipt Serial No.</div>
+                        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #a7f3d0; letter-spacing: 0.05em; margin-bottom: 4px;">${serialLabel}</div>
                         <div style="font-size: 22px; font-weight: 800; letter-spacing: -0.02em; color: #ffffff; margin-bottom: 4px;">${receiptData.receiptNumber}</div>
                         <div style="font-size: 13px; font-weight: 500; color: #e2e8f0;">${new Date(receiptData.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
                     </div>
@@ -1542,14 +1561,16 @@ export class FinancialService {
                         </div>
                         <div style="display: flex; justify-content: space-between; font-size: 13px; color: #64748b; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9;">
                             <span>Payment Status</span>
-                            <span style="font-weight: 700; color: #16a34a; text-transform: uppercase;">COMPLETED</span>
+                            <span style="font-weight: 700; color: ${statusColor}; text-transform: uppercase;">${statusLabel}</span>
                         </div>
+                        ${!isInvoice ? `
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                             <span style="font-size: 13px; font-weight: 600; color: #475569;">Payment Method</span>
                             <span style="font-size: 12px; font-weight: 700; background-color: #e6f4ea; color: #0B6E40; padding: 4px 10px; border-radius: 9999px;">${receiptData.paymentMethod}</span>
                         </div>
+                        ` : ''}
                         <div style="display: flex; justify-content: space-between; align-items: baseline; padding-top: 12px; border-top: 2px solid #e2e8f0; margin-top: 12px;">
-                            <span style="font-size: 15px; font-weight: 800; color: #0f172a;">Amount Paid</span>
+                            <span style="font-size: 15px; font-weight: 800; color: #0f172a;">${amountLabel}</span>
                             <span style="font-size: 20px; font-weight: 900; color: #0B6E40;">KES ${Number(receiptData.totalAmount).toLocaleString()}</span>
                         </div>
                     </div>

@@ -50,76 +50,23 @@ export default function InvoicesPage() {
         }
     }, [user]);
 
-    const generateInvoicePDF = (invoice: Invoice) => {
-        const doc = new jsPDF();
-        
-        // Header
-        doc.setFontSize(22);
-        doc.setTextColor(41, 128, 185);
-        doc.setFont("helvetica", "bold");
-        doc.text('MCLINIC KENYA', 14, 20);
-        
-        doc.setFontSize(10);
-        doc.setTextColor(100);
-        doc.setFont("helvetica", "normal");
-        doc.text('Medical & Ambulance Services', 14, 26);
-        doc.text('P.O Box 12345 - 00100', 14, 31);
-        doc.text('Nairobi, Kenya', 14, 36);
-        doc.text('Email: info@mclinic.co.ke', 14, 41);
-        
-        // INVOICE text
-        doc.setFontSize(24);
-        doc.setTextColor(0);
-        doc.setFont("helvetica", "bold");
-        doc.text('INVOICE', 140, 20);
-        
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "normal");
-        doc.text(`Invoice Number: ${invoice.invoiceNumber}`, 140, 30);
-        doc.text(`Date: ${new Date(invoice.createdAt).toLocaleDateString()}`, 140, 36);
-        doc.text(`Due Date: ${new Date(invoice.dueDate).toLocaleDateString()}`, 140, 42);
-        doc.text(`Status: ${invoice.status.toUpperCase()}`, 140, 48);
-
-        // Bill To
-        doc.setFontSize(12);
-        doc.setTextColor(0);
-        doc.setFont("helvetica", "bold");
-        doc.text('Bill To:', 14, 55);
-        doc.setFontSize(10);
-        doc.setTextColor(100);
-        doc.setFont("helvetica", "normal");
-        doc.text(invoice.customerName || 'Customer', 14, 62);
-        doc.text(invoice.customerEmail && invoice.customerEmail !== 'null null' ? invoice.customerEmail : 'N/A', 14, 67);
-
-        // Items table
-        autoTable(doc, {
-            startY: 80,
-            head: [['Description', 'Amount (KES)']],
-            body: [
-                ['Medical & Clinical Services', invoice.totalAmount.toLocaleString()]
-            ],
-            theme: 'striped',
-            headStyles: { fillColor: [41, 128, 185] },
-            styles: { fontSize: 11, cellPadding: 5 }
-        });
-
-        // Total
-        const finalY = (doc as any).lastAutoTable?.finalY || 80;
-        
-        doc.setFillColor(245, 245, 245);
-        doc.rect(130, finalY + 10, 65, 12, 'F');
-        doc.setFontSize(12);
-        doc.setTextColor(0);
-        doc.setFont("helvetica", "bold");
-        doc.text(`Total: KES ${invoice.totalAmount.toLocaleString()}`, 135, finalY + 18);
-        
-        // Footer
-        doc.setFontSize(10);
-        doc.setTextColor(150);
-        doc.setFont("helvetica", "italic");
-        doc.text('Thank you for choosing Mclinic Kenya!', 105, 280, { align: 'center' });
-
-        doc.save(`${invoice.invoiceNumber}.pdf`);
+    const generateInvoicePDF = async (invoice: Invoice) => {
+        try {
+            const res = await api.get(`/financial/receipt/invoice/${invoice.id}`);
+            if (res && res.ok) {
+                const data = await res.json();
+                const win = window.open('', '_blank');
+                if (win) {
+                    win.document.write(data.html);
+                    win.document.close();
+                }
+            } else {
+                toast.error('Failed to generate document.');
+            }
+        } catch (e) {
+            console.error(e);
+            toast.error('Error loading document.');
+        }
     };
 
     const [sending, setSending] = useState<number | null>(null);
