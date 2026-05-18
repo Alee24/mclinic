@@ -18,7 +18,7 @@ export async function generateAppointmentPdf(
       doc.on('end', () => resolve(Buffer.concat(buffers)));
 
       // Colors matching the UI exactly
-      const BRAND_COLOR = '#0B6E40';
+      const BRAND_COLOR = '#087c46ff';
       const CARD_BG = '#FFFFFF';
       const BORDER_COLOR = '#EFEFEF';
       const TEXT_MAIN = '#111827';

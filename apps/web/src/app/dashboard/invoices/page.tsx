@@ -6,7 +6,7 @@ import { useAuth, UserRole } from '@/lib/auth';
 import { FiCheck, FiClock, FiX, FiDownload, FiSend, FiMail } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 interface Invoice {
     id: number;
@@ -92,8 +92,7 @@ export default function InvoicesPage() {
         doc.text(invoice.customerEmail && invoice.customerEmail !== 'null null' ? invoice.customerEmail : 'N/A', 14, 67);
 
         // Items table
-        // @ts-ignore
-        doc.autoTable({
+        autoTable(doc, {
             startY: 80,
             head: [['Description', 'Amount (KES)']],
             body: [
@@ -105,8 +104,7 @@ export default function InvoicesPage() {
         });
 
         // Total
-        // @ts-ignore
-        const finalY = doc.lastAutoTable.finalY || 80;
+        const finalY = (doc as any).lastAutoTable?.finalY || 80;
         
         doc.setFillColor(245, 245, 245);
         doc.rect(130, finalY + 10, 65, 12, 'F');

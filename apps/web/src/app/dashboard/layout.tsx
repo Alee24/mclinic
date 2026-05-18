@@ -421,13 +421,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     <div className="flex items-center gap-2 overflow-x-auto">
                         <Link
                             href="/dashboard"
-                            className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 ${pathname === '/dashboard' ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                            className={`px-4 py-2 font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 ${pathname === '/dashboard' ? 'bg-blue-600 text-white shadow-md rounded-[1px]' : 'rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
                         >
                             <FiGrid /> Dashboard
                         </Link>
                         <Link
                             href="/dashboard/appointments"
-                            className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 ${pathname?.startsWith('/dashboard/appointments') ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                            className={`px-4 py-2 font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 ${pathname?.startsWith('/dashboard/appointments') ? 'bg-blue-600 text-white shadow-md rounded-[1px]' : 'rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
                         >
                             <FiCalendar /> Appointments
                         </Link>
@@ -435,31 +435,31 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                             <>
                                 <Link
                                     href="/dashboard/patients"
-                                    className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 ${pathname === '/dashboard/patients' ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                                    className={`px-4 py-2 font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 ${pathname === '/dashboard/patients' ? 'bg-blue-600 text-white shadow-md rounded-[1px]' : 'rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
                                 >
                                     <FiUsers /> Patients
                                 </Link>
                                 <Link
                                     href="/dashboard/lab/orders"
-                                    className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 ${pathname?.startsWith('/dashboard/lab') ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                                    className={`px-4 py-2 font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 ${pathname?.startsWith('/dashboard/lab') ? 'bg-blue-600 text-white shadow-md rounded-[1px]' : 'rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
                                 >
                                     <FiActivity /> Laboratory
                                 </Link>
                                 <Link
                                     href="/dashboard/admin/pharmacy"
-                                    className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 ${pathname?.startsWith('/dashboard/admin/pharmacy') || pathname === '/dashboard/pharmacy' ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                                    className={`px-4 py-2 font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 ${pathname?.startsWith('/dashboard/admin/pharmacy') || pathname === '/dashboard/pharmacy' ? 'bg-blue-600 text-white shadow-md rounded-[1px]' : 'rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
                                 >
                                     <FiPackage /> Pharmacy
                                 </Link>
                                 <Link
                                     href="/dashboard/finance/transactions"
-                                    className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 ${pathname?.startsWith('/dashboard/finance') ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                                    className={`px-4 py-2 font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 ${pathname?.startsWith('/dashboard/finance') ? 'bg-blue-600 text-white shadow-md rounded-[1px]' : 'rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
                                 >
                                     <FiBarChart2 /> Finance
                                 </Link>
                                 <Link
                                     href="/dashboard/admin/settings/mpesa"
-                                    className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 ${pathname === '/dashboard/admin/settings/mpesa' ? 'bg-green-600 text-white shadow-md' : 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30 border border-green-200 dark:border-green-800'}`}
+                                    className={`px-4 py-2 font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 ${pathname === '/dashboard/admin/settings/mpesa' ? 'bg-green-600 text-white shadow-md rounded-[1px]' : 'rounded-lg bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30 border border-green-200 dark:border-green-800'}`}
                                 >
                                     <FiCheckCircle /> M-Pesa Config
                                 </Link>
@@ -468,7 +468,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         {(user.role === UserRole.PHARMACIST) && (
                             <Link
                                 href="/dashboard/pharmacy"
-                                className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 ${pathname === '/dashboard/pharmacy' ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                                className={`px-4 py-2 font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 ${pathname === '/dashboard/pharmacy' ? 'bg-blue-600 text-white shadow-md rounded-[1px]' : 'rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
                             >
                                 <FiPackage /> Pharmacy
                             </Link>
@@ -645,9 +645,9 @@ function NavItem({ href, icon, label, active, badge }: { href: string; icon: any
     return (
         <Link
             href={href}
-            className={`flex items-center justify-between px-3 py-2.5 rounded-xl transition-all group ${active
-                ? 'bg-blue-600/10 text-blue-600 font-bold relative'
-                : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
+            className={`flex items-center justify-between px-3 py-2.5 transition-all group ${active
+                ? 'bg-blue-600/10 text-blue-600 font-bold relative rounded-[1px]'
+                : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white rounded-xl'
                 }`}
         >
             <div className="flex items-center gap-3">
@@ -671,7 +671,7 @@ function NavItem({ href, icon, label, active, badge }: { href: string; icon: any
 function NavGroup({ label, icon, active, items, pathname }: { label: string; icon: any; active?: boolean; items: { href: string; label: string }[]; pathname: string | null }) {
     return (
         <details className="group/navgroup" open={active}>
-            <summary className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all list-none ${active ? 'bg-blue-600/5 text-blue-600 font-bold' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}>
+            <summary className={`flex items-center justify-between px-3 py-2.5 cursor-pointer transition-all list-none ${active ? 'bg-blue-600/5 text-blue-600 font-bold rounded-[1px]' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white rounded-xl'}`}>
                 <div className="flex items-center gap-3">
                     <span className="text-xl">{icon}</span>
                     <span className="text-sm">{label}</span>
