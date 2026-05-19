@@ -162,6 +162,13 @@ export class UsersService implements OnModuleInit {
           'signup',
           `New User Signup: ${savedUser.fname} ${savedUser.lname} (${savedUser.email})`
         );
+        await this.notificationService.createNotification(
+          null,
+          'New User Registered',
+          `${savedUser.fname} ${savedUser.lname} has registered a new account (${savedUser.email}).`,
+          'signup',
+          true
+        );
       }
     } catch (e) {
       console.error('Failed to notify admin of signup', e);

@@ -30,6 +30,13 @@ export class SupportService {
                 'support_request',
                 `New Support Request from ${contact}: ${request.message.substring(0, 50)}...`
             );
+            await this.notificationService.createNotification(
+                null,
+                'New Support Request',
+                `Support Request from ${request.name || 'Unknown'} (${request.mobile || request.email || 'No contact'}): ${request.message}`,
+                'support_request',
+                true
+            );
         } catch (error) {
             this.logger.error('Failed to notify admin about support request', error);
         }

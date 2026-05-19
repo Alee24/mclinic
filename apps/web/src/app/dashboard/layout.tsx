@@ -22,6 +22,64 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     const [lastEmergencyCount, setLastEmergencyCount] = useState(0);
     const [isResolving, setIsResolving] = useState<number | null>(null);
 
+    const [sidebarCounts, setSidebarCounts] = useState({
+        newUsers: 0,
+        supportRequests: 0,
+        dispatchedOrders: 0,
+        totalUnread: 0
+    });
+    const [notifications, setNotifications] = useState<any[]>([]);
+    const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] = useState(false);
+
+    const fetchSidebarCounts = async () => {
+        try {
+            const res = await api.get('/notifications/sidebar');
+            if (res && res.ok) {
+                const data = await res.json();
+                setSidebarCounts(data);
+            }
+        } catch (e) {
+            console.error('Failed to fetch sidebar counts', e);
+        }
+    };
+
+    const fetchNotifications = async () => {
+        try {
+            const res = await api.get('/notifications');
+            if (res && res.ok) {
+                const data = await res.json();
+                setNotifications(data);
+            }
+        } catch (e) {
+            console.error('Failed to fetch notifications', e);
+        }
+    };
+
+    const handleMarkAsRead = async (id: number) => {
+        try {
+            const res = await api.patch(`/notifications/${id}/read`, {});
+            if (res && res.ok) {
+                fetchNotifications();
+                fetchSidebarCounts();
+            }
+        } catch (e) {
+            console.error('Failed to mark notification as read', e);
+        }
+    };
+
+    const handleMarkAllAsRead = async () => {
+        try {
+            const res = await api.patch('/notifications/read-all', {});
+            if (res && res.ok) {
+                toast.success('All notifications marked as read.');
+                fetchNotifications();
+                fetchSidebarCounts();
+            }
+        } catch (e) {
+            console.error('Failed to mark all as read', e);
+        }
+    };
+
     const isAdminOrMedic = user && ['admin', 'doctor', 'nurse', 'medic', 'clinician', 'specialist'].includes(user.role.toLowerCase());
 
     const fetchActiveEmergencies = async () => {
@@ -71,6 +129,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             return () => clearInterval(interval);
         }
     }, [user, lastEmergencyCount]);
+
+    useEffect(() => {
+        if (user) {
+            fetchSidebarCounts();
+            fetchNotifications();
+            const interval = setInterval(() => {
+                fetchSidebarCounts();
+                fetchNotifications();
+            }, 10000); // Poll every 10 seconds
+            return () => clearInterval(interval);
+        }
+    }, [user]);
 
     const handleResolveEmergency = async (id: number) => {
         setIsResolving(id);
@@ -179,6 +249,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                                 { href: '/dashboard/admin/doctors/pending', label: 'Approvals' }
                                             ]}
                                             pathname={pathname}
+                                            badge={sidebarCounts.newUsers > 0 ? String(sidebarCounts.newUsers) : undefined}
                                         />
                                         <NavGroup
                                             label="Communication"
@@ -189,6 +260,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                                 { href: '/dashboard/admin/support', label: 'Support Inbox' }
                                             ]}
                                             pathname={pathname}
+                                            badge={sidebarCounts.supportRequests > 0 ? String(sidebarCounts.supportRequests) : undefined}
                                         />
                                     </div>
 
@@ -286,7 +358,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                         <NavItem href="/dashboard/appointments" icon={<FiCalendar />} label="Appointments" active={pathname === '/dashboard/appointments'} />
                                         <NavItem href="/dashboard/meetings" icon={<FiVideo />} label="Virtual Consultations" active={pathname?.startsWith('/dashboard/meetings')} />
                                         <NavItem href="/dashboard/records" icon={<FiPlusCircle />} label="Medical Records" active={pathname === '/dashboard/records'} />
-                                        <NavItem href="/dashboard/pharmacy" icon={<FiPackage />} label="My Pharmacy" active={pathname === '/dashboard/pharmacy'} />
+                                        <NavItem href="/dashboard/pharmacy" icon={<FiPackage />} label="My Pharmacy" active={pathname === '/dashboard/pharmacy'} badge={sidebarCounts.dispatchedOrders > 0 ? String(sidebarCounts.dispatchedOrders) : undefined} />
                                         <NavItem href="/dashboard/lab/results" icon={<FiActivity />} label="Lab Results" active={pathname === '/dashboard/lab/results'} />
                                     </div>
                                     <div className="mt-4">
@@ -376,9 +448,85 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                             <button className="hidden md:flex w-10 h-10 bg-white dark:bg-[#161616] rounded-full items-center justify-center text-gray-500 hover:text-gray-900 transition-colors shadow-sm text-lg">
                                 <FiMail />
                             </button>
-                            <button className="w-10 h-10 bg-white dark:bg-[#161616] rounded-full flex items-center justify-center text-gray-500 hover:text-gray-900 transition-colors shadow-sm text-lg">
-                                <FiBell />
-                            </button>
+                            <div className="relative">
+                                <button 
+                                    onClick={() => setIsNotificationDropdownOpen(!isNotificationDropdownOpen)}
+                                    className="w-10 h-10 bg-white dark:bg-[#161616] rounded-full flex items-center justify-center text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors shadow-sm text-lg relative"
+                                >
+                                    <FiBell />
+                                    {sidebarCounts.totalUnread > 0 && (
+                                        <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center animate-pulse border-2 border-white dark:border-[#121212]">
+                                            {sidebarCounts.totalUnread}
+                                        </span>
+                                    )}
+                                </button>
+
+                                {isNotificationDropdownOpen && (
+                                    <>
+                                        <div 
+                                            className="fixed inset-0 z-40" 
+                                            onClick={() => setIsNotificationDropdownOpen(false)}
+                                        />
+                                        <div className="absolute right-0 mt-3 w-80 md:w-96 bg-white dark:bg-[#121212] rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-800 p-4 z-50 transform origin-top-right animate-in fade-in slide-in-from-top-2 duration-200">
+                                            <div className="flex items-center justify-between pb-3 border-b border-gray-50 dark:border-gray-800 mb-3">
+                                                <div className="flex items-center gap-2">
+                                                    <h4 className="font-black text-sm">Notifications</h4>
+                                                    {sidebarCounts.totalUnread > 0 && (
+                                                        <span className="bg-red-100 dark:bg-red-950/20 text-red-600 dark:text-red-400 text-[10px] font-extrabold px-2 py-0.5 rounded-full">
+                                                            {sidebarCounts.totalUnread} new
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                {sidebarCounts.totalUnread > 0 && (
+                                                    <button 
+                                                        onClick={handleMarkAllAsRead}
+                                                        className="text-xs text-blue-600 hover:underline font-bold"
+                                                    >
+                                                        Mark all as read
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            <div className="max-h-[320px] overflow-y-auto space-y-3 pr-1 scrollbar-thin">
+                                                {notifications.length === 0 ? (
+                                                    <div className="py-8 text-center text-gray-400 dark:text-gray-500 text-xs italic">
+                                                        No notifications yet
+                                                    </div>
+                                                ) : (
+                                                    notifications.map((notif) => (
+                                                        <div 
+                                                            key={notif.id}
+                                                            onClick={() => {
+                                                                if (!notif.isRead) handleMarkAsRead(notif.id);
+                                                            }}
+                                                            className={`p-3 rounded-2xl border transition-all text-left cursor-pointer ${
+                                                                notif.isRead 
+                                                                    ? 'bg-transparent border-transparent opacity-60' 
+                                                                    : 'bg-blue-50/30 dark:bg-blue-950/5 border-blue-50/20 dark:border-blue-950/10 hover:bg-blue-50/50 dark:hover:bg-blue-950/10'
+                                                            }`}
+                                                        >
+                                                            <div className="flex items-start justify-between gap-2">
+                                                                <h5 className="font-bold text-xs text-gray-900 dark:text-white">
+                                                                    {notif.title}
+                                                                </h5>
+                                                                {!notif.isRead && (
+                                                                    <span className="w-1.5 h-1.5 bg-blue-600 rounded-full shrink-0 mt-1" />
+                                                                )}
+                                                            </div>
+                                                            <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+                                                                {notif.message}
+                                                            </p>
+                                                            <span className="text-[9px] text-gray-400 dark:text-gray-500 block mt-2 font-medium">
+                                                                {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {new Date(notif.createdAt).toLocaleDateString()}
+                                                            </span>
+                                                        </div>
+                                                    ))
+                                                )}
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
                         </div>
                         
                         <div className="relative group">
@@ -668,7 +816,7 @@ function NavItem({ href, icon, label, active, badge }: { href: string; icon: any
     );
 }
 
-function NavGroup({ label, icon, active, items, pathname }: { label: string; icon: any; active?: boolean; items: { href: string; label: string }[]; pathname: string | null }) {
+function NavGroup({ label, icon, active, items, pathname, badge }: { label: string; icon: any; active?: boolean; items: { href: string; label: string }[]; pathname: string | null; badge?: string }) {
     return (
         <details className="group/navgroup" open={active}>
             <summary className={`flex items-center justify-between px-3 py-2.5 cursor-pointer transition-all list-none ${active ? 'bg-blue-600/5 text-blue-600 font-bold rounded-[1px]' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white rounded-xl'}`}>
@@ -676,10 +824,17 @@ function NavGroup({ label, icon, active, items, pathname }: { label: string; ico
                     <span className="text-xl">{icon}</span>
                     <span className="text-sm">{label}</span>
                 </div>
-                <div className="transition-transform group-open/navgroup:rotate-180">
-                    <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+                <div className="flex items-center gap-2">
+                    {badge && (
+                        <span className="bg-[#087c46ff] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">
+                            {badge}
+                        </span>
+                    )}
+                    <div className="transition-transform group-open/navgroup:rotate-180">
+                        <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                    </div>
                 </div>
             </summary>
             <div className="pl-4 mt-1 space-y-1 border-l-2 border-gray-100 dark:border-gray-800 ml-5">

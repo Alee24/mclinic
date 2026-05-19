@@ -325,6 +325,31 @@ export class PharmacyService {
             }
         }
 
+        // Notify User in-app
+        try {
+            let title = '';
+            let msg = '';
+            if (status === OrderStatus.SHIPPED) {
+                title = 'Order Dispatched';
+                msg = `Your pharmacy order #${order.id.slice(0, 8)} has been shipped and is on its way!`;
+            } else if (status === OrderStatus.DELIVERED) {
+                title = 'Order Delivered';
+                msg = `Your pharmacy order #${order.id.slice(0, 8)} has been delivered. Thank you!`;
+            }
+
+            if (title && msg) {
+                await this.notificationService.createNotification(
+                    order.userId,
+                    title,
+                    msg,
+                    'dispatched',
+                    false
+                );
+            }
+        } catch (e) {
+            console.error('Failed to create in-app order notification', e);
+        }
+
         return this.pharmacyOrderRepo.findOne({ where: { id } });
     }
 
