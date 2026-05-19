@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { LabTest } from './entities/lab-test.entity';
@@ -10,7 +10,7 @@ import { EmailService } from '../email/email.service';
 import { FinancialService } from '../financial/financial.service';
 
 @Injectable()
-export class LaboratoryService {
+export class LaboratoryService implements OnModuleInit {
     constructor(
         @InjectRepository(LabTest) private testRepo: Repository<LabTest>,
         @InjectRepository(LabOrder) private orderRepo: Repository<LabOrder>,
@@ -18,6 +18,15 @@ export class LaboratoryService {
         private emailService: EmailService,
         private financialService: FinancialService,
     ) { }
+
+    async onModuleInit() {
+        try {
+            await this.seedTests();
+            console.log('Laboratory tests checked/seeded successfully.');
+        } catch (e) {
+            console.error('Failed to auto-seed laboratory tests:', e);
+        }
+    }
 
     async uploadReport(orderId: string, filename: string, notes?: string) {
         await this.orderRepo.update(orderId, {

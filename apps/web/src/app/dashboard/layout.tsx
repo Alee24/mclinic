@@ -359,7 +359,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                         <NavItem href="/dashboard/meetings" icon={<FiVideo />} label="Virtual Consultations" active={pathname?.startsWith('/dashboard/meetings')} />
                                         <NavItem href="/dashboard/records" icon={<FiPlusCircle />} label="Medical Records" active={pathname === '/dashboard/records'} />
                                         <NavItem href="/dashboard/pharmacy" icon={<FiPackage />} label="My Pharmacy" active={pathname === '/dashboard/pharmacy'} badge={sidebarCounts.dispatchedOrders > 0 ? String(sidebarCounts.dispatchedOrders) : undefined} />
-                                        <NavItem href="/dashboard/lab/results" icon={<FiActivity />} label="Lab Results" active={pathname === '/dashboard/lab/results'} />
+                                        <NavItem href="/dashboard/lab" icon={<FiActivity />} label="My Laboratory" active={pathname?.startsWith('/dashboard/lab')} />
                                     </div>
                                     <div className="mt-4">
                                         <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">Services & Billing</div>
