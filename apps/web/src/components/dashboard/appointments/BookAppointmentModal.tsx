@@ -129,6 +129,7 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
     const [customHomeAddress, setCustomHomeAddress] = useState('');
     const [selectedService, setSelectedService] = useState<any | null>(null);
     const [services, setServices] = useState<any[]>([]);
+    const [settings, setSettings] = useState<any[]>([]);
 
     const [submitting, setSubmitting] = useState(false);
 
@@ -194,6 +195,7 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
 
         fetchDoctors();
         fetchServices();
+        fetchSettings();
     }, [user]);
 
     const fetchAddressFromCoords = async (lat: number, lng: number) => {
@@ -238,6 +240,18 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
         }
     };
 
+    const fetchSettings = async () => {
+        try {
+            const res = await api.get('/settings');
+            if (res && res.ok) {
+                const data = await res.json();
+                setSettings(data);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
     const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
         const R = 6371;
         const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -249,11 +263,15 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
         return R * c;
     };
 
+    const getSetting = (key: string) => settings.find(s => s.key === key)?.value;
+    const virtualFee = Number(getSetting('FEE_VIRTUAL_VISIT') || 1500);
+    const physicalFee = Number(getSetting('FEE_PHYSICAL_VISIT') || 2500);
+
     const getDisplayFee = (doc: Doctor) => {
-        if (consultationType === 'VIRTUAL') return 900;
+        if (consultationType === 'VIRTUAL') return virtualFee;
         const type = (doc.dr_type || '').toLowerCase();
-        if (type.includes('nurse') || type.includes('clinician')) return 1500;
-        return doc.fee;
+        if (type.includes('nurse') || type.includes('clinician')) return physicalFee;
+        return Number(doc.fee || physicalFee);
     };
 
     useEffect(() => {
