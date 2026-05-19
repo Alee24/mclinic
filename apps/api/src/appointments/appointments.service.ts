@@ -173,6 +173,8 @@ export class AppointmentsService {
       activeMedications,
       currentPrescriptions,
       homeAddress,
+      latitude: createAppointmentDto.patientLocation?.lat,
+      longitude: createAppointmentDto.patientLocation?.lng,
       ...rest,
     } as DeepPartial<Appointment>);
 
@@ -575,7 +577,7 @@ export class AppointmentsService {
   async generatePdfReport(appointmentId: number): Promise<Buffer> {
     const appointment = await this.appointmentsRepository.findOne({
       where: { id: appointmentId },
-      relations: ['patient', 'doctor', 'service', 'invoice'],
+      relations: ['patient', 'doctor', 'service', 'invoice', 'review'],
     });
 
     if (!appointment) {

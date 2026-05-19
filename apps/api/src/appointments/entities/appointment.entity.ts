@@ -114,6 +114,12 @@ export class Appointment {
   @Column({ default: false })
   isConcierge: boolean;
 
+  @Column({ type: 'decimal', precision: 10, scale: 6, nullable: true })
+  latitude: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 6, nullable: true })
+  longitude: number;
+
   // -------------------------------
 
   @OneToOne(() => Review, (review) => review.appointment)

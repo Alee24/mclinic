@@ -5,8 +5,8 @@ export class Notification {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ nullable: true })
-  userId: number; // if null, it is for admins/all users depending on isAdminOnly
+  @Column({ type: 'int', nullable: true })
+  userId: number | null; // if null, it is for admins/all users depending on isAdminOnly
 
   @Column()
   title: string;
