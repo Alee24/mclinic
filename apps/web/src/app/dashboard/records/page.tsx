@@ -567,14 +567,14 @@ export default function MedicalRecordsPage() {
                                     <div className="bg-teal-50 dark:bg-teal-900/10 rounded-xl p-3 space-y-2">
                                         {item.pharmacyOrder?.items?.map((pItem: any, i: number) => (
                                             <div key={i} className="flex justify-between text-sm">
-                                                <span className="font-medium text-gray-800 dark:text-gray-200">{pItem.medication?.name || 'Unknown Item'}</span>
+                                                <span className="font-medium text-gray-800 dark:text-gray-200">{pItem.medicationName || pItem.medication?.name || 'Unknown Item'}</span>
                                                 <span className="text-gray-500 text-xs">Qty: {pItem.quantity}</span>
                                             </div>
                                         ))}
                                     </div>
                                     <div className="mt-2 text-right">
                                         <span className="text-xs text-gray-500">Total: </span>
-                                        <span className="text-sm font-bold text-teal-700 dark:text-teal-400">KES {item.pharmacyOrder?.total_amount}</span>
+                                        <span className="text-sm font-bold text-teal-700 dark:text-teal-400">KES {item.pharmacyOrder?.totalAmount ?? item.pharmacyOrder?.total_amount}</span>
                                     </div>
                                 </div>
                             )}
