@@ -341,9 +341,21 @@ export default function LoginPage() {
                             </div>
                         </div>
 
-                        <div className="mt-8 text-center">
-                            <Link href="/support" className="text-[10px] font-black text-gray-400 hover:text-black dark:hover:text-white uppercase tracking-widest transition-colors flex items-center justify-center gap-2">
-                                <FiMessageSquare size={14} /> System Support
+                        <div className="mt-6">
+                            <Link
+                                href="/support"
+                                className="group flex items-center gap-4 p-4 rounded-2xl border-2 border-dashed border-green-200 dark:border-green-900/40 hover:border-green-400 dark:hover:border-green-600 bg-green-50/50 dark:bg-green-900/10 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-300"
+                            >
+                                <div className="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/40 flex items-center justify-center text-green-600 dark:text-green-400 flex-shrink-0 group-hover:scale-110 transition-transform">
+                                    <FiMessageSquare size={18} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="text-xs font-black text-green-700 dark:text-green-400 uppercase tracking-widest">Need Help?</div>
+                                    <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 leading-tight">Contact our support team for login issues or account help</div>
+                                </div>
+                                <div className="text-green-500 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                                    <FiArrowRight size={16} />
+                                </div>
                             </Link>
                         </div>
                     </div>
