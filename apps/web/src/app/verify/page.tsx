@@ -191,7 +191,7 @@ function VerificationContent() {
                                 <FiDollarSign className="w-5 h-5 text-[#0B6E40]" />
                                 <div>
                                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Amount Paid</span>
-                                    <span className="text-sm font-extrabold text-[#0B6E40]">KES {Number(verificationResult.totalAmount).toLocaleString()}</span>
+                                    <span className="text-sm font-extrabold text-[#0B6E40]">KES XXXXXX</span>
                                 </div>
                             </div>
                         </div>
@@ -207,7 +207,8 @@ function VerificationContent() {
                                         onClick={() => {
                                             const printWindow = window.open('', '_blank');
                                             if (printWindow) {
-                                                printWindow.document.write(verificationResult.html);
+                                                const hiddenAmountHtml = verificationResult.html.replace(new RegExp(Number(verificationResult.totalAmount).toLocaleString(), 'g'), 'XXXXXX');
+                                                printWindow.document.write(hiddenAmountHtml);
                                                 printWindow.document.close();
                                                 setTimeout(() => printWindow.print(), 500);
                                             }
@@ -224,7 +225,7 @@ function VerificationContent() {
                                 <div 
                                     className="bg-white text-black rounded-xl shadow-inner max-w-full overflow-hidden p-1.5 scale-90 sm:scale-100 origin-top"
                                     style={{ width: '850px', transformOrigin: 'top center' }}
-                                    dangerouslySetInnerHTML={{ __html: verificationResult.html }}
+                                    dangerouslySetInnerHTML={{ __html: verificationResult.html.replace(new RegExp(Number(verificationResult.totalAmount).toLocaleString(), 'g'), 'XXXXXX') }}
                                 />
                             </div>
                         </div>

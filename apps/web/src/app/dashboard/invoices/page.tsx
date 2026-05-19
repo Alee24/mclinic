@@ -180,7 +180,7 @@ export default function InvoicesPage() {
                             <tr><td colSpan={6} className="px-6 py-4 text-center text-gray-500">No invoices found</td></tr>
                         ) : (
                             invoices.map((invoice) => (
-                                <tr key={invoice.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                <tr key={invoice.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer" onClick={() => generateInvoicePDF(invoice)}>
                                     <td className="px-6 py-4 font-mono text-sm font-medium dark:text-white">
                                         {invoice.invoiceNumber}
                                     </td>
@@ -210,7 +210,8 @@ export default function InvoicesPage() {
                                             <div className="flex gap-2 items-center flex-wrap">
                                                 {invoice.status === 'pending' && (
                                                     <button
-                                                        onClick={() => {
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
                                                             setSelectedInvoice(invoice);
                                                             setShowPaymentModal(true);
                                                         }}
@@ -221,7 +222,10 @@ export default function InvoicesPage() {
                                                 )}
                                                 
                                                 <button
-                                                    onClick={() => generateInvoicePDF(invoice)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        generateInvoicePDF(invoice);
+                                                    }}
                                                     className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-bold px-3 py-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition text-xs whitespace-nowrap"
                                                     title="Download PDF"
                                                 >
@@ -229,7 +233,10 @@ export default function InvoicesPage() {
                                                 </button>
                                                 
                                                 <button
-                                                    onClick={() => sendInvoice(invoice)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        sendInvoice(invoice);
+                                                    }}
                                                     disabled={sending === invoice.id}
                                                     className="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-bold px-3 py-1.5 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition text-xs whitespace-nowrap disabled:opacity-50"
                                                     title="Send via Email"

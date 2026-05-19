@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
-import { FiX, FiSearch, FiCheck, FiUser, FiBriefcase } from 'react-icons/fi';
+import { FiX, FiSearch, FiCheck, FiUser, FiBriefcase, FiPlus, FiTrash2 } from 'react-icons/fi';
 
 interface User {
     id: number;
@@ -22,6 +22,15 @@ interface Doctor {
     speciality?: string;
 }
 
+interface InvoiceItemState {
+    id: string;
+    type: 'custom' | 'lab' | 'pharmacy';
+    description: string;
+    quantity: number;
+    unitPrice: number;
+    itemId?: number;
+}
+
 interface CreateInvoiceModalProps {
     onClose: () => void;
     onSuccess: () => void;
@@ -33,6 +42,10 @@ export default function CreateInvoiceModal({ onClose, onSuccess }: CreateInvoice
     const [allDoctors, setAllDoctors] = useState<Doctor[]>([]);
     const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
     const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([]);
+    
+    // New Data State
+    const [labTests, setLabTests] = useState<any[]>([]);
+    const [medications, setMedications] = useState<any[]>([]);
 
     // Selection State
     const [selectedPatient, setSelectedPatient] = useState<User | null>(null);
@@ -43,8 +56,11 @@ export default function CreateInvoiceModal({ onClose, onSuccess }: CreateInvoice
     const [userSearchTerm, setUserSearchTerm] = useState('');
     const [doctorSearchTerm, setDoctorSearchTerm] = useState('');
     const [newUserForm, setNewUserForm] = useState({ fname: '', lname: '', email: '', mobile: '' });
-    const [amount, setAmount] = useState('');
-    const [description, setDescription] = useState('');
+    
+    const [items, setItems] = useState<InvoiceItemState[]>([
+        { id: Date.now().toString(), type: 'custom', description: '', quantity: 1, unitPrice: 0 }
+    ]);
+    
     const [dueDate, setDueDate] = useState('');
     const [loading, setLoading] = useState(false);
     const [dataLoading, setDataLoading] = useState(true);
@@ -54,9 +70,11 @@ export default function CreateInvoiceModal({ onClose, onSuccess }: CreateInvoice
         const loadData = async () => {
             setDataLoading(true);
             try {
-                const [usersRes, doctorsRes] = await Promise.all([
-                    api.get('/users'),
-                    api.get('/doctors/admin/all')
+                const [usersRes, doctorsRes, labsRes, medsRes] = await Promise.all([
+                    api.get('/users').catch(() => null),
+                    api.get('/doctors/admin/all').catch(() => null),
+                    api.get('/laboratory/tests').catch(() => null),
+                    api.get('/pharmacy/medications').catch(() => null)
                 ]);
 
                 if (usersRes?.ok) {
@@ -69,6 +87,16 @@ export default function CreateInvoiceModal({ onClose, onSuccess }: CreateInvoice
                     const doctors = await doctorsRes.json();
                     setAllDoctors(doctors);
                     setFilteredDoctors(doctors);
+                }
+
+                if (labsRes?.ok) {
+                    const tests = await labsRes.json();
+                    setLabTests(tests);
+                }
+
+                if (medsRes?.ok) {
+                    const meds = await medsRes.json();
+                    setMedications(meds);
                 }
             } catch (e) {
                 console.error("Failed to load users/doctors", e);
@@ -114,20 +142,20 @@ export default function CreateInvoiceModal({ onClose, onSuccess }: CreateInvoice
         setLoading(true);
 
         try {
+            const totalAmount = items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+            
             const payload = {
                 customerEmail: isNewUser ? newUserForm.email : selectedPatient?.email,
                 customerName: isNewUser ? `${newUserForm.fname} ${newUserForm.lname}` : `${selectedPatient?.fname} ${selectedPatient?.lname}`,
                 doctorId: selectedDoctor?.id,
-                totalAmount: Number(amount),
+                totalAmount: totalAmount,
                 dueDate: dueDate || new Date().toISOString(),
                 status: 'pending',
-                items: [
-                    {
-                        description: description || 'Medical Service',
-                        quantity: 1,
-                        unitPrice: Number(amount)
-                    }
-                ]
+                items: items.filter(i => i.description.trim() !== '').map(i => ({
+                    description: i.description,
+                    quantity: i.quantity,
+                    unitPrice: i.unitPrice
+                }))
             };
 
             const res = await api.post('/financial/invoices', payload);
@@ -362,38 +390,160 @@ export default function CreateInvoiceModal({ onClose, onSuccess }: CreateInvoice
                         <section>
                             <label className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 block">3. Invoice Details</label>
 
-                            <div className="mb-4">
-                                <label className="block text-sm font-bold mb-2">Description / Service Name</label>
-                                <input
-                                    type="text"
-                                    placeholder="e.g. General Consultation"
-                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 rounded-xl outline-none focus:ring-2 focus:ring-green-500/20 font-medium"
-                                    value={description}
-                                    onChange={e => setDescription(e.target.value)}
-                                />
+                            <div className="space-y-4">
+                                {items.map((item, index) => (
+                                    <div key={item.id} className="grid grid-cols-12 gap-3 items-end p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700">
+                                        <div className="col-span-12 md:col-span-3">
+                                            <label className="block text-xs font-bold mb-1">Type</label>
+                                            <select
+                                                className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-gray-700 rounded-lg text-sm"
+                                                value={item.type}
+                                                onChange={(e) => {
+                                                    const newItems = [...items];
+                                                    newItems[index].type = e.target.value as any;
+                                                    newItems[index].description = '';
+                                                    newItems[index].unitPrice = 0;
+                                                    setItems(newItems);
+                                                }}
+                                            >
+                                                <option value="custom">Custom Service</option>
+                                                <option value="lab">Lab Test</option>
+                                                <option value="pharmacy">Pharmacy / Medicine</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="col-span-12 md:col-span-4">
+                                            <label className="block text-xs font-bold mb-1">Description / Item</label>
+                                            {item.type === 'custom' ? (
+                                                <input
+                                                    type="text"
+                                                    required
+                                                    className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-gray-700 rounded-lg text-sm"
+                                                    value={item.description}
+                                                    onChange={(e) => {
+                                                        const newItems = [...items];
+                                                        newItems[index].description = e.target.value;
+                                                        setItems(newItems);
+                                                    }}
+                                                />
+                                            ) : item.type === 'lab' ? (
+                                                <select
+                                                    required
+                                                    className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-gray-700 rounded-lg text-sm"
+                                                    value={item.itemId || ''}
+                                                    onChange={(e) => {
+                                                        const testId = Number(e.target.value);
+                                                        const selected = labTests.find(t => t.id === testId);
+                                                        const newItems = [...items];
+                                                        newItems[index].itemId = testId;
+                                                        if (selected) {
+                                                            newItems[index].description = selected.name;
+                                                            newItems[index].unitPrice = Number(selected.price || 0);
+                                                        }
+                                                        setItems(newItems);
+                                                    }}
+                                                >
+                                                    <option value="" disabled>Select Lab Test...</option>
+                                                    {labTests.map(t => (
+                                                        <option key={t.id} value={t.id}>{t.name} (KES {t.price})</option>
+                                                    ))}
+                                                </select>
+                                            ) : (
+                                                <select
+                                                    required
+                                                    className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-gray-700 rounded-lg text-sm"
+                                                    value={item.itemId || ''}
+                                                    onChange={(e) => {
+                                                        const medId = Number(e.target.value);
+                                                        const selected = medications.find(m => m.id === medId);
+                                                        const newItems = [...items];
+                                                        newItems[index].itemId = medId;
+                                                        if (selected) {
+                                                            newItems[index].description = selected.name;
+                                                            newItems[index].unitPrice = Number(selected.price || 0);
+                                                        }
+                                                        setItems(newItems);
+                                                    }}
+                                                >
+                                                    <option value="" disabled>Select Medicine...</option>
+                                                    {medications.map(m => (
+                                                        <option key={m.id} value={m.id}>{m.name} - {m.strength} (KES {m.price})</option>
+                                                    ))}
+                                                </select>
+                                            )}
+                                        </div>
+
+                                        <div className="col-span-6 md:col-span-2">
+                                            <label className="block text-xs font-bold mb-1">Qty</label>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                required
+                                                className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-gray-700 rounded-lg text-sm"
+                                                value={item.quantity}
+                                                onChange={(e) => {
+                                                    const newItems = [...items];
+                                                    newItems[index].quantity = Number(e.target.value);
+                                                    setItems(newItems);
+                                                }}
+                                            />
+                                        </div>
+
+                                        <div className="col-span-5 md:col-span-2">
+                                            <label className="block text-xs font-bold mb-1">Price (KES)</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                required
+                                                className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-mono"
+                                                value={item.unitPrice}
+                                                onChange={(e) => {
+                                                    const newItems = [...items];
+                                                    newItems[index].unitPrice = Number(e.target.value);
+                                                    setItems(newItems);
+                                                }}
+                                            />
+                                        </div>
+
+                                        <div className="col-span-1 md:col-span-1 flex justify-end pb-1">
+                                            {items.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setItems(items.filter((_, i) => i !== index))}
+                                                    className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                                >
+                                                    <FiTrash2 />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+
+                                <button
+                                    type="button"
+                                    onClick={() => setItems([...items, { id: Date.now().toString(), type: 'custom', description: '', quantity: 1, unitPrice: 0 }])}
+                                    className="flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors"
+                                >
+                                    <FiPlus /> Add Another Item
+                                </button>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-6">
+                            <div className="mt-6 flex justify-between items-center border-t border-gray-100 dark:border-gray-800 pt-6">
                                 <div>
-                                    <label className="block text-sm font-bold mb-2">Total Amount (KES)</label>
-                                    <input
-                                        type="number"
-                                        required
-                                        placeholder="0.00"
-                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 rounded-xl outline-none focus:ring-2 focus:ring-green-500/20 font-mono font-bold text-lg"
-                                        value={amount}
-                                        onChange={e => setAmount(e.target.value)}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold mb-2">Due Date</label>
+                                    <label className="block text-xs font-bold mb-1 uppercase tracking-wider text-gray-500">Due Date</label>
                                     <input
                                         type="date"
                                         required
-                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 rounded-xl outline-none focus:ring-2 focus:ring-green-500/20"
+                                        className="px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg outline-none focus:ring-2 focus:ring-green-500/20 font-medium text-sm"
                                         value={dueDate}
                                         onChange={e => setDueDate(e.target.value)}
                                     />
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Total Amount</div>
+                                    <div className="text-2xl font-black text-[#0B6E40] font-mono">
+                                        KES {items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0).toLocaleString()}
+                                    </div>
                                 </div>
                             </div>
                         </section>
