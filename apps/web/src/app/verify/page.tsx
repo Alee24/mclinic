@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { getApiBaseUrl } from '@/lib/api';
 import { 
     FiShield, 
@@ -74,6 +75,16 @@ function VerificationContent() {
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 py-12 px-4 sm:px-6 lg:px-8 flex flex-col justify-between">
             <div className="max-w-3xl mx-auto w-full space-y-8">
+                {/* Navigation: Back to Dashboard */}
+                <div className="flex justify-start">
+                    <Link 
+                        href="/dashboard" 
+                        className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-900 text-sm font-bold text-gray-700 dark:text-zinc-200 shadow-sm hover:bg-gray-50 dark:hover:bg-zinc-800 transition"
+                    >
+                        &larr; Back to Dashboard
+                    </Link>
+                </div>
+
                 {/* Header Logo & Verification Banner */}
                 <div className="text-center">
                     <div className="flex justify-center mb-4">
@@ -84,7 +95,7 @@ function VerificationContent() {
                         />
                     </div>
                     <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl flex items-center justify-center gap-2">
-                        <FiShield className="text-[#0B6E40]" /> Secure Receipt Audit
+                        <FiShield className="text-[#0B6E40]" /> M-Clinic Resource verification page
                     </h2>
                     <p className="mt-3 text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
                         Validate the authenticity, payment status, and medical details of any official M-Clinic invoice or transaction receipt.
