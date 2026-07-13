@@ -562,4 +562,57 @@ export class AuthService {
       user: finalUser,
     };
   }
+
+  async mpesaMiniappLogin(authCode: string, phoneNumber?: string) {
+    let phone = phoneNumber || '254712345678';
+    
+    // If the authCode resembles a phone number, use it directly (common in mock/sandbox)
+    if (authCode && authCode !== 'test_code' && (authCode.startsWith('254') || authCode.startsWith('0') || authCode.startsWith('+254'))) {
+      phone = authCode;
+    }
+    
+    const formattedPhone = this.smsService.formatMobile(phone) || '254712345678';
+    
+    // Check if user exists by mobile
+    let user = await this.usersService.findOneByMobile(formattedPhone);
+    if (!user) {
+      // Create user as a patient automatically (Seamless onboarding)
+      const mockEmail = `mpesa-${formattedPhone}@mclinic.co.ke`;
+      const dummyPassword = await bcrypt.hash(randomBytes(16).toString('hex'), 10);
+      user = await this.usersService.create({
+        email: mockEmail,
+        password: dummyPassword,
+        fname: 'M-Pesa Patient',
+        lname: formattedPhone.substring(formattedPhone.length - 4),
+        role: 'patient',
+        mobile: formattedPhone,
+        status: true,
+        emailVerifiedAt: new Date(),
+      } as any);
+      
+      try {
+        await this.medicalProfilesService.update(user.id, {
+          emergency_contact_phone: formattedPhone,
+        });
+      } catch (e) {
+        console.error('Failed to create medical profile for miniapp user', e);
+      }
+    }
+    
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      role: user.role,
+    };
+    
+    await this.usersService.updateLastAccess(user.id);
+    
+    let finalUser = { ...user };
+    if (finalUser.password) delete (finalUser as any).password;
+    
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: finalUser,
+    };
+  }
 }

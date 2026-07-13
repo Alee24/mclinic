@@ -1,0 +1,11 @@
+{
+  "pages": [
+    "pages/index/index"
+  ],
+  "window": {
+    "defaultTitle": "M-Clinic",
+    "titleBarColor": "#00a651",
+    "pullRefresh": false,
+    "allowsBounceVertical": "NO"
+  }
+}

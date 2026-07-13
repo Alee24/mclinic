@@ -11,11 +11,13 @@ import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
 
 import { usePathname, useRouter } from 'next/navigation';
+import { useMpesaMiniApp } from '@/providers/MpesaMiniAppProvider';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
     const { user, loading, logout } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
+    const { isMiniApp } = useMpesaMiniApp();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [activeEmergencies, setActiveEmergencies] = useState<any[]>([]);
     const [showEmergencyModal, setShowEmergencyModal] = useState(false);
@@ -181,7 +183,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     return (
         <div className="flex h-screen bg-[#F8FAFC] dark:bg-[#0a0a0a] text-gray-800 dark:text-gray-200 font-sans overflow-hidden">
             {/* Mobile Sidebar Overlay */}
-            {isMobileMenuOpen && (
+            {isMobileMenuOpen && !isMiniApp && (
                 <div
                     className="fixed inset-0 bg-black/50 z-[9998] md:hidden backdrop-blur-sm transition-opacity"
                     onClick={() => setIsMobileMenuOpen(false)}
@@ -189,10 +191,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             )}
 
             {/* Sidebar */}
-            <aside className={`
-                fixed inset-y-0 left-0 z-[9999] w-64 bg-white dark:bg-[#121212] flex flex-col p-6 border-r border-gray-100 dark:border-gray-800 transition-transform duration-300 ease-in-out md:relative md:translate-x-0
-                ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
-            `}>
+            {!isMiniApp && (
+                <aside className={`
+                    fixed inset-y-0 left-0 z-[9999] w-64 bg-white dark:bg-[#121212] flex flex-col p-6 border-r border-gray-100 dark:border-gray-800 transition-transform duration-300 ease-in-out md:relative md:translate-x-0
+                    ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+                `}>
                 <div className="flex items-center justify-between mb-10 px-2">
                     <Link href="/dashboard">
                         <img
@@ -411,10 +414,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     Developed by | <a href="https://kkdes.co.ke/" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 transition-colors underline underline-offset-4">KKDES</a>
                 </div>
             </aside >
+            )}
 
             {/* Main Content */}
             < main className="flex-1 flex flex-col overflow-hidden relative w-full" >
                 {/* Header */}
+                {!isMiniApp && (
                 < header className="h-16 md:h-20 flex items-center justify-between px-4 md:px-8 bg-white/50 dark:bg-black/50 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 md:border-none shrink-0 z-30" >
                     {/* Search */}
                     <div className="flex items-center flex-1 gap-4">
@@ -563,8 +568,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         </div>
                     </div>
                 </header >
+                )}
 
                 {/* Horizontal Quick Navigation */}
+                {!isMiniApp && (
                 <div className="bg-white dark:bg-[#0D0D0D] border-b border-gray-100 dark:border-gray-800 px-4 py-2">
                     <div className="flex items-center gap-2 overflow-x-auto">
                         <Link
@@ -623,10 +630,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         )}
                     </div>
                 </div>
+                )}
 
 
                 {/* Dashboard Content */}
-                < div className="flex-1 overflow-y-auto p-4 md:p-8 pt-2 scroll-smooth" >
+                < div className={isMiniApp ? "flex-1 overflow-y-auto p-3 pt-2 scroll-smooth" : "flex-1 overflow-y-auto p-4 md:p-8 pt-2 scroll-smooth"} >
                     {children}
                 </ div >
             </ main >

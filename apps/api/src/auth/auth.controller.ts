@@ -62,4 +62,9 @@ export class AuthController {
   async loginWithOtp(@Body() body: { mobile: string; otp: string; userType?: 'patient' | 'provider' }) {
     return this.authService.loginWithOtp(body.mobile, body.otp, body.userType);
   }
+
+  @Post('mpesa-miniapp/login')
+  async mpesaMiniappLogin(@Body() body: { authCode: string; phoneNumber?: string }) {
+    return this.authService.mpesaMiniappLogin(body.authCode, body.phoneNumber);
+  }
 }

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { api } from '@/lib/api';
 import { FiX } from 'react-icons/fi';
+import { useMpesaMiniApp } from '@/providers/MpesaMiniAppProvider';
 
 interface PaymentModalProps {
     invoice: any;
@@ -11,7 +12,8 @@ interface PaymentModalProps {
 }
 
 export default function PaymentModal({ invoice, onClose, onSuccess }: PaymentModalProps) {
-    const [paymentMethod, setPaymentMethod] = useState('MPESA');
+    const { isMiniApp, payInvoice } = useMpesaMiniApp();
+    const [paymentMethod, setPaymentMethod] = useState(isMiniApp ? 'MINIAPP_MPESA' : 'MPESA');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [processing, setProcessing] = useState(false);
 
@@ -19,6 +21,13 @@ export default function PaymentModal({ invoice, onClose, onSuccess }: PaymentMod
         e.preventDefault();
         setProcessing(true);
         try {
+            if (paymentMethod === 'MINIAPP_MPESA') {
+                payInvoice(invoice.id, invoice.totalAmount, invoice.invoiceNumber);
+                alert('Initiated checkout process in M-Pesa Super App.');
+                onSuccess();
+                onClose();
+                return;
+            }
             if (paymentMethod === 'MPESA') {
                 const res = await api.post('/financial/mpesa/stk-push', {
                     phoneNumber,
@@ -81,11 +90,17 @@ export default function PaymentModal({ invoice, onClose, onSuccess }: PaymentMod
                             value={paymentMethod}
                             onChange={(e) => setPaymentMethod(e.target.value)}
                         >
-                            <option value="MPESA">M-Pesa (STK Push)</option>
-                            <option value="BANK">Bank Transfer (Coming Soon)</option>
-                            <option value="VISA">Card/Visa</option>
-                            <option value="PAYPAL">PayPal</option>
-                        </select>
+            {isMiniApp ? (
+                <option value="MINIAPP_MPESA">M-Pesa Super App Native Pay</option>
+            ) : (
+                <>
+                    <option value="MPESA">M-Pesa (STK Push)</option>
+                    <option value="BANK">Bank Transfer (Coming Soon)</option>
+                    <option value="VISA">Card/Visa</option>
+                    <option value="PAYPAL">PayPal</option>
+                </>
+            )}
+        </select>
                     </div>
 
                     {paymentMethod === 'MPESA' && (

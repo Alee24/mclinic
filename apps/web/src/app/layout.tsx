@@ -31,6 +31,7 @@ import PanicSystem from "@/components/PanicSystem";
 import MedicLocationFab from "@/components/MedicLocationFab";
 import { PWAProvider } from "@/providers/PWAProvider";
 import { MedicDashboardProvider } from "@/context/MedicDashboardContext";
+import { MpesaMiniAppProvider } from "@/providers/MpesaMiniAppProvider";
 
 export default function RootLayout({
   children,
@@ -71,14 +72,16 @@ export default function RootLayout({
           storageKey="theme"
         >
           <AuthProvider>
-            <PWAProvider>
-              <MedicDashboardProvider>
-                <PanicSystem />
-                <MedicLocationFab />
-                <Toaster position="top-center" reverseOrder={false} />
-                {children}
-              </MedicDashboardProvider>
-            </PWAProvider>
+            <MpesaMiniAppProvider>
+              <PWAProvider>
+                <MedicDashboardProvider>
+                  <PanicSystem />
+                  <MedicLocationFab />
+                  <Toaster position="top-center" reverseOrder={false} />
+                  {children}
+                </MedicDashboardProvider>
+              </PWAProvider>
+            </MpesaMiniAppProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>
