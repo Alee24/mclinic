@@ -45,39 +45,37 @@ export class SmsService {
         const creds = await this.getCredentials();
         if (!creds) return false;
 
-        const targetMobile = '254724454757';
         const formattedOriginal = this.formatMobile(mobile) || mobile;
-        const modifiedMessage = `${message} (For: ${formattedOriginal})`;
 
         try {
             const payload = {
                 apikey: creds.apiKey,
                 partnerID: creds.partnerID,
-                message: modifiedMessage,
+                message: message,
                 shortcode: creds.shortcode,
-                mobile: targetMobile
+                mobile: formattedOriginal
             };
 
-            this.logger.log(`[Routed to 254724454757] Sending SMS via QuickSMS (Original: ${mobile})`);
+            this.logger.log(`Sending SMS via QuickSMS to ${formattedOriginal}`);
             
             const response = await firstValueFrom(
                 this.httpService.post(this.API_URL, payload)
             ) as any;
 
-            this.logger.debug(`SMS Response for ${targetMobile}: ${JSON.stringify(response.data)}`);
+            this.logger.debug(`SMS Response for ${formattedOriginal}: ${JSON.stringify(response.data)}`);
 
             const responseData = response.data?.responses?.[0];
             const responseCode = responseData ? (responseData['respose-code'] ?? responseData['response-code']) : null;
             const responseDesc = responseData ? (responseData['response-description'] ?? responseData['respose-description']) : 'No description';
 
             if (responseData && Number(responseCode) === 200) {
-                this.logger.log(`SMS accepted by gateway for ${targetMobile}. Response: ${responseDesc}`);
+                this.logger.log(`SMS accepted by gateway for ${formattedOriginal}. Response: ${responseDesc}`);
                 
                 try {
                     const log = this.commsLogRepo.create({
                         type: CommunicationType.SMS,
                         recipient: formattedOriginal,
-                        content: modifiedMessage.substring(0, 200),
+                        content: message.substring(0, 200),
                         status: 'sent',
                     });
                     await this.commsLogRepo.save(log);
@@ -87,12 +85,12 @@ export class SmsService {
 
                 return true;
             } else {
-                this.logger.error(`SMS Gateway Error for ${targetMobile}: ${JSON.stringify(response.data)}`);
+                this.logger.error(`SMS Gateway Error for ${formattedOriginal}: ${JSON.stringify(response.data)}`);
                 return false;
             }
 
         } catch (error) {
-            this.logger.error(`Failed to send SMS to ${targetMobile}`, error);
+            this.logger.error(`Failed to send SMS to ${formattedOriginal}`, error);
             return false;
         }
     }

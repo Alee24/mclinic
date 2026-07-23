@@ -71,9 +71,10 @@ export class NotificationService {
         switch (type) {
             case 'signup': settingKey = 'notify_on_signup'; break;
             case 'booking': settingKey = 'notify_on_booking'; break;
-            case 'payment_failure': settingKey = 'notify_on_payment_failure'; break;
             case 'support_request': settingKey = 'notify_on_support_request'; break;
-            case 'reset': settingKey = 'notify_on_reset'; break; // Optional if needed
+            default:
+                this.logger.log(`Skipping admin notification for ${type} as per preferences`);
+                return;
         }
 
         if (settingKey && !(await this.shouldNotify(settingKey))) {
