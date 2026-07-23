@@ -87,7 +87,7 @@ export class AppointmentsService {
     const nightStart = await this.systemSettingsService.get('NIGHT_SHIFT_START_TIME') || '18:00';
     const nightEnd = await this.systemSettingsService.get('NIGHT_SHIFT_END_TIME') || '06:00';
     
-    const apptTime = createAppointmentDto.appointment_time || '12:00';
+    const apptTime = appointmentTime || '12:00';
     let isNightShift = false;
     
     if (nightStart > nightEnd) {
