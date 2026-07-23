@@ -291,6 +291,14 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
         return isNightShift ? docNightFee : docDayFee;
     };
 
+    const getBaseDayFee = (doc: Doctor) => {
+        const type = (doc.dr_type || '').toLowerCase();
+        if (type.includes('nurse') || type.includes('clinician')) {
+            return nurseDayFee;
+        }
+        return docDayFee;
+    };
+
     useEffect(() => {
         let result = doctors.map(doc => {
             let dist = 9999;
@@ -705,12 +713,17 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
                                                     <h4 className="font-bold text-gray-900 dark:text-white text-lg leading-tight">{doc.fname} {doc.lname}</h4>
                                                     <p className="text-xs text-primary font-black uppercase tracking-wide mt-0.5">{doc.dr_type || 'Medic'}</p>
                                                     <p className="text-xs text-gray-500 font-medium">{doc.speciality}</p>
-                                                    {doc.distance !== undefined && doc.distance < 1000 && (
-                                                        <p className="text-xs text-gray-400 mt-2 flex items-center gap-1 font-medium bg-gray-50 dark:bg-gray-800 px-2 py-1 rounded-md w-fit">
-                                                            <FiMapPin size={10} />
-                                                            {doc.distance.toFixed(1)} km away
-                                                        </p>
-                                                    )}
+                                                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                                                        <span className="text-sm font-black text-primary bg-primary/10 px-2 py-1 rounded-md">
+                                                            KES {getBaseDayFee(doc)} <span className="text-[10px] font-bold text-primary/70 uppercase">Base / Day</span>
+                                                        </span>
+                                                        {doc.distance !== undefined && doc.distance < 1000 && (
+                                                            <span className="text-xs text-gray-400 flex items-center gap-1 font-medium bg-gray-50 dark:bg-gray-800 px-2 py-1 rounded-md w-fit">
+                                                                <FiMapPin size={10} />
+                                                                {doc.distance.toFixed(1)} km
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         ))}
