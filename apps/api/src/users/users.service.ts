@@ -520,7 +520,7 @@ export class UsersService implements OnModuleInit {
       const user = await this.usersRepository.findOne({ where: { id } });
       if (!user) continue;
 
-      user.role = role;
+      user.role = role as UserRole;
       await this.usersRepository.save(user);
 
       if (role === 'MEDIC') {
