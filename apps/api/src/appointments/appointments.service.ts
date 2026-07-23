@@ -271,39 +271,7 @@ export class AppointmentsService {
     // Notify Patient via Email (Existing)
     // await this.emailService.sendAppointmentConfirmation(savedAppointment); // Assuming this exists or will be added
 
-    // --- SMS Notifications (Initial Booking) ---
-    try {
-      const patientUser = await this.appointmentsRepository.manager
-        .getRepository(User)
-        .findOne({ where: { id: createAppointmentDto.patientId } });
-
-      const patientName = patientUser?.fname || 'Patient';
-      const doctorName = (doctor && doctor.fname) ? `Dr. ${doctor.fname} ${doctor.lname}` : 'the Specialist';
-      const portalUrl = 'https://portal.mclinic.co.ke';
-
-      // 1. SMS to Patient: Initial Booking
-      if (patientUser?.mobile) {
-        const patientMsg = createAppointmentDto.isConcierge 
-          ? `Dear ${patientName}, your Medical Concierge booking (${createAppointmentDto.conciergeType}) has been received. Please complete your payment of KES ${totalPatientFee} to confirm. An agent will be assigned shortly.`
-          : `Dear ${patientName}, you have successfully booked an appointment with ${doctorName}. Please complete your payment to confirm. View details: ${portalUrl}/dashboard/appointments`;
-        await this.notificationService.sendCustomSms(patientUser.mobile, patientMsg);
-      }
-
-      // 2. Notify Admin
-      await this.notificationService.notifyAdmin(
-        'booking',
-        `New Booking (Unconfirmed): ${patientName} with ${doctorName} for ${new Date(appointmentDate).toDateString()} @ ${appointmentTime}.`
-      );
-
-      // 3. Notify Medic via SMS
-      if (doctor && doctor.mobile) {
-        const medicMsg = `Hello ${doctorName}, a new appointment has been booked for ${new Date(appointmentDate).toDateString()} @ ${appointmentTime}. Please log in to review: ${portalUrl}/dashboard/appointments`;
-        await this.notificationService.sendCustomSms(doctor.mobile, medicMsg);
-      }
-
-    } catch (error) {
-      console.error('[Appointments] Failed to send initial booking SMS', error);
-    }
+    // Initial SMS notifications have been removed as requested. Notifications are only sent upon payment confirmation.
 
     return savedAppointment;
   }
