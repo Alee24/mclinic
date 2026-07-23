@@ -78,10 +78,12 @@ export class AppointmentsService {
     // Calculate Fees using dynamic settings
     const defaultBookingFee = Number(await this.systemSettingsService.get('FEE_BOOKING') || 500);
     const defaultVirtualFee = Number(await this.systemSettingsService.get('FEE_VIRTUAL_VISIT') || 1500);
+    // Tiered Shift Logic
+    const nurseDayFee = Number(await this.systemSettingsService.get('FEE_NURSE_BASE_DAY') || 3000);
+    const nurseNightFee = Number(await this.systemSettingsService.get('FEE_NURSE_BASE_NIGHT') || 5000);
+    const docDayFee = Number(await this.systemSettingsService.get('FEE_DOCTOR_BASE_DAY') || 7000);
+    const docNightFee = Number(await this.systemSettingsService.get('FEE_DOCTOR_BASE_NIGHT') || 10000);
     
-    // Global Shift Logic
-    const baseDayFee = Number(await this.systemSettingsService.get('FEE_GLOBAL_BASE_DAY') || 2000);
-    const baseNightFee = Number(await this.systemSettingsService.get('FEE_GLOBAL_BASE_NIGHT') || 4000);
     const nightStart = await this.systemSettingsService.get('NIGHT_SHIFT_START_TIME') || '18:00';
     const nightEnd = await this.systemSettingsService.get('NIGHT_SHIFT_END_TIME') || '06:00';
     
@@ -96,7 +98,6 @@ export class AppointmentsService {
       isNightShift = apptTime >= nightStart && apptTime <= nightEnd;
     }
 
-    const defaultPhysicalFee = isNightShift ? baseNightFee : baseDayFee;
     const defaultAmbulanceBase = Number(await this.systemSettingsService.get('FEE_AMBULANCE_BASE') || 5000);
 
     let fee = 0;
@@ -118,13 +119,14 @@ export class AppointmentsService {
     } else if (doctor) {
       const drType = (doctor.dr_type || '').toLowerCase();
       if (drType.includes('nurse') || drType.includes('clinician')) {
-        fee = defaultPhysicalFee;
+        fee = isNightShift ? nurseNightFee : nurseDayFee;
         serviceName = 'Nurse/Clinician Consultation';
       } else if (drType.includes('ambulance')) {
         fee = defaultAmbulanceBase;
         serviceName = 'Ambulance Service';
       } else {
-        fee = isNightShift ? baseNightFee : Number(doctor.fee || baseDayFee);
+        // Universal base for doctors (overrides custom fee)
+        fee = isNightShift ? docNightFee : docDayFee;
         serviceName = 'Specialist Consultation';
       }
     }

@@ -72,21 +72,29 @@ export default function DoctorDetailsPage() {
     const virtualFee = Number(getSetting('FEE_VIRTUAL_VISIT') || 1500);
     const bookingFee = Number(getSetting('FEE_BOOKING') || 500);
 
-    // Global Shift Pricing
-    const baseDayFee = Number(getSetting('FEE_GLOBAL_BASE_DAY') || 2000);
-    const baseNightFee = Number(getSetting('FEE_GLOBAL_BASE_NIGHT') || 4000);
+    // Tiered Shift Pricing
+    const nurseDayFee = Number(getSetting('FEE_NURSE_BASE_DAY') || 3000);
+    const nurseNightFee = Number(getSetting('FEE_NURSE_BASE_NIGHT') || 5000);
+    const docDayFee = Number(getSetting('FEE_DOCTOR_BASE_DAY') || 7000);
+    const docNightFee = Number(getSetting('FEE_DOCTOR_BASE_NIGHT') || 10000);
     const nightStart = getSetting('NIGHT_SHIFT_START_TIME') || '18:00';
     const nightEnd = getSetting('NIGHT_SHIFT_END_TIME') || '06:00';
 
     // Actual display logic matching AppointmentsService
     const drType = (doctor.dr_type || '').toLowerCase();
     
-    let totalPhysicalDay = baseDayFee + bookingFee;
-    if (!drType.includes('nurse') && !drType.includes('clinician')) {
-        totalPhysicalDay = Number(doctor.fee || baseDayFee) + bookingFee;
+    let totalPhysicalDay = 0;
+    let totalPhysicalNight = 0;
+    
+    if (drType.includes('nurse') || drType.includes('clinician')) {
+        totalPhysicalDay = nurseDayFee + bookingFee;
+        totalPhysicalNight = nurseNightFee + bookingFee;
+    } else {
+        // Universal base for doctors (overrides custom fee)
+        totalPhysicalDay = docDayFee + bookingFee;
+        totalPhysicalNight = docNightFee + bookingFee;
     }
     
-    const totalPhysicalNight = baseNightFee + bookingFee;
     const totalVirtual = virtualFee + bookingFee;
 
     return (

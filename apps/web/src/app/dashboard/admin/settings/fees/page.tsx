@@ -25,8 +25,10 @@ export default function FeeSettingsPage() {
         'FEE_VIRTUAL_VISIT',
         'FEE_AMBULANCE_BASE',
         'COMMISSION_PERCENTAGE',
-        'FEE_GLOBAL_BASE_DAY',
-        'FEE_GLOBAL_BASE_NIGHT',
+        'FEE_NURSE_BASE_DAY',
+        'FEE_NURSE_BASE_NIGHT',
+        'FEE_DOCTOR_BASE_DAY',
+        'FEE_DOCTOR_BASE_NIGHT',
         'NIGHT_SHIFT_START_TIME',
         'NIGHT_SHIFT_END_TIME'
     ];
@@ -149,40 +151,66 @@ export default function FeeSettingsPage() {
                     </div>
                 </div>
 
-                {/* Global Shift Pricing */}
+                {/* Tiered Shift Pricing */}
                 <div className="bg-white dark:bg-gray-800 rounded-[2.5rem] p-8 shadow-xl border border-gray-100 dark:border-gray-700 transition-all hover:shadow-2xl space-y-6 md:col-span-2 lg:col-span-1">
                     <div className="flex items-center gap-4 mb-2">
                         <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600">
                             <FiMapPin className="text-2xl" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-black text-gray-900 dark:text-white">Global Shift Pricing</h2>
-                            <p className="text-sm text-gray-500">Base and Night charges for all medics</p>
+                            <h2 className="text-xl font-black text-gray-900 dark:text-white">Tiered Shift Pricing</h2>
+                            <p className="text-sm text-gray-500">Base and Night charges by medic role</p>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {/* Nurses / Clinicians */}
                         <div className="group">
-                            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Base Day Charge (KES)</label>
+                            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Nurse/Clinician Day (KES)</label>
                             <div className="relative">
                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">KES</span>
                                 <input
                                     type="number"
-                                    value={getSettingValue('FEE_GLOBAL_BASE_DAY')}
-                                    onChange={(e) => handleUpdateValue('FEE_GLOBAL_BASE_DAY', e.target.value)}
+                                    value={getSettingValue('FEE_NURSE_BASE_DAY')}
+                                    onChange={(e) => handleUpdateValue('FEE_NURSE_BASE_DAY', e.target.value)}
+                                    className="w-full pl-14 pr-4 py-4 bg-gray-50 dark:bg-gray-900/50 rounded-2xl border-2 border-transparent focus:border-indigo-500 dark:text-white outline-none transition-all font-black text-lg"
+                                />
+                            </div>
+                        </div>
+                        <div className="group">
+                            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Nurse/Clinician Night (KES)</label>
+                            <div className="relative">
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">KES</span>
+                                <input
+                                    type="number"
+                                    value={getSettingValue('FEE_NURSE_BASE_NIGHT')}
+                                    onChange={(e) => handleUpdateValue('FEE_NURSE_BASE_NIGHT', e.target.value)}
                                     className="w-full pl-14 pr-4 py-4 bg-gray-50 dark:bg-gray-900/50 rounded-2xl border-2 border-transparent focus:border-indigo-500 dark:text-white outline-none transition-all font-black text-lg"
                                 />
                             </div>
                         </div>
 
+                        {/* Doctors / Specialists */}
                         <div className="group">
-                            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Night Charge (KES)</label>
+                            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Doctor/Specialist Day (KES)</label>
                             <div className="relative">
                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">KES</span>
                                 <input
                                     type="number"
-                                    value={getSettingValue('FEE_GLOBAL_BASE_NIGHT')}
-                                    onChange={(e) => handleUpdateValue('FEE_GLOBAL_BASE_NIGHT', e.target.value)}
+                                    value={getSettingValue('FEE_DOCTOR_BASE_DAY')}
+                                    onChange={(e) => handleUpdateValue('FEE_DOCTOR_BASE_DAY', e.target.value)}
+                                    className="w-full pl-14 pr-4 py-4 bg-gray-50 dark:bg-gray-900/50 rounded-2xl border-2 border-transparent focus:border-indigo-500 dark:text-white outline-none transition-all font-black text-lg"
+                                />
+                            </div>
+                        </div>
+                        <div className="group">
+                            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Doctor/Specialist Night (KES)</label>
+                            <div className="relative">
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">KES</span>
+                                <input
+                                    type="number"
+                                    value={getSettingValue('FEE_DOCTOR_BASE_NIGHT')}
+                                    onChange={(e) => handleUpdateValue('FEE_DOCTOR_BASE_NIGHT', e.target.value)}
                                     className="w-full pl-14 pr-4 py-4 bg-gray-50 dark:bg-gray-900/50 rounded-2xl border-2 border-transparent focus:border-indigo-500 dark:text-white outline-none transition-all font-black text-lg"
                                 />
                             </div>

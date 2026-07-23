@@ -265,8 +265,10 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
 
     const getSetting = (key: string) => settings.find(s => s.key === key)?.value;
     const virtualFee = Number(getSetting('FEE_VIRTUAL_VISIT') || 1500);
-    const baseDayFee = Number(getSetting('FEE_GLOBAL_BASE_DAY') || 2000);
-    const baseNightFee = Number(getSetting('FEE_GLOBAL_BASE_NIGHT') || 4000);
+    const nurseDayFee = Number(getSetting('FEE_NURSE_BASE_DAY') || 3000);
+    const nurseNightFee = Number(getSetting('FEE_NURSE_BASE_NIGHT') || 5000);
+    const docDayFee = Number(getSetting('FEE_DOCTOR_BASE_DAY') || 7000);
+    const docNightFee = Number(getSetting('FEE_DOCTOR_BASE_NIGHT') || 10000);
     const nightStart = getSetting('NIGHT_SHIFT_START_TIME') || '18:00';
     const nightEnd = getSetting('NIGHT_SHIFT_END_TIME') || '06:00';
 
@@ -283,10 +285,10 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
 
         const type = (doc.dr_type || '').toLowerCase();
         if (type.includes('nurse') || type.includes('clinician')) {
-            return isNightShift ? baseNightFee : baseDayFee;
+            return isNightShift ? nurseNightFee : nurseDayFee;
         }
         
-        return isNightShift ? baseNightFee : Number(doc.fee || baseDayFee);
+        return isNightShift ? docNightFee : docDayFee;
     };
 
     useEffect(() => {

@@ -386,18 +386,20 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-lg bg-white dark:bg-black/20 flex items-center justify-center">
-                                            <FiDollarSign className="text-primary" />
+                                    {isAdmin && (
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-lg bg-white dark:bg-black/20 flex items-center justify-center">
+                                                <FiDollarSign className="text-primary" />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-gray-500">Fee</p>
+                                                <p className="font-bold dark:text-white">KES {Number(appointment.fee || 0).toLocaleString()}</p>
+                                                {appointment.transportFee > 0 && (
+                                                    <p className="text-xs text-gray-500 mt-1">Transport: KES {Number(appointment.transportFee).toLocaleString()}</p>
+                                                )}
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-xs text-gray-500">Fee</p>
-                                            <p className="font-bold dark:text-white">KES {Number(appointment.fee || 0).toLocaleString()}</p>
-                                            {appointment.transportFee > 0 && (
-                                                <p className="text-xs text-gray-500 mt-1">Transport: KES {Number(appointment.transportFee).toLocaleString()}</p>
-                                            )}
-                                        </div>
-                                    </div>
+                                    )}
                                     {appointment.reason && (
                                         <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
                                             <p className="text-xs text-gray-500 mb-1">Reason for Visit</p>
@@ -558,97 +560,99 @@ export default function ViewAppointmentDetailsModal({ appointment, onClose }: Vi
                         {/* Middle Column - Map or Doctor Info */}
                         <div className="lg:col-span-2 space-y-6">
 
-                            {/* Admin Specific: Medic & Financials */}
-                            {isAdmin && (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {/* Assigned Medic Details */}
-                                    <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
-                                        <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-                                            <FiBriefcase className="text-primary" />
-                                            Assigned Medic
-                                        </h3>
-                                        <div className="space-y-3">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 font-bold">
-                                                    {doctor.fname?.[0] || 'D'}
-                                                </div>
-                                                <div>
-                                                    <p className="font-bold dark:text-white">{doctor.fname} {doctor.lname}</p>
-                                                    <p className="text-xs text-gray-500">{doctor.speciality || 'General Practitioner'}</p>
-                                                </div>
-                                            </div>
-                                            <div className="pt-3 border-t border-gray-100 dark:border-gray-800 space-y-2">
-                                                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                                                    <FiPhone size={14} />
-                                                    <span>{doctor.mobile || 'No Phone'}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                                                    <FiMail size={14} />
-                                                    <span>{doctor.email || 'No Email'}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                                                    <FiShield size={14} />
-                                                    <span>License: {doctor.licenceNo || 'N/A'}</span>
-                                                </div>
-                                                {doctor.hospital_attachment && (
-                                                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                                                        <FiMapPin size={14} />
-                                                        <span>{doctor.hospital_attachment}</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
+                             {/* Medic & Financials */}
+                             {(isAdmin || isPatient) && (
+                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                     {/* Assigned Medic Details */}
+                                     <div className={`bg-white dark:bg-white/5 rounded-2xl p-6 border border-gray-100 dark:border-gray-800 ${!isAdmin ? 'md:col-span-2' : ''}`}>
+                                         <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                             <FiBriefcase className="text-primary" />
+                                             Assigned Medic
+                                         </h3>
+                                         <div className="space-y-3">
+                                             <div className="flex items-center gap-3">
+                                                 <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 font-bold">
+                                                     {doctor.fname?.[0] || 'D'}
+                                                 </div>
+                                                 <div>
+                                                     <p className="font-bold dark:text-white">{doctor.fname} {doctor.lname}</p>
+                                                     <p className="text-xs text-gray-500">{doctor.speciality || 'General Practitioner'}</p>
+                                                 </div>
+                                             </div>
+                                             <div className="pt-3 border-t border-gray-100 dark:border-gray-800 space-y-2">
+                                                 <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                                     <FiPhone size={14} />
+                                                     <span>{doctor.mobile || 'No Phone'}</span>
+                                                 </div>
+                                                 <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                                     <FiMail size={14} />
+                                                     <span>{doctor.email || 'No Email'}</span>
+                                                 </div>
+                                                 <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                                     <FiShield size={14} />
+                                                     <span>License: {doctor.licenceNo || 'N/A'}</span>
+                                                 </div>
+                                                 {doctor.hospital_attachment && (
+                                                     <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                                         <FiMapPin size={14} />
+                                                         <span>{doctor.hospital_attachment}</span>
+                                                     </div>
+                                                 )}
+                                             </div>
+                                         </div>
+                                     </div>
 
-                                    {/* Financial Details */}
-                                    <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
-                                        <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-                                            <FiDollarSign className="text-primary" />
-                                            Financials
-                                        </h3>
-                                        <div className="space-y-4">
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-sm text-gray-500">Status</span>
-                                                <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${(appointment.invoice?.status === 'paid' || (!appointment.invoice && (appointment.status === 'confirmed' || appointment.status === 'completed'))) ? 'bg-green-100 text-green-700' :
-                                                    (appointment.invoice?.status === 'pending' || appointment.status === 'pending') ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-500'
-                                                    }`}>
-                                                    {appointment.invoice?.status || (appointment.status === 'confirmed' || appointment.status === 'completed' ? 'paid' : 'pending')}
-                                                </span>
-                                            </div>
-                                            <div className="pt-3 border-t border-gray-100 dark:border-gray-800 space-y-2">
-                                                <div className="flex justify-between items-center text-sm text-gray-500">
-                                                    <span>Consultation Fee</span>
-                                                    <span className="dark:text-gray-300">KES {Number(appointment.fee || 0).toLocaleString()}</span>
-                                                </div>
-                                                {appointment.transportFee > 0 && (
-                                                    <div className="flex justify-between items-center text-sm text-gray-500">
-                                                        <span>Transport Cost</span>
-                                                        <span className="dark:text-gray-300">KES {Number(appointment.transportFee).toLocaleString()}</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-gray-800">
-                                                <span className="text-sm text-gray-500">Total Amount</span>
-                                                <span className="font-bold text-lg dark:text-white">
-                                                    KES {Number(appointment.invoice?.totalAmount || (Number(appointment.fee || 0) + Number(appointment.transportFee || 0))).toLocaleString()}
-                                                </span>
-                                            </div>
-                                            {appointment.invoice && (
-                                                <div className="pt-3 border-t border-gray-100 dark:border-gray-800">
-                                                    <div className="flex justify-between items-center text-sm mb-1">
-                                                        <span className="text-gray-500">Invoice #</span>
-                                                        <span className="font-mono dark:text-gray-300">{appointment.invoice.invoiceNumber}</span>
-                                                    </div>
-                                                    <div className="flex justify-between items-center text-sm">
-                                                        <span className="text-gray-500">Date</span>
-                                                        <span className="dark:text-gray-300">{new Date(appointment.invoice.createdAt).toLocaleDateString()}</span>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+                                     {/* Financial Details */}
+                                     {isAdmin && (
+                                         <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
+                                             <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                                 <FiDollarSign className="text-primary" />
+                                                 Financials
+                                             </h3>
+                                             <div className="space-y-4">
+                                                 <div className="flex justify-between items-center">
+                                                     <span className="text-sm text-gray-500">Status</span>
+                                                     <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${(appointment.invoice?.status === 'paid' || (!appointment.invoice && (appointment.status === 'confirmed' || appointment.status === 'completed'))) ? 'bg-green-100 text-green-700' :
+                                                         (appointment.invoice?.status === 'pending' || appointment.status === 'pending') ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-500'
+                                                         }`}>
+                                                         {appointment.invoice?.status || (appointment.status === 'confirmed' || appointment.status === 'completed' ? 'paid' : 'pending')}
+                                                     </span>
+                                                 </div>
+                                                 <div className="pt-3 border-t border-gray-100 dark:border-gray-800 space-y-2">
+                                                     <div className="flex justify-between items-center text-sm text-gray-500">
+                                                         <span>Consultation Fee</span>
+                                                         <span className="dark:text-gray-300">KES {Number(appointment.fee || 0).toLocaleString()}</span>
+                                                     </div>
+                                                     {appointment.transportFee > 0 && (
+                                                         <div className="flex justify-between items-center text-sm text-gray-500">
+                                                             <span>Transport Cost</span>
+                                                             <span className="dark:text-gray-300">KES {Number(appointment.transportFee).toLocaleString()}</span>
+                                                         </div>
+                                                     )}
+                                                 </div>
+                                                 <div className="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-gray-800">
+                                                     <span className="text-sm text-gray-500">Total Amount</span>
+                                                     <span className="font-bold text-lg dark:text-white">
+                                                         KES {Number(appointment.invoice?.totalAmount || (Number(appointment.fee || 0) + Number(appointment.transportFee || 0))).toLocaleString()}
+                                                     </span>
+                                                 </div>
+                                                 {appointment.invoice && (
+                                                     <div className="pt-3 border-t border-gray-100 dark:border-gray-800">
+                                                         <div className="flex justify-between items-center text-sm mb-1">
+                                                             <span className="text-gray-500">Invoice #</span>
+                                                             <span className="font-mono dark:text-gray-300">{appointment.invoice.invoiceNumber}</span>
+                                                         </div>
+                                                         <div className="flex justify-between items-center text-sm">
+                                                             <span className="text-gray-500">Date</span>
+                                                             <span className="dark:text-gray-300">{new Date(appointment.invoice.createdAt).toLocaleDateString()}</span>
+                                                         </div>
+                                                     </div>
+                                                 )}
+                                             </div>
+                                         </div>
+                                     )}
+                                 </div>
+                             )}
                             {/* Map (Doctor/Admin View) */}
                             {(isDoctor || isAdmin) && (
                                 <div className="bg-white dark:bg-white/5 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-800">
