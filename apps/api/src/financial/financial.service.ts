@@ -1201,7 +1201,7 @@ export class FinancialService {
                                 Mobile Money Payment
                             </div>
                             <div style="font-size: 13px; color: #334155; line-height: 1.6;">
-                                <strong>M-Pesa Buy Goods Till:</strong> ${company.mpesaTillPaybill}<br>
+                                <strong>M-Pesa Paybill Number:</strong> ${company.mpesaTillPaybill}<br>
                                 <strong>Support Mobile:</strong> ${company.clinicPhone}<br>
                                 <strong>Support Email:</strong> ${company.clinicEmail}
                             </div>
@@ -1546,7 +1546,7 @@ export class FinancialService {
                                 Mobile Money Payment
                             </div>
                             <div style="font-size: 13px; color: #334155; line-height: 1.6;">
-                                <strong>M-Pesa Buy Goods Till:</strong> ${company.mpesaTillPaybill}<br>
+                                <strong>M-Pesa Paybill Number:</strong> ${company.mpesaTillPaybill}<br>
                                 <strong>Support Mobile:</strong> ${company.clinicPhone}<br>
                                 <strong>Support Email:</strong> ${company.clinicEmail}
                             </div>
