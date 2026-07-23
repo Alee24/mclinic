@@ -78,7 +78,25 @@ export class AppointmentsService {
     // Calculate Fees using dynamic settings
     const defaultBookingFee = Number(await this.systemSettingsService.get('FEE_BOOKING') || 500);
     const defaultVirtualFee = Number(await this.systemSettingsService.get('FEE_VIRTUAL_VISIT') || 1500);
-    const defaultPhysicalFee = Number(await this.systemSettingsService.get('FEE_PHYSICAL_VISIT') || 2500);
+    
+    // Global Shift Logic
+    const baseDayFee = Number(await this.systemSettingsService.get('FEE_GLOBAL_BASE_DAY') || 2000);
+    const baseNightFee = Number(await this.systemSettingsService.get('FEE_GLOBAL_BASE_NIGHT') || 4000);
+    const nightStart = await this.systemSettingsService.get('NIGHT_SHIFT_START_TIME') || '18:00';
+    const nightEnd = await this.systemSettingsService.get('NIGHT_SHIFT_END_TIME') || '06:00';
+    
+    const apptTime = createAppointmentDto.appointment_time || '12:00';
+    let isNightShift = false;
+    
+    if (nightStart > nightEnd) {
+      // e.g. 18:00 to 06:00 (crosses midnight)
+      isNightShift = apptTime >= nightStart || apptTime <= nightEnd;
+    } else {
+      // e.g. 01:00 to 05:00 (same day)
+      isNightShift = apptTime >= nightStart && apptTime <= nightEnd;
+    }
+
+    const defaultPhysicalFee = isNightShift ? baseNightFee : baseDayFee;
     const defaultAmbulanceBase = Number(await this.systemSettingsService.get('FEE_AMBULANCE_BASE') || 5000);
 
     let fee = 0;
@@ -106,7 +124,7 @@ export class AppointmentsService {
         fee = defaultAmbulanceBase;
         serviceName = 'Ambulance Service';
       } else {
-        fee = Number(doctor.fee || defaultPhysicalFee);
+        fee = isNightShift ? baseNightFee : Number(doctor.fee || baseDayFee);
         serviceName = 'Specialist Consultation';
       }
     }

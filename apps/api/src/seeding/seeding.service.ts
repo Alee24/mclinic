@@ -92,6 +92,10 @@ export class SeedingService {
       { key: 'FEE_BOOKING', value: '0', description: 'Default booking fee', isSecure: false },
       { key: 'FEE_VIRTUAL_VISIT', value: '1500', description: 'Default virtual consultation fee', isSecure: false },
       { key: 'FEE_PHYSICAL_VISIT', value: '2500', description: 'Default physical consultation fee', isSecure: false },
+      { key: 'FEE_GLOBAL_BASE_DAY', value: '2000', description: 'Global Day Shift Base Charge', isSecure: false },
+      { key: 'FEE_GLOBAL_BASE_NIGHT', value: '4000', description: 'Global Night Shift Base Charge', isSecure: false },
+      { key: 'NIGHT_SHIFT_START_TIME', value: '18:00', description: 'Night Shift Start Time (HH:MM)', isSecure: false },
+      { key: 'NIGHT_SHIFT_END_TIME', value: '06:00', description: 'Night Shift End Time (HH:MM)', isSecure: false },
       { key: 'FEE_AMBULANCE_BASE', value: '5000', description: 'Default ambulance service fee', isSecure: false },
       { key: 'COMMISSION_PERCENTAGE', value: '40', description: 'Company commission percentage (e.g. 40 for 40%)', isSecure: false },
 

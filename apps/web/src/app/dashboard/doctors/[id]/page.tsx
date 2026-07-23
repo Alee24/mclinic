@@ -69,17 +69,24 @@ export default function DoctorDetailsPage() {
 
     // Derived Fees from Settings
     const getSetting = (key: string) => settings.find(s => s.key === key)?.value;
-    const physicalFee = Number(getSetting('FEE_PHYSICAL_VISIT') || 2500);
     const virtualFee = Number(getSetting('FEE_VIRTUAL_VISIT') || 1500);
     const bookingFee = Number(getSetting('FEE_BOOKING') || 500);
 
+    // Global Shift Pricing
+    const baseDayFee = Number(getSetting('FEE_GLOBAL_BASE_DAY') || 2000);
+    const baseNightFee = Number(getSetting('FEE_GLOBAL_BASE_NIGHT') || 4000);
+    const nightStart = getSetting('NIGHT_SHIFT_START_TIME') || '18:00';
+    const nightEnd = getSetting('NIGHT_SHIFT_END_TIME') || '06:00';
+
     // Actual display logic matching AppointmentsService
     const drType = (doctor.dr_type || '').toLowerCase();
-    let baseFee = physicalFee;
+    
+    let totalPhysicalDay = baseDayFee + bookingFee;
     if (!drType.includes('nurse') && !drType.includes('clinician')) {
-        baseFee = Number(doctor.fee || physicalFee);
+        totalPhysicalDay = Number(doctor.fee || baseDayFee) + bookingFee;
     }
-    const totalPhysical = baseFee + bookingFee;
+    
+    const totalPhysicalNight = baseNightFee + bookingFee;
     const totalVirtual = virtualFee + bookingFee;
 
     return (
@@ -107,9 +114,18 @@ export default function DoctorDetailsPage() {
                             <span className="text-primary"><FiAward /></span>
                             <span>{doctor.qualification}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-primary"><FiDollarSign /></span>
-                            <span>Fee: KES {totalPhysical}</span>
+                        <div className="flex flex-col gap-1 border-r border-gray-200 dark:border-gray-800 pr-6 mr-2">
+                            <div className="flex items-center gap-2">
+                                <span className="text-primary"><FiDollarSign /></span>
+                                <span className="font-bold text-gray-900 dark:text-white">Day Rate: KES {totalPhysicalDay}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-indigo-500"><FiDollarSign /></span>
+                                <span className="text-indigo-600 dark:text-indigo-400 font-bold">Night Rate: KES {totalPhysicalNight}</span>
+                            </div>
+                            <span className="text-[10px] text-gray-400 uppercase tracking-widest pl-6">
+                                {nightStart} - {nightEnd}
+                            </span>
                         </div>
                         <div className="flex items-center gap-2">
                             <span className="text-primary"><FiBriefcase /></span>
