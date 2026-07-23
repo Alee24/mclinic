@@ -15,6 +15,11 @@ export default function UsersPage() {
     const [newPassword, setNewPassword] = useState('');
     const [resetLoading, setResetLoading] = useState(false);
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
+    const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
+    const [bulkUpdateModalOpen, setBulkUpdateModalOpen] = useState(false);
+    const [bulkRole, setBulkRole] = useState('MEDIC');
+    const [bulkDrType, setBulkDrType] = useState('Nurse');
+    const [bulkUpdating, setBulkUpdating] = useState(false);
 
     const getProfileImageUrl = (userId: number) => {
         return `/api/users/profile-image/${userId}`;
@@ -131,6 +136,48 @@ export default function UsersPage() {
         }
     };
 
+    const toggleUserSelection = (id: number) => {
+        setSelectedUsers(prev => 
+            prev.includes(id) ? prev.filter(userId => userId !== id) : [...prev, id]
+        );
+    };
+
+    const toggleAllSelection = (filtered: any[]) => {
+        if (selectedUsers.length === filtered.length && filtered.length > 0) {
+            setSelectedUsers([]);
+        } else {
+            setSelectedUsers(filtered.map(u => u.id));
+        }
+    };
+
+    const handleBulkUpdate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (selectedUsers.length === 0) return;
+
+        setBulkUpdating(true);
+        try {
+            const res = await api.post('/users/admin/bulk-update-roles', {
+                userIds: selectedUsers,
+                role: bulkRole,
+                drType: bulkRole === 'MEDIC' ? bulkDrType : undefined
+            });
+
+            if (res && res.ok) {
+                alert('Users updated successfully!');
+                setBulkUpdateModalOpen(false);
+                setSelectedUsers([]);
+                fetchUsers(); 
+            } else {
+                alert('Failed to update users.');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Error updating users.');
+        } finally {
+            setBulkUpdating(false);
+        }
+    };
+
     const handleImpersonate = async (userId: number) => {
         if (!confirm('Are you sure you want to log in as this user? You will be signed out of your current admin session.')) return;
 
@@ -240,6 +287,15 @@ export default function UsersPage() {
                         >
                             Reset Passwords
                         </button>
+
+                        {selectedUsers.length > 0 && (
+                            <button
+                                onClick={() => setBulkUpdateModalOpen(true)}
+                                className="bg-green-600 text-white px-3 py-2 rounded-lg font-bold text-xs hover:bg-green-700"
+                            >
+                                Bulk Update ({selectedUsers.length})
+                            </button>
+                        )}
 
                         <button
                             onClick={async () => {
@@ -361,6 +417,14 @@ export default function UsersPage() {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="border-b border-gray-100 dark:border-gray-800">
+                                <th className="p-4 w-12">
+                                    <input 
+                                        type="checkbox" 
+                                        className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                        checked={selectedUsers.length === filteredUsers.length && filteredUsers.length > 0}
+                                        onChange={() => toggleAllSelection(filteredUsers)}
+                                    />
+                                </th>
                                 <th className="p-4 font-bold text-sm text-gray-500 uppercase cursor-pointer hover:text-primary transition-colors" onClick={() => requestSort('user')}>
                                     User {getSortIcon('user')}
                                 </th>
@@ -386,7 +450,15 @@ export default function UsersPage() {
                                 <tr><td colSpan={4} className="p-8 text-center text-gray-500">No users found.</td></tr>
                             ) : (
                                 filteredUsers.map((user) => (
-                                    <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                    <tr key={user.id} className={`transition-colors ${selectedUsers.includes(user.id) ? 'bg-primary/5' : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'}`}>
+                                        <td className="p-4">
+                                            <input 
+                                                type="checkbox" 
+                                                className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                                checked={selectedUsers.includes(user.id)}
+                                                onChange={() => toggleUserSelection(user.id)}
+                                            />
+                                        </td>
                                         <td className="p-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-700">
@@ -643,6 +715,60 @@ export default function UsersPage() {
                                     className="w-full py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition-colors shadow-lg shadow-red-500/30"
                                 >
                                     {resetLoading ? 'Resetting...' : 'Confirm Reset'}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {bulkUpdateModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-[#1A1A1A] w-full max-w-md rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+                        <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
+                            <h3 className="text-xl font-black dark:text-white flex items-center gap-2">
+                                <span className="text-primary"><FiUsers /></span> Bulk Update ({selectedUsers.length} Users)
+                            </h3>
+                            <button onClick={() => setBulkUpdateModalOpen(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+                                <FiX className="dark:text-white" />
+                            </button>
+                        </div>
+                        <div className="p-6">
+                            <form onSubmit={handleBulkUpdate} className="space-y-4">
+                                <div>
+                                    <label className="text-xs font-bold uppercase text-gray-400 mb-2 block">New Role</label>
+                                    <select
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black outline-none focus:ring-2 focus:ring-primary font-medium"
+                                        value={bulkRole}
+                                        onChange={e => setBulkRole(e.target.value)}
+                                    >
+                                        <option value="PATIENT">Patient</option>
+                                        <option value="MEDIC">Medic / Doctor</option>
+                                        <option value="ADMIN">Admin</option>
+                                    </select>
+                                </div>
+                                
+                                {bulkRole === 'MEDIC' && (
+                                    <div>
+                                        <label className="text-xs font-bold uppercase text-gray-400 mb-2 block">Medic Type</label>
+                                        <select
+                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black outline-none focus:ring-2 focus:ring-primary font-medium"
+                                            value={bulkDrType}
+                                            onChange={e => setBulkDrType(e.target.value)}
+                                        >
+                                            <option value="Nurse">Nurse</option>
+                                            <option value="Clinician">Clinician</option>
+                                            <option value="Doctor">Doctor</option>
+                                            <option value="Specialist">Specialist</option>
+                                        </select>
+                                    </div>
+                                )}
+
+                                <button
+                                    type="submit"
+                                    disabled={bulkUpdating}
+                                    className="w-full py-3 bg-primary hover:bg-opacity-90 text-black font-bold rounded-xl transition-colors shadow-lg shadow-primary/30 mt-4"
+                                >
+                                    {bulkUpdating ? 'Updating...' : 'Update Users'}
                                 </button>
                             </form>
                         </div>

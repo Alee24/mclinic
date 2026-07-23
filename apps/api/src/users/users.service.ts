@@ -3,6 +3,7 @@ import { In, DataSource } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DeepPartial } from 'typeorm';
 import { User, UserRole } from './entities/user.entity';
+import { Doctor } from '../doctors/entities/doctor.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { NotificationService } from '../notification/notification.service';
 import * as bcrypt from 'bcrypt';
@@ -505,6 +506,46 @@ export class UsersService implements OnModuleInit {
 
     return { success: true, updated, created, errors };
   }
+
+  async bulkUpdateRoles(userIds: number[], role: string, drType?: string): Promise<{ updated: number }> {
+    if (!userIds || userIds.length === 0) return { updated: 0 };
+    if (!['PATIENT', 'ADMIN', 'MEDIC'].includes(role)) {
+        throw new BadRequestException('Invalid role specified');
+    }
+
+    const doctorRepo = this.usersRepository.manager.getRepository(Doctor);
+    let updatedCount = 0;
+
+    for (const id of userIds) {
+      const user = await this.usersRepository.findOne({ where: { id } });
+      if (!user) continue;
+
+      user.role = role;
+      await this.usersRepository.save(user);
+
+      if (role === 'MEDIC') {
+        let doctor = await doctorRepo.findOne({ where: { user_id: id } });
+        if (!doctor) {
+            doctor = doctorRepo.create({
+                user_id: id,
+                email: user.email,
+                fname: user.fname,
+                lname: user.lname,
+                mobile: user.mobile,
+                status: user.status ? 1 : 0,
+                dr_type: drType || 'Nurse'
+            });
+        } else if (drType) {
+            doctor.dr_type = drType;
+        }
+        await doctorRepo.save(doctor);
+      }
+      updatedCount++;
+    }
+
+    return { updated: updatedCount };
+  }
+
 
   async rateProfile(id: number, rating: number) {
     const user = await this.findById(id);

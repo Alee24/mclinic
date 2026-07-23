@@ -60,6 +60,17 @@ export class UsersController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Post('admin/bulk-update-roles')
+  async bulkUpdateRoles(
+    @Body('userIds') userIds: number[],
+    @Body('role') role: string,
+    @Body('drType') drType?: string,
+  ) {
+    return this.usersService.bulkUpdateRoles(userIds, role, drType);
+  }
+
+
+  @UseGuards(AuthGuard('jwt'))
   @Post(':id/reset')
   resetPassword(@Param('id') id: string, @Body('password') password: string) {
     return this.usersService.resetPassword(+id, password);
