@@ -568,7 +568,21 @@ export default function BookAppointmentModal({ onClose, onSuccess, initialDoctor
                                 <span className="font-bold dark:text-white">{selectedService?.name || 'General Consultation'}</span>
                             </div>
                             <div className="flex justify-between border-t border-gray-200 dark:border-gray-800 pt-4 mt-2">
-                                <span className="text-gray-500 font-bold">Estimated Cost</span>
+                                <div className="flex flex-col">
+                                    <span className="text-gray-500 font-bold">Estimated Cost</span>
+                                    {(() => {
+                                        const timeToCheck = bookingTime || '12:00';
+                                        let isNight = false;
+                                        if (nightStart > nightEnd) {
+                                            isNight = timeToCheck >= nightStart || timeToCheck <= nightEnd;
+                                        } else {
+                                            isNight = timeToCheck >= nightStart && timeToCheck <= nightEnd;
+                                        }
+                                        return isNight && consultationType !== 'VIRTUAL' ? (
+                                            <span className="text-xs text-orange-500 font-bold mt-1 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded w-fit">🌙 Night Rate Applied</span>
+                                        ) : null;
+                                    })()}
+                                </div>
                                 <span className="font-black text-xl text-primary">KES {getDisplayFee(selectedDoctor!)}</span>
                             </div>
                         </div>
