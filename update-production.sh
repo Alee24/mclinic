@@ -22,6 +22,8 @@ echo "🔄 [3/4] Restarting services (force recreate)..."
 docker-compose up -d --force-recreate --no-deps api web
 
 # 4. Run Migrations
+echo "⏳ Waiting 10 seconds for containers to initialize and DNS to settle..."
+sleep 10
 echo "🗄️ [4/5] Running database migrations..."
 docker-compose exec -T api sh -c "cd apps/api && npm run migration:run:prod"
 
