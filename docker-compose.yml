@@ -33,9 +33,6 @@ services:
       - DB_NAME=mclinicportal
       - JWT_SECRET=your_jwt_secret_change_me
       - FRONTEND_URL=https://portal.mclinic.co.ke
-    dns:
-      - 8.8.8.8
-      - 8.8.4.4
     depends_on:
       - db
 
