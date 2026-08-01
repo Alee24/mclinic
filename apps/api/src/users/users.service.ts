@@ -237,19 +237,62 @@ export class UsersService implements OnModuleInit {
     const user = await this.findById(id);
     if (!user) return null;
     user.password = await bcrypt.hash(pass, 10);
-    return this.usersRepository.save(user);
+    const savedUser = await this.usersRepository.save(user);
+
+    const staffRoles = [UserRole.DOCTOR, UserRole.MEDIC, UserRole.NURSE, UserRole.CLINICIAN, UserRole.LAB_TECH, UserRole.PHARMACIST, UserRole.FINANCE];
+    if (staffRoles.includes(savedUser.role)) {
+      try {
+        await this.dataSource.query('UPDATE doctors SET password = ? WHERE email = ?', [savedUser.password, savedUser.email]);
+      } catch(e) {
+        console.error('Failed to update doctor password:', e);
+      }
+    }
+
+    if (savedUser.mobile) {
+      try {
+         const message = `M-Clinic: Your account password has been successfully changed. Your new password is: ${pass}`;
+         await this.notificationService.sendCustomSms(savedUser.mobile, message);
+      } catch (e) {
+         console.error('Failed to send password SMS', e);
+      }
+    }
+
+    return savedUser;
   }
 
   async update(id: number, updateDto: DeepPartial<User>): Promise<User | null> {
     const user = await this.findById(id);
     if (!user) return null;
 
+    let newRawPassword = '';
     if (updateDto.password && typeof updateDto.password === 'string' && !this.isBcryptHash(updateDto.password)) {
+      newRawPassword = updateDto.password;
       updateDto.password = await bcrypt.hash(updateDto.password, 10);
     }
 
     Object.assign(user, updateDto);
-    return this.usersRepository.save(user);
+    const savedUser = await this.usersRepository.save(user);
+
+    if (newRawPassword) {
+      const staffRoles = [UserRole.DOCTOR, UserRole.MEDIC, UserRole.NURSE, UserRole.CLINICIAN, UserRole.LAB_TECH, UserRole.PHARMACIST, UserRole.FINANCE];
+      if (staffRoles.includes(savedUser.role)) {
+        try {
+          await this.dataSource.query('UPDATE doctors SET password = ? WHERE email = ?', [savedUser.password, savedUser.email]);
+        } catch(e) {
+          console.error('Failed to update doctor password:', e);
+        }
+      }
+      if (savedUser.mobile) {
+        try {
+           const message = `M-Clinic: Your account password has been successfully changed. Your new password is: ${newRawPassword}`;
+           await this.notificationService.sendCustomSms(savedUser.mobile, message);
+        } catch (e) {
+           console.error('Failed to send password SMS', e);
+        }
+      }
+    }
+
+    return savedUser;
   }
 
   async updateProfilePicture(id: number, filename: string): Promise<User | null> {

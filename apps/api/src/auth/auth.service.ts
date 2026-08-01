@@ -103,16 +103,21 @@ export class AuthService {
 
     // Update last access timestamp on every successful login
     try {
-      let userRecord = await this.usersService.findOne(validUser.email);
-      
-      // If it's a doctor/medic and no user record exists, sync it now to enable tracking
       const isDoctorRole = ['doctor', 'medic', 'nurse', 'clinician', 'lab_tech', 'pharmacist'].includes(validUser.role);
-      if (!userRecord && isDoctorRole) {
-         userRecord = await this.usersService.syncUserFromDoctor(validUser);
+      let userIdToUpdate = validUser.id;
+
+      if (isDoctorRole) {
+        let userRecord = await this.usersService.findOne(validUser.email);
+        if (!userRecord) {
+           userRecord = await this.usersService.syncUserFromDoctor(validUser);
+        }
+        if (userRecord) {
+           userIdToUpdate = userRecord.id;
+        }
       }
 
-      if (userRecord) {
-        await this.usersService.updateLastAccess(userRecord.id);
+      if (userIdToUpdate) {
+        await this.usersService.updateLastAccess(userIdToUpdate);
       }
     } catch (e) {
       console.error('[AuthService] Failed to update lastAccess:', e);
@@ -552,6 +557,13 @@ export class AuthService {
     }
 
     const payload = { email: account.email, sub: account.id, role };
+    
+    // Update last access timestamp
+    try {
+      await this.usersService.updateLastAccess(account.id);
+    } catch (e) {
+      console.error('[AuthService] Failed to update lastAccess for OTP login:', e);
+    }
     
     let finalUser = { ...account, role };
     if (finalUser.password) delete (finalUser as any).password;
