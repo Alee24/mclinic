@@ -1,4 +1,4 @@
-import { Module, Global } from '@nestjs/common';
+import { Module, Global, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { NotificationService } from './notification.service';
 import { NotificationController } from './notification.controller';
@@ -11,7 +11,7 @@ import { Notification } from './entities/notification.entity';
 @Module({
     imports: [
         TypeOrmModule.forFeature([SystemSetting, CommunicationLog, Notification]),
-        SmsModule
+        forwardRef(() => SmsModule),
     ],
     controllers: [NotificationController],
     providers: [NotificationService],

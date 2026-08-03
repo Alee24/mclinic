@@ -3,14 +3,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { SupportService } from './support.service';
 import { SupportController } from './support.controller';
 import { SupportRequest } from './entities/support-request.entity';
-import { NotificationModule } from '../notification/notification.module';
-import { SmsModule } from '../sms/sms.module';
 
+// NotificationModule is @Global() — available app-wide from AppModule.
+// SmsModule is exported by NotificationModule — also available globally.
+// No need to import either here.
 @Module({
     imports: [
         TypeOrmModule.forFeature([SupportRequest]),
-        NotificationModule,
-        SmsModule
     ],
     controllers: [SupportController],
     providers: [SupportService]
