@@ -36,5 +36,5 @@ echo "🔄 Restarting Apache..."
 systemctl restart apache2
 
 echo "✅ Apache configured successfully!"
-echo "   - Frontend: https://portal.mclinic.co.ke -> port 3034"
-echo "   - API: https://portal.mclinic.co.ke/api -> port 3434"
+echo "   - Frontend: https://portal.mclinic.co.ke -> port 7898"
+echo "   - API: https://portal.mclinic.co.ke/api -> port 7899"

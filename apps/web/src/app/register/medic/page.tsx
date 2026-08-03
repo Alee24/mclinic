@@ -130,7 +130,10 @@ export default function MedicRegisterPage() {
             }
         } catch (error: any) {
             console.error('Registration error:', error);
-            const errorMessage = error.response?.data?.message || error.message || 'An error occurred during submission.';
+            let errorMessage = error.response?.data?.message || error.message || 'An error occurred during submission.';
+            if (errorMessage.includes("Unexpected token '<'") || errorMessage.includes('<!DOCTYPE')) {
+                errorMessage = 'Server error or invalid response format. Please verify backend server connection.';
+            }
             toast.error(errorMessage);
         } finally {
             setLoading(false);

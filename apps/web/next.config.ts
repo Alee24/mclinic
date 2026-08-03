@@ -15,10 +15,11 @@ const nextConfig: NextConfig = {
     ],
   },
   async rewrites() {
+    const apiPort = process.env.API_PORT || process.env.PORT || '7899';
     return [
       {
         source: '/api/:path*',
-        destination: 'http://127.0.0.1:3434/api/:path*',
+        destination: `http://127.0.0.1:${apiPort}/api/:path*`,
       },
     ];
   },

@@ -3,7 +3,7 @@
 
 # API Configuration
 NODE_ENV=production
-PORT=3434
+PORT=7899
 
 # Database (MySQL)
 DB_HOST=localhost
