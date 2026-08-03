@@ -12,6 +12,12 @@ services:
       - "3306"
     volumes:
       - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "m-cl-app", "-pMclinic@App2023?"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
   api:
     build:
@@ -23,7 +29,6 @@ services:
       - "7899:7899"
     volumes:
       - uploads_data:/app/apps/api/uploads
-      - ./apps/api/.env:/app/apps/api/.env
     environment:
       - PORT=7899
       - DB_HOST=db
@@ -31,10 +36,12 @@ services:
       - DB_USER=m-cl-app
       - DB_PASSWORD=Mclinic@App2023?
       - DB_NAME=mclinicportal
-      - JWT_SECRET=your_jwt_secret_change_me
+      - JWT_SECRET=MclinicJWTSecret2024!xK9pQ3mN8vR
       - FRONTEND_URL=https://portal.mclinic.co.ke
+      - NODE_ENV=production
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   web:
     build:
@@ -47,6 +54,7 @@ services:
     environment:
       - PORT=7898
       - NEXT_PUBLIC_API_URL=https://portal.mclinic.co.ke/api
+      - NODE_ENV=production
     depends_on:
       - api
 
