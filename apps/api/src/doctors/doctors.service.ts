@@ -262,13 +262,38 @@ export class DoctorsService implements OnModuleInit {
     }
 
     private async createDoctorLogic(dto: any, user: User | null) {
+        if (!dto.email) {
+            throw new BadRequestException('Email is required for registration.');
+        }
+
         // 1. Hash password if present
         if (dto.password) {
             dto.password = await bcrypt.hash(dto.password, 10);
         }
 
+        // Sanitize date fields (e.g., licenceExpiry) to prevent MySQL datetime format errors
+        if (dto.licenceExpiry) {
+            const parsedDate = new Date(dto.licenceExpiry);
+            dto.licenceExpiry = !isNaN(parsedDate.getTime()) ? parsedDate : null;
+        } else {
+            dto.licenceExpiry = null;
+        }
+
+        // Sanitize numeric and boolean fields
+        if (dto.years_of_experience !== undefined) {
+            dto.years_of_experience = Number(dto.years_of_experience) || 0;
+        }
+        if (dto.fee !== undefined) {
+            dto.fee = Number(dto.fee) || 1500;
+        }
+        if (dto.telemedicine !== undefined) {
+            dto.telemedicine = Number(dto.telemedicine) === 1 ? 1 : 0;
+        }
+        if (dto.on_call !== undefined) {
+            dto.on_call = Number(dto.on_call) === 1 ? 1 : 0;
+        }
+
         // 2. Safety: Filter out fields that don't exist in the database schema to prevent crashes
-        // This is crucial because frontend may send UI state fields like 'cadre' or 'confirmPassword'
         const allowedFields = this.doctorsRepository.metadata.columns.map(c => c.propertyName);
         const filteredDto = Object.keys(dto)
             .filter(key => allowedFields.includes(key))
@@ -282,13 +307,16 @@ export class DoctorsService implements OnModuleInit {
             const existing = await this.doctorsRepository.findOne({ where: { email: filteredDto.email } });
             if (existing) {
                 console.log(`[DoctorsService] Overwriting existing doctor record for ${filteredDto.email}`);
-                await this.doctorsRepository.update(existing.id, {
-                    ...filteredDto,
-                    user_id: user ? user.id : (dto.user_id || existing.user_id),
-                    // If uploading via admin/migration, we might want to keep status OR force active
-                    // Let's assume the upload data includes status if it wants to change it
-                });
-                return this.findOne(existing.id);
+                try {
+                    await this.doctorsRepository.update(existing.id, {
+                        ...filteredDto,
+                        user_id: user ? user.id : (dto.user_id || existing.user_id),
+                    });
+                    return await this.findOne(existing.id);
+                } catch (updateErr: any) {
+                    console.error('[DoctorsService] Registration Update Error:', updateErr);
+                    throw new BadRequestException(`Registration update failed: ${updateErr.sqlMessage || updateErr.message || 'Check input details.'}`);
+                }
             }
         }
 
@@ -302,9 +330,9 @@ export class DoctorsService implements OnModuleInit {
 
         try {
             return await this.doctorsRepository.save(doctor);
-        } catch (error) {
+        } catch (error: any) {
             console.error('[DoctorsService] Registration Error:', error);
-            throw new BadRequestException('Could not complete registration. Please check your details.');
+            throw new BadRequestException(`Could not complete registration: ${error.sqlMessage || error.message || 'Please check your details.'}`);
         }
     }
 
