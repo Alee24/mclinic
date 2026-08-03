@@ -1,4 +1,5 @@
-import PDFDocument from 'pdfkit';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const PDFDocument = require('pdfkit') as typeof import('pdfkit');
 import { Appointment } from './entities/appointment.entity';
 import * as path from 'path';
 import * as fs from 'fs';
