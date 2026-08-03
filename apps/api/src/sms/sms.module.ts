@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module, Global, forwardRef } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SmsService } from './sms.service';
@@ -8,9 +8,7 @@ import { CommunicationLog } from '../notification/entities/communication-log.ent
 import { UsersModule } from '../users/users.module';
 import { DoctorsModule } from '../doctors/doctors.module';
 
-// forwardRef breaks the circular chain:
-// SmsModule → UsersModule → NotificationModule (global, imports SmsModule)
-// SmsModule → DoctorsModule → UsersModule → NotificationModule
+@Global()
 @Module({
     imports: [
         HttpModule,
