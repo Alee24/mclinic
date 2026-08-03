@@ -365,28 +365,37 @@ export class AuthService {
   }
 
   async forgotPassword(input: string) {
+    if (!input || typeof input !== 'string' || input.trim() === '') {
+      throw new BadRequestException('Please provide a valid email or phone number.');
+    }
+
+    const cleanInput = input.trim();
     let user: any = null;
     let doctor: any = null;
     let isMobile = false;
 
-    // 1. Check if input is a mobile number
-    const formattedMobile = this.smsService.formatMobile(input);
-    if (formattedMobile && (input.startsWith('0') || input.startsWith('254') || input.startsWith('+'))) {
+    // Check if input is a phone number (no @ symbol and at least 9 digits)
+    const cleanDigits = cleanInput.replace(/\D/g, '');
+    const formattedMobile = this.smsService.formatMobile(cleanInput);
+
+    if (!cleanInput.includes('@') && cleanDigits.length >= 9) {
       isMobile = true;
-      user = await this.usersService.findOneByMobile(formattedMobile);
+      const lookupMobile = formattedMobile || cleanDigits;
+      user = await this.usersService.findOneByMobile(lookupMobile);
       if (!user) {
-        doctor = await this.doctorsService.findOneByMobile(formattedMobile);
+        doctor = await this.doctorsService.findOneByMobile(lookupMobile);
       }
     } else {
-      // 2. Treat as email
-      user = await this.usersService.findOne(input);
+      user = await this.usersService.findOne(cleanInput);
       if (!user) {
-        doctor = await this.doctorsService.findByEmail(input);
+        doctor = await this.doctorsService.findByEmail(cleanInput);
       }
     }
 
     if (!user && !doctor) {
-      return { message: 'If an account exists, a reset link has been sent.' };
+      return { 
+        message: 'If an account exists, a password reset link has been sent.' 
+      };
     }
 
     const token = randomBytes(32).toString('hex');
@@ -406,22 +415,28 @@ export class AuthService {
     const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
 
     try {
-      // Send Email if available
+      // 1. Send Email if target has email
       if (target.email) {
         await this.emailService.sendPasswordResetEmail(target, token);
       }
       
-      // Send SMS if mobile is available or was the primary input
-      const mobileToSend = isMobile ? formattedMobile : (target.mobile ? this.smsService.formatMobile(target.mobile) : null);
+      // 2. Send SMS if mobile is available or input was mobile
+      const rawMobile = isMobile ? cleanInput : target.mobile;
+      const mobileToSend = rawMobile ? this.smsService.formatMobile(rawMobile) : null;
+
       if (mobileToSend) {
-        const message = `M-Clinic: Use this link to reset your password: ${resetUrl}. Link expires in 1 hour.`;
+        const message = `M-Clinic: Reset your password here: ${resetUrl} (Valid for 1 hr)`;
         await this.smsService.sendSms(mobileToSend, message);
       }
     } catch (e) {
-      console.error('Failed to send reset notifications', e);
+      console.error('Failed to send reset notifications:', e);
     }
 
-    return { message: 'If an account exists, a reset link has been sent.' };
+    return { 
+      message: isMobile 
+        ? 'Password reset link sent to your phone via SMS.' 
+        : 'If an account exists, a password reset link has been sent.' 
+    };
   }
 
   async resetPassword(token: string, newPassword: string) {

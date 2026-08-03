@@ -20,15 +20,16 @@ export default function ForgotPasswordPage() {
         setLoading(true);
 
         try {
-            const res = await api.post('/auth/forgot-password', { email: input });
+            const isPhone = !input.includes('@') && input.replace(/\D/g, '').length >= 9;
+            setIsSms(isPhone);
+
+            const res = await api.post('/auth/forgot-password', { input, email: input });
 
             if (res && res.ok) {
                 setSubmitted(true);
-                const isPhone = /^[0-9+]+$/.test(input.replace(/\s/g, ''));
-                setIsSms(isPhone);
-                toast.success(isPhone ? 'Reset link sent to your phone.' : 'Reset link sent to your email.');
+                toast.success(isPhone ? 'Reset link sent to your phone via SMS.' : 'Reset link sent to your email.');
             } else {
-                const data = await res?.json();
+                const data = await res?.json().catch(() => ({}));
                 toast.error(data?.message || 'Failed to process request.');
             }
         } catch (error) {
@@ -96,14 +97,25 @@ export default function ForgotPasswordPage() {
                         <p className="text-gray-500 text-sm mb-4 leading-relaxed">
                             We've sent a password reset link to <span className="font-bold text-gray-900 dark:text-gray-200">{input}</span>. 
                         </p>
-                        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 p-4 rounded-xl mb-8">
-                            <p className="text-amber-800 dark:text-amber-400 text-xs font-bold uppercase tracking-tight">
-                                Important Note
-                            </p>
-                            <p className="text-amber-700 dark:text-amber-500 text-sm mt-1">
-                                Please check your <span className="font-black underline">SPAM/JUNK</span> folder if you don't see it in your inbox.
-                            </p>
-                        </div>
+                        {isSms ? (
+                            <div className="bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800 p-4 rounded-xl mb-8">
+                                <p className="text-green-800 dark:text-green-400 text-xs font-bold uppercase tracking-tight">
+                                    SMS SENT
+                                </p>
+                                <p className="text-green-700 dark:text-green-500 text-sm mt-1">
+                                    Please check your text messages / SMS inbox on your phone for the reset link.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 p-4 rounded-xl mb-8">
+                                <p className="text-amber-800 dark:text-amber-400 text-xs font-bold uppercase tracking-tight">
+                                    IMPORTANT NOTE
+                                </p>
+                                <p className="text-amber-700 dark:text-amber-500 text-sm mt-1">
+                                    Please check your <span className="font-black underline">SPAM/JUNK</span> folder if you don't see it in your inbox.
+                                </p>
+                            </div>
+                        )}
                         <button 
                             onClick={() => setSubmitted(false)}
                             className="text-sm font-bold text-green-600 hover:underline"

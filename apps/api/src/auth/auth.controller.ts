@@ -38,8 +38,9 @@ export class AuthController {
   }
   
   @Post('forgot-password')
-  async forgotPassword(@Body('email') email: string) {
-    return this.authService.forgotPassword(email);
+  async forgotPassword(@Body() body: { email?: string; input?: string }) {
+    const rawInput = body.input || body.email || '';
+    return this.authService.forgotPassword(rawInput);
   }
 
   @Post('reset-password')
