@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, HttpException, HttpStatus, Inject, forwardRef } from '@nestjs/common';
 import { SmsService } from './sms.service';
 import { AuthGuard } from '@nestjs/passport';
 import { UsersService } from '../users/users.service';
@@ -9,8 +9,8 @@ import { UserRole } from '../users/entities/user.entity';
 export class SmsController {
     constructor(
         private readonly smsService: SmsService,
-        private readonly usersService: UsersService,
-        private readonly doctorsService: DoctorsService
+        @Inject(forwardRef(() => UsersService)) private readonly usersService: UsersService,
+        @Inject(forwardRef(() => DoctorsService)) private readonly doctorsService: DoctorsService
     ) { }
 
     @UseGuards(AuthGuard('jwt'))

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull, DeepPartial } from 'typeorm';
 import { PaymentConfig, PaymentProvider } from './entities/payment-config.entity';
@@ -34,6 +34,7 @@ export class FinancialService {
         @InjectRepository(SystemSetting)
         private settingRepo: Repository<SystemSetting>,
         private walletsService: WalletsService,
+        @Inject(forwardRef(() => MpesaService))
         private mpesaService: MpesaService,
         private notificationService: NotificationService,
     ) { }
