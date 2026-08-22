@@ -81,9 +81,6 @@ export default function Footer() {
                     <p className="text-gray-500 text-sm">
                         &copy; {new Date().getFullYear()} M-Clinic Kenya. All rights reserved.
                     </p>
-                    <div className="text-sm text-gray-500 flex items-center gap-2">
-                        Designed & Developed by | <a href="https://kkdes.co.ke/" target="_blank" rel="noopener noreferrer" className="text-white hover:text-mc-green transition-colors font-bold underline underline-offset-8 decoration-mc-green/30">KKDES</a>
-                    </div>
                 </div>
             </div>
         </footer>

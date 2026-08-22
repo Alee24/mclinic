@@ -410,9 +410,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
 
 
-                <div className="mt-auto pt-6 border-t border-gray-100 dark:border-gray-800 text-[10px] text-gray-400 text-center opacity-60">
-                    Developed by | <a href="https://kkdes.co.ke/" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 transition-colors underline underline-offset-4">KKDES</a>
-                </div>
+
             </aside >
             )}
 

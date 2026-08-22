@@ -520,13 +520,7 @@ export default function MedicGuidePage() {
                 </div>
             </div>
 
-            {/* Footer */}
-            <div className="text-center text-sm text-gray-400 pt-4">
-                Developed by |{' '}
-                <a href="https://kkdes.co.ke/" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                    KKDES
-                </a>
-            </div>
+
         </div>
     );
 }

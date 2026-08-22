@@ -66,7 +66,7 @@ export default function ApprovalStatusBanner({
                             </div>
                         )}
                         <p className="text-sm text-red-600 dark:text-red-400">
-                            Please contact support at info@kkdes.co.ke for more information.
+                            Please contact support at info@mclinic.co.ke for more information.
                         </p>
                     </div>
                 </div>
