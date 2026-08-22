@@ -3,7 +3,7 @@
     "pages/index/index"
   ],
   "window": {
-    "defaultTitle": "M-Clinic",
+    "defaultTitle": "M-Clinic Kenya",
     "titleBarColor": "#00a651",
     "pullRefresh": false,
     "allowsBounceVertical": "NO"

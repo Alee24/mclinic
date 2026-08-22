@@ -13,6 +13,6 @@ App({
   },
   globalData: {
     // Configurable H5 endpoint
-    webviewBaseUrl: 'https://mclinic.co.ke'
+    webviewBaseUrl: 'https://portal.mclinic.co.ke'
   }
 });
