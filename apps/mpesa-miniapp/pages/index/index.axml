@@ -1,3 +1,20 @@
 <view class="container">
-  <web-view src="{{webviewUrl}}" onMessage="onMessage" />
+  <block a:if="{{isLoading}}">
+    <view class="loading-container">
+      <view class="loading-spinner" />
+      <text class="loading-text">Connecting to M-Clinic...</text>
+    </view>
+  </block>
+
+  <block a:if="{{isError}}">
+    <view class="error-container">
+      <text class="error-title">Connection Error</text>
+      <text class="error-desc">Unable to establish session with M-Clinic services. Please verify your connection.</text>
+      <button class="retry-button" onTap="onRetry">Retry Connection</button>
+    </view>
+  </block>
+
+  <block a:if="{{webviewUrl}}">
+    <web-view src="{{webviewUrl}}" onMessage="onMessage" onLoad="onWebviewLoad" onError="onWebviewError" />
+  </block>
 </view>

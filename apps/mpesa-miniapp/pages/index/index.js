@@ -2,26 +2,49 @@ const app = getApp();
 
 Page({
   data: {
-    webviewUrl: ''
+    webviewUrl: '',
+    isLoading: true,
+    isError: false
   },
 
   onLoad(query) {
     this.initSession();
   },
 
+  onRetry() {
+    this.setData({
+      isLoading: true,
+      isError: false
+    });
+    this.initSession();
+  },
+
+  getApiBaseUrl() {
+    return (app.globalData && app.globalData.apiBaseUrl) 
+      ? app.globalData.apiBaseUrl 
+      : 'https://api.mclinic.co.ke';
+  },
+
+  getWebviewBaseUrl() {
+    return (app.globalData && app.globalData.webviewBaseUrl) 
+      ? app.globalData.webviewBaseUrl 
+      : 'https://portal.mclinic.co.ke';
+  },
+
   initSession() {
-    const baseUrl = app.globalData.webviewBaseUrl;
-    
-    // Step 1: Request M-Pesa Native Authorization Code
+    const webviewBaseUrl = this.getWebviewBaseUrl();
+    const apiBaseUrl = this.getApiBaseUrl();
+
+    // Request M-Pesa Native Authorization Code from Safaricom JSBridge
     my.getAuthCode({
       scopes: 'auth_base',
       success: (authRes) => {
         const authCode = authRes.authCode;
-        console.log('Successfully retrieved authCode:', authCode);
+        console.log('Successfully retrieved M-Pesa authCode:', authCode);
 
-        // Step 2: Exchange authCode for JWT token from M-Clinic backend
+        // Exchange authCode for JWT token from M-Clinic backend
         my.request({
-          url: 'http://localhost:3001/auth/mpesa-miniapp/login', // Adjust backend URL in production
+          url: `${apiBaseUrl}/auth/mpesa-miniapp/login`,
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -33,95 +56,177 @@ Page({
           success: (loginRes) => {
             if (loginRes.data && loginRes.data.access_token) {
               const token = loginRes.data.access_token;
-              console.log('Login successful. Session token received.');
-              // Redirect straight to dashboard inside webview with auth token
+              console.log('M-Pesa SSO login successful. Access token received.');
               this.setData({
-                webviewUrl: `${baseUrl}/dashboard?platform=mpesa&token=${token}`
+                webviewUrl: `${webviewBaseUrl}/dashboard?platform=mpesa&token=${encodeURIComponent(token)}`,
+                isLoading: false,
+                isError: false
               });
             } else {
-              // Fallback: load dashboard with authCode parameter
+              console.warn('SSO token missing in response. Loading fallback webview session.');
               this.setData({
-                webviewUrl: `${baseUrl}/dashboard?platform=mpesa&authCode=${authCode}`
+                webviewUrl: `${webviewBaseUrl}/dashboard?platform=mpesa&authCode=${encodeURIComponent(authCode)}`,
+                isLoading: false,
+                isError: false
               });
             }
           },
           fail: (err) => {
-            console.warn('Backend OAuth exchange failed. Loading webview in standard fallback mode:', err);
+            console.warn('Backend OAuth exchange request failed. Fallback to webview platform mode:', err);
             this.setData({
-              webviewUrl: `${baseUrl}/dashboard?platform=mpesa`
+              webviewUrl: `${webviewBaseUrl}/dashboard?platform=mpesa`,
+              isLoading: false,
+              isError: false
             });
           }
         });
       },
       fail: (err) => {
-        console.error('getAuthCode failed:', err);
-        // Fallback: load webview without session (user logs in manually)
+        console.error('my.getAuthCode failed or unsupported:', err);
+        // Fallback: direct webview load without session parameters
         this.setData({
-          webviewUrl: `${baseUrl}/dashboard?platform=mpesa`
+          webviewUrl: `${webviewBaseUrl}/dashboard?platform=mpesa`,
+          isLoading: false,
+          isError: false
         });
       }
     });
   },
 
-  // Handles messages sent from Next.js H5 app (inside the webview)
+  onWebviewLoad(e) {
+    console.log('Webview loaded successfully:', e);
+    this.setData({ isLoading: false });
+  },
+
+  onWebviewError(e) {
+    console.error('Webview loading error:', e);
+    this.setData({
+      isLoading: false,
+      isError: true
+    });
+  },
+
+  // Handles messages sent from Next.js H5 app inside the webview via postMessage
   onMessage(e) {
-    console.log('Message received from Webview:', e);
-    const data = e.detail;
+    console.log('JSBridge message received from H5 Webview:', e);
+    const data = e.detail || (e.data && e.data[0]);
 
-    if (data && data.action === 'pay') {
-      const { invoiceId, amount, invoiceNumber } = data;
-      
-      my.showLoading({
-        content: 'Initiating M-Pesa Payment...'
-      });
+    if (!data || !data.action) return;
 
-      // Request transaction order from backend
-      my.request({
-        url: 'http://localhost:3001/financial/mpesa/stk-push', // Adjust backend endpoint
-        method: 'POST',
-        data: {
-          invoiceId: invoiceId,
-          amount: amount
-        },
-        dataType: 'json',
-        success: (res) => {
-          my.hideLoading();
-          
-          // In a production setup, Safaricom Daraja returns an order/trade number.
-          // The host Mini Program calls my.tradePay to trigger the native M-Pesa PIN overlay.
-          const tradeNo = res.data && res.data.checkoutRequestId;
-          if (tradeNo) {
-            my.tradePay({
-              tradeNO: tradeNo,
-              success: (payRes) => {
-                my.showToast({
-                  type: 'success',
-                  content: 'Payment processed successfully!'
-                });
-              },
-              fail: (payErr) => {
-                // If native tradePay fails or is unsupported in sandbox, report error
-                my.showToast({
-                  type: 'fail',
-                  content: 'M-Pesa payment failed or cancelled.'
-                });
-              }
-            });
-          } else {
-            my.showToast({
-              type: 'success',
-              content: 'STK push sent. Please confirm on your phone.'
+    const apiBaseUrl = this.getApiBaseUrl();
+
+    switch (data.action) {
+      case 'pay': {
+        const { invoiceId, amount, phoneNumber, invoiceNumber } = data;
+        
+        my.showLoading({
+          content: 'Initiating M-Pesa Payment...'
+        });
+
+        my.request({
+          url: `${apiBaseUrl}/financial/mpesa/stk-push`,
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          data: {
+            invoiceId: invoiceId,
+            amount: amount,
+            phone: phoneNumber
+          },
+          dataType: 'json',
+          success: (res) => {
+            my.hideLoading();
+            const tradeNo = res.data && (res.data.checkoutRequestId || res.data.tradeNo);
+            
+            if (tradeNo && typeof my.tradePay === 'function') {
+              my.tradePay({
+                tradeNO: tradeNo,
+                success: (payRes) => {
+                  my.showToast({
+                    type: 'success',
+                    content: 'Payment completed successfully!'
+                  });
+                },
+                fail: (payErr) => {
+                  my.showToast({
+                    type: 'fail',
+                    content: 'M-Pesa payment failed or was cancelled.'
+                  });
+                }
+              });
+            } else {
+              my.showToast({
+                type: 'success',
+                content: 'STK push sent. Please enter PIN on your phone.'
+              });
+            }
+          },
+          fail: (err) => {
+            my.hideLoading();
+            my.alert({
+              title: 'Payment Gateway Error',
+              content: 'Could not connect to M-Pesa payment service. Please try again.'
             });
           }
-        },
-        fail: (err) => {
-          my.hideLoading();
-          my.alert({
-            title: 'Payment Error',
-            content: 'Could not connect to payment gateway. Please try again.'
+        });
+        break;
+      }
+
+      case 'toast': {
+        my.showToast({
+          type: data.type || 'none',
+          content: data.content || '',
+          duration: data.duration || 2000
+        });
+        break;
+      }
+
+      case 'alert': {
+        my.alert({
+          title: data.title || 'Notice',
+          content: data.content || '',
+          buttonText: data.buttonText || 'OK'
+        });
+        break;
+      }
+
+      case 'navigate': {
+        if (data.url) {
+          my.navigateTo({
+            url: data.url,
+            fail: () => {
+              my.redirectTo({ url: data.url });
+            }
           });
         }
-      });
+        break;
+      }
+
+      case 'setStorage': {
+        if (data.key) {
+          my.setStorage({
+            key: data.key,
+            data: data.value
+          });
+        }
+        break;
+      }
+
+      case 'share': {
+        if (typeof my.showSharePanel === 'function') {
+          my.showSharePanel();
+        } else {
+          my.showToast({
+            content: 'Share options opened',
+            type: 'none'
+          });
+        }
+        break;
+      }
+
+      default:
+        console.log('Unhandled JSBridge action:', data.action);
     }
   }
 });

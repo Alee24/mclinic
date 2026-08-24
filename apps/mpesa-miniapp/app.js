@@ -12,7 +12,10 @@ App({
     console.error('M-Clinic Mini Program error occurred:', error);
   },
   globalData: {
-    // Configurable H5 endpoint
-    webviewBaseUrl: 'https://portal.mclinic.co.ke'
+    // Configurable webview H5 endpoint
+    webviewBaseUrl: 'https://portal.mclinic.co.ke',
+    // Configurable backend NestJS API endpoint
+    apiBaseUrl: 'https://api.mclinic.co.ke'
   }
 });
+

@@ -1,0 +1,79 @@
+/* Page specific styles for webview container */
+.container {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  background-color: #f8fafc;
+}
+
+web-view {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.loading-container, .error-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffffff;
+  z-index: 10;
+  padding: 32rpx;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 72rpx;
+  height: 72rpx;
+  border: 6rpx solid #e2e8f0;
+  border-top-color: #00a651;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 24rpx;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 30rpx;
+  color: #475569;
+  font-weight: 500;
+}
+
+.error-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 16rpx;
+}
+
+.error-desc {
+  font-size: 28rpx;
+  color: #64748b;
+  margin-bottom: 40rpx;
+  line-height: 1.5;
+}
+
+.retry-button {
+  background-color: #00a651;
+  color: #ffffff;
+  font-size: 30rpx;
+  font-weight: 600;
+  padding: 20rpx 48rpx;
+  border-radius: 40rpx;
+  border: none;
+  box-shadow: 0 4rpx 12rpx rgba(0, 166, 81, 0.3);
+}
+
+.retry-button:active {
+  opacity: 0.85;
+}
